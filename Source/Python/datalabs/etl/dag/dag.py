@@ -1,9 +1,11 @@
 """ Class for defining a DAG. """
+from   abc import ABC
 from   dataclasses import dataclass
 import re
 
 import paradag
 
+from   datalabs.plugin import import_plugin
 from   datalabs.etl.dag.state import Status
 
 
@@ -74,8 +76,8 @@ class DAGMeta(type):
         cls.__task_classes__ = {}
 
         if hasattr(cls, '__annotations__'):
-            for task, task_class in cls.__annotations__.items():
-                cls._generate_tasks(task, task_class)
+            for task, task_annotation in cls.__annotations__.items():
+                cls._generate_task(task, task_annotation)
 
         return cls
 
@@ -85,12 +87,22 @@ class DAGMeta(type):
 
         return cls.__task_classes__.get(name)
 
-    def _generate_tasks(cls, task, task_class):
-        if type(task_class).__name__ == 'Repeat':
-            for index in range(task_class.start, task_class.count):
-                cls.__task_classes__[f'{task}_{index}'] = DAGTask(f'{task}_{index}', task_class.task_class)
+    @property
+    def tasks(cls):
+        return cls.__task_classes__.keys()
+
+    def _generate_task(cls, task, task_annotation):
+        if isinstance(task_annotation, TaskAnnotation):
+            cls.__task_classes__[task] = DAGTask(task, task_annotation.task_class)
+        elif type(task_annotation).__name__ == "Repeat":
+            # pylint: disable=no-value-for-parameter
+            cls._generate_subtasks(task, task_annotation)
         else:
-            cls.__task_classes__[task] = DAGTask(task, task_class)
+            cls.__task_classes__[task] = DAGTask(task, task_annotation)
+
+    def _generate_subtasks(cls, task, repeat):
+        for index in range(repeat.start, repeat.count):
+            cls.__task_classes__[f'{task}_{index}'] = DAGTask(f'{task}_{index}', repeat.task_class)
 
 
 class DAG(paradag.DAG, metaclass=DAGMeta):
@@ -238,7 +250,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
 def register(*args, **kwargs):
     def register_class(dag_class):
         if "name" in kwargs:
-            dag_class.CLASSES[kwargs["name"]] = dag_class
+            DAG.CLASSES[kwargs["name"]] = dag_class
 
         return dag_class
 
@@ -248,6 +260,25 @@ def register(*args, **kwargs):
         return_value = register_class(args[0])
 
     return return_value
+
+
+class TaskAnnotation(ABC):
+    def __init__(self, task_class):
+        self._task_class = task_class
+
+    @property
+    def task_class(self):
+        return self._task_class
+
+
+class PythonTask(TaskAnnotation):
+    @property
+    def task_class(self):
+        return import_plugin(self._task_class)
+
+
+class JavaTask(TaskAnnotation):
+    pass
 
 
 @dataclass

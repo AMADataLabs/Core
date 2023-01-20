@@ -9,8 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.1.0
-        [prd]=1.1.0
+        [tst]=1.6.1
+        [prd]=1.5.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -19,7 +19,7 @@ main() {
 
     export RELEASE_TYPE="Python"
     export RELEASE_NAME="datalabs-intelligentplatform-licensing"
-    export RELEASE_DESCRIPTION="Platform Licensing ETL Process"
+    export RELEASE_DESCRIPTION="Intelligent Platform Licensing ETL Process"
 }
 
 

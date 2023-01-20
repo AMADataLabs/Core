@@ -1,16 +1,15 @@
 """ Class for taking Address Model scores, applying functions from filtering.py, creating an address load file """
-from datetime import datetime
-from glob import glob
+from   datetime import datetime
+from   glob import glob
+from   io import BytesIO
 import logging
 import os
-from io import BytesIO
+
 import pandas as pd
-import pickle as pk
-# pylint: disable=import-error, unused-import
-from datalabs.analysis.address.scoring.bolo import filtering
-from datalabs.etl.transform import TransformerTask
-# from datalabs.analysis.address.batchload.aggregator import is_valid_component_file_structure
-from datalabs.etl.fs.extract import LocalFileExtractorTask
+
+from   datalabs.analysis.address.scoring.bolo import filtering
+from   datalabs.etl.fs.extract import LocalFileExtractorTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -18,45 +17,51 @@ LOGGER.setLevel(logging.INFO)
 
 MINIMUM_SCORE_DIFFERENCE = 0.2
 VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS = 5*365  # will not overwrite addresses verified within this amount of time
+AS_OF_DATE = '2022-12-06'
 
 
-def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame):
-    post_addr_at_data.columns = [f'post_{col}' for col in post_addr_at_data.columns.values]
+def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame=None):
+    # Note from Peter: I don't know if post_addr_at_data is actually optionaly here, but there is a call to this
+    # function below that only has one argument. This generates a pylint error.
+    if post_addr_at_data:
+        post_addr_at_data.columns = [f'post_{col}' for col in post_addr_at_data.columns.values]
 
-    post_addr_at_data['post_comm_id'] = post_addr_at_data['post_comm_id'].astype(str).apply(str.strip)
-    data['comm_id'] = data['comm_id'].astype(str).apply(str.strip)
+        post_addr_at_data['post_comm_id'] = post_addr_at_data['post_comm_id'].astype(str).apply(str.strip)
+        data['comm_id'] = data['comm_id'].astype(str).apply(str.strip)
 
-    data = data.merge(post_addr_at_data, left_on='comm_id', right_on='post_comm_id', how='left').fillna('')
-    assert data.shape[0] > 100
+        data = data.merge(post_addr_at_data, left_on='comm_id', right_on='post_comm_id', how='left').fillna('')
 
-    df = pd.DataFrame()
+    if data.shape[0] > 100:
+        raise ValueError(f"Data size is too small: {data.shape[0] <= 100}.")
 
-    df['entity_id'] = data['entity_id']
-    df['me#'] = data['me'].fillna('')
-    df['comm_id'] = data['comm_id'].fillna('')
-    df['usage'] = 'PO'
-    df['load_type_ind'] = 'R'
-    df['addr_type'] = 'OF'
-    df['addr_line_0'] = data['post_addr_line0'].fillna('')
-    df['addr_line_1'] = data['post_addr_line1'].fillna('')
-    df['addr_line_2'] = data['post_addr_line2'].fillna('')
-    df['addr_city'] = data['post_city_cd'].fillna('')
-    df['addr_state'] = data['post_state_cd'].fillna('')
-    df['addr_zip'] = data['post_zip'].fillna('')
-    df['addr_plus4'] = ''
-    df['addr_country'] = ''
-    df['source'] = 'ASM'  # Address Scoring Model
-    df['source_dtm'] = str(datetime.now().date())
+    formatted_data = pd.DataFrame()
 
-    return df
+    formatted_data['entity_id'] = data['entity_id']
+    formatted_data['me#'] = data['me'].fillna('')
+    formatted_data['comm_id'] = data['comm_id'].fillna('')
+    formatted_data['usage'] = 'PO'
+    formatted_data['load_type_ind'] = 'R'
+    formatted_data['addr_type'] = 'OF'
+    formatted_data['addr_line_0'] = data['post_addr_line0'].fillna('')
+    formatted_data['addr_line_1'] = data['post_addr_line1'].fillna('')
+    formatted_data['addr_line_2'] = data['post_addr_line2'].fillna('')
+    formatted_data['addr_city'] = data['post_city_cd'].fillna('')
+    formatted_data['addr_state'] = data['post_state_cd'].fillna('')
+    formatted_data['addr_zip'] = data['post_zip'].fillna('')
+    formatted_data['addr_plus4'] = ''
+    formatted_data['addr_country'] = ''
+    formatted_data['source'] = 'ASM'  # Address Scoring Model
+    formatted_data['source_dtm'] = str(datetime.now().date())
+
+    return formatted_data
 
 
-class BOLOPOLOPhoneAppendFileGenerator(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        scores      = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
-        ppd         = pd.read_csv(BytesIO(self._parameters['data'][1]), sep=',', dtype=str).fillna('')
-        wslive_data = pd.read_sas(BytesIO(self._parameters['data'][2]), format='sas7bdat', encoding='latin').fillna('')
-        post_addr   = pd.read_csv(BytesIO(self._parameters['data'][3]), sep='|', dtype=str)
+class BOLOPOLOPhoneAppendFileGenerator(Task):
+    def run(self) -> 'list<bytes>':
+        scores = pd.read_csv(BytesIO(self._data[0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
+        ppd = pd.read_csv(BytesIO(self._data[1]), sep=',', dtype=str).fillna('')
+        wslive_data = pd.read_sas(BytesIO(self._data[2]), format='sas7bdat', encoding='latin').fillna('')
+        post_addr = pd.read_csv(BytesIO(self._data[3]), sep='|', dtype=str)
 
         # wslive_path = "U:/Source Files/Data Analytics/Derek/SAS_DATA/SURVEY/wslive_results.sas7bdat"
 
@@ -67,24 +72,24 @@ class BOLOPOLOPhoneAppendFileGenerator(TransformerTask):
         LOGGER.info('GETTING POLO DATA')
         polo_data = filtering.get_polo_address_scores(scores, ppd=ppd)
 
-        df = filtering.get_bolo_vs_polo_data(bolo_data=bolo_data, polo_data=polo_data)
-        df = filtering.filter_on_score_difference(
-            bolo_polo_data=df,
+        address_batchload_data = filtering.get_bolo_vs_polo_data(bolo_data=bolo_data, polo_data=polo_data)
+        address_batchload_data = filtering.filter_on_score_difference(
+            bolo_polo_data=address_batchload_data,
             difference_threshold=MINIMUM_SCORE_DIFFERENCE
         )
-        df = filtering.filter_recent_verified_addresses(
-            bolo_polo_data=df,
+        address_batchload_data = filtering.filter_recent_verified_addresses(
+            bolo_polo_data=address_batchload_data,
             within_days=VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS,
             verified_addresses=recent_verified_me_address_keys
         )
-        address_batchload = format_address_load_data(df, post_addr)
+        address_batchload = format_address_load_data(address_batchload_data, post_addr)
 
         address_batchload_results = BytesIO()
         address_batchload.to_csv(address_batchload_results, sep=',', index=False)
         address_batchload_results.seek(0)
 
         bolo_vs_polo_results = BytesIO()
-        df.to_csv(bolo_vs_polo_results, sep='|', index=False)
+        address_batchload_data.to_csv(bolo_vs_polo_results, sep='|', index=False)
         bolo_vs_polo_results.seek(0)
 
         return [bolo_vs_polo_results.getvalue(), address_batchload_results.getvalue()]
@@ -101,20 +106,25 @@ class BOLOAddressLoadFileGenerator:
 
     """
     def __init__(self, scored_data: pd.DataFrame=None):
-        e = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR', r'C:\Users\Garrett\PycharmProjects\AMA\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\output')
-        self.model_output_dir = e + '/' if e is not None else ''
-        e = os.environ.get("ADDRESS_MODEL_ADDRESS_LOAD_DIR")
-        self.load_dir = e + '/' if e is not None else ''
-        if self.load_dir is None:
-            self.load_dir = ''
-        if self.model_output_dir is None:
-            self.model_output_dir = ''
-        self.data = scored_data
-        if self.data is None:
-            # self.model_output_dir = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR')  # required if loading data automatically
-            self.data = self._get_latest_address_scoring_output()
-        self.date = str(datetime.now().date())
-        self.save_path = self.load_dir + f"BOLO_Address_{self.date}.txt"
+        model_output_dir = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR')
+        load_dir = os.environ.get("ADDRESS_MODEL_ADDRESS_LOAD_DIR")
+        self._model_output_dir = model_output_dir + '/' if model_output_dir is not None else ''
+        self._load_dir = load_dir + '/' if load_dir is not None else ''
+        self._data = scored_data
+        self._date = str(datetime.now().date())
+
+        if self._load_dir is None:
+            self._load_dir = ''
+
+        if self._model_output_dir is None:
+            self._model_output_dir = ''
+
+        self.save_path = self._load_dir + f"BOLO_Address_{self._date}.txt"
+
+        if self._data is None:
+            # required if loading data automatically
+            # self._model_output_dir = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR')
+            self._data = self._get_latest_address_scoring_output()
 
     def run(self):
         LOGGER.info("LOADING FILTERED ADDRESS DATA")
@@ -141,7 +151,7 @@ class BOLOAddressLoadFileGenerator:
         LOGGER.info("COMPLETE")
 
     def _get_latest_address_scoring_output(self):
-        files = glob(self.model_output_dir + 'ADDRESS_SCORING_*.csv')
+        files = glob(self._model_output_dir + 'ADDRESS_SCORING_*.csv')
         for file in files:
             LOGGER.info(f'FOUND SCORING FILE {file}')
         latest = sorted(files, reverse=True)[0]
@@ -150,22 +160,22 @@ class BOLOAddressLoadFileGenerator:
 
     def _get_filtered_data(self):
         LOGGER.info('GETTING BOLO DATA')
-        bolo_data = filtering.get_bolo_addresses(self.data)
+        bolo_data = filtering.get_bolo_addresses(self._data)
         LOGGER.info('GETTING POLO DATA')
-        polo_data = filtering.get_polo_address_scores(self.data)
-        df = filtering.get_bolo_vs_polo_data(bolo_data=bolo_data, polo_data=polo_data)
+        polo_data = filtering.get_polo_address_scores(self._data)
+        filtered_data = filtering.get_bolo_vs_polo_data(bolo_data=bolo_data, polo_data=polo_data)
         LOGGER.info('SAVING BOLO_POLO_DATA')
-        # df.to_csv(f'ADRESS_SCORING_BOLO_POLO_{self.date}.csv', index=False)
-        df = filtering.filter_on_score_difference(
-            bolo_polo_data=df,
+        # filtered_data.to_csv(f'ADRESS_SCORING_BOLO_POLO_{self._date}.csv', index=False)
+        filtered_data = filtering.filter_on_score_difference(
+            bolo_polo_data=filtered_data,
             difference_threshold=MINIMUM_SCORE_DIFFERENCE
         )
-        df = filtering.filter_recent_verified_addresses(
-            bolo_polo_data=df,
+        filtered_data = filtering.filter_recent_verified_addresses(
+            bolo_polo_data=filtered_data,
             within_days=VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS
         )
 
-        return df
+        return filtered_data
 
     def _save(self, data):
         LOGGER.info(f"SAVING ADDRESS LOAD FILE TO {self.save_path}")
@@ -176,7 +186,8 @@ if __name__ == '__main__':
     #gen = BOLOAddressLoadFileGenerator()
     #gen.run()
     ep = {
-        'base_path': rf'C:\Users\Garrett\PycharmProjects\AMA\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\data\{AS_OF_DATE}',
+        'base_path': rf'C:\Users\Garrett\PycharmProjects\AMA'
+                     rf'\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\data\{AS_OF_DATE}',
         'files': rf'output\scores_{AS_OF_DATE}.txt,ppd_analysis_file.csv,wslive_results.sas7bdat'
     }
     e = LocalFileExtractorTask(parameters=ep)

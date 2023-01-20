@@ -2,6 +2,7 @@
 
 environment=${1:-dev}
 profile=${2:-apigw}
+filename=".apigw_token_${environment}_$(date +%Y%m%d%H%M%S)"
 no_verify_ssl=
 
 if [[ "$AWS_NO_VERIFY_SSL" == "True" ]]; then
@@ -62,7 +63,6 @@ done
 
 
 
-filename=".s3token_$(date +%Y%m%d%H%M%S)"
 # remove file if exist
 [[ -f ${filename} ]] && rm ${filename}
 

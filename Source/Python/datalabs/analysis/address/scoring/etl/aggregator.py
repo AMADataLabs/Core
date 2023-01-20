@@ -8,11 +8,13 @@
 #   - humach            - [me, address_key]
 #   - triangulation     - [me, address_key]
 # pylint: disable=import-error,line-too-long,unused-import
-from io import BytesIO
+from   io import BytesIO
 import pickle as pk
+
 import pandas as pd
-from datalabs.etl.transform import TransformerTask
-from datalabs.etl.fs.extract import LocalFileExtractorTask
+
+from   datalabs.etl.fs.extract import LocalFileExtractorTask
+from   datalabs.task import Task
 
 
 KEEP_COLS__BASE_DATA = ['me', 'entity_id', 'comm_id', 'address_key', 'state_cd', 'survey_date',
@@ -51,15 +53,15 @@ def reduce_to_keep_columns(data: pd.DataFrame, keep_columns: list):
     return kept_data.drop_duplicates()
 
 
-class FeatureAggregatorTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        base_data = self._pipe_delim_txt_to_dataframe(self._parameters['data'][0])
-        features_entity_comm = self._pipe_delim_txt_to_dataframe(self._parameters['data'][1])
-        features_entity_comm_usg = self._pipe_delim_txt_to_dataframe(self._parameters['data'][2])
-        features_license = self._pipe_delim_txt_to_dataframe(self._parameters['data'][3])
-        features_humach = self._pipe_delim_txt_to_dataframe(self._parameters['data'][4])
-        features_triangulation1 = self._pipe_delim_txt_to_dataframe(self._parameters['data'][5])
-        features_triangulation2 = self._pipe_delim_txt_to_dataframe(self._parameters['data'][6])
+class FeatureAggregatorTransformerTask(Task):
+    def run(self) -> 'list<bytes>':
+        base_data = self._pipe_delim_txt_to_dataframe(self._data[0])
+        features_entity_comm = self._pipe_delim_txt_to_dataframe(self._data[1])
+        features_entity_comm_usg = self._pipe_delim_txt_to_dataframe(self._data[2])
+        features_license = self._pipe_delim_txt_to_dataframe(self._data[3])
+        features_humach = self._pipe_delim_txt_to_dataframe(self._data[4])
+        features_triangulation1 = self._pipe_delim_txt_to_dataframe(self._data[5])
+        features_triangulation2 = self._pipe_delim_txt_to_dataframe(self._data[6])
 
         if 'address_key' not in base_data.columns:
             base_data['address_key'] = base_data['addr_line2'].fillna('').astype(str) + '_' + \

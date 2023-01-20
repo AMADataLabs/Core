@@ -22,14 +22,14 @@ def get_license_info(license_number, driver):
     license_input = wait(driver).until(presence_of_element_located((By.ID, "txtLicNum")))
     license_input.clear()
     license_input.send_keys(license_number)
-    submit = driver.find_element_by_id("btnSubmit")
+    submit = driver.find_element(By.ID, "btnSubmit")
     submit.click()
     try:
         table =  wait(driver).until(presence_of_element_located((By.TAG_NAME,'tbody')))
-        info_link = table.find_elements_by_tag_name('a')
+        info_link = table.find_elements(By.TAG_NAME,'a')
         if info_link:
             info_link[0].click()
-            license_statuses = driver.find_elements_by_xpath('//*[@id="pnlVerificationBody"]/div[1]/div[1]')
+            license_statuses = driver.find_elements(By.XPATH, '//*[@id="pnlVerificationBody"]/div[1]/div[1]')
             if license_statuses:
                 license_type = license_statuses[0].text.split('- ')[1]
             else:
@@ -63,6 +63,7 @@ def scrape():
     driver.get(os.environ.get('URL'))
     try:
         for lic in license_list[index:]:
+            print(lic)
             license_type, driver = get_license_info(lic, driver)
             license_dict = {
                     'License_Number': lic,

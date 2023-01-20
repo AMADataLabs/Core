@@ -24,4 +24,4 @@ class StatusWebHookNotifier():
         for web_hook in self.web_hooks:
             LOGGER.info("Test")
             requests.post(web_hook, data=json.dumps(message), headers={'Content-Type': 'application/json'})
-        LOGGER.info('WEB HOOK NOTIFICATION SENT TO %s', self.web_hooks)
+        LOGGER.info('Web hook notification sent to %s', self.web_hooks)

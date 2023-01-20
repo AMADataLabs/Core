@@ -29,8 +29,8 @@ class PDFsEndpointParameters:
 class LatestPDFsEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = PDFsEndpointParameters
 
-    def __init__(self, parameters: dict):
-        super().__init__(parameters)
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._s3 = boto3.client('s3')
 

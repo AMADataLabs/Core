@@ -27,13 +27,19 @@ def get_newest(path, text):
     paths = [os.path.join(path, basename) for basename in files if text in basename]
     return max(paths, key=os.path.getctime)
 
+def get_to_login(driver):
+    path = '/html/body/table/tbody/tr/td/table[3]/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody/tr/td[1]/table/tbody/tr[2]/td/table/tbody/tr/td/div/a'
+    login_button = wait(driver).until(presence_of_element_located((By.XPATH, path)))
+    login_button.click()
+    return driver
+
 def log_in(driver, login, password):
     '''Login to portal'''
     login_input = wait(driver).until(presence_of_element_located((By.ID, "mat-input-2")))
     login_input.send_keys(login)
-    password_input = driver.find_element_by_id("password-field")
+    password_input = driver.find_element(By.ID, "password-field")
     password_input.send_keys(password)
-    login_button = driver.find_element_by_id("login-btn")
+    login_button = driver.find_element(By.ID, "login-btn")
     login_button.click()
     return driver
 
@@ -49,13 +55,13 @@ def go_to_reports(driver):
 
 def set_preferences(driver):
     '''Check all report preferences'''
-    select_class_level = Select(driver.find_element_by_name('class_level_cd'))
+    select_class_level = Select(driver.find_element(By.NAME, 'class_level_cd'))
     select_class_level.select_by_visible_text('All Class Levels')
-    for checkbox in driver.find_elements_by_name("displayBioInfo"):
+    for checkbox in driver.find_elements(By.NAME, "displayBioInfo"):
         checkbox.click()
-    for checkbox in driver.find_elements_by_name("displayPreviousStatuses"):
+    for checkbox in driver.find_elements(By.NAME,"displayPreviousStatuses"):
         checkbox.click()
-    for checkbox in driver.find_elements_by_name("displayCurrentStatuses"):
+    for checkbox in driver.find_elements(By.NAME, "displayCurrentStatuses"):
         checkbox.click()
     return driver
 
@@ -90,9 +96,9 @@ def iterate_schools(driver):
             school_select.select_by_visible_text(option)
             continue
         text_xpath = "/html/body/form/table/tbody/tr[8]/td/table/tbody/tr[1]/td[2]/input[3]"
-        to_text = driver.find_element_by_xpath(text_xpath)
+        to_text = driver.find_element(By.XPATH, text_xpath)
         to_text.click()
-        submit = driver.find_element_by_name('submitBtn')
+        submit = driver.find_element(By.NAME, 'submitBtn')
         submit.click()
         LOGGER.info(f'{option} downloading...')
         time.sleep(5)
@@ -284,6 +290,7 @@ def scrape_srs():
     driver = webdriver.Chrome(executable_path=driver_path)
     time.sleep(1)
     driver.get(url)
+    driver = get_to_login(driver)
     driver = log_in(driver, user_login, user_password)
     driver = go_to_reports(driver)
     driver = set_preferences(driver)

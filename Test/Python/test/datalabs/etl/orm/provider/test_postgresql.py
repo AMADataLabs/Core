@@ -41,20 +41,20 @@ def test_generated_row_hashes_match_postgres_hashes(hash_data, hash_query_result
 
 # pylint: disable=redefined-outer-name
 @pytest.mark.usefixtures("loader_parameters", "table_parameters", "expected_data")
-def test_select_new_data(loader_parameters, table_parameters, expected_data):
-    common.test_select_new_data(ORMLoaderProvider(), loader_parameters, table_parameters, expected_data)
+def test_select_new_data(loader_parameters, data, table_parameters, expected_data):
+    common.test_select_new_data(ORMLoaderProvider(), loader_parameters, data, table_parameters, expected_data)
 
 
 # pylint: disable=redefined-outer-name
 @pytest.mark.usefixtures("loader_parameters", "table_parameters", "expected_data")
-def test_select_deleted_data(loader_parameters, table_parameters, expected_data):
-    common.test_select_deleted_data(ORMLoaderProvider(), loader_parameters, table_parameters, expected_data)
+def test_select_deleted_data(loader_parameters, data, table_parameters, expected_data):
+    common.test_select_deleted_data(ORMLoaderProvider(), loader_parameters, data, table_parameters, expected_data)
 
 
 # pylint: disable=redefined-outer-name
 @pytest.mark.usefixtures("loader_parameters", "table_parameters", "expected_data")
-def test_select_updated_data(loader_parameters, table_parameters, expected_data):
-    common.test_select_updated_data(ORMLoaderProvider(), loader_parameters, table_parameters, expected_data)
+def test_select_updated_data(loader_parameters, data, table_parameters, expected_data):
+    common.test_select_updated_data(ORMLoaderProvider(), loader_parameters, data, table_parameters, expected_data)
 
 
 @pytest.fixture

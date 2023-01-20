@@ -1,5 +1,6 @@
 """ SQL Extractor """
 from   dataclasses import dataclass
+from   datetime import datetime
 import logging
 from   pathlib import Path
 import string
@@ -7,9 +8,10 @@ import tempfile
 from   abc import abstractmethod
 import pandas
 
-from   datalabs.etl.extract import ExtractorTask
+from   datalabs.access.database import Database
 from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,15 +22,7 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SQLExtractorParameters:
-    driver: str
-    driver_type: str
-    database_host: str
-    database_username: str
-    database_password: str
-    database_port: str
-    jar_path: str
     sql: str
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
@@ -36,26 +30,44 @@ class SQLExtractorParameters:
     max_parts: str = None       # Number of task copies working on this query
     part_index: str = None      # This task's index
     stream: str = None
-    database_name: str = None
-    database_parameters: str = None
 
 
-class SQLExtractorTask(ExtractorTask):
+class SQLExtractorTask(Task):
     PARAMETER_CLASS = SQLExtractorParameters
 
-    def _extract(self):
-        connection = self._connect()
+    def run(self):
+        results = None
 
-        return self._read_queries(connection)
+        with self._get_database() as database:
+            results = self._read_queries(database.connection)
+
+        return results
 
     @abstractmethod
-    def _connect(self):
+    def _get_database(self) -> Database:
         pass
 
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
+        resolved_queries = self._resolve_time_format_codes(queries)
 
-        return [self._encode(self._read_query(query, connection)) for query in queries]
+        if "INTO TEMP" in queries[0]:
+            LOGGER.info("Executing temporary table query...")
+            connection.cursor().execute(resolved_queries[0])
+
+            resolved_queries.pop(0)
+
+        return [self._encode(self._read_query(query, connection)) for query in resolved_queries]
+
+    def _resolve_time_format_codes(self, queries):
+        resolved_queries = queries
+
+        if self._parameters.execution_time:
+            execution_time = datetime.strptime(self._parameters.execution_time, "%Y-%m-%dT%H:%M:%S")
+
+            resolved_queries = [execution_time.strftime(query) for query in queries]
+
+        return resolved_queries
 
     @classmethod
     def _split_queries(cls, queries):
@@ -68,15 +80,15 @@ class SQLExtractorTask(ExtractorTask):
 
     @classmethod
     def _encode(cls, data):
-        return data.to_csv().encode('utf-8')
+        return data.to_csv(index=False).encode('utf-8')
 
     def _read_query(self, query, connection):
         result = None
 
-        if self._parameters.chunk_size is not None:
-            result = self._read_chunked_query(query, connection)
-        else:
+        if self._parameters.chunk_size is None:
             result = self._read_single_query(query, connection)
+        else:
+            result = self._read_chunked_query(query, connection)
 
         return result
 
@@ -107,10 +119,12 @@ class SQLExtractorTask(ExtractorTask):
 
         if self._parameters.count:
             count = int(self._parameters.count)
+            index = 0
 
             if self._parameters.start_index:
                 index = int(self._parameters.start_index) * count
-                stop_index = index + count
+
+            stop_index = index + count
 
         if self._parameters.max_parts is not None and self._parameters.part_index is not None:
             max_parts = int(self._parameters.max_parts)
@@ -163,7 +177,6 @@ class SQLParametricExtractorParameters:
     sql: str
     max_parts: str              # Number of task copies working on this query
     part_index: str             # This task's index
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
@@ -175,10 +188,10 @@ class SQLParametricExtractorParameters:
 class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
     PARAMETER_CLASS = SQLParametricExtractorParameters
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters: dict, data: "list<bytes>"):
+        super().__init__(parameters, data)
 
-        self._query_parameters = self._csv_to_dataframe(self._parameters.data[0])
+        self._query_parameters = self._csv_to_dataframe(self._data[0])
 
     def _read_single_query(self, query, connection):
         resolved_query = self._resolve_query(query, 0, 0)
@@ -199,8 +212,6 @@ class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
 
 
 class SQLParquetExtractorTask(SQLExtractorTask):
-    PARAMETER_CLASS = SQLExtractorParameters
-
     @classmethod
     def _encode(cls, data):
         return data

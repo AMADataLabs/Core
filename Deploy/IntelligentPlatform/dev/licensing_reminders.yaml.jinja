@@ -1,0 +1,112 @@
+# Render as follows:
+#
+# Script/updated-dag-config -e dev -p IntelligentPlatform -t licensing_reminders \
+# -v "platform_db_password={{platform_db_password}},platform_db_password={{platform_db_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "LICENSING"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+    PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    PLATFORM_DB_PORT: '3306'
+    PLATFORM_DB_BACKEND: 'mysql+pymysql'
+    PLATFORM_DB_NAME: 'usermgmt'
+    PLATFORM_DB_USERNAME:  platform
+    PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/Licensing'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    LICENSING_REMINDERS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingDAG'
+    LICENSING_REMINDERS__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.reminders.DAG'
+    LICENSING_REMINDERS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    LICENSING_REMINDERS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    LICENSING_REMINDERS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    LICENSING_REMINDERS__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    LICENSING_REMINDERS__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    LICENSING_REMINDERS__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    LICENSING_REMINDERS__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_REMINDERS__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    LICENSING_REMINDERS__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+    # Extract email addresses and Group reminder counts
+    LICENSING_REMINDERS__EXTRACT_EMAILS__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__DATABASE_HOST: ${PLATFORM_DB_HOST}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__DATABASE_PORT: ${PLATFORM_DB_PORT}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__DATABASE_NAME: ${PLATFORM_DB_NAME}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__SQL: "
+    SELECT TIMESTAMPDIFF(MONTH, g.valid_from, current_date()) as months,
+    IFNULL(g.renewal_reminders, 0) as renewal_reminders , u.user_name,
+    u.email as email_id, u.organization_id, g.id as id
+    FROM User u
+    INNER JOIN User_Group_Assignment uga ON u.id = uga.user_id
+    INNER JOIN Groups g ON g.id = uga.group_id
+    WHERE TIMESTAMPDIFF(MONTH, g.valid_from, current_date()) = 11 AND g.renewal_reminders  = 0 ORDER BY email;
+    "
+
+    LICENSING_REMINDERS__EXTRACT_EMAILS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_REMINDERS__EXTRACT_EMAILS__CACHE_OUTPUT_FILES: email_addresses.csv
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+    # Send Reminder Email
+    LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_FILES: email_addresses.csv
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+    # Increment Reminder counts
+    LICENSING_REMINDERS__INCREMENT_REMINDER_COUNTS__CACHE_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_REMINDERS__INCREMENT_REMINDER_COUNTS__CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+    LICENSING_REMINDERS__INCREMENT_REMINDER_COUNTS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_REMINDERS__INCREMENT_REMINDER_COUNTS__CACHE_INPUT_FILES: 'email_addresses.csv'
+
+    LICENSING_REMINDERS__INCREMENT_REMINDER_COUNTS__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    LICENSING_REMINDERS__INCREMENT_REMINDER_COUNTS__CACHE_OUTPUT_FILES: 'group_reminder_counts.csv'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+    # Update Reminder counts
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__CACHE_INPUT_FILES: 'group_reminder_counts.csv'
+
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__DATABASE_HOST: ${PLATFORM_DB_HOST}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__DATABASE_PORT: ${PLATFORM_DB_PORT}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__DATABASE_NAME: ${PLATFORM_DB_NAME}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__MODEL_CLASSES: 'datalabs.model.intelligent_platform.licensing.Groups'
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__IGNORE_COLUMNS: id,name,organization_id,client_id,secret,environment_id,resource_id,valid_from,valid_to
+    LICENSING_REMINDERS__UPDATE_REMINDER_COUNTS__APPEND: 'True'

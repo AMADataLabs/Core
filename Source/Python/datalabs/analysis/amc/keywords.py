@@ -1298,5 +1298,9 @@ FLAGWORDS = [
     "wuzzie",
     "yellowman",
     "zigabo",
-    "zipperhead"
+    "zipperhead",
+    'misc',
+    'no mail please',
+    'no mail',
+    'no more',
 ]

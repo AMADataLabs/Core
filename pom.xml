@@ -15,6 +15,7 @@
         <db2.version>11.5.7.0</db2.version>
         <mssql.version>11.2.0.jre11</mssql.version>
         <informix.version>4.50.8</informix.version>
+        <poi.version>4.1.2</poi.version>
     </properties>
 
     <repositories>
@@ -25,11 +26,11 @@
         </repository>
     </repositories>
     <!--
-    aws codeartifact get-authorization-token \
+    export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
     - -domain datalabs \
     - -domain-owner 644454719059 \
     - -query authorizationToken \
-    - -output text
+    - -output text)
     -->
 
     <!--
@@ -128,6 +129,12 @@
             <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.8.1</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
@@ -198,19 +205,11 @@
 
         <!-- JDBC Drivers -->
 
-        <!-- <dependency>
+        <dependency>
             <groupId>com.ibm.db2</groupId>
             <artifactId>jcc</artifactId>
             <version>${db2.version}</version>
-        </dependency> -->
-
-        <!-- <dependency>
-            <groupId>com.ibm.db2</groupId>
-            <artifactId>jcc</artifactId>
-            <version>11.5.7.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/Sandbox/JDBC/DB2/DB2JdbcDriver/db2jcc4.jar</systemPath>
-        </dependency> -->
+        </dependency>
 
         <!-- <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -229,7 +228,7 @@
         <dependency>
             <groupId>org.ama-assn.dtk</groupId>
             <artifactId>dtk-core</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
 
         <!-- Kotlin Dependencies -->
@@ -286,6 +285,37 @@
             <groupId>jaxen</groupId>
             <artifactId>jaxen</artifactId>
             <version>1.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.zeroturnaround</groupId>
+            <artifactId>zt-zip</artifactId>
+            <version>1.15</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>stax</groupId>
+                    <artifactId>stax-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>3.5.2</version>
         </dependency>
 
     </dependencies>

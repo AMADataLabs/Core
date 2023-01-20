@@ -1,0 +1,305 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/IntelligentPlatform/dev/licensing.yaml.jinja -f Deploy/CPT/dev/licensing.yaml \
+# -V "vistex_db_password={{vistex_db_password}},platform_db_password={{platform_db_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "LICENSING"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+    VISTEX_DB_BACKEND: mssql+pymssql
+    VISTEX_DB_HOST: rdbt5302.ad.ama-assn.org
+    VISTEX_DB_PORT: '1433'
+    VISTEX_DB_NAME: LicenseMaestro_CPT
+    VISTEX_DB_USERNAME: dlabs_read
+    VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
+
+    PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    PLATFORM_DB_PORT: '3306'
+    PLATFORM_DB_BACKEND: 'mysql+pymysql'
+    PLATFORM_DB_NAME: 'frictionlesslicensing'
+    PLATFORM_DB_USERNAME:  platform
+    PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/Licensing'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    LICENSING_SYNC__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingDAG'
+    LICENSING_SYNC__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.sync.DAG'
+    LICENSING_SYNC__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    LICENSING_SYNC__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    LICENSING_SYNC__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    LICENSING_SYNC__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    LICENSING_SYNC__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    LICENSING_SYNC__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    LICENSING_SYNC__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_SYNC__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    LICENSING_SYNC__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    # Active Articles Extractor
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__DATABASE_HOST: ${VISTEX_DB_HOST}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__DATABASE_PORT: ${VISTEX_DB_PORT}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__DATABASE_NAME: ${VISTEX_DB_NAME}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__SQL: "
+    SELECT DISTINCT
+        description,
+        article_key
+    FROM v_ri_article
+    ORDER BY description ASC
+    "
+#     OFFSET {index} ROWS
+#     FETCH NEXT {count} ROWS ONLY;
+#     LICENSING_SYNC__EXTRACT_PLATFORM_ARTICLES__CHUNK_SIZE: '100000'
+
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_SYNC__EXTRACT_ACTIVE_ARTICLES__CACHE_OUTPUT_FILES: articles.csv
+
+
+    # Licensed Organizations Extractor
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_HOST: ${VISTEX_DB_HOST}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_PORT: ${VISTEX_DB_PORT}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_NAME: ${VISTEX_DB_NAME}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__SQL: "
+        SELECT DISTINCT
+            IIF (
+                T2.licensee IS NULL,
+                T3.OrganizationName,
+                T2.licensee
+            ) AS Organization
+        FROM
+            AMA_LicensePortal.dbo.UploadReport T1
+                JOIN LicenseMaestro_CPT.dbo.v_cm_contracts T2
+                ON T1.ReportedContractID = T2.id
+                    JOIN AMA_LicensePortal.dbo.UploadReportDetail T3
+                    ON T1.UploadReportID = T3.UploadReportID
+        WHERE T3.OrganizationName like '%%' and YEAR(T1.ReportedPeriodEndDate) = 2020
+
+        ORDER BY Organization ASC
+    "
+#     OFFSET {index} ROWS
+#     FETCH NEXT {count} ROWS ONLY;
+
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__CACHE_OUTPUT_FILES: licensed_organizations.csv
+
+
+    # Active Contracts Extractor
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__DATABASE_HOST: ${VISTEX_DB_HOST}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__DATABASE_PORT: ${VISTEX_DB_PORT}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__DATABASE_NAME: ${VISTEX_DB_NAME}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__SQL: "
+        SELECT
+            LTRIM(RTRIM(T1.licensee)) AS Organization
+        FROM
+            v_cm_contracts T1
+                JOIN cm_contract T2
+                ON T1.contract_key=t2.contract_key
+                    JOIN V_MP_COMPANIES T3
+                    ON t1.licensee_company_key = T3.COMPANY_ID
+                            LEFT JOIN (Select * from cm_contract_milestone where description like 'Effective Date') MILESTONE on t1.contract_key = MILESTONE.contract_key
+                            LEFT JOIN (Select key_value, text_value from v_ts_custom_fields_details where customfield_id = 75) WEB ON T1.contract_key = WEB.key_value
+                            LEFT JOIN (Select key_value, text_value from v_ts_custom_fields_details where customfield_id = 76) Version ON T1.contract_key = Version.key_value
+                            LEFT JOIN (Select key_value, text_value from v_ts_custom_fields_details where customfield_id = 77) Zendesk ON T1.contract_key = Zendesk.key_value
+
+        WHERE
+            T1.description NOT Like '%AFFINITY%' and
+            T1.licensee <> '%ACME%' and
+            T1.account_exec Not In ('David Young', 'Brian Eaggleston') and
+            T1.properties like '%CPT%'
+        ORDER BY Organization ASC
+    "
+#     OFFSET {index} ROWS
+#     FETCH NEXT {count} ROWS ONLY;
+#     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CHUNK_SIZE: '100000'
+
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_FILES: active_contract_organizations.csv
+
+
+    # Contract Rights Extractor
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__DATABASE_HOST: ${VISTEX_DB_HOST}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__DATABASE_PORT: ${VISTEX_DB_PORT}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__DATABASE_NAME: ${VISTEX_DB_NAME}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__SQL: "
+        SELECT DISTINCT LICENSEE AS Organization FROM (
+            SELECT DISTINCT
+                T3.ID                       AS  CONTRACTID,
+                LTRIM(RTRIM(T3.licensee))   AS  LICENSEE,
+            CASE
+                WHEN T3.description like '%Dist%'
+                    THEN 'CPT Distribution License Agreement'
+                WHEN T3.description like '%Internal%'
+                    THEN 'Internal Use License Agreement'
+                WHEN T3.description in ( '<50001 CL Health Plans', 'Pilot Test Agreement of CPT in a Coordinated Care Organization', 'Standalone Settlement Agreement')
+                    THEN 'Internal Use License Agreement'
+                ELSE T3.description
+            END                         AS Contract_TYPE,
+            T3.contract_status          AS  CONTRACT_STATUS,
+            T3.expiration_date          AS  EXPIRATION_DATE,
+            PROPERTY.description        AS  PROPERTY,
+            PROPERTY.property_key       AS  PROPERTY_KEY,
+            ARTICLE.description         AS  ARTICLE,
+            ARTICLE.article_key         AS  ARTICLE_KEY,
+            CHANNEL.Parent_description  AS PARENT_CHANNEL,
+            CHANNEL.description         AS  CHANNEL,
+            CHANNEL.channel_key         AS  CHANNEL_KEY
+            FROM
+                cm_model_incl T1
+                join cm_model t2 on t1.model_key = t2.model_key
+            JOIN V_CM_CONTRACTS T3 ON T2.contract_key = T3.contract_key
+            JOIN (
+                SELECT DISTINCT
+                    T1.model_key,
+                    T2.property_key
+                from
+                    cm_model_incl T1
+                        LEFT JOIN (
+                        select
+                            LEV.model_key as model_key,
+                            LEV.property_key as PROPERTY_KEY
+                        from cm_model_incl LEV
+                        where LEV.property_key is not null
+                       ) T2
+                ON T1.model_key = t2.model_key ) PROPS
+                ON T1.model_key = PROPS.model_key
+
+            LEFT JOIN
+                v_ri_property Property
+                    ON Property.property_key = PROPS.property_key
+            JOIN (
+                SELECT DISTINCT
+                    T1.model_key,
+                    T2.ARTICLE_KEY
+                from
+                    cm_model_incl T1
+                        LEFT JOIN (
+                        select
+                            EXO.model_key as model_key,
+                            EXO.article_key as ARTICLE_KEY
+            from
+                cm_model_incl EXO
+            where
+                EXO.article_key is not null
+            ) T2 ON T1.model_key = t2.model_key
+            ) ARTS ON T1.model_key = ARTS.model_key
+            LEFT JOIN v_ri_article ARTICLE ON ARTICLE.article_key = ARTS.ARTICLE_KEY
+            JOIN (
+                SELECT
+                    DISTINCT T1.model_key,
+                    T2.CHANNEL_KEY
+                from
+                    cm_model_incl T1
+                    LEFT JOIN (
+                        select
+                            gen.model_key as model_key,
+                            gen.channel_key as CHANNEL_KEY
+                        from
+                            cm_model_incl gen
+                        where
+                            channel_key is not null
+                    ) T2 ON T1.model_key = t2.model_key
+            ) CHANS ON T1.model_key = CHANS.model_key
+            LEFT JOIN v_ri_channel CHANNEL ON CHANNEL.channel_key = CHANS.CHANNEL_KEY
+            WHERE
+                T3.description NOT Like '%AFFINITY%'
+                and T3.licensee <> '%ACME%'
+                and T3.account_exec Not In ('David Young', 'Brian Eaggleston')
+                AND T3.properties like '%CPT%'
+        ) AS contract_rights
+        ORDER BY Organization ASC
+    "
+    # LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CHUNK_SIZE: '100000'
+
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_FILES: contract_rights_organizations.csv
+
+
+    # Self-Service Licensing Organizations Transformer
+    LICENSING_SYNC__CREATE_ORGANIZATIONS_TABLE__CACHE_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__CREATE_ORGANIZATIONS_TABLE__CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+    LICENSING_SYNC__CREATE_ORGANIZATIONS_TABLE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_SYNC__CREATE_ORGANIZATIONS_TABLE__CACHE_INPUT_FILES: 'licensed_organizations.csv,active_contract_organizations.csv,contract_rights_organizations.csv'
+
+    LICENSING_SYNC__CREATE_ORGANIZATIONS_TABLE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    LICENSING_SYNC__CREATE_ORGANIZATIONS_TABLE__CACHE_OUTPUT_FILES: frictionless_licensing_organizations.csv
+
+
+    # Active Articles Transformer
+    LICENSING_SYNC__CREATE_ACTIVE_ARTICLES_TABLE__CACHE_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__CREATE_ACTIVE_ARTICLES_TABLE__CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+    LICENSING_SYNC__CREATE_ACTIVE_ARTICLES_TABLE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_SYNC__CREATE_ACTIVE_ARTICLES_TABLE__CACHE_INPUT_FILES: 'articles.csv'
+
+    LICENSING_SYNC__CREATE_ACTIVE_ARTICLES_TABLE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    LICENSING_SYNC__CREATE_ACTIVE_ARTICLES_TABLE__CACHE_OUTPUT_FILES: frictionless_licensing_articles.csv
+
+
+    # Self-Service Licensing Organizations Loader
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__CACHE_INPUT_FILES: 'frictionless_licensing_organizations.csv'
+
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__MODEL_CLASSES: 'datalabs.model.intelligent_platform.licensing.Organization'
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__DATABASE_HOST: ${PLATFORM_DB_HOST}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__DATABASE_PORT: ${PLATFORM_DB_PORT}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__DATABASE_NAME: ${PLATFORM_DB_NAME}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+    LICENSING_SYNC__LOAD_ORGANIZATIONS_TABLE__IGNORE_COLUMNS: id
+
+
+    # Active Articles Loader
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__CACHE_INPUT_FILES: 'frictionless_licensing_articles.csv'
+
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__MODEL_CLASSES: 'datalabs.model.intelligent_platform.licensing.Article'
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__DATABASE_HOST: ${PLATFORM_DB_HOST}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__DATABASE_PORT: ${PLATFORM_DB_PORT}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__DATABASE_NAME: ${PLATFORM_DB_NAME}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+    LICENSING_SYNC__LOAD_ACTIVE_ARTICLES_TABLE__IGNORE_COLUMNS: id

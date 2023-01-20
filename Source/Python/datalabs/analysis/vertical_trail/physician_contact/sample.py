@@ -114,7 +114,7 @@ class VTPhysicianContactSampleGenerator:
 
     def _load_aims_data(self):
         aims_data = AIMSData()
-        with AIMS() as aims:
+        with AIMS.from_environment("AIMS") as aims:
             aims_data.no_contacts = aims.get_no_contacts()
             aims_data.pe_descriptions = aims.get_pe_descriptions()
             aims_data.active_licenses = aims.get_active_licenses()
@@ -124,7 +124,7 @@ class VTPhysicianContactSampleGenerator:
 
     def _load_edw_data(self):
         edw_data = EDWData()
-        with EDW() as edw:
+        with EDW.from_environment("EDW") as edw:
             edw_data.medschool_names = edw.get_active_medical_school_map()
             edw_data.party_key_data = edw.get_party_keys_by_type(party_key_type=PartyKeyType.SCHOOL)
         self.edw_data = edw_data

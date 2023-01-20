@@ -1,3 +1,4 @@
+AddressLoad
 AMC
 AMC/Extract
 Cerner
@@ -11,11 +12,15 @@ DBL
 HelloWorldJava/DAG
 HelloWorldJava/Task
 HelloWorldVault
-IntelligentPlatform/Developer/Users
+IntelligentPlatform/Developer
 IntelligentPlatform/Licensing
+IntelligentPlatform
+LicenseMovement
+LicenseMovement/Extract
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract
 OneView/API
 Scheduler
+VeriCre/DataSteward
 HelloWorld

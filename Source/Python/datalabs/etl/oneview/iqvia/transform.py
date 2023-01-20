@@ -52,7 +52,7 @@ class IQVIABusinessTransformerTask(TransformerTask):
 
 class IQVIAProviderTransformerTask(TransformerTask):
     def _preprocess(self, dataset):
-        providers, affiliations = dataset
+        providers, affiliations, best_affiliations = dataset
 
         affiliations = affiliations.merge(
             providers,
@@ -61,6 +61,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
 
         affiliations = self._set_default_values(affiliations)
         affiliations = self._clean(affiliations)
+        affiliations = self._match_best_affiliation(affiliations, best_affiliations)
 
         return [providers, affiliations]
 
@@ -83,6 +84,20 @@ class IQVIAProviderTransformerTask(TransformerTask):
             row_data.append(row.rstrip())
 
         affiliations['AFFIL_GROUP_CODE'] = row_data
+
+        return affiliations
+
+    @classmethod
+    def _match_best_affiliation(cls, affiliations, best_affiliations):
+        best_affiliations['BEST'] = True
+
+        affiliations = pandas.merge(affiliations, best_affiliations, on=["IMS_ORG_ID", "PROFESSIONAL_ID"], how="left")
+
+        affiliations = affiliations.drop(columns=column.PROVIDER_BEST_AFFILIATION_DROPPED_COLUMNS)
+
+        affiliations = affiliations.rename(columns=column.PROVIDER_BEST_AFFILIATION_COLUMNS)
+
+        affiliations['BEST'] = affiliations['BEST'].fillna(False)
 
         return affiliations
 

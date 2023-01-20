@@ -12,15 +12,15 @@ LOGGER.setLevel(logging.DEBUG)
 def test_transforming_cpt_files_to_csv():
     parser_class = 'test.datalabs.etl.cpt.ingest.parse.TestParser'
     parameters = dict(
-        PARSERS=','.join((parser_class, parser_class)),
-        data=[b'"Hello, there!"', b'Dear John']
+        PARSERS=','.join((parser_class, parser_class))
     )
+    data=[b'"Hello, there!"', b'Dear John']
 
-    transformer = ParseToCSVTransformerTask(parameters)
+    transformer = ParseToCSVTransformerTask(parameters, data)
 
-    data = transformer._transform()
+    output = transformer.run()
 
-    LOGGER.debug('Transformed Data: %s', data)
+    LOGGER.debug('Transformed Data: %s', output)
 
-    assert b'"Hello, there!"' in data[0]
-    assert b'Dear John' in data[1]
+    assert b'"Hello, there!"' in output[0]
+    assert b'Dear John' in output[1]

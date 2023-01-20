@@ -29,8 +29,8 @@ class LocalDAGExecutorTask(Task):
     """
     PARAMETER_CLASS = LocalDAGExecutorParameters
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._triggered_tasks = []
         self._status = Status.PENDING

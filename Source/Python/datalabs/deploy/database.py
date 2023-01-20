@@ -28,7 +28,7 @@ def exists(parameters):
     exists = None
 
     try:
-        with Database.from_parameters(parameters) as database:
+        with Database(parameters) as database:
             database.execute('select * from undefined_table;')
     except OperationalError:
         exists = False
@@ -39,6 +39,6 @@ def exists(parameters):
 
 
 def create(parameters, name):
-    with Database.from_parameters(parameters) as database:
+    with Database(parameters) as database:
         database.execute("commit")
         database.execute(f'create database {name}')

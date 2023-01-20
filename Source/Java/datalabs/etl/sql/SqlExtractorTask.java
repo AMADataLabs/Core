@@ -33,6 +33,17 @@ import datalabs.task.Task;
 import datalabs.task.TaskException;
 
 
+class QueryResults {
+    public QueryResults(int rows, byte[] data) {
+        this.rows = rows;
+        this.data = data;
+    }
+
+    public int rows;
+    public byte[] data;
+}
+
+
 public class SqlExtractorTask extends Task {
     static final Logger LOGGER = LoggerFactory.getLogger(SqlExtractorTask.class);
 
@@ -104,7 +115,12 @@ public class SqlExtractorTask extends Task {
         ArrayList<byte[]> data = new ArrayList<byte[]>();
 
         for (String query : queries) {
-            data.add(readQuery(query, connection));
+            if (query.toUpperCase().contains("INTO TEMP")) {
+                LOGGER.debug("Temp table query: " + query);
+                connection.createStatement().execute(query);
+            } else {
+                data.add(readQuery(query, connection));
+            }
         }
 
         return data;
@@ -126,36 +142,38 @@ public class SqlExtractorTask extends Task {
     }
 
     byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
-        byte[] results = null;
+        SqlExtractorParameters parameters = (SqlExtractorParameters) this.parameters;
+        QueryResults results = null;
 
         try (Statement statement = connection.createStatement()) {
-            if (((SqlExtractorParameters) this.parameters).chunkSize.equals("")) {
+            if (parameters.chunkSize.equals("")) {
                 results = readSingleQuery(query, statement);
             } else {
                 results = readChunkedQuery(query, statement, (SqlExtractorParameters) this.parameters);
             }
         }
-        LOGGER.debug("Read " + results.length + " bytes from SQL query response.");
+        LOGGER.debug("Read " + results.rows + " rows (" + results.data.length + " bytes) from SQL query response.");
 
-        return results;
+        return results.data;
     }
 
-    static byte[] readSingleQuery(String query, Statement statement, boolean includeHeaders) throws IOException, SQLException {
-        return resultSetToCsvBytes(statement.executeQuery(query), includeHeaders);
+    static QueryResults readSingleQuery(String query, Statement statement, boolean includeHeaders)
+            throws IOException, SQLException {
+        return resultSetToQueryResults(statement.executeQuery(query), includeHeaders);
     }
 
-    static byte[] readSingleQuery(String query, Statement statement) throws IOException, SQLException {
+    static QueryResults readSingleQuery(String query, Statement statement) throws IOException, SQLException {
         return readSingleQuery(query, statement, true);
     }
 
-    static byte[] readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
+    static QueryResults readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
-        ArrayList<byte[]> csvChunks = readChunks(query, statement, parameters);
+        ArrayList<QueryResults> chunks = readChunks(query, statement, parameters);
 
-        return concatenateCsvChunks(csvChunks);
+        return concatenateQueryResults(chunks);
     }
 
-    static byte[] resultSetToCsvBytes(ResultSet results, boolean includeHeaders) throws IOException, SQLException {
+    static QueryResults resultSetToQueryResults(ResultSet results, boolean includeHeaders) throws IOException, SQLException {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         int rows = 0;
         byte[] csvBytes = new byte[0];
@@ -171,16 +189,16 @@ public class SqlExtractorTask extends Task {
             csvBytes = byteStream.toByteArray();
         }
 
-        return csvBytes;
+        return new QueryResults(includeHeaders?rows-1:rows, csvBytes);
     }
 
-    static byte[] resultSetToCsvBytes(ResultSet results) throws IOException, SQLException {
-        return resultSetToCsvBytes(results, true);
+    static QueryResults resultSetToQueryResults(ResultSet results) throws IOException, SQLException {
+        return resultSetToQueryResults(results, true);
     }
 
-    static ArrayList<byte[]> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
+    static ArrayList<QueryResults> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
-        ArrayList<byte[]> chunks = new ArrayList<byte[]>();
+        ArrayList<QueryResults> chunks = new ArrayList<QueryResults>();
         int chunkSize = Integer.parseInt(parameters.chunkSize);
         int count;
         int index = 0;
@@ -193,8 +211,9 @@ public class SqlExtractorTask extends Task {
 
             if (parameters.startIndex.equals("")) {
                 index = Integer.parseInt(parameters.startIndex) * count;
-                stopIndex = index + count;
             }
+
+            stopIndex = index + count;
         }
 
         if (!parameters.maxParts.equals("") && !parameters.partIndex.equals("")) {
@@ -217,39 +236,41 @@ public class SqlExtractorTask extends Task {
             LOGGER.debug("Chunk Size: " + chunkSize);
             LOGGER.debug("Resolved Query: " + resolvedQuery);
 
-            byte[] chunk = readSingleQuery(resolvedQuery, statement, includeHeaders);
+            QueryResults chunk = readSingleQuery(resolvedQuery, statement, includeHeaders);
 
-            if (stopIndex >= 0 && index > stopIndex || chunk.length == 0) {
+            if (stopIndex >= 0 && index > stopIndex || chunk.data.length == 0) {
                 iterating = false;
             } else {
                 chunks.add(chunk);
             }
 
             includeHeaders = false;
-            index += chunk.length;
+            index += chunk.rows;
         }
 
         return chunks;
     }
 
-    static byte[] concatenateCsvChunks(ArrayList<byte[]> chunks) {
+    static QueryResults concatenateQueryResults(ArrayList<QueryResults> chunks) {
         int totalResultsLength = 0;
+        int totalRows = 0;
         int index = 0;
-        byte[] results;
+        byte[] data;
 
-        for (byte[] chunk : chunks) {
-            totalResultsLength += chunk.length;
+        for (QueryResults chunk : chunks) {
+            totalResultsLength += chunk.data.length;
+            totalRows += chunk.rows;
         }
 
-        results = new byte[totalResultsLength];
+        data = new byte[totalResultsLength];
 
-        for (byte[] chunk : chunks) {
-            System.arraycopy(chunk, 0, results, index, chunk.length);
+        for (QueryResults chunk : chunks) {
+            System.arraycopy(chunk.data, 0, data, index, chunk.data.length);
 
-            index += chunk.length;
+            index += chunk.data.length;
         }
 
-        return results;
+        return new QueryResults(totalRows, data);
     }
 
     static String resolveChunkedQuery(String query, int index, int count) {

@@ -1,27 +1,29 @@
 """ Generic database object intended to be subclassed by specific databases. """
-import os
+from   dataclasses import dataclass
 
 # pylint: disable=import-error
 import pyodbc
 
-from   datalabs.access.database import Database
+import datalabs.access.database as db
+from   datalabs.parameter import add_schema
 
 
-class ODBCDatabase(Database):
-    def __init__(self):
-        os.environ['DATABASE_AIMS_BACKEND'] = 'odbc'
-        os.environ['DATABASE_AIMS_HOST'] = 'odbc'
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class DatabaseParameters:
+    username: str
+    password: str
+    name: str = None
 
-        os.environ['DATABASE_EDW_BACKEND'] = 'odbc'
-        os.environ['DATABASE_EDW_HOST'] = 'odbc'
 
-        os.environ['DATABASE_DATAMART_BACKEND'] = 'odbc'
-        os.environ['DATABASE_DATAMART_HOST'] = 'odbc'
-
-        super().__init__()
+class Database(db.Database):
+    PARAMETER_CLASS = DatabaseParameters
 
     def connect(self):
-        self._connection = pyodbc.connect(
-            f'DSN={self._configuration.name}; UID={self._credentials.username}; PWD={self._credentials.password}'
-        )
+        self._connection = pyodbc.connect(self.connection_string)
+
         self._connection.execute('SET ISOLATION TO DIRTY READ;')
+
+    def _generate_connection_string(self):
+        return f'DSN={self._parameters.name}; UID={self._parameters.username}; PWD={self._parameters.password}'

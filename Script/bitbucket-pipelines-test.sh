@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x
+set -xe
 
 # Find script directory (no support for symlinks)
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -139,9 +139,7 @@ run_lint_tests() {
         TARGET_DIR=
 
         for PROJECT_DIR in $(cat ${DIR}/../.ci/projects.txt); do
-            PROJECT=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/project.txt)
-
-            if [[ "$PROJECT" == "$TARGET_PROJECT" ]]; then
+            if [[ "$PROJECT_DIR" == "$TARGET_PROJECT" ]]; then
                 TARGET_DIR=$PROJECT_DIR
                 break
             fi
@@ -155,7 +153,7 @@ run_lint_tests() {
     # Dedup files list
     FILES_TO_LINT=
     for FILE in $FILES; do
-        echo $FILES_TO_LINT | grep -w -q $FILE
+        echo $FILES_TO_LINT | { grep -w -q $FILE || true; }
         if [[ $? = 1 ]]; then
             FILES_TO_LINT="$FILES_TO_LINT $FILE"
         fi
