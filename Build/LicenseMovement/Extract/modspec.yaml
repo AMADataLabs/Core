@@ -1,5 +1,5 @@
----
 modspec:
+  - package: datalabs.access
   - package: datalabs.access.environment
   - package: datalabs.access.parameter
   - package: datalabs.etl.dag
@@ -15,5 +15,3 @@ modspec:
   - package: datalabs.string
   - package: datalabs.task
   - package: datalabs.tool
-    include:
-      - TaskRunner
