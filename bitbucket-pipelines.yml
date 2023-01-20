@@ -935,20 +935,20 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project LicenseMovement
         - parallel:
-            - step:
-                name: Update Development Bundle
-                caches:
-                    - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project LicenseMovement
-                    --bundle Masterfile/LicenseMovementDAG.zip
-                    --use-package
+#            - step:
+#                name: Update Development Bundle
+#                caches:
+#                    - environment-dev
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment dev
+#                    --project LicenseMovement
+#                    --bundle Masterfile/LicenseMovementDAG.zip
+#                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -978,15 +978,15 @@ pipelines:
                     --bundle Masterfile/LicenseMovementDAG.zip
                     --use-package
         - parallel:
-            - step:
-                name: Update Development Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
-                    LicenseMovementDAG=LicenseMovementDAG.zip
+#            - step:
+#                name: Update Development Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
+#                    LicenseMovementDAG=LicenseMovementDAG.zip
             - step:
                 name: Update test Lambda Functions
                 script:
@@ -1013,21 +1013,21 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project LicenseMovement/Extract
         - parallel:
-            - step:
-                name: Update Development Lambda Bundle
-                caches:
-                    - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project LicenseMovement/Extract
-                    --bundle Masterfile/LicenseMovement-Extract.zip
-                    --jdbc-driver Informix
-                    --use-package
+#            - step:
+#                name: Update Development Lambda Bundle
+#                caches:
+#                    - environment-dev
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment dev
+#                    --project LicenseMovement/Extract
+#                    --bundle Masterfile/LicenseMovement-Extract.zip
+#                    --jdbc-driver Informix
+#                    --use-package
             - step:
                 name: Update Test Lambda Bundle
                 caches:
@@ -1059,15 +1059,15 @@ pipelines:
                     --jdbc-driver Informix
                     --use-package
         - parallel:
-            - step:
-                name: Reload Development Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
-                    LicenseMovement-Extract=LicenseMovement-Extract.zip
+#            - step:
+#                name: Reload Development Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
+#                    LicenseMovement-Extract=LicenseMovement-Extract.zip
             - step:
                 name: Reload Test Lambda Functions
                 script:
