@@ -59,7 +59,7 @@ process_arguments() {
 }
 
 print_usage() {
-    echo "Usage: update-functions [OPTION]... <FUNCTION=ARTIFACT>..."
+    echo "Usage: update-functions [OPTION]... <FUNCTION=ARTIFACT>[ <FUNCTION=ARTIFACT>...]"
     echo "Reload the code for set of Lambda functions from the specified code artificats."
     echo
     echo "Options:"

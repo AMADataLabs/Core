@@ -6,20 +6,21 @@ import csv
 from   io import BytesIO
 
 import pandas as pd
+
 from   datalabs.etl.cpt.marketing import columns
-from   datalabs.etl.transform import TransformerTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-class DashboardDataTransformerTask(TransformerTask):
-    def _transform(self):
+class DashboardDataTransformerTask(Task):
+    def run(self):
         keys = ["AIMS_Overlay", "Contacts", "EmailCampaign", "OLSub_Orders",
                 "PBD_Cancels", "PBD_Items", "PBD_Orders", "PBD_Returns"]
-        values = self._parameters['data'][1:]
+        values = self._data[1:]
 
-        budget_code = pd.read_csv(BytesIO(self._parameters['data'][0]),
+        budget_code = pd.read_csv(BytesIO(self._data[0]),
                                   sep='\t', usecols=['Item Number', 'Budget Code'], skipinitialspace=True)
 
         tables = {k.lower(): pd.read_csv(BytesIO(v), sep='\t') for k, v in zip(keys, values)}

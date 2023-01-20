@@ -1,13 +1,6 @@
 ---
 modspec:
   - package: datalabs
-    include:
-      - awslambda
-      - feature
-      - parameter
-      - plugin
-      - sqlalchemy
-      - task
   - package: datalabs.access
     include:
       - aws
@@ -16,36 +9,30 @@ modspec:
       - datastore
       - environment
       - orm
+      - sqlalchemy
   - package: datalabs.access.parameter
-  - package: datalabs.access.secret
   - package: datalabs.etl
-    include:
-      - awslambda
-      - csv
-      - extract
-      - load
-      - task
-      - transform
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
-  - package: datalabs.etl.dag.intelligent_platform
+  - package: datalabs.etl.dag.intelligent_platform.licensing
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-  - package: datalabs.etl.sql
-  - package: datalabs.etl.sql
-  - package: datalabs.etl.sql.jdbc
-  - package: datalabs.etl.sql.sqlalchemy
-  - package: datalabs.etl.intelligent_platform.licensing
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
     include:
       - base
       - mysql
+  - package: datalabs.etl.smtp
+  - package: datalabs.etl.sql
+  - package: datalabs.etl.sql.sqlalchemy
+  - package: datalabs.etl.intelligent_platform.licensing.reminders
+  - package: datalabs.etl.intelligent_platform.licensing.sync
+  - package: datalabs.etl.intelligent_platform.licensing.traffic
   - package: datalabs.etl.s3
   - package: datalabs.messaging
     include:
       - email_message
   - package: datalabs.model.intelligent_platform
     include:
-        - licensing
+      - licensing

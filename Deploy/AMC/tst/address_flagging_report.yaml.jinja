@@ -35,6 +35,7 @@ data:
     # DAG Variables - ({"DAG": {"S": "ADDRESS_FLAGGING_REPORT"}, "Task": {"S": "DAG"}})
     #######################################################################
 
+    ADDRESS_FLAGGING_REPORT__DAG__ENVIRONMENT: ${ENVIRONMENT}
     ADDRESS_FLAGGING_REPORT__DAG__LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-AMC'
     ADDRESS_FLAGGING_REPORT__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.address_flagging_report.DAG'
     ADDRESS_FLAGGING_REPORT__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'

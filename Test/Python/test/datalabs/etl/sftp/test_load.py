@@ -9,7 +9,7 @@ import datalabs.etl.sftp.load as sftp
 def test_parameters_are_deserialized(parameters):
 
     with mock.patch('datalabs.access.sftp.SFTP'):
-        task = sftp.SFTPFileLoaderTask(parameters)
+        task = sftp.SFTPFileLoaderTask(parameters, [{}, {}])
 
         assert isinstance(task._parameters, sftp.SFTPFileLoaderParameters)
 
@@ -17,7 +17,7 @@ def test_parameters_are_deserialized(parameters):
 # pylint: disable=redefined-outer-name, protected-access
 def test_whitespace_removed_from_filenames(parameters):
     with mock.patch('datalabs.access.sftp'):
-        task = sftp.SFTPFileLoaderTask(parameters)
+        task = sftp.SFTPFileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
 
@@ -29,7 +29,7 @@ def test_whitespace_removed_from_filenames(parameters):
 def test_datetime_formatting_in_base_path_works(parameters):
     with mock.patch('datalabs.access.sftp'):
         parameters['BASE_PATH'] = 'dir1/%Y%m%d/dir2/dir3'
-        task = sftp.SFTPFileLoaderTask(parameters)
+        task = sftp.SFTPFileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
         resolved_files = task._resolve_files(files)
@@ -42,7 +42,7 @@ def test_datetime_formatting_in_base_path_works(parameters):
 def test_datetime_formatting_in_file_works(parameters):
     with mock.patch('datalabs.access.sftp'):
         parameters['FILES'] = 'this_one.csv,that_one.csv,\n       the_other_%Y%m%d_one.csv     '
-        task = sftp.SFTPFileLoaderTask(parameters)
+        task = sftp.SFTPFileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
         resolved_files = task._resolve_files(files)
@@ -67,6 +67,5 @@ def parameters():
         PASSWORD='dfihas80',
         BASE_PATH='dir1/dir2/dir3',
         FILES='this_one.csv,that_one.csv,\n       the_other_one.csv     ',
-        EXECUTION_TIME='19000101',
-        data=[{}, {}]
+        EXECUTION_TIME='19000101'
     )

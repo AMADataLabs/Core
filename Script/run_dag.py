@@ -32,7 +32,6 @@ def run_local_dag(args):
     run_dag_processor(args["dag"], args["time"], args["parameters"])
 
 def run_remote_dag(args):
-
     topic_arn = f'arn:aws:sns:us-east-1:{ACCOUNTS[args["environment"]]}:DataLake-{args["environment"]}-DAGProcessor'
     message = dict(
         dag=args["dag"],
@@ -41,6 +40,8 @@ def run_remote_dag(args):
 
     if args["parameters"]:
         message["parameters"] = dict(args["parameters"])
+
+    LOGGER.info(f"Sending the following SNS notification to {topic_arn}:\n{message}")
 
     with AWSClient('sns') as sns:
         sns.publish(

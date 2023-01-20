@@ -103,8 +103,8 @@ COLUMNS = [
 
 
 class ParseToPPDTransformerTask(ParseToCSVTransformerTask):
-    def _transform(self):
-        data = super()._transform()
+    def run(self):
+        data = super().run()
 
         data.append(data[0])
 

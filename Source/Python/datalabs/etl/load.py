@@ -5,31 +5,23 @@ import logging
 import pickle
 import os
 
-from datalabs.etl.task import ETLException, ETLComponentTask
+from   datalabs.etl.task import ETLException
+from   datalabs.task import Task
 
 
-class LoaderTask(ETLComponentTask, ABC):
-    def run(self):
-        self._load()
-
-    @abstractmethod
-    def _load(self):
-        pass
-
-
-class ConsoleLoaderTask(LoaderTask):
+class ConsoleLoaderTask(Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
         self._logger = logging.getLogger(ConsoleLoaderTask.__name__)
         self._logger.setLevel(logging.INFO)
 
-    def _load(self):
+    def run(self):
         try:
-            for index,datum in enumerate(self._parameters['data']):
+            for index,datum in enumerate(self._data):
                 self._logger.info('Datum #%d: %s', index+1, datum)
         except Exception:  # pylint: disable=broad-except
-            self._logger.info(self._parameters['data'])
+            self._logger.info(self._data)
 
 
 class IncludesNamesMixin:
@@ -67,9 +59,9 @@ class CurrentPathMixin:
         return files, data
 
 
-class FileLoaderTask(LoaderTask, ABC):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+class FileLoaderTask(Task, ABC):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._client = None
 
@@ -81,15 +73,15 @@ class FileLoaderTask(LoaderTask, ABC):
     def execution_time(self):
         return datetime.utcnow()
 
-    def _load(self):
+    def run(self):
         # pylint: disable=not-context-manager
         with self._get_client() as client:
-            data = self._parameters.data
+            data = self._data
 
             self._client = client
 
             if self.includes_names:
-                files, data = self._unpack_files_and_data(self._parameters.data[0])
+                files, data = self._unpack_files_and_data(self._data[0])
             else:
                 files = self._get_files()
 
@@ -109,8 +101,14 @@ class FileLoaderTask(LoaderTask, ABC):
 
     @classmethod
     def _unpack_files_and_data(cls, packed_data):
+        files = []
+        data = []
         named_files_data = pickle.loads(packed_data)
-        files, data = zip(*named_files_data)
+
+        try:
+            files, data = zip(*named_files_data)
+        except ValueError:
+            pass
 
         return files, data
 

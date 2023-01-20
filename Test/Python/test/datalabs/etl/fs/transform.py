@@ -1,7 +1,7 @@
 """ source: datalabs.etl.fs.transform """
-from   datalabs.etl.transform import TransformerTask
+from datalabs.task import Task
 
 
-class FilenameStripperTransformerTask(TransformerTask):
-    def _transform(self):
-        return [datum for _, datum in self._parameters['data']]
+class FilenameStripperTransformerTask(Task):
+    def run(self):
+        return [datum for _, datum in self._data]

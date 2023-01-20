@@ -18,6 +18,8 @@ modspec:
   - package: datalabs.etl.dag.process
   - package: datalabs.etl.dag.schedule
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.dag.trigger
+  - package: datalabs.etl.dag.trigger.handler
   - package: datalabs.etl.s3
   - package: datalabs.etl.schedule
     include:

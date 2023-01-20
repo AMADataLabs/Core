@@ -16,11 +16,11 @@ class TaskDataCache(ABC):
         self._parameters = cache_parameters
 
     @abstractmethod
-    def extract_data(self):
+    def extract_data(self) -> "list<bytes>":
         return None
 
     @abstractmethod
-    def load_data(self, output_data):
+    def load_data(self, output_data: "list<bytes>"):
         pass
 
 

@@ -8,13 +8,16 @@ import pandas as pd
 
 from pgeocode import GeoDistance
 
-from datalabs.access.aims import AIMS
+from datalabs import feature
 from datalabs.analysis.ppma.license_movement.sql_statements import *
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+
+if feature.enabled("ODBC"):
+    from datalabs.access.aims import AIMS
 
 class LicenseMovementFinder:
     def __init__(self):
@@ -36,7 +39,7 @@ class LicenseMovementFinder:
 
     @classmethod
     def get_license_ppma_mismatch_data(cls):
-        with AIMS() as aims:
+        with AIMS.from_environment("AIMS") as aims:
             data = pd.read_sql(sql=GET_LICENSE_PPMA_MISMATCH_DATA, con=aims._connection, coerce_float=False)
             LOGGER.info(f' - AIMS QUERY COMPLETE: {str(len(data))}')
             return data
@@ -58,7 +61,7 @@ class LicenseMovementFinder:
         """
         if address_data is None:
             LOGGER.info('filter_out_previous_ppma_addresses')
-            with AIMS() as aims:
+            with AIMS.from_environment("AIMS") as aims:
                 address_data = pd.read_sql(GET_PREVIOUS_PPMA_DATA, con=aims._connection, coerce_float=False)
 
         LOGGER.info(f'old_ppma_data: {str(len(address_data))}')
@@ -87,11 +90,11 @@ class LicenseMovementFinder:
         for col in match.columns.values:
             match[col] = match[col].astype(str).apply(lambda x: x.strip())
         """
-        match - the data in which license is newer than PPMA and in another state, 
+        match - the data in which license is newer than PPMA and in another state,
                 AND the addr state on license == PPMA state -> strong update potential
         mismatch - data in which license is newer than PPMA and in another state,
                 AND the addr state on license != PPMA state -> this is the data which would follow to the "branch" in
-                the flow chart, where we proceed to look for active licenses in the state of this observed 
+                the flow chart, where we proceed to look for active licenses in the state of this observed
                 license address state
         """
 
@@ -162,7 +165,7 @@ class LicenseMovementFinder:
         LOGGER.info(' - FILTERING TO CLOSER LICENSE ADDRESSES')
         """
         filter such that
-         - distance between lic address and credentialing org address is no more than max dist AND 
+         - distance between lic address and credentialing org address is no more than max dist AND
          - EITHER of the following:
             - license address closer to cred org than ppma is
             - ppma is null (can't compare distances)

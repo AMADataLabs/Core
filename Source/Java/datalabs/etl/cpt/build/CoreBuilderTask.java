@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
@@ -40,10 +41,12 @@ public class CoreBuilderTask extends Task {
 
     public CoreBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, null, CoreBuilderParameters.class);
+        super(parameters, data, CoreBuilderParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException {
+        ArrayList<byte[]> outputFiles;
+
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
 
@@ -67,18 +70,22 @@ public class CoreBuilderTask extends Task {
             );
 
             DtkAccess priorLink = CoreBuilderTask.loadLink(priorLinkPath.toString());
-            DtkAccess priorCore = CoreBuilderTask.loadLink(currentLinkPath.toString());
+            DtkAccess currentLink = CoreBuilderTask.loadLink(currentLinkPath.toString());
 
-            CoreBuilderTask.updateConcepts(priorLink, priorCore);
+            CoreBuilderTask.updateConcepts(priorLink, currentLink);
 
-            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate, dbParameters);
+            DtkAccess core = CoreBuilderTask.buildCore(currentLink, parameters.releaseDate, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
+
+            File outputFilesDirectory = new File(settings.getProperty("output.directory"));
+            outputFiles = loadOutputFiles(outputFilesDirectory);
+
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
 
-        return null;
+        return outputFiles;
     }
 
     private static DtkAccess loadLink(String directory) throws Exception {
@@ -92,8 +99,8 @@ public class CoreBuilderTask extends Task {
         return link;
 	}
 
-    private static void updateConcepts(DtkAccess priorLink, DtkAccess priorCore) throws IOException {
-        for (DtkConcept concept : priorCore.getConcepts()) {
+    private static void updateConcepts(DtkAccess priorLink, DtkAccess currentLink) throws IOException {
+        for (DtkConcept concept : currentLink.getConcepts()) {
             if (concept.getProperty(PropertyType.CORE_ID) != null) {
                 DtkConcept priorConcept = priorLink.getConcept(concept.getConceptId());
 
@@ -106,11 +113,11 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate, DbParameters dbParameters)
+    private static DtkAccess buildCore(DtkAccess currentLink, String releaseDate, DbParameters dbParameters)
             throws Exception {
-        ConceptIdFactory.init(priorLink);
+        ConceptIdFactory.init(currentLink);
 
-        return new BuildCore(priorLink, releaseDate).walk(dbParameters, dbParameters);
+        return new BuildCore(currentLink, releaseDate).walk(dbParameters, dbParameters);
     }
 
     private static void exportConcepts(DtkAccess core, String outputDirectory) throws Exception {
@@ -133,16 +140,18 @@ public class CoreBuilderTask extends Task {
         return concepts;
     }
 
-    private  void loadSettings(){
+    void loadSettings(){
+        String dataDirectory = System.getProperty("data.directory", "/tmp");
+
         settings = new Properties(){{
-            put("output.directory", "./output/");
-            put("input.directory", "./input");
+            put("output.directory", dataDirectory + File.separator + "output");
+            put("input.directory", dataDirectory + File.separator + "input");
             put("prior.link.directory", "/prior_link");
             put("current.link.directory", "/current_link");
         }};
     }
 
-    private void stageInputFiles() throws IOException{
+    void stageInputFiles() throws IOException{
         Path priorLinkPath = Paths.get(
                 settings.getProperty("input.directory"),
                 settings.getProperty("prior.link.directory")
@@ -168,18 +177,46 @@ public class CoreBuilderTask extends Task {
     }
 
     private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
-        byte[] data = new byte[(int) zipEntry.getSize()];
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
 
         new File(file.getParent()).mkdirs();
 
+        if (!zipEntry.isDirectory()){
+            byte[] data = new byte[1024];
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-        while (stream.read(data, 0, data.length) > 0) {
-            fileOutputStream.write(data, 0, data.length);
+            while (stream.read(data, 0, data.length) > 0) {
+                fileOutputStream.write(data, 0, data.length);
+            }
+            fileOutputStream.close();
         }
-        fileOutputStream.close();
+
+    }
+
+    ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
+        ArrayList<byte[]> outputFiles = new ArrayList<>();
+        File[] files = outputDirectory.listFiles();
+
+        Arrays.sort(files);
+
+        for (File file: files) {
+            if (file.isDirectory()) {
+                ArrayList<byte[]> output = loadOutputFiles(file);
+
+                for (byte[] outputFile: output){
+                    outputFiles.add(outputFile);
+                }
+
+            } else {
+                Path path = Paths.get(file.getPath());
+                byte[] data = Files.readAllBytes(path);
+                outputFiles.add(data);
+            }
+
+        }
+
+        return outputFiles;
     }
 
 }

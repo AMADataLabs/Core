@@ -1,8 +1,6 @@
 import argparse
 import logging
 
-import jinja2
-
 from   datalabs.deploy.config.dynamodb import ConfigMapLoader
 
 logging.basicConfig()
@@ -11,9 +9,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def main(args):
-    loader = ConfigMapLoader(dict(
-        table=args['table']
-   ))
+    loader = ConfigMapLoader(table=args['table'])
 
     loader.load(args['file'])
 

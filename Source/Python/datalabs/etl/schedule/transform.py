@@ -12,9 +12,9 @@ import pandas
 
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.task import ExecutionTimeMixin
-from   datalabs.etl import transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -28,20 +28,19 @@ class DAGSchedulerParameters:
     interval_minutes: str
     dag_state_parameters: str
     execution_time: str
-    data: object = None
 
 
-class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
+class DAGSchedulerTask(ExecutionTimeMixin, Task):
     PARAMETER_CLASS = DAGSchedulerParameters
 
-    def _transform(self):
+    def run(self):
         schedule = None
 
         try:
-            schedule = pandas.read_csv(BytesIO(self._parameters.data[0]))
+            schedule = pandas.read_csv(BytesIO(self._data[0]))
             LOGGER.info("Schedule:\n%s", schedule)
         except Exception as exception:
-            raise ValueError(f'Bad schedule data: {self._parameters.data[0]}') from exception
+            raise ValueError(f'Bad schedule data: {self._data[0]}') from exception
 
         dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
         LOGGER.info("Dags to Run:\n%s", dags)

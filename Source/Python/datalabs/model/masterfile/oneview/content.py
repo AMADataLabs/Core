@@ -284,6 +284,7 @@ class ProviderAffiliation(BASE):
     rank = sa.Column(sa.String)
     group = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_group.id"))
     group_description = sa.Column(sa.String)
+    best = sa.Column(sa.Boolean)
 
 
 class MedicalLicense(BASE):
@@ -297,7 +298,7 @@ class MedicalLicense(BASE):
         nullable=False
     )
     state = sa.Column(sa.String, nullable=False)
-    issue_date = sa.Column(sa.Date, nullable=False)
+    issue_date = sa.Column(sa.Date, nullable=True)
     expiry_date = sa.Column(sa.Date)
     renew_date = sa.Column(sa.Date)
     degree_type = sa.Column(sa.String, nullable=True)

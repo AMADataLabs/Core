@@ -7,7 +7,7 @@ from string import ascii_uppercase, digits
 import pickle as pk
 import pandas as pd
 
-from datalabs.etl.transform import TransformerTask
+from datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -210,10 +210,10 @@ def _reorder_batch_load_column_order(data: pd.DataFrame):
     return batch_data
 
 
-class AddressLoadFileAggregationTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        # dataframes = [pd.read_csv(BytesIO(data)) for data in self._parameters['data']]
-        dataframes = [pd.read_csv(BytesIO(data[1])) for data in pk.loads(self._parameters['data'][0])]
+class AddressLoadFileAggregationTransformerTask(Task):
+    def run(self) -> 'Transformed Data':
+        # dataframes = [pd.read_csv(BytesIO(data)) for data in self._data]
+        dataframes = [pd.read_csv(BytesIO(data[1])) for data in pk.loads(self._data[0])]
         valid_dataframe_list = []
         invalid_dataframe_list = []
 

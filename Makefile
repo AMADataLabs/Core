@@ -9,6 +9,22 @@ TEMPLATE_FILES=${CWD}/Build/Master/requirements_template.txt ${CWD}/Build/Master
 setup:
 	./Script/setup_development_environment
 
+install-go-linux:
+	env GOPATH=${CWD}/Source/Go go build -o Script/install-go datalabs/repo/install-go
+
+install-go-windows:
+	env GOPATH=${CWD}/Source/Go GOOS=windows GOARCH=amd64 go build -o Script/install-go.exe datalabs/repo/install-go
+
+install-go: install-go-linux install-go-windows
+
+activate-virtual-environment-linux:
+	env GOPATH=${CWD}/Source/Go go build -o Script/activate-virtual-environment datalabs/repo/activate-virtual-environment
+
+activate-virtual-environment-windows:
+	env GOPATH=${CWD}/Source/Go GOOS=windows GOARCH=amd64 go build -o Script/activate-virtual-environment.exe datalabs/repo/activate-virtual-environment
+
+activate-virtual-environment: activate-virtual-environment-linux activate-virtual-environment-windows
+
 test: setup_test_files
 	${RUN} ${VIRTUAL_ENV}/bin/pytest -vv Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
 
@@ -40,3 +56,6 @@ coverage-report:
 
 pythonpath:
 	${RUN} printenv PYTHONPATH
+
+hooks:
+	git config core.hooksPath .githooks

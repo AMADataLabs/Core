@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 profile=${1:-shared}
+filename=".ecr_token_${environment}_$(date +%Y%m%d%H%M%S)"
 no_verify_ssl=
 
 if [[ "$AWS_NO_VERIFY_SSL" == "True" ]]; then
@@ -46,7 +47,6 @@ done
 
  
 
-filename=".ecrtoken_$(date +%Y%m%d%H%M%S)"
 # remove file if exist
 [[ -f ${filename} ]] && rm ${filename}
 

@@ -4,9 +4,9 @@ from   abc import ABC, abstractmethod
 import csv
 import logging
 
-from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-import datalabs.etl.transform as etl
 from   datalabs import feature
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.task import Task
 
 if feature.enabled("PROFILE"):
     from guppy import hpy
@@ -17,14 +17,14 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class TransformerTask(CSVReaderMixin, CSVWriterMixin, etl.TransformerTask, ABC):
-    def _transform(self):
-        LOGGER.debug(self._parameters['data'])
+class TransformerTask(CSVReaderMixin, CSVWriterMixin, Task, ABC):
+    def run(self):
+        LOGGER.debug(self._data)
 
         if feature.enabled("PROFILE"):
             LOGGER.info('Pre csv to dataframes memory (%s)', hpy().heap())
 
-        table_data = self._parse(self._parameters['data'])
+        table_data = self._parse(self._data)
 
         if feature.enabled("PROFILE"):
             LOGGER.info('Post csv to dataframes memory (%s)', hpy().heap())
