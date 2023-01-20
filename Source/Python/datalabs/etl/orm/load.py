@@ -316,14 +316,15 @@ class ORMLoaderTask(Task):
     @classmethod
     def _update_row_of_table(cls, database, table_parameters, model):
         model_columns = cls._get_model_columns(table_parameters.model_class)
-        columns = [column for column in table_parameters.columns if column in model_columns] + [table_parameters.primary_key]
+        columns = [
+            column for column in table_parameters.columns if column in model_columns
+        ] + [table_parameters.primary_key]
 
         primary_key = getattr(model, table_parameters.primary_key)
         row = database.query(table_parameters.model_class).get(primary_key)
 
         for column in columns:
             setattr(row, column, getattr(model, column))
-        import pdb; pdb.set_trace()
 
     @classmethod
     def _get_model_columns(cls, model_class):
