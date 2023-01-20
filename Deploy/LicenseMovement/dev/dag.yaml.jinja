@@ -8,18 +8,18 @@ data:
     # Global Variables - {"DAG": {"S": "LICENSE_MOVEMENT"}, "Task": {"S": "GLOBAL"}}
     ########################################################################
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+    ENVIRONMENT: tst
+    ACCOUNT: '194221139997'
 
     EFT_HOST: 'eft.ama-assn.org'  # dev: eft.ama-assn.org
     EFT_USERNAME: 'datalabs'  # dev: datalabs
     EFT_PASSWORD: '{{eft_password}}'
 
-    DATABASE_HOST: 'rdbd1510.ama-assn.org'
+    DATABASE_HOST: 'rdbt1511.ama-assn.org'
     DATABASE_USERNAME: 'dlabs'
     DATABASE_PASSWORD: '{{database_password}}'  # AIMS_PASSWORD
-    DATABASE_NAME: 'dev_100_pct'
-    DATABASE_PORT: '22040'
+    DATABASE_NAME: 'test_100_pct'
+    DATABASE_PORT: '22035'
     DRIVER: 'com.informix.jdbc.IfxDriver'
     DRIVER_TYPE: 'informix-sqli'
     JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
