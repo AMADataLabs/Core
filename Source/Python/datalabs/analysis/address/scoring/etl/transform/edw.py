@@ -25,10 +25,10 @@ class EDWIDAdditionTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCleanerMi
 
         transformed_data = self._merge(dataset)
 
-        return self._dataframe_to_csv(transformed_data, sep='|')
+        return [self._dataframe_to_csv(transformed_data, sep='|')]
 
     @classmethod
-    def _merge(cls, dataset) -> 'Transformed Data':
+    def _merge(cls, dataset) -> pd.DataFrame:
         data, party_key_data, post_cd_id_data = dataset
 
         result = data.merge(party_key_data, on='entity_id', how='left')

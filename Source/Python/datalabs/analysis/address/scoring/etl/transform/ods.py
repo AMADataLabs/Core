@@ -28,7 +28,7 @@ class ODSDataProcessorTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCleane
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
-    def _transform(self, data, me_data) -> 'Transformed Data':
+    def _transform(self, data, me_data) -> pd.DataFrame:
         """ me_data: base data with ME number column (needed for expanding 10 char ME to 11 char ME) """
         data = self._clean_data(data)
 

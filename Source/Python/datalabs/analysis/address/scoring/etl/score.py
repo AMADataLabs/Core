@@ -1,179 +1,88 @@
 """ Applies a pre-trained model to score processed address feature data """
-from io import BytesIO
-import pandas as pd
-pd.set_option('max_columns', None)
-import numpy as np
+from   datetime import datetime
 import os
 import pickle as pk
-from datetime import datetime
 
-from sklearn.preprocessing import MinMaxScaler
+import numpy as np
+import pandas as pd
+from   sklearn.preprocessing import MinMaxScaler
+from   xgboost import XGBClassifier
 
-from xgboost import XGBClassifier
-from datalabs.etl.transform import TransformerTask
+from   datalabs.analysis.address.scoring.etl.feature import REQUIRED_FEATURES
+from   datalabs.analysis.address.scoring.etl.column \
+    import INFO_COLUMNS, FILLMAX_COLUMNS, FILLNEG1_COLUMNS, FILL1_COLUMNS
+from   datalabs.etl.transform import TransformerTask
 
-
-REQUIRED_FEATURES = [
-    'entity_comm_address_age',
-    'entity_comm_active_addresses',
-    'entity_comm_address_active_frequency',
-    'entity_comm_src_cat_code_roster',
-    'entity_comm_src_cat_code_obsolete',
-    'entity_comm_src_cat_code_phone-call',
-    'entity_comm_src_cat_code_ppa',
-    'entity_comm_src_cat_code_other',
-    'entity_comm_src_cat_code_acs',
-    'entity_comm_src_cat_code_oldcc',
-    'entity_comm_src_cat_code_pubs',
-    'entity_comm_src_cat_code_mbshp-mail',
-    'entity_comm_src_cat_code_white-mail',
-    'entity_comm_src_cat_code_req-cards',
-    'entity_comm_src_cat_code_ama-org',
-    'entity_comm_src_cat_code_list-house',
-    'entity_comm_src_cat_code_group',
-    'entity_comm_src_cat_code_returned',
-    'entity_comm_src_cat_code_e-mail',
-    'entity_comm_src_cat_code_web',
-    'entity_comm_src_cat_code_mbshp-web',
-    'entity_comm_src_cat_code_internet',
-    'entity_comm_src_cat_code_mrkt-rsrch',
-    'entity_comm_src_cat_code_usc-outbnd',
-    'entity_comm_src_cat_code_schl-hosp',
-    'entity_comm_src_cat_code_gme',
-    'entity_comm_src_cat_code_amc',
-    'entity_comm_src_cat_code_mbshp-othr',
-    'entity_comm_src_cat_code_mfload',
-    'entity_comm_src_cat_code_addr-ver',
-    'entity_comm_src_cat_code_res-tipon',
-    'entity_comm_src_cat_code_ncoa',
-    'entity_comm_src_cat_code_dea',
-    'entity_comm_src_cat_code_acxiomncoa',
-    'entity_comm_src_cat_code_ecf-cnvrsn',
-    'entity_comm_src_cat_code_acxiomlode',
-    'entity_comm_src_cat_code_admit-hos',
-    'entity_comm_src_cat_code_affil-grp',
-    'entity_comm_src_cat_code_cgmt',
-    'entity_comm_src_cat_code_prfsol',
-    'entity_comm_src_cat_code_phnsurv',
-    'entity_comm_src_cat_code_pps',
-    'entity_comm_src_cat_code_stu-matric',
-    'entity_comm_src_cat_code_websurv',
-    'entity_comm_src_cat_code_npi',
-    'entity_comm_src_cat_code_federation',
-    'entity_comm_src_cat_code_cme-reg',
-    'entity_comm_src_cat_code_mbshp-purl',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_op',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_po',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_web',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_pp',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_arch',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_jama',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_mshp',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_bill',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_amc',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_mbr',
-    'entity_comm_usg_comm_id_comm_usage_counts_active_amnw',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_po',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_web',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_op',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_pp',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_arch',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_jama',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_amc',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_mshp',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_bill',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_amnw',
-    'entity_comm_usg_comm_id_comm_usage_counts_history_mbr',
-    'has_newer_active_license_elsewhere',
-    'has_older_active_license_elsewhere',
-    'has_active_license_in_this_state',
-    'years_licensed_in_this_state',
-    'license_this_state_years_since_expiration',
-    'humach_years_since_survey',
-    'humach_never_surveyed',
-    'humach_address_status_unknown',
-    'humach_address_status_correct',
-    'humach_address_status_incorrect',
-    'triangulation_iqvia_agreement',
-    'triangulation_iqvia_other',
-    'triangulation_symphony_agreement',
-    'triangulation_symphony_other'
- ]
 
 class AddressScoringTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        model = pk.loads(self._parameters['data'][0])  # must have "predict_proba" method
-        aggregate_features = pd.read_csv(BytesIO(self._parameters['data'][1]), sep='|', dtype=str)
+    def run(self) -> 'list<bytes>':
+        pd.set_option('max_columns', None)
+        model = pk.loads(self._data[0])
+        aggregate_features = self._csv_to_dataframe(self._data[1], sep='|', dtype=str)
+
+        transformed_data = self._score(model, aggregate_features)
+
+        return [self._dataframe_to_csv(transformed_data, sep='|')]
+
+    def _score(self, model, aggregate_features) -> pd.DataFrame:
         if 'me10' in aggregate_features.columns.values:  # lingering from triangulation
             del aggregate_features['me10']
-        info_cols = [
-            'me',
-            'entity_id',
-            'comm_id',
-            'address_key',
-            'state_cd',
-            'survey_date',
-            'comments',
-            'office_address_verified_updated',
-            'status'
-        ]
-        found_info_cols = [col for col in info_cols if col in aggregate_features.columns]
-        info_data = aggregate_features[found_info_cols]
 
-        aggregate_features.set_index(found_info_cols, inplace=True)
+        found_info_columns = [column for column in INFO_COLUMNS if col in aggregate_features.columns]
+        info_data = aggregate_features[found_info_columns]
+
+        aggregate_features.set_index(found_info_columns, inplace=True)
         aggregate_features = self._scale_columns(aggregate_features)
         aggregate_features = self._resolve_null_values(aggregate_features)
 
-        for col in aggregate_features.columns:
-            if 'triangulation' in col:
-                aggregate_features[col] = aggregate_features[col].fillna(0).astype(int)
+        for column in aggregate_features.columns:
+            if 'triangulation' in column:
+                aggregate_features[column] = aggregate_features[column].fillna(0).astype(int)
 
-        for col in REQUIRED_FEATURES:
+        for column in REQUIRED_FEATURES:
             if col not in aggregate_features.columns:
-                aggregate_features[col] = 0
+                aggregate_features[column] = 0
         predictions = model.predict_proba(aggregate_features[REQUIRED_FEATURES])
         predictions = [p[1] for p in predictions]
         info_data['score'] = predictions
 
-        output = BytesIO()
-        info_data.to_csv(output, sep='|', index=False)
-        output.seek(0)
-        return [output.getvalue()]
+        return info_data
 
     def _scale_columns(self, data: pd.DataFrame):
-        for col in data.columns.values:
-            if 'count' in col or 'frequency' in col or '_age' in col or 'years' in col:
+        for column in data.columns.values:
+            if 'count' in column or 'frequency' in column or '_age' in column or 'years' in column:
                 scaler = MinMaxScaler()
-                scaled = scaler.fit_transform(data[[col]].fillna(0)).reshape(1, -1)[0]
-                data[col] = scaled
+                scaled = scaler.fit_transform(data[[column]].fillna(0)).reshape(1, -1)[0]
+                data[column] = scaled
+
         return data
-    
+
     def _resolve_null_values(self, data: pd.DataFrame):
-        fillmax = ['entity_comm_address_age', 'humach_years_since_survey']
-        fillneg1 = ['license_this_state_years_since_expiration', 'years_licensed_in_this_state']
-        fill1 = ['humach_never_surveyed']
-        
-        for col in fillneg1:
-            data[col].fillna(-1, inplace=True)
-        for col in fill1:
-            data[col].fillna(1, inplace=True)
-        
-        for col in data.columns.values:
+
+        for column in FILLNEG1_COLUMNS:
+            data[column].fillna(-1, inplace=True)
+
+        for column in FILL1_COLUMNS:
+            data[column].fillna(1, inplace=True)
+
+        for column in data.columns.values:
             try:
-                data[col] = data[col].astype(float)
+                data[column] = data[column].astype(float)
             except:
                 pass
-            
-        for col in fillmax:
-            mx = data[col].dropna().max()
-            data[col].fillna(mx, inplace=True)
-        
+
+        for column in FILLMAX_COLUMNS:
+            mx = data[column].dropna().max()
+            data[column].fillna(mx, inplace=True)
+
         return data.fillna(0)
 
     def _resolve_feature_structure(self, data: pd.DataFrame):
         # removes any extra features generated (likely source-related columns) and sorts column order
         resolved_data = pd.DataFrame()
         resolved_data.index = data.index
-        for col in REQUIRED_FEATURES:
-            resolved_data[col] = data[col]
+
+        for column in REQUIRED_FEATURES:
+            resolved_data[column] = data[column]
+
         return resolved_data

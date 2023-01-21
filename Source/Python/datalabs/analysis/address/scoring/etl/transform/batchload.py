@@ -35,7 +35,7 @@ class AddressScoreBatchFileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
-    def _transform(self) -> 'Transformed Data':
+    def _transform(self) -> pd.DataFrame:
         party_id_2_me_data.columns = ['PARTY_ID', 'me']
         post_cd_2_comm_id_data.columns = ['POST_CD_ID', 'comm_id']
 

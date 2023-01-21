@@ -25,7 +25,7 @@ class WSLiveResultTransformerTask(SASReaderMixin, CSVWriterMixin, Task):
 
         transformed_data = self._transform(data)
 
-        return self._dataframe_to_csv(transformed_data, sep='|')
+        return [self._dataframe_to_csv(transformed_data, sep='|')]
 
     def _transform(self, data) -> 'Transformed Data':
         for col in data.columns.values:
