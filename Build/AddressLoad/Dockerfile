@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=aggregate.env -ti addressload python task.py
 
-FROM python:3.7
+FROM python:3.9
 ENV PYTHONPATH=/AddressLoad:/AddressLoad/site-packages
 ENV CLASSPATH=/AddressLoad
 ENV HOME=/AddressLoad

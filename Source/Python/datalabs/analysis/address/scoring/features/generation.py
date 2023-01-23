@@ -44,7 +44,11 @@ import logging
 import os
 import sys
 from datalabs.analysis.address.scoring.common import load_processed_data, log_info, keep_alphanumeric, clean_zip
-from datalabs.analysis.address.scoring.features import license, entity_comm, entity_comm_usg, humach, triangulation
+from datalabs.analysis.address.scoring.features import triangulation
+from   datalabs.analysis.address.scoring.features.entity_comm import EntityCommFeatureGenerationTransformerTask
+from   datalabs.analysis.address.scoring.features.entity_comm_usg import EntityCommUsgFeatureGenerationTransformerTask
+from   datalabs.analysis.address.scoring.features.license import LicenseFeatureGenerationTransformerTask
+from   datalabs.analysis.address.scoring.features.humach import HumachFeatureGenerationTransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -113,17 +117,45 @@ if __name__ == '__main__':
     # print(BASE_DATA.shape[0])
 
     log_info('ADD ENTITY_COMM FEATURES')
-    entity_comm.add_entity_comm_at_features(BASE_DATA, FILE_ENTITY_COMM_AT, AS_OF_DATE, SAVE_DIR)
+    EntityCommFeatureGenerationTransformerTask._add_entity_comm_at_features(
+        BASE_DATA,
+        FILE_ENTITY_COMM_AT,
+        AS_OF_DATE,
+        SAVE_DIR
+    )
+
     log_info('ADD ENTITY_COMM_USG FEATURES')
-    entity_comm_usg.add_entity_comm_usg_at_features(BASE_DATA, FILE_ENTITY_COMM_USG_AT, AS_OF_DATE, SAVE_DIR)
+    EntityCommUsgFeatureGenerationTransformerTask._add_entity_comm_usg_at_features(
+        BASE_DATA,
+        FILE_ENTITY_COMM_USG_AT,
+        AS_OF_DATE,
+        SAVE_DIR
+    )
+
     log_info('ADD LICENSE FEATURES')
-    license.add_license_features(BASE_DATA, FILE_LICENSE_LT, FILE_POST_ADDR_AT, AS_OF_DATE, SAVE_DIR)
+    LicenseFeatureGenerationTransformerTask._add_license_features(
+        BASE_DATA,
+        FILE_LICENSE_LT,
+        FILE_POST_ADDR_AT,
+        AS_OF_DATE,
+        SAVE_DIR
+    )
+
     log_info('ADD HUMACH FEATURES')
-    humach.add_humach_features(BASE_DATA, FILE_HUMACH, AS_OF_DATE, SAVE_DIR, IS_TRAINING)
+    HumachFeatureGenerationTransformerTask._add_humach_features(
+        BASE_DATA,
+        FILE_HUMACH,
+        AS_OF_DATE,
+        SAVE_DIR,
+        IS_TRAINING
+    )
+
     log_info('ADD TRIANGULATION')
     iqvia = triangulation.TriangulationDataSource(FILE_IQVIA, 'IQVIA')
     symphony = triangulation.TriangulationDataSource(FILE_SYMPHONY, 'SYMPHONY')
+
     log_info('ADD TRIANGULATION - IQVIA')
     triangulation.add_triangulation_features(BASE_DATA, iqvia, AS_OF_DATE, SAVE_DIR)
+
     log_info('ADD TRIANGULATION - SYMPHONY')
     triangulation.add_triangulation_features(BASE_DATA, symphony, AS_OF_DATE, SAVE_DIR)
