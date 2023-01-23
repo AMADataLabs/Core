@@ -5,16 +5,20 @@
 #    - COMM_ID      (address ID from AIMS)
 
 # pylint: disable=import-error, unused-import, singleton-comparison
-from datetime import datetime
+from   dataclasses import dataclass
+from   datetime import datetime
 import gc
-from io import StringIO, BytesIO
 import logging
 import os
 import warnings
+
 import pandas as pd
-from tqdm import tqdm
-from datalabs.analysis.address.scoring.common import load_processed_data, log_info
-from datalabs.etl.transform import TransformerTask
+from   tqdm import tqdm
+
+from   datalabs.analysis.address.scoring.common import load_processed_data, log_info
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
 warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
@@ -23,6 +27,7 @@ warnings.filterwarnings('ignore', '.*FutureWarning*')
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
 
 
 def add_entity_comm_usg_at_features(base_data, data_or_path_to_entity_comm_usg_at_file, as_of_date, save_dir=None):
@@ -43,6 +48,7 @@ def add_entity_comm_usg_at_features(base_data, data_or_path_to_entity_comm_usg_a
         save_filename = os.path.join(save_dir, f'features__entity_comm_usg__{as_of_date}.txt')
         log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
         features.to_csv(save_filename, sep='|', index=False)
+
     return features
 
 
@@ -97,18 +103,25 @@ def add_feature_comm_id_usage_counts(base_data: pd.DataFrame, entity_comm_usg_da
     gc.collect()
     flattened_historical = flatten_usage_counts(entity_comm_usg_data, active=False).fillna(0)
     features = flattened_active.merge(flattened_historical, on='COMM_ID', how='left').fillna(0)
+
     return features
 
 
-class EntityCommUsgFeatureGenerationTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        base_data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
-        entity_comm_usg = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
-        as_of_date = self._parameters['as_of_date']
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class EntityCommUsgFeatureGenerationTransformerParameters:
+    as_of_date: str
+    execution_time: str = None
+
+
+class EntityCommUsgFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = EntityCommUsgFeatureGenerationTransformerParameters
+
+    def run(self) -> 'list<bytes>':
+        base_data, entity_comm_usg = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data]
+        as_of_date = self._parameters.as_of_date
 
         features = add_entity_comm_usg_at_features(base_data, entity_comm_usg, as_of_date)
-        result = BytesIO()
-        features.to_csv(result, sep='|', index=False)
-        result.seek(0)
-        print(features.shape)
-        return [result.getvalue()]
+
+        return [self._dataframe_to_csv(features, sep='|')]
