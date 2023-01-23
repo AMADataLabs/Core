@@ -5,19 +5,21 @@
 #    - COMM_ID      (address ID from AIMS)
 
 from   dataclasses import dataclass
-from   datetime import datetime
 import gc
 import logging
 import os
 import warnings
 
 import pandas as pd
-from   tqdm import tqdm
 
+from   datalabs import feature
 from   datalabs.analysis.address.scoring.common import load_processed_data, log_info
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+
+if feature.enabled("INTERACTIVE"):
+    from tqdm import tqdm  # pylint: disable=import-error
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
 warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
@@ -40,12 +42,12 @@ class EntityCommUsgFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMix
     PARAMETER_CLASS = EntityCommUsgFeatureGenerationTransformerParameters
 
     def run(self) -> 'list<bytes>':
-        base_data, entity_comm_usg = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in cls._data]
+        base_data, entity_comm_usg = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data]
         as_of_date = self._parameters.as_of_date
 
         features = self._add_entity_comm_usg_at_features(base_data, entity_comm_usg, as_of_date)
 
-        return [cls._dataframe_to_csv(features, sep='|')]
+        return [self._dataframe_to_csv(features, sep='|')]
 
     @classmethod
     def _add_entity_comm_usg_at_features(cls, base_data, entity_comm_usg_at_file, as_of_date, save_dir=None):
@@ -84,12 +86,12 @@ class EntityCommUsgFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMix
         print('p2', entity_comm_usg_data.shape[0])
         print(entity_comm_usg_data.memory_usage().sum() / 1024 ** 2)
 
-        data_active = entity_comm_usg_data[
-            entity_comm_usg_data['ACTIVE'] == True
-            ]
+        data_active = entity_comm_usg_data[entity_comm_usg_data['ACTIVE']]
         flattened_active = cls._flatten_usage_counts(data_active, active=True).fillna(0)
+
         del data_active
         gc.collect()
+
         flattened_historical = cls._flatten_usage_counts(entity_comm_usg_data, active=False).fillna(0)
         features = flattened_active.merge(flattened_historical, on='COMM_ID', how='left').fillna(0)
 
@@ -105,21 +107,57 @@ class EntityCommUsgFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMix
             flag = 'ACTIVE'
         else:
             flag = 'HISTORY'
-        counts_df = entity_comm_usg_data[
+
+        counts = entity_comm_usg_data[
             ['ENTITY_ID', 'COMM_ID', 'COMM_USAGE']
         ].drop_duplicates().groupby(['COMM_ID', 'COMM_USAGE']).size().reset_index().rename(columns={0: 'COUNT'})
 
-        flattened = {}
-        for _, row in tqdm(counts_df.iterrows(), total=counts_df.shape[0]):
-            comm_id = row['COMM_ID']
-            usage = row['COMM_USAGE']
-            count = row['COUNT']
-            if not comm_id in flattened:
-                flattened[comm_id] = {'COMM_ID': comm_id}
-            flattened[comm_id][f"ENTITY_COMM_USG_COMM_ID_COMM_USAGE_COUNTS_{flag}_{usage}"] = count
-        del counts_df
-        gc.collect()
-        flattened_dict_data = [data for comm_id, data in flattened.items()]
-        flattened_df = pd.DataFrame(flattened_dict_data)
+        flattened_counts = None
 
-        return flattened_df
+        if feature.enabled("INTERACTIVE"):
+            flattened_counts = cls._generate_flattened_usage_counts_with_progress_bar(flag, counts)
+        else:
+            flattened_counts = cls._generate_flattened_usage_counts(flag, counts)
+
+        del counts
+        gc.collect()
+
+        flattened_dict_data = [data for comm_id, data in flattened_counts.items()]
+
+        return pd.DataFrame(flattened_dict_data)
+
+    @classmethod
+    def _generate_flattened_usage_counts_with_progress_bar(cls, flag, counts):
+        flattened_counts = {}
+
+        for _, row in tqdm(counts.iterrows(), total=counts.shape[0]):
+            comm_id, column, flattened_counts_row = cls._generate_flattened_usage_counts_row(flag, row)
+
+            if not comm_id in flattened_counts:
+                flattened_counts[comm_id] = {'COMM_ID': comm_id}
+
+            flattened_counts[comm_id][column] = flattened_counts_row
+
+        return flattened_counts
+
+    @classmethod
+    def _generate_flattened_usage_counts(cls, flag, counts):
+        flattened_counts = {}
+
+        for _, row in counts.iterrows():
+            comm_id, column, flattened_counts_row = cls._generate_flattened_usage_counts_row(flag, row)
+
+            if not comm_id in flattened_counts:
+                flattened_counts[comm_id] = {'COMM_ID': comm_id}
+
+            flattened_counts[comm_id][column] = flattened_counts_row
+
+        return flattened_counts
+
+    @classmethod
+    def _generate_flattened_usage_counts_row(cls, flag, row):
+        comm_id = row['COMM_ID']
+        usage = row['COMM_USAGE']
+        count = row['COUNT']
+
+        return comm_id, f"ENTITY_COMM_USG_COMM_ID_COMM_USAGE_COUNTS_{flag}_{usage}", count

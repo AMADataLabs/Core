@@ -11,12 +11,15 @@ import os
 import warnings
 
 import pandas as pd
-from   tqdm import tqdm
 
-from datalabs.analysis.address.scoring.common import load_processed_data, log_info
+from   datalabs import feature
+from   datalabs.analysis.address.scoring.common import load_processed_data, log_info
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+
+if feature.enabled("INTERACTIVE"):
+    from tqdm import tqdm  # pylint: disable=import-error
 
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
@@ -40,15 +43,15 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
     PARAMETER_CLASS = EntityCommFeatureGenerationTransformerParameters
 
     def run(self) -> 'list<bytes>':
-        base_data, entity_comm = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in cls._data]
+        base_data, entity_comm = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data]
         as_of_date = self._parameters.as_of_date
 
         features = self._add_entity_comm_at_features(base_data, entity_comm, as_of_date)
 
-        return [cls._dataframe_to_csv(features, sep='|')]
+        return [self._dataframe_to_csv(features, sep='|')]
 
     @classmethod
-    def _add_entity_comm_at_features(base_data, data_or_path_to_entity_comm_at_file, as_of_date, save_dir=None):
+    def _add_entity_comm_at_features(cls, base_data, data_or_path_to_entity_comm_at_file, as_of_date, save_dir=None):
         base_data.columns = [col.upper() for col in base_data.columns]
         entity_comm_data = load_processed_data(data_or_path_to_entity_comm_at_file, as_of_date, 'BEGIN_DT', 'END_DT')
 
@@ -77,7 +80,7 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
         return features
 
     @classmethod
-    def cls._add_feature_address_age(cls, base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame, as_of_date: str):
+    def _add_feature_address_age(cls, base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame, as_of_date: str):
         """ Get age of addresses in years """
         if isinstance(as_of_date, str):
             as_of_date = datetime.strptime(as_of_date, '%Y-%m-%d')
@@ -98,7 +101,7 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
         return base_data
 
     @classmethod
-    def cls._add_feature_physician_num_active_addresses(
+    def _add_feature_physician_num_active_addresses(
         cls,
         base_data: pd.DataFrame,
         entity_comm_at_data: pd.DataFrame
@@ -108,14 +111,78 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
         data = data[data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)]
         data = data[['ENTITY_ID', 'COMM_ID']].drop_duplicates()
         # del data['END_DT']
-        address_counts = data.groupby('ENTITY_ID').size().reset_index().rename(columns={0: 'ENTITY_COMM_ACTIVE_ADDRESSES'})
+        address_counts = data.groupby('ENTITY_ID').size().reset_index().rename(
+            columns={0: 'ENTITY_COMM_ACTIVE_ADDRESSES'}
+        )
         address_counts['ENTITY_ID'] = address_counts['ENTITY_ID'].astype(str)
         base_data = base_data.merge(address_counts, on='ENTITY_ID', how='left')
 
         return base_data
 
     @classmethod
-    def cls._add_feature_address_sources(cls, base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame):
+    def _add_initial_source_flag_column(cls, data, source):
+        """ create boolean flags """
+        source_feature_column = f"ENTITY_COMM_SRC_CAT_CODE_{source}"
+        data[source_feature_column] = data['SRC_CAT_CODE'] == source
+        data[source_feature_column] = data[source_feature_column].astype(int)
+
+    @classmethod
+    def _add_feature_active_address_total_frequency(
+        cls,
+        base_data: pd.DataFrame,
+        entity_comm_at_data: pd.DataFrame
+    ):
+        """ Counts the appearances of an address in the active DPC address universe """
+        data = entity_comm_at_data[entity_comm_at_data['COMM_ID'].isin(
+            base_data['COMM_ID'].values)
+        ][['ENTITY_ID', 'COMM_ID', 'END_DT']].drop_duplicates()
+        data = data[data['END_DT'].isna()]
+        del data['END_DT']
+        data = data[['ENTITY_ID', 'COMM_ID']].drop_duplicates().groupby('COMM_ID').size().reset_index().rename(
+            columns={0: 'ENTITY_COMM_ADDRESS_ACTIVE_FREQUENCY'}
+        )
+        base_data = base_data.merge(data, on='COMM_ID', how='left')
+        base_data['ENTITY_COMM_ADDRESS_ACTIVE_FREQUENCY'] \
+            = base_data['ENTITY_COMM_ADDRESS_ACTIVE_FREQUENCY'].fillna(0.0)
+
+        return base_data
+
+    @classmethod
+    def _add_feature_physician_how_many_newer_addresses(
+        cls,
+        base_data: pd.DataFrame,
+        entity_comm_at_data: pd.DataFrame
+    ):
+        """ Counts the number of active office addresses this physician has on record """
+        data = entity_comm_at_data[
+            (entity_comm_at_data['COMM_ID'].isin(base_data['COMM_ID'].values)) &
+            (entity_comm_at_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values))
+        ]
+        data = data[data['ACTIVE']]
+        data = data[['ENTITY_ID', 'COMM_ID', 'BEGIN_DT']].drop_duplicates()
+
+        data.sort_values(by='BEGIN_DT', ascending=False, inplace=True)
+        groups = data.groupby('ENTITY_ID')
+
+        results = None
+
+        if feature.enabled("INTERACTIVE"):
+            unique_entity_id_count = data['ENTITY_ID'].nunique()
+
+            results = cls._generate_feature_physician_how_many_newer_addresses_with_progress_bar(
+                groups,
+                unique_entity_id_count
+            )
+        else:
+            results = cls._generate_feature_physician_how_many_newer_addresses(groups)
+
+        results = pd.DataFrame(results)
+        base_data = base_data.merge(results, on=['ENTITY_ID', 'COMM_ID'], how='left')
+
+        return base_data
+
+    @classmethod
+    def _add_feature_address_sources(cls, base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame):
         """ Creates boolean flags for physician-address pairs for each address source """
         data = entity_comm_at_data[['ENTITY_ID', 'COMM_ID', 'SRC_CAT_CODE']].drop_duplicates()
         data = data[
@@ -126,11 +193,10 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
         sources_found = data['SRC_CAT_CODE'].dropna().drop_duplicates()
 
         log_info('\tCreating initial source flags...')
-        for source in tqdm(sources_found):
-            # create boolean flags
-            source_feature_column = f"ENTITY_COMM_SRC_CAT_CODE_{source}"
-            data[source_feature_column] = data['SRC_CAT_CODE'] == source
-            data[source_feature_column] = data[source_feature_column].astype(int)
+        if feature.enabled("INTERACTIVE"):
+            data = cls._add_initial_source_flag_columns_with_progress_bar(data, sources_found)
+        else:
+            data = cls._add_initial_source_flag_columns(data, sources_found)
 
         log_info('\tAggregating source flags per physician-address pair...')
         grouped = data.groupby(['ENTITY_ID', 'COMM_ID']).sum().reset_index()
@@ -148,50 +214,58 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
         return base_data
 
     @classmethod
-    def cls._add_feature_active_address_total_frequency(
-        cls,
-        base_data: pd.DataFrame,
-        entity_comm_at_data: pd.DataFrame
-    ):
-        """ Counts the appearances of an address in the active DPC address universe """
-        data = entity_comm_at_data[entity_comm_at_data['COMM_ID'].isin(
-            base_data['COMM_ID'].values)
-        ][['ENTITY_ID', 'COMM_ID', 'END_DT']].drop_duplicates()
-        data = data[data['END_DT'].isna()]
-        del data['END_DT']
-        data = data[['ENTITY_ID', 'COMM_ID']].drop_duplicates().groupby('COMM_ID').size().reset_index().rename(
-            columns={0: 'ENTITY_COMM_ADDRESS_ACTIVE_FREQUENCY'}
-        )
-        base_data = base_data.merge(data, on='COMM_ID', how='left')
-        base_data['ENTITY_COMM_ADDRESS_ACTIVE_FREQUENCY'] = base_data['ENTITY_COMM_ADDRESS_ACTIVE_FREQUENCY'].fillna(0.0)
+    def _generate_feature_physician_how_many_newer_addresses_with_progress_bar(cls, groups, unique_entity_id_count):
+        results = []
 
-        return base_data
+        for entity_id, group in tqdm(groups, total=unique_entity_id_count):
+            results += cls._aggregate_feature_physician_how_many_newer_addresses(entity_id, group)
+
+        return results
 
     @classmethod
-    def cls._add_feature_physician_how_many_newer_addresses(
-        cls,
-        base_data: pd.DataFrame,
-        entity_comm_at_data: pd.DataFrame
-    ):
-        """ Counts the number of active office addresses this physician has on record """
-        data = entity_comm_at_data[
-            (entity_comm_at_data['COMM_ID'].isin(base_data['COMM_ID'].values)) &
-            (entity_comm_at_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values))
-        ]
-        data = data[data['ACTIVE'] == True]
-        data = data[['ENTITY_ID', 'COMM_ID', 'BEGIN_DT']].drop_duplicates()
-
-        data.sort_values(by='BEGIN_DT', ascending=False, inplace=True)
-        groups = data.groupby('ENTITY_ID')
-
+    def _generate_feature_physician_how_many_newer_addresses(cls, groups):
         results = []
-        for entity_id, group in tqdm(groups, total=data['ENTITY_ID'].nunique()):
-            for i, row in group.iterrows():
-                comm_id = row['COMM_ID']
-                n_new = i
-                results.append({'ENTITY_ID': entity_id, 'COMM_ID': comm_id, 'N_NEWER_ADDRESSES': n_new})
 
-        results = pd.DataFrame(results)
-        base_data = base_data.merge(results, on=['ENTITY_ID', 'COMM_ID'], how='left')
+        for entity_id, group in groups:
+            results += cls._aggregate_feature_physician_how_many_newer_addresses(entity_id, group)
 
-        return base_data
+        return results
+
+    @classmethod
+    def _add_initial_source_flag_columns_with_progress_bar(cls, data, sources_found):
+        for source in tqdm(sources_found):
+            cls._add_initial_source_flag_column(data, source)
+
+        return data
+
+    @classmethod
+    def _add_initial_source_flag_columns(cls, data, sources_found):
+        for source in sources_found:
+            cls._add_initial_source_flag_column(data, source)
+
+        return data
+
+    @classmethod
+    def _aggregate_feature_physician_how_many_newer_addresses(cls, entity_id, group):
+        results = []
+
+        for index, row in group.iterrows():
+            comm_id = row['COMM_ID']
+            newer_addresses_count = index
+
+            results.append(
+                {
+                    'ENTITY_ID': entity_id,
+                    'COMM_ID': comm_id,
+                    'N_NEWER_ADDRESSES': newer_addresses_count
+                }
+            )
+
+        return results
+
+    @classmethod
+    def _add_initial_source_flag_column(cls, data, source):
+        """ create boolean flags """
+        source_feature_column = f"ENTITY_COMM_SRC_CAT_CODE_{source}"
+        data[source_feature_column] = data['SRC_CAT_CODE'] == source
+        data[source_feature_column] = data[source_feature_column].astype(int)

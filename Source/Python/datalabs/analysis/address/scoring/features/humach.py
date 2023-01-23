@@ -5,12 +5,15 @@ import os
 import warnings
 
 import pandas as pd
-from   tqdm import tqdm
 
+from   datalabs import feature
 from   datalabs.analysis.address.scoring.common import log_info, rename_columns_in_uppercase
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+
+if feature.enabled("INTERACTIVE"):
+    from tqdm import tqdm  # pylint: disable=import-error
 
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
@@ -26,16 +29,16 @@ class EntityCommFeatureGenerationTransformerParameters:
     execution_time: str = None
 
 
-class HumachFeatureGenerationTransformerTask(TransformerTask):
+class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = EntityCommFeatureGenerationTransformerParameters
 
     def run(self) -> 'list<bytes>':
-        base_data, humach_data = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in cls._data]
+        base_data, humach_data = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data]
         as_of_date = self._parameters.as_of_date
 
         features = self._add_humach_features(base_data, entity_comm, as_of_date)
 
-        return [cls._dataframe_to_csv(features, sep='|')]
+        return [self._dataframe_to_csv(features, sep='|')]
 
     @classmethod
     def _add_humach_features(cls, base_data: pd.DataFrame, humach_data: pd.DataFrame, as_of_date: str, save_dir=None):

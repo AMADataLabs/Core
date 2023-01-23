@@ -12,12 +12,15 @@ import os
 import warnings
 
 import pandas as pd
-from   tqdm import tqdm
 
+from   datalabs import feature
 from   datalabs.analysis.address.scoring.common import add_column_prefixes, load_processed_data, log_info
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+
+if feature.enabled("INTERACTIVE"):
+    from tqdm import tqdm  # pylint: disable=import-error
 
 
 logging.basicConfig()
@@ -60,6 +63,7 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
 
         return base_data
 
+    # pylint: disable=too-many-arguments
     @classmethod
     def _add_license_features(
             cls,
@@ -78,7 +82,7 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
         post_addr_data = load_processed_data(data_or_path_to_post_addr_file, as_of_date)
 
         if 'STATE_CD' not in base_data.columns.values:
-            base_data = add_state_cd(base_data=base_data, post_addr=post_addr_data)
+            base_data = cls._add_state_cd(base_data=base_data, post_addr=post_addr_data)
 
         log_info('ADDING ADDRESS DATA TO LICENSE DATA')
         license_data = cls._merge_license_address_data(license_data, post_addr_data)
@@ -125,8 +129,7 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
         """ Get boolean flag indicating whether the physician has a previous
         license for a state that's DIFFERENT than this address's state """
         data = license_data[
-            (license_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)) &
-            (license_data['LICENSE_ACTIVE'] == True)
+            license_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values) & license_data['LICENSE_ACTIVE']
         ]
         # print(data.shape)
 
@@ -142,24 +145,14 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
         # for each state a physician is licensed in, find the following:
         # 1. does the physician have a NEWER active license in another state?
         # 2. does the physician have an OLDER active license in another state?
-        results = []
-        for entity_id, group in tqdm(groups, total=data['ENTITY_ID'].nunique()):
-            group.reset_index(drop=True, inplace=True)
-            for i, row in group.iterrows():
-                state = row['LICENSE_STATE_CD']
-                age = datetime.strptime(as_of_date, '%Y-%m-%d') - row['LIC_ISSUE_DT']
-                has_newer = i > 0  # if i > 0, it's not the most recent license (newer exists)
-                has_older = i < group.shape[0] - 1  # if we're not at the end of the group, there exist older licenses
-                result = {
-                    'ENTITY_ID': entity_id,
-                    'LICENSE_STATE_CD': state,
-                    'HAS_NEWER_ACTIVE_LICENSE_ELSEWHERE': has_newer,
-                    'HAS_OLDER_ACTIVE_LICENSE_ELSEWHERE': has_older,
-                    'HAS_ACTIVE_LICENSE_IN_THIS_STATE': True,
-                    'YEARS_LICENSED_IN_THIS_STATE': (age.days / 365)
-                }
-                results.append(result)
-        results = pd.DataFrame(results)
+        results = None
+        if feature.enabled("INTERACTIVE"):
+            unique_entity_id_count = data['ENTITY_ID'].nunique()
+
+            results = cls._generate_newer_older_feature_with_progress_bar(as_of_date, groups, unique_entity_id_count)
+        else:
+            results = cls._generate_newer_older_feature(as_of_date, groups)
+
         results['HAS_NEWER_ACTIVE_LICENSE_ELSEWHERE'] = results['HAS_NEWER_ACTIVE_LICENSE_ELSEWHERE'].fillna(
             True
         ).astype(int)
@@ -184,8 +177,7 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
         """ Get boolean flag indicating whether the physician has a previous
         license for a state that's DIFFERENT than this address's state """
         data = license_data[
-            (license_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)) &
-            (license_data['LICENSE_ACTIVE'] == False)
+            license_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values) & ~license_data['LICENSE_ACTIVE']
         ]
         data.sort_values(by='LIC_EXP_DT', ascending=False)  # most recent expirations first
         data = data[
@@ -210,3 +202,46 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
         base_data['LICENSE_THIS_STATE_YEARS_SINCE_EXPIRATION'].fillna(0.0)
 
         return base_data
+
+    @classmethod
+    def _generate_newer_older_feature_with_progress_bar(cls, as_of_date, groups, unique_entity_id_count):
+        results = []
+
+        for entity_id, group in tqdm(groups, total=unique_entity_id_count):
+            results += cls._aggregate_newer_older_feature(as_of_date, entity_id, group)
+
+        return pd.DataFrame(results)
+
+    @classmethod
+    def _generate_newer_older_feature(cls, as_of_date, groups):
+        results = []
+
+        for entity_id, group in groups:
+            results += cls._aggregate_newer_older_feature(as_of_date, entity_id, group)
+
+        return pd.DataFrame(results)
+
+    @classmethod
+    def _aggregate_newer_older_feature(cls, as_of_date, entity_id, group):
+        results = []
+
+        group.reset_index(drop=True, inplace=True)
+
+        for i, row in group.iterrows():
+            state = row['LICENSE_STATE_CD']
+            age = datetime.strptime(as_of_date, '%Y-%m-%d') - row['LIC_ISSUE_DT']
+            has_newer = i > 0  # if i > 0, it's not the most recent license (newer exists)
+            has_older = i < group.shape[0] - 1  # if we're not at the end of the group, there exist older licenses
+
+            results.append(
+                {
+                    'ENTITY_ID': entity_id,
+                    'LICENSE_STATE_CD': state,
+                    'HAS_NEWER_ACTIVE_LICENSE_ELSEWHERE': has_newer,
+                    'HAS_OLDER_ACTIVE_LICENSE_ELSEWHERE': has_older,
+                    'HAS_ACTIVE_LICENSE_IN_THIS_STATE': True,
+                    'YEARS_LICENSED_IN_THIS_STATE': (age.days / 365)
+                }
+            )
+
+        return results

@@ -47,8 +47,9 @@ from datalabs.analysis.address.scoring.common import load_processed_data, log_in
 from datalabs.analysis.address.scoring.features import triangulation
 from   datalabs.analysis.address.scoring.features.entity_comm import EntityCommFeatureGenerationTransformerTask
 from   datalabs.analysis.address.scoring.features.entity_comm_usg import EntityCommUsgFeatureGenerationTransformerTask
-from   datalabs.analysis.address.scoring.features.license import LicenseFeatureGenerationTransformerTask
 from   datalabs.analysis.address.scoring.features.humach import HumachFeatureGenerationTransformerTask
+from   datalabs.analysis.address.scoring.features.license import LicenseFeatureGenerationTransformerTask
+from   datalabs.analysis.address.scoring.features.triangulation import TriangulationFeatureTransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -150,12 +151,10 @@ if __name__ == '__main__':
         IS_TRAINING
     )
 
-    log_info('ADD TRIANGULATION')
-    iqvia = triangulation.TriangulationDataSource(FILE_IQVIA, 'IQVIA')
-    symphony = triangulation.TriangulationDataSource(FILE_SYMPHONY, 'SYMPHONY')
-
     log_info('ADD TRIANGULATION - IQVIA')
-    triangulation.add_triangulation_features(BASE_DATA, iqvia, AS_OF_DATE, SAVE_DIR)
+    iqvia = TriangulationFeatureTransformerTask.TriangulationDataSource(FILE_IQVIA, 'IQVIA')
+    TriangulationFeatureTransformerTask.add_triangulation_features(BASE_DATA, iqvia, AS_OF_DATE, SAVE_DIR)
 
     log_info('ADD TRIANGULATION - SYMPHONY')
-    triangulation.add_triangulation_features(BASE_DATA, symphony, AS_OF_DATE, SAVE_DIR)
+    symphony = TriangulationFeatureTransformerTask.TriangulationDataSource(FILE_SYMPHONY, 'SYMPHONY')
+    TriangulationFeatureTransformerTask.add_triangulation_features(BASE_DATA, symphony, AS_OF_DATE, SAVE_DIR)
