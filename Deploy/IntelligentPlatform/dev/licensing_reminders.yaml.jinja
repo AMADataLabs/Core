@@ -59,7 +59,7 @@ data:
     FROM User u
     INNER JOIN User_Group_Assignment uga ON u.id = uga.user_id
     INNER JOIN Groups g ON g.id = uga.group_id
-    WHERE TIMESTAMPDIFF(MONTH, g.valid_from, current_date()) = 11 AND g.renewal_reminders  = 0 ORDER BY email;
+    WHERE TIMESTAMPDIFF(MONTH, g.valid_from, current_date()) >= 11 AND g.renewal_reminders  = 0 ORDER BY email;
     "
 
     LICENSING_REMINDERS__EXTRACT_EMAILS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
