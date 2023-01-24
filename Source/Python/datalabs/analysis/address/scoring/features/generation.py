@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, pointless-string-statement
 """
     This script is intended for running locally to create the features on Humach result data in order to
-    create labeled training data for the address scoring model, but can also be used to create features on
+    create labeled training data for the address scoring model. It can also be used to create features on
     PPD population.
 
     note: address_key = f'{street_address}_{5_digit_zip}'
@@ -92,6 +92,7 @@ FILE_IQVIA = f"{INPUT_PATH}/triangulation_iqvia.txt"
 FILE_SYMPHONY = f"{INPUT_PATH}/triangulation_symphony.txt"
 
 
+# pylint: disable=protected-access
 if __name__ == '__main__':
     log_info('RUN_TYPE:', RUN_TYPE)
     log_info('LOADING BASE_DATA')
@@ -147,8 +148,7 @@ if __name__ == '__main__':
         BASE_DATA,
         FILE_HUMACH,
         AS_OF_DATE,
-        SAVE_DIR,
-        IS_TRAINING
+        SAVE_DIR
     )
 
     log_info('ADD TRIANGULATION - IQVIA')

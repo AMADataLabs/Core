@@ -10,21 +10,7 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
-if feature.enabled("INTERACTIVE"):
-    from tqdm import tqdm  # pylint: disable=import-error
-
 pd.set_option('max_columns', None)
-
-
-# class TriangulationDataSource:
-#     def __init__(self, data, source_name):
-#         self.source_name = source_name
-#         data.columns = [col.upper() for col in data.columns]
-#         self.data = data
-#
-#         for col in REQUIRED_COLUMNS:
-#             if col not in self.data.columns.values:
-#                 raise ValueError(f'Missing required column in triangulation data source: {col}')
 
 
 @add_schema

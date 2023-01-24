@@ -36,7 +36,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
         base_data, humach_data = [self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data]
         as_of_date = self._parameters.as_of_date
 
-        features = self._add_humach_features(base_data, entity_comm, as_of_date)
+        features = self._add_humach_features(base_data, humach_data, as_of_date)
 
         return [self._dataframe_to_csv(features, sep='|')]
 
@@ -66,7 +66,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
         return data
 
     @classmethod
-    def cls._prepare_latest_humach_data(cls, humach_data: pd.DataFrame, as_of_date):
+    def _prepare_latest_humach_data(cls, humach_data: pd.DataFrame, as_of_date):
         log_info('PREPARING HUMACH DATA')
         rename_columns_in_uppercase(humach_data)
         humach_data = cls._add_survey_date_col_to_humach_data(humach_data)
@@ -100,7 +100,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
         return humach_data.drop_duplicates()
 
     @classmethod
-    def cls._add_survey_date_col_to_humach_data(cls, humach_data: pd.DataFrame):
+    def _add_survey_date_col_to_humach_data(cls, humach_data: pd.DataFrame):
         if 'SURVEY_DATE' not in humach_data.columns:
             if 'SURVEY_YEAR' in humach_data.columns:  # humach_data is sample data merged manually to result data
                 year_month_data = humach_data[['SURVEY_YEAR', 'SURVEY_MONTH']].drop_duplicates()
@@ -115,17 +115,20 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
         return humach_data
 
     @classmethod
-    def cls._add_address_status_info(cls, humach_data: pd.DataFrame):
+    def _add_address_status_info(cls, humach_data: pd.DataFrame):
         log_info('RESOLVING HUMACH RESULT ADDRESS STATUS')
-        results = []
-        for comment, update in tqdm(
-            zip(
-                humach_data['COMMENTS'].values,
-                humach_data['OFFICE_ADDRESS_VERIFIED_UPDATED'].values
-            ),
-            total=humach_data.shape[0]
-        ):
-            results.append(cls._get_address_status(comment, update))
+
+        results = None
+        address_info = zip(
+            humach_data['COMMENTS'].values,
+            humach_data['OFFICE_ADDRESS_VERIFIED_UPDATED'].values
+        )
+
+        if feature.enabled("INTERACTIVE"):
+            results = cls._generate_address_status_info_with_status_bar(address_info, humach_data.shape[0])
+        else:
+            results = cls._generate_address_status_info(address_info)
+
         humach_data['ADDRESS_STATUS'] = results
 
         # dummies
@@ -138,10 +141,28 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
         return humach_data
 
     @classmethod
-    def cls._get_address_status(cls, comment, verified_updated):
+    def _generate_address_status_info_with_status_bar(cls, address_info, size):
+        results = []
+
+        for comment, update in tqdm(address_info, total=size):
+            results.append(cls._get_address_status(comment, update))
+
+        return results
+
+    @classmethod
+    def _generate_address_status_info(cls, address_info):
+        results = []
+
+        for comment, update in address_info:
+            results.append(cls._get_address_status(comment, update))
+
+        return results
+
+    @classmethod
+    def _get_address_status(cls, comment, verified_updated):
         """
-        comment value is primarily a result of the PHONE call, but combined with the address_verified_updated flag we can
-        determine what the result was for the address
+        comment value is primarily a result of the PHONE call, but combined with the address_verified_updated flag we
+        can determine what the result was for the address
         """
         status = 'UNKNOWN'
         if str(verified_updated).strip() == '2':
