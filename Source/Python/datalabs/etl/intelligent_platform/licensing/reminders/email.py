@@ -48,6 +48,6 @@ class ReminderEmailTask(CSVReaderMixin, Task):
             send_email(
                 to=email_id,
                 subject='Reminder: Your CPT Development License is expiring - Sign in to extend your access',
-                from_account='datalabs@ama-assn.org',
+                from_account='platform@ama-assn.org',
                 html_content=email_body_content
             )
