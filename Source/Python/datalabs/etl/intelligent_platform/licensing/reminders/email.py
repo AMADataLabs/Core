@@ -27,7 +27,7 @@ class ReminderEmailTask(CSVReaderMixin, Task):
                 for development purposes, you must complete a relicensing application.</p>
 
                 <p>To extend your license, Sign in and complete the application
-                <a href="https://compliance.ama-assn.org/hc/en-us/requests/new?ticket_form_id=1500000429302">here</a>
+                <a href="https://platform-dev.ama-assn.org/ama/#/fll?dl_renew=true">here</a>
                 </p>
 
                 <p>Do not reply to this e-mail address. If you have questions, please contact us through the appropriate
