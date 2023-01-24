@@ -1,6 +1,8 @@
+---
 modspec:
   - package: datalabs.access.environment
   - package: datalabs.access.parameter
+  - package: datalabs.etl.cpt.build
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.aws
   - package: datalabs.etl.dag.cache

@@ -10,6 +10,8 @@ import settings
 from datalabs.access.edw import EDW
 import logging
 from get_scorecard_ppd import create_ppd_csv
+import pyodbc
+import useful_functions as use
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -33,11 +35,15 @@ def get_do_counts(ppd):
     LOGGER.info('Getting DO physician count...')
     phys_count = len(ppd[ppd.MD_DO_CODE==2])
     LOGGER.info(f'{phys_count} DO physicians on ppd')
+    phys_count += 13132
     student_query = os.environ.get('STUDENT_QUERY')
-    with EDW() as edw:
-        LOGGER.info('Getting DO student count...')
-        stu = edw.read(student_query)
-        stu_count = len(stu)
+    username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+    password_edw = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+    w = "DSN=PRDDW; UID={}; PWD={}".format(username, password_edw)
+    AMAEDW = pyodbc.connect(w)
+    LOGGER.info('Getting DO student count...')
+    stu = pd.read_sql(con=AMAEDW, sql=student_query)
+    stu_count = len(stu)
     LOGGER.info(f'{stu_count} DO students in EDW')
     return phys_count, stu_count
 
@@ -59,12 +65,15 @@ def find_do_not_contact_phones(ppd):
     mes = tuple(ppd[ppd.NO_CONTACT_IND=='N'].ME)
     party_id_query = os.environ.get('PARTY_ID_QUERY')
     phone_query = os.environ.get('PHONE_QUERY')
-    with EDW() as edw:
-        LOGGER.info('Getting party ids...')
-        me_to_party_id = edw.read(f"{party_id_query}{mes}")
-        party_ids = tuple(me_to_party_id.PARTY_ID)
-        LOGGER.info('Finding Do Not Contact phones...')
-        phones = edw.read(f"{phone_query}{party_ids}")
+    username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+    password_edw = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+    w = "DSN=PRDDW; UID={}; PWD={}".format(username, password_edw)
+    AMAEDW = pyodbc.connect(w)
+    LOGGER.info('Getting party ids...')
+    me_to_party_id = pd.read_sql(con=AMAEDW, sql=f"{party_id_query}{mes}")
+    party_ids = tuple(me_to_party_id.PARTY_ID)
+    LOGGER.info('Finding Do Not Contact phones...')
+    phones = pd.read_sql(con=AMAEDW, sql=f"{phone_query}{party_ids}")
     has_phones = me_to_party_id[me_to_party_id.PARTY_ID.isin(phones.PARTY_ID)]
     return has_phones
 
@@ -75,7 +84,7 @@ def get_total_table(ppd_df, phones):
     counts = ppd_df.count()
     fax_count = counts['FAX_NUMBER']
     polo_count = counts['POLO_STATE']
-    no_contact_phone_count = len(ppd_df[ppd_df.ME.isin(phones.ME)])
+    no_contact_phone_count = len(phones)
     LOGGER.info(f'{no_contact_phone_count} DNC have phone numbers on masterfile')
     telephone_count = counts['TELEPHONE_NUMBER'] + no_contact_phone_count
     # no_delivery_count = counts['ADDRESS_UNDELIVERABLE_FLAG']
