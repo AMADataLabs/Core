@@ -12,7 +12,7 @@ from datalabs.etl.csv import CSVReaderMixin
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ReminderEmailParameters:
-    environment: str
+    platform_domain: str
     execution_time: str = None
 
 
@@ -21,10 +21,7 @@ class ReminderEmailTask(CSVReaderMixin, Task):
 
     def run(self):
         email_addresses = self._csv_to_dataframe(self._data[0])[['email_id']].drop_duplicates()
-        platform_fqdn = "platform.ama-assn.org"
-
-        if self._parameters.environment != "prd":
-            platform_fqdn = f"platform-{self._parameters.environment}.ama-assn.org"
+        platform_url = f"https://{self._parameters.platform_domain}.ama-assn.org/ama/#"
 
         email_body_content = \
             f"""<p>
@@ -33,14 +30,14 @@ class ReminderEmailTask(CSVReaderMixin, Task):
                 for development purposes, you must complete a relicensing application.</p>
 
                 <p>To extend your license, Sign in and complete the application
-                <a href="https://{platform_fqdn}/ama/#/fll?dl_renew=true">here</a>
+                <a href="{platform_url}/fll?dl_renew=true">here</a>
                 </p>
 
                 <p>Do not reply to this e-mail address. If you have questions, please contact us through the appropriate
                 channel <a href="https://compliance.ama-assn.org/hc/en-us/articles/4411542991255">here</a>.</p>
 
                 <p>We hope that you will continue to use the CPT resources and will take this opportunity to provide us
-                your <a href="https://{platform_fqdn}/ama/#/feedback">feedback</a> on the CPT Developer Program.
+                your <a href="{platform_url}/feedback">feedback</a> on the CPT Developer Program.
                 </p>
 
                 <p>Regards,</p>
