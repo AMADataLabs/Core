@@ -41,7 +41,7 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
 
     @property
     def execution_time(self):
-        execution_time = datetime.utcnow()
+        execution_time = datetime.utcnow().replace(second=0, microsecond=0, minute=0, hour=0)
 
         if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
             execution_time = isoparse(self._parameters.execution_time)
@@ -148,4 +148,4 @@ class TargetOffsetMixin:
             execution_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
             runtime = self.execution_time - timedelta(**execution_offset)
 
-        return runtime.replace(second=0, microsecond=0)
+        return runtime
