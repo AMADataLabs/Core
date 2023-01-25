@@ -4,7 +4,7 @@ ADDRESS_LOAD_COMPILER,"0 13 * * mon,wed,fri"
 CERNER_REPORT,"0 13 * * tue,thu"
 DBL,"14 0 * * mon,wed,fri"
 DEVELOPER_EMAILS,"0 0 * * mon,wed,fri"
-LICENSING_REMINDERS_DISABLED,0 14 * * mon-fri
+LICENSING_REMINDERS,0 14 * * mon-fri
 LICENSING_SYNC,"0 0 * * mon,wed,fri"
 LICENSING_TRAFFIC,"0 16 * * mon,wed,fri"
 ONEVIEW,"0 0 * * tue-sat"
