@@ -1,6 +1,7 @@
 """ Extractor base class """
 from   abc import ABC, abstractmethod
 from   datetime import datetime, timedelta
+from   dateutil.parser import isoparse
 
 import json
 import pickle
@@ -40,14 +41,12 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
 
     @property
     def execution_time(self):
-        execution_time = datetime.utcnow().isoformat()
+        execution_time = datetime.utcnow()
 
         if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
-            execution_time = self._parameters.execution_time
+            execution_time = isoparse(self._parameters.execution_time)
         elif hasattr(self._parameters, 'get'):
-            execution_time = self._parameters.get('EXECUTION_TIME', execution_time)
-        else:
-            execution_time = datetime.utcnow()
+            execution_time = isoparse(self._parameters.get('EXECUTION_TIME'))
 
         return execution_time
 

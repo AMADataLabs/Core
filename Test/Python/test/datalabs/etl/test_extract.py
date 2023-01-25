@@ -2,6 +2,8 @@
 import pytest
 
 from   datetime import datetime, timedelta
+from   dateutil.parser import isoparse
+
 
 from   datalabs.etl.extract import FileExtractorTask, TargetOffsetMixin
 
@@ -9,7 +11,7 @@ from   datalabs.etl.extract import FileExtractorTask, TargetOffsetMixin
 def test_default_get_target_datetime(file_extractor, parameters):
     date = file_extractor._get_target_datetime()
 
-    assert date == parameters.get('EXECUTION_TIME')
+    assert date == isoparse(parameters.get('EXECUTION_TIME'))
 
 
 def test_resolve_timestamps(file_extractor):
@@ -23,7 +25,7 @@ def test_resolve_timestamps(file_extractor):
 
 def test_target_offset_mixin(mixin_parent_class, parameters):
     date = mixin_parent_class._get_target_datetime()
-    actual_date = parameters.get('EXECUTION_TIME') - timedelta(weeks=1)
+    actual_date = isoparse(parameters.get('EXECUTION_TIME')) - timedelta(weeks=1)
 
     assert date == actual_date
 
@@ -70,5 +72,5 @@ class MixinParentClass(TargetOffsetMixin, FileExtractorTask):
 def parameters():
     return dict(
         EXECUTION_OFFSET='{"weeks": 1}',
-        EXECUTION_TIME=datetime.utcnow().replace(second=0, microsecond=0)
+        EXECUTION_TIME='19000101'
     )
