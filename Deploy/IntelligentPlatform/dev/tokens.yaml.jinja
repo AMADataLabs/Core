@@ -26,7 +26,7 @@ data:
     #######################################################################
 
     PLATFORM_USER_TOKENS__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    PLATFORM_USER_TOKENS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-DeveloperDAG'
+    PLATFORM_USER_TOKENS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-DAG'
     PLATFORM_USER_TOKENS__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.token.DAG'
     PLATFORM_USER_TOKENS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     PLATFORM_USER_TOKENS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
