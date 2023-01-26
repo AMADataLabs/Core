@@ -144,7 +144,7 @@ class TargetOffsetMixin:
         if hasattr(self._parameters, 'execution_offset') and self._parameters.execution_offset:
             target_offset = json.loads(self._parameters.execution_offsettime)
 
-        elif hasattr(self._parameters, 'get'):
+        elif hasattr(self._parameters, 'get') and self._parameters.get('EXECUTION_OFFSET'):
             target_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
 
         return self.execution_time - timedelta(**target_offset)
