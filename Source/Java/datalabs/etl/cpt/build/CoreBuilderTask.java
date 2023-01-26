@@ -65,7 +65,6 @@ public class CoreBuilderTask extends Task {
                     settings.getProperty("annual.core.directory")
             );
 
-            (incremental core)
             Path incrementalCorePath = Paths.get(
                     settings.getProperty("input.directory"),
                     settings.getProperty("incremental.core.directory")
@@ -107,7 +106,7 @@ public class CoreBuilderTask extends Task {
                 DtkConcept annualConcept = annualCore.getConcept(concept.getConceptId());
 
                 if (annualCore != null) {
-                    annualCore.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
+                    annualConcept.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
                 } else {
                     LOGGER.warn("Concept deleted: " + concept.getLogString());
                 }
