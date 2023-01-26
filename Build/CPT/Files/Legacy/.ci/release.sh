@@ -17,9 +17,9 @@ main() {
         export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
     fi
 
-    export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-cpt-files-build"
-    export RELEASE_DESCRIPTION="CPT Files Builder DAG definition and tasks"
+    export RELEASE_TYPE="Java"
+    export RELEASE_NAME="datalabs-cpt-files-legacy"
+    export RELEASE_DESCRIPTION="CPT Files Builder legacy Java app wrapper tasks"
 }
 
 
