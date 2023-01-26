@@ -4,7 +4,6 @@ from   collections import namedtuple
 
 import pandas as pd
 
-from   datalabs import feature
 from   datalabs.analysis.address.scoring.features.column import ADDRESS_STANDARD_COLUMNS, REQUIRED_COLUMNS
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
@@ -23,7 +22,7 @@ class TriangulationFeatureTransformerParameters:
 
 
 class TriangulationFeatureTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = EntityCommFeatureGenerationTransformerParameters
+    PARAMETER_CLASS = TriangulationFeatureTransformerParameters
     TriangulationDataSource = namedtuple("TriangulationDataSource", "data source_name")
 
     def run(self) -> 'list<bytes>':
@@ -48,9 +47,12 @@ class TriangulationFeatureTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         triangulations.rename(columns=REQUIRED_COLUMNS)
 
-        base_data['ME10'] = base_data['ME'].apply(lambda x: x[:10])  # IQVIA and Symphony ME numbers are only first 10 chars
+        base_data['ME10'] = base_data['ME'].apply(lambda x: x[:10])  # IQVIA and Symphony MEs are only first 10 chars
         if 'ADDRESS_KEY' not in base_data.columns.values:
-            base_data['ADDRESS_KEY'] = cls.__standardize_address_in_address_key(base_data['ADDR_LINE2'])
+            base_data['ADDRESS_KEY'] = cls._standardize_address_in_address_key(
+                base_data['ADDR_LINE2'],
+                base_data['ZIP']
+            )
 
         base_data['ME_ADDRESS_KEY'] = base_data['ME10'] + '_' + base_data['ADDRESS_KEY']
         base_data['ME_ADDRESS_KEY'] = base_data['ME_ADDRESS_KEY'].apply(str.upper)
@@ -70,7 +72,9 @@ class TriangulationFeatureTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         )
 
         # only keep triangulation data with actual address keys populated (with zip code)
-        triangulation_pairs = triangulation_pairs[triangulation_pairs['ADDRESS_KEY'].apply(lambda x: not x.endswith('_'))]
+        triangulation_pairs = triangulation_pairs[
+            triangulation_pairs['ADDRESS_KEY'].apply(lambda x: not x.endswith('_'))
+        ]
 
         agreement_colname = f'TRIANGULATION_{triangulations.source_name}_AGREEMENT'
         other_colname = f'TRIANGULATION_{triangulations.source_name}_OTHER'
@@ -100,18 +104,16 @@ class TriangulationFeatureTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         if len(sections) != 3:
             standardized_address_key = me_address_key  # data is messed up.
 
-        me, address, zip = sections
+        me_number, address, zipcode = sections
         address = cls._standardize_address_words(address)
 
-        standardized_address_key = f'{me}_{address}_{zip}'
+        standardized_address_key = f'{me_number}_{address}_{zipcode}'
 
         return standardized_address_key
 
     @classmethod
-    def _standardize_address_in_address_key(cls, address_key):
-            return base_data['ADDR_LINE2'].fillna('').str.upper().apply(
-                cls._standardize_address_words
-            ) + '_' + base_data['ZIP'].fillna('')
+    def _standardize_address_in_address_key(cls, address_keys, zipcodes):
+        return address_keys.fillna('').str.upper().apply(cls._standardize_address_words) + '_' + zipcodes.fillna('')
 
     @classmethod
     def _standardize_address_words(cls, text):

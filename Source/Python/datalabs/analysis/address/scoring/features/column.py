@@ -1,3 +1,5 @@
+""" DataFrame column constants for address scoring features. """
+
 ADDRESS_STANDARD_COLUMNS = {
     'AVENUE': 'AVE',
     'SUITE': 'STE',
