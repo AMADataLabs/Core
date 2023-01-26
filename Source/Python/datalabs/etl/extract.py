@@ -139,13 +139,12 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
 
 class TargetOffsetMixin:
     def _get_target_datetime(self):
-        runtime = self.execution_time
+        target_offset = {}
 
         if hasattr(self._parameters, 'execution_offset') and self._parameters.execution_offset:
-            execution_offset = json.loads(self._parameters.execution_offsettime)
-            runtime = self.execution_time - timedelta(**execution_offset)
-        elif hasattr(self._parameters, 'get'):
-            execution_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
-            runtime = self.execution_time - timedelta(**execution_offset)
+            target_offset = json.loads(self._parameters.execution_offsettime)
 
-        return runtime
+        elif hasattr(self._parameters, 'get'):
+            target_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
+
+        return self.execution_time - timedelta(**target_offset)
