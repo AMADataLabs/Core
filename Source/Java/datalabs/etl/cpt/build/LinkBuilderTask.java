@@ -54,13 +54,9 @@ public class LinkBuilderTask extends Task {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
             loadSettings();
 
-            Path priorLinkPath = Paths.get(
+            Path incrementalCorePath = Paths.get(
                     settings.getProperty("input.directory"),
-                    settings.getProperty("prior.link.directory")
-            );
-            Path currentLinkPath = Paths.get(
-                    settings.getProperty("input.directory"),
-                    settings.getProperty("current.link.directory")
+                    settings.getProperty("incremental.core.directory")
             );
             Path exportPath = Paths.get(
                     settings.getProperty("output.directory"),
@@ -78,9 +74,9 @@ public class LinkBuilderTask extends Task {
             stageInputFiles();
 
             DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString());
-            DtkAccess currentLink = LinkBuilderTask.loadLink(currentLinkPath.toString());
+            DtkAccess incrementalCore = LinkBuilderTask.loadLink(incrementalCorePath.toString());
 
-            LinkBuilderTask.buildLink(currentLink, core, parameters, this.settings);
+            LinkBuilderTask.buildLink(incrementalCore, core, parameters, this.settings);
 
             LinkBuilderTask.exportConcepts(core, exportPath.toString());
 
@@ -155,7 +151,7 @@ public class LinkBuilderTask extends Task {
         linkBuilder.run();
     }
 
-    private static void updateEmTables(DtkAccess priorLink, DtkAccess core, Properties settings)
+    private static void updateEmTables(DtkAccess annualLink, DtkAccess core, Properties settings)
             throws Exception {
         Path inputDirectory = Paths.get(
                 settings.getProperty("input.directory"),
@@ -168,7 +164,7 @@ public class LinkBuilderTask extends Task {
 
         Files.createDirectories(outputDirectory);
 
-        IntroEmTables introEmTables = new IntroEmTables(priorLink, core);
+        IntroEmTables introEmTables = new IntroEmTables(annualLink, core);
 
         introEmTables.buildTableFiles(inputDirectory, null, outputDirectory);
 
@@ -209,7 +205,7 @@ public class LinkBuilderTask extends Task {
 
     public static void createDistribution(LinkBuilderParameters parameters, Properties settings)
             throws Exception {
-        Path priorLinkPath = Paths.get(
+        Path annualLinkPath = Paths.get(
                 settings.getProperty("input.directory"),
                 settings.getProperty("prior.link.directory")
         );
@@ -225,7 +221,7 @@ public class LinkBuilderTask extends Task {
         DtkAccess link = LinkBuilderTask.loadLink(exportPath.toString());
 
         DtkAccess linkIncremental = LinkBuilderTask.loadLink(currentLinkPath.toString());
-        DtkAccess linkAnnual = LinkBuilderTask.loadLink(priorLinkPath.toString());
+        DtkAccess linkAnnual = LinkBuilderTask.loadLink(annualLinkPath.toString());
 
         Builder distribution = new Builder(
             link,
@@ -313,28 +309,28 @@ public class LinkBuilderTask extends Task {
             put("coding.tips", "coding_tips_attach.xlsx");
             put("front.matter", "front_matter.docx");
             put("rvus", "cpt_rvu.txt");
-            put("prior.link.directory", "/prior_link");
-            put("current.link.directory", "/current_link");
+            put("annual.link.directory", "/annual_link");
+            put("incremental.core.directory", "/incremental_core");
             put("current.core.directory", "/current_core");
         }};
     }
 
     void stageInputFiles() throws IOException{
-        Path priorLinkPath = Paths.get(
+        Path annualLinkPath = Paths.get(
                 settings.getProperty("input.directory"),
-                settings.getProperty("prior.link.directory")
+                settings.getProperty("annual.link.directory")
         );
-        Path currentLinkPath = Paths.get(
+        Path incrementalCorePath = Paths.get(
                 settings.getProperty("input.directory"),
-                settings.getProperty("current.link.directory")
+                settings.getProperty("incremental.core.directory")
         );
         Path currentCorePath = Paths.get(
                 settings.getProperty("input.directory"),
                 settings.getProperty("current.core.directory")
         );
 
-        this.extractZipFiles(this.data.get(0), priorLinkPath.toString());
-        this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
+        this.extractZipFiles(this.data.get(0), annualLinkPath.toString());
+        this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
         this.extractZipFiles(this.data.get(2), currentCorePath.toString());
 
         Path hcpcsPath = Paths.get(
