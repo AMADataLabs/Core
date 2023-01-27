@@ -8,8 +8,8 @@ from   pandas import Series
 from   paramiko.sftp import SFTPError
 
 from   datalabs.access import sftp
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -28,10 +28,11 @@ class SFTPFileExtractorParameters:
     password: str
     execution_time: str = None
     include_names: str = None
+    execution_offset: str = None
 
 
 # pylint: disable=too-many-ancestors
-class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
+class SFTPFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorTask):
     PARAMETER_CLASS = SFTPFileExtractorParameters
 
     def _get_client(self):
@@ -70,6 +71,7 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
             raise ETLException(f"Unable to read file '{file}'") from exception
 
         return bytes(buffer.getbuffer())
+
 
 # pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileExtractorTask(SFTPFileExtractorTask):

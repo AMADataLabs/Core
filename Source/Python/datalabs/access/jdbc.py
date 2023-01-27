@@ -29,6 +29,8 @@ class DatabaseParameters:
 
 
 class Database(db.Database):
+    PARAMETER_CLASS = DatabaseParameters
+
     def connect(self):
         LOGGER.info("Database connection URL: %s", self.connection_string)
 

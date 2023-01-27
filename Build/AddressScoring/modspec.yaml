@@ -1,0 +1,74 @@
+modspec:
+  - package: datalabs
+    include:
+      - awslambda
+      - etl
+      - feature
+      - parameter
+      - plugin
+      - task
+  - package: datalabs.access
+    include:
+      - sftp
+      - credentials
+      - database
+      - datastore
+      - environment
+      - aws
+  - package: datalabs.access.secret
+  - package: datalabs.access.parameter
+    include:
+      - system
+      - dynamodb
+  - package: datalabs.analysis
+  - package: datalabs.analysis.dbl
+  - package: datalabs.etl
+  - package: datalabs.etl.s3
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.execute
+    include:
+    - awslambda
+    - local
+  - package: datalabs.etl.dag.masterfile
+    include:
+      - dbl_counts_report
+  - package: datalabs.etl.dag.notify
+  - package: datalabs.etl.dag.state
+    include:
+      - base
+      - dynamodb
+  - package: datalabs.etl.sftp
+  - package: datalabs.messaging
+    include:
+      - email_message
+  - package: datalabs.analysis.scoring
+    include:
+      - common
+  - package: datalabs.analysis.scoring.etl
+    include:
+      - aggregator
+      - score
+  - package: datalabs.analysis.scoring.etl.extract
+    include:
+      - basedata
+      - edw
+      - ods
+  - package: datalabs.analysis.scoring.etl.transform
+    include:
+      - address_key
+      - cleanup
+      - edw
+      - ods
+      - wslive
+  - package: datalabs.analysis.scoring.features
+    include:
+      - entity_comm
+      - entity_comm_usg
+      - humach
+      - license
+      - triangulation
+  - package: datalabs.analysis.scoring.bolo
+    include:
+      - bolo
+      - filtering

@@ -14,6 +14,8 @@ data:
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
+    PLATFORM_DOMAIN: 'platform-${ENVIRONMENT}'
+
     PLATFORM_DB_HOST: pe-tst-aurora-cluster.cluster-cvo5zwdixjdr.us-east-1.rds.amazonaws.com
     PLATFORM_DB_PORT: '3306'
     PLATFORM_DB_BACKEND: 'mysql+pymysql'
@@ -76,6 +78,8 @@ data:
     LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     LICENSING_REMINDERS__SEND_REMINDER_EMAILS__CACHE_INPUT_FILES: email_addresses.csv
+
+    LICENSING_REMINDERS__SEND_REMINDER_EMAILS__PLATFORM_DOMAIN: '${PLATFORM_DOMAIN}'
 
 
     ##########################################################################

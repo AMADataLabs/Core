@@ -3,8 +3,8 @@ from   dataclasses import dataclass
 from   glob import glob
 import os
 
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 
 
@@ -16,10 +16,11 @@ class LocalFileExtractorParameters:
     files: str
     include_names: str = None
     execution_time: str = None
+    execution_offset: str = None
 
 
 # pylint: disable=too-many-ancestors
-class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
+class LocalFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorTask):
     PARAMETER_CLASS = LocalFileExtractorParameters
 
     def _get_files(self):
