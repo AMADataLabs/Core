@@ -17,10 +17,9 @@ def test_default_get_target_datetime(file_extractor, parameters):
 def test_resolve_timestamps(file_extractor):
     file_names = ["testfile1 - %Y-%m-%d.xlsx", "testfile2 - %Y-%m-%d.xlsx", "testfile3 - %Y-%m-%d.xlsx"]
 
-    file_extractor._target_datetime = datetime(2023, 1, 18, 3, 55)
     files = file_extractor._resolve_timestamps(file_names)
 
-    assert files == ["testfile1 - 2023-01-18.xlsx", "testfile2 - 2023-01-18.xlsx", "testfile3 - 2023-01-18.xlsx"]
+    assert files == ["testfile1 - 1900-01-01.xlsx", "testfile2 - 1900-01-01.xlsx", "testfile3 - 1900-01-01.xlsx"]
 
 
 def test_target_offset_mixin(mixin_parent_class, parameters):

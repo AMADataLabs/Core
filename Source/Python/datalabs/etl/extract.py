@@ -33,7 +33,6 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
         super().__init__(parameters, data)
 
         self._client = None
-        self._target_datetime = None
 
     @property
     def include_names(self):
@@ -56,8 +55,6 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
             self._client = client
 
             files = self._get_files()
-
-            self._target_datetime = self._get_target_datetime()
 
             resolved_files = self._resolve_files(files)
 
@@ -122,7 +119,7 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
         return expanded_files
 
     def _resolve_timestamps(self, files):
-        return [datetime.strftime(self._target_datetime, file) for file in files]
+        return [datetime.strftime(self._get_target_datetime(), file) for file in files]
 
     @abstractmethod
     def _extract_file(self, file):
