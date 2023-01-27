@@ -1,9 +1,12 @@
 """ Extractor base class """
 from   abc import ABC, abstractmethod
-from   datetime import datetime
+from   datetime import datetime, timedelta
+from   dateutil.parser import isoparse
+
+import json
 import pickle
 
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import Task
 
 
@@ -25,12 +28,12 @@ class NothingExtractorTask(Task):
         return []
 
 
-class FileExtractorTask(Task, ABC):
+class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
     def __init__(self, parameters, data: "list<bytes>"=None):
         super().__init__(parameters, data)
 
         self._client = None
-        self._execution_time = self.execution_time
+        self._target_datetime = None
 
     @property
     def include_names(self):
@@ -38,7 +41,14 @@ class FileExtractorTask(Task, ABC):
 
     @property
     def execution_time(self):
-        return datetime.utcnow()
+        execution_time = datetime.utcnow().replace(second=0, microsecond=0, minute=0, hour=0)
+
+        if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
+            execution_time = isoparse(self._parameters.execution_time)
+        elif hasattr(self._parameters, 'get'):
+            execution_time = isoparse(self._parameters.get('EXECUTION_TIME'))
+
+        return execution_time
 
     def run(self):
         # pylint: disable=not-context-manager
@@ -46,6 +56,8 @@ class FileExtractorTask(Task, ABC):
             self._client = client
 
             files = self._get_files()
+
+            self._target_datetime = self._get_target_datetime()
 
             resolved_files = self._resolve_files(files)
 
@@ -69,6 +81,9 @@ class FileExtractorTask(Task, ABC):
     @abstractmethod
     def _get_files(self) -> list:
         return None
+
+    def _get_target_datetime(self):
+        return self.execution_time
 
     def _resolve_files(self, files):
         timestamped_files = self._resolve_timestamps(files)
@@ -107,7 +122,7 @@ class FileExtractorTask(Task, ABC):
         return expanded_files
 
     def _resolve_timestamps(self, files):
-        return [datetime.strftime(self._execution_time, file) for file in files]
+        return [datetime.strftime(self._target_datetime, file) for file in files]
 
     @abstractmethod
     def _extract_file(self, file):
@@ -120,3 +135,16 @@ class FileExtractorTask(Task, ABC):
     @abstractmethod
     def _resolve_wildcard(self, file):
         return None
+
+
+class TargetOffsetMixin:
+    def _get_target_datetime(self):
+        target_offset = {}
+
+        if hasattr(self._parameters, 'execution_offset') and self._parameters.execution_offset:
+            target_offset = json.loads(self._parameters.execution_offsettime)
+
+        elif hasattr(self._parameters, 'get') and self._parameters.get('EXECUTION_OFFSET'):
+            target_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
+
+        return self.execution_time - timedelta(**target_offset)
