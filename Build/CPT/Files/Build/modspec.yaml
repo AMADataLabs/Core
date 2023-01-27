@@ -6,6 +6,7 @@ modspec:
   - package: datalabs.access.secret
   - package: datalabs.etl
   - package: datalabs.etl.cpt.files
+  - package: datalabs.etl.cpt.files
   - package: datalabs.etl.cpt.files.core
   - package: datalabs.etl.cpt.files.link
   - package: datalabs.etl.cpt.hcpcs
