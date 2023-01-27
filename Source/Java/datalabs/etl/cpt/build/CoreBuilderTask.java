@@ -75,7 +75,7 @@ public class CoreBuilderTask extends Task {
 
             CoreBuilderTask.updateConcepts(annualCore, incrementalCore);
 
-            DtkAccess core = CoreBuilderTask.buildCore(incrementalCore, parameters.releaseDate, dbParameters);
+            DtkAccess core = CoreBuilderTask.buildCore(incrementalCore, parameters.executionTime, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
 
