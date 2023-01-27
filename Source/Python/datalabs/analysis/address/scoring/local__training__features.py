@@ -7,7 +7,7 @@ from datalabs.analysis.address.scoring.features.entity_comm import EntityCommFea
 from datalabs.analysis.address.scoring.features.entity_comm_usg import EntityCommUsgFeatureGenerationTransformerTask
 from datalabs.analysis.address.scoring.features.license import LicenseFeatureGenerationTransformerTask
 from datalabs.analysis.address.scoring.features.humach import HumachFeatureGenerationTransformerTask
-from datalabs.analysis.address.scoring.features.triangulation import TriangulationFeatureTransformer
+from datalabs.analysis.address.scoring.features.triangulation import TriangulationFeatureTransformerTask
 
 from datalabs.etl.fs.extract import LocalFileExtractorTask
 from datalabs.etl.fs.load import LocalFileLoaderTask
@@ -42,29 +42,29 @@ for AS_OF_DATE in DATES_TO_RUN:
 
     # License features
 
-    from datalabs.analysis.address.scoring.features.license import LicenseFeatureGenerationTransformerTask
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             'base_path': '',
-            'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/license_lt_clean.txt,data/{DATA_DATE}/post_addr_at_clean.txt',
+            'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/license_lt_clean.txt,data/'
+                     f'{DATA_DATE}/post_addr_at_clean.txt',
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
     transformer = LicenseFeatureGenerationTransformerTask(
-        parameters={
-            'data': extractor.data,
+        {
             'as_of_date': AS_OF_DATE
-        }
+        },
+        extractor_output
     )
-    transformer.run()
+    transformer_output = transformer.run()
 
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'features__license__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()
 
@@ -73,27 +73,27 @@ for AS_OF_DATE in DATES_TO_RUN:
     # Humach features
 
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             'base_path': '',
             'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/wslive_results.sas7bdat'
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
     transformer = HumachFeatureGenerationTransformerTask(
-        parameters={
-            'data': extractor.data,
+        {
             'as_of_date': AS_OF_DATE
-        }
+        },
+        extractor_output
     )
-    transformer.run()
+    transformer_output = transformer.run()
 
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'features__humach__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()
 
@@ -102,27 +102,27 @@ for AS_OF_DATE in DATES_TO_RUN:
     # Entity Comm features
 
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             'base_path': '',
             'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/entity_comm_at_clean.txt',
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
     transformer = EntityCommFeatureGenerationTransformerTask(
-        parameters={
-            'data': extractor.data,
+        {
             'as_of_date': AS_OF_DATE
-        }
+        },
+        extractor_output
     )
-    transformer.run()
+    transformer_output = transformer.run()
 
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'features__entity_comm__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()
 
@@ -131,29 +131,27 @@ for AS_OF_DATE in DATES_TO_RUN:
     # Entity Comm Usg features
 
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             'base_path': '',
             'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/entity_comm_usg_at_clean.txt',
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
     transformer = EntityCommUsgFeatureGenerationTransformerTask(
-        parameters={
-            'data': extractor.data,
+        {
             'as_of_date': AS_OF_DATE
-        }
+        },
+        extractor_output
     )
-    transformer.run()
-
-    from datalabs.etl.fs.load import LocalFileLoaderTask
+    transformer_output = transformer.run()
 
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'features__entity_comm_usg__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()
 
@@ -162,30 +160,30 @@ for AS_OF_DATE in DATES_TO_RUN:
     # Triangulation features - IQVIA
 
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             'base_path': '',
             'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/triangulation_iqvia.txt',
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
     TRIANGULATION_SOURCE = 'IQVIA'
 
-    transformer = TriangulationFeatureTransformer(
-        parameters={
-            'data': extractor.data,
+    transformer = TriangulationFeatureTransformerTask(
+        {
             'triangulation_source': TRIANGULATION_SOURCE,
             'as_of_date': AS_OF_DATE
-        }
+        },
+        extractor_output
     )
-    transformer.run()
+    transformer_output = transformer.run()
 
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'features__triangulation__{TRIANGULATION_SOURCE}__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()
 
@@ -196,28 +194,28 @@ for AS_OF_DATE in DATES_TO_RUN:
     TRIANGULATION_SOURCE = 'SYMPHONY'
 
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             'base_path': '',
             'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,data/{DATA_DATE}/triangulation_symphony.txt',
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
-    transformer = TriangulationFeatureTransformer(
-        parameters={
-            'data': extractor.data,
+    transformer = TriangulationFeatureTransformerTask(
+        {
             'triangulation_source': TRIANGULATION_SOURCE,
             'as_of_date': AS_OF_DATE
-        }
+        },
+        extractor_output
     )
-    transformer.run()
+    transformer_output = transformer.run()
 
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'features__triangulation__{TRIANGULATION_SOURCE}__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()
 
@@ -225,27 +223,31 @@ for AS_OF_DATE in DATES_TO_RUN:
     # AGGREGATOR  -- once all feature generation tasks are complete for this specific AS_OF_DATE, aggregate them
 
     extractor = LocalFileExtractorTask(
-        parameters={
+        {
             #'base_path': 'data/2022-08-16/features/', # 'data/2020-06-24/features/' #
             'base_path': '',
-            'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,training/{TRAINING_FOLDER}/features/features__entity_comm__{AS_OF_DATE}.txt,training/{TRAINING_FOLDER}/features/features__entity_comm_usg__{AS_OF_DATE}.txt,training/{TRAINING_FOLDER}/features/features__license__{AS_OF_DATE}.txt,training/{TRAINING_FOLDER}/features/features__humach__{AS_OF_DATE}.txt,training/{TRAINING_FOLDER}/features/features__triangulation__IQVIA__{AS_OF_DATE}.txt,training/{TRAINING_FOLDER}/features/features__triangulation__SYMPHONY__{AS_OF_DATE}.txt'
+            'files': f'training/{TRAINING_FOLDER}/{AS_OF_DATE}.txt,'
+                     f'training/{TRAINING_FOLDER}/features/features__entity_comm__{AS_OF_DATE}.txt,'
+                     f'training/{TRAINING_FOLDER}/features/features__entity_comm_usg__{AS_OF_DATE}.txt,'
+                     f'training/{TRAINING_FOLDER}/features/features__license__{AS_OF_DATE}.txt,'
+                     f'training/{TRAINING_FOLDER}/features/features__humach__{AS_OF_DATE}.txt,'
+                     f'training/{TRAINING_FOLDER}/features/features__triangulation__IQVIA__{AS_OF_DATE}.txt,'
+                     f'training/{TRAINING_FOLDER}/features/features__triangulation__SYMPHONY__{AS_OF_DATE}.txt'
         }
     )
-    extractor.run()
+    extractor_output = extractor.run()
 
     transformer = FeatureAggregatorTransformerTask(
-        parameters={
-            'data': extractor.data
-        }
+        {},
+        extractor_output
     )
-    transformer.run()
+    transformer_output = transformer.run()
 
-    from datalabs.etl.fs.load import LocalFileLoaderTask
     loader = LocalFileLoaderTask(
-        parameters={
-            'data': transformer.data,
+        {
             'base_path': f'training/{TRAINING_FOLDER}/features/',
             'files': f'aggregate_out__{AS_OF_DATE}.txt'
-        }
+        },
+        transformer_output
     )
     loader.run()

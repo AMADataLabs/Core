@@ -1,4 +1,5 @@
 """ Transformer task for address scores batch load file """
+from dataclasses import dataclass
 from datetime import datetime
 
 import pandas as pd
@@ -31,11 +32,12 @@ class AddressScoreBatchFileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
             self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data
         ]
 
-        transformed_data = self._transform(data, me_data)
+        transformed_data = self._transform(score_data, party_id_2_me_data, post_cd_2_comm_id_data)
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
-    def _transform(self) -> pd.DataFrame:
+    @classmethod
+    def _transform(cls, score_data, party_id_2_me_data, post_cd_2_comm_id_data) -> pd.DataFrame:
         party_id_2_me_data.columns = ['PARTY_ID', 'me']
         post_cd_2_comm_id_data.columns = ['POST_CD_ID', 'comm_id']
 
@@ -72,6 +74,6 @@ class AddressScoreBatchFileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
         # reorder columns
         reordered_data = pd.DataFrame()
         for column in batchload_columns:
-            reordered_data[column] = batchload_data[col]
+            reordered_data[column] = batchload_data[column]
 
         return reordered_data

@@ -1,3 +1,5 @@
+""" Address scoring column constants. """
+
 INFO_COLUMNS = [
     'me',
     'entity_id',

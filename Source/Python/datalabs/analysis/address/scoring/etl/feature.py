@@ -1,3 +1,5 @@
+""" Required features constant."""
+
 REQUIRED_FEATURES = [
     'entity_comm_address_age',
     'entity_comm_active_addresses',

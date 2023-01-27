@@ -2,6 +2,8 @@
 # pylint: disable=import-error
 from dataclasses import dataclass
 
+import pandas
+
 from   datalabs.analysis.address.scoring.etl.transform.cleanup import DataCleanerMixin
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
@@ -28,7 +30,7 @@ class EDWIDAdditionTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCleanerMi
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
     @classmethod
-    def _merge(cls, dataset) -> pd.DataFrame:
+    def _merge(cls, dataset) -> pandas.DataFrame:
         data, party_key_data, post_cd_id_data = dataset
 
         result = data.merge(party_key_data, on='entity_id', how='left')

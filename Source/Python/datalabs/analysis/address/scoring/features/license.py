@@ -108,12 +108,12 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
         add_column_prefixes(
             license_lt_data,
             prefix='LICENSE',
-            exclude_cols=['ENTITY_ID', 'LIC_ISSUE_DT', 'LIC_EXP_DT']
+            exclude_columns=['ENTITY_ID', 'LIC_ISSUE_DT', 'LIC_EXP_DT']
         )
         add_column_prefixes(
             post_addr_at_data,
             prefix='LICENSE',
-            exclude_cols=['STATE_CD']
+            exclude_columns=['STATE_CD']
         )
         license_lt_data = license_lt_data.merge(post_addr_at_data, on='LICENSE_COMM_ID', how='left')
 

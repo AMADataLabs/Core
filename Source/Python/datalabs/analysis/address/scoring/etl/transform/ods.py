@@ -1,6 +1,7 @@
 """ Transformer tasks for ODS (IQVIA + Symphony) data processing and preparation """
-# pylint: disable=import-error,trailing-whitespace
 from dataclasses import dataclass
+
+import pandas
 
 from   datalabs.analysis.address.scoring.etl.transform.address_key import add_address_key
 from   datalabs.analysis.address.scoring.etl.transform.cleanup import DataCleanerMixin
@@ -28,7 +29,7 @@ class ODSDataProcessorTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCleane
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
-    def _transform(self, data, me_data) -> pd.DataFrame:
+    def _transform(self, data, me_data) -> pandas.DataFrame:
         """ me_data: base data with ME number column (needed for expanding 10 char ME to 11 char ME) """
         data = self._clean_data(data)
 

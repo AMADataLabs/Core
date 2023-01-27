@@ -12,30 +12,31 @@ AS_OF_DATE = '2022-12-06'
 # Cleaning - License
 
 extractor = LocalFileExtractorTask(
-    parameters={
+    {
         'base_path': 'data/{AS_OF_DATE}',
         'files': 'license_lt.csv'
     }
 )
-extractor.run()
+extractor_output = extractor.run()
 
 transformer = DatabaseTableCleanupTransformerTask(
-    parameters={
-        'data': extractor.data,
+    {
         'clean_whitespace': 'TRUE',
         'date_columns': 'lic_issue_dt,lic_exp_dt',
         'repair_datetime': 'TRUE',
         'convert_to_int_columns': 'entity_id,comm_id'
-    }
+    },
+    extractor_output
+
 )
-lic_clean.run()
+transformer_output = transformer.run()
 
 load = LocalFileLoaderTask(
-    parameters={
-        'data': transformer.data,
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'license_lt_clean.txt'
-    }
+    },
+    transformer_output
 )
 load.run()
 
@@ -43,29 +44,29 @@ load.run()
 # Cleaning - post_addr
 
 extractor = LocalFileExtractorTask(
-    parameters={
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'post_addr.csv'
     }
 )
-extractor.run()
+extractor_output = extractor.run()
 
 transformer = DatabaseTableCleanupTransformerTask(
-    parameters={
-        'data': extractor.data,
+    {
         'clean_whitespace': 'TRUE',
         'repair_datetime': 'TRUE',
         'convert_to_int_columns': 'comm_id,zip'
-    }
+    },
+    extractor_output
 )
-transformer.run()
+transformer_output = transformer.run()
 
 load = LocalFileLoaderTask(
-    parameters={
-        'data': transformer.data,
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'post_addr_at_clean.txt'
-    }
+    },
+    transformer_output
 )
 load.run()
 
@@ -74,29 +75,29 @@ load.run()
 # Cleaning - entity_comm
 
 extractor = LocalFileExtractorTask(
-    parameters={
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'entity_comm.csv'
     }
 )
-extractor.run()
+extractor_output = extractor.run()
 
 transformer = DatabaseTableCleanupTransformerTask(
-    parameters={
-        'data': extractor.data,
+    {
         'date_columns': 'begin_dt,end_dt',
         'clean_whitespace': 'TRUE',
         'convert_to_int_columns': 'entity_id,comm_id'
-    }
+    },
+    extractor_output
 )
-transformer.run()
+transformer_output = transformer.run()
 
 load = LocalFileLoaderTask(
-    parameters={
-        'data': transformer.data,
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'entity_comm_at_clean.txt'
-    }
+    },
+    transformer_output
 )
 load.run()
 
@@ -104,30 +105,30 @@ load.run()
 # Cleaning - entity_comm_usg
 
 extractor = LocalFileExtractorTask(
-    parameters={
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'entity_comm_usg.csv'
     }
 )
-extractor.run()
+extractor_output = extractor.run()
 
 transformer = DatabaseTableCleanupTransformerTask(
-    parameters={
-        'data': extractor.data,
+    {
         'date_columns': 'usg_begin_dt,end_dt',
         'clean_whitespace': 'TRUE',
         'repair_datetime': 'TRUE',
         'convert_to_int_columns': 'entity_id,comm_id'
-    }
+    },
+    extractor_output
 )
-transformer.run()
+transformer_output = transformer.run()
 
 load = LocalFileLoaderTask(
-    parameters={
-        'data': transformer.data,
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'entity_comm_usg_at_clean.txt'
-    }
+    },
+    transformer_output
 )
 load.run()
 
@@ -138,29 +139,29 @@ load.run()
 # Triangulation - Symphony - create address key
 
 extractor = LocalFileExtractorTask(
-    parameters={
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'symphony.csv'
     }
 )
-extractor.run()
+extractor_output = extractor.run()
 
 transformer = AddressKeyTransformerTask(
-    parameters={
-        'data': extractor.data,
+    {
         'street_address_column': 'sym_polo_mailing_line_2',
         'zip_column': 'sym_polo_zip',
         'keep_columns': ''
-    }
+    },
+    extractor_output
 )
-transformer.run()
+transformer_output = transformer.run()
 
 load = LocalFileLoaderTask(
-    parameters={
-        'data': transformer.data,
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'triangulation_symphony.txt'
-    }
+    },
+    transformer_output
 )
 load.run()
 
@@ -168,28 +169,27 @@ load.run()
 # Triangulation - IQVIA - create address key
 
 extractor = LocalFileExtractorTask(
-    parameters={
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'iqvia.csv'
     }
 )
-extractor.run()
+extractor_output = extractor.run()
 
 transformer = AddressKeyTransformerTask(
-    parameters={
-        'data': extractor.data,
+    {
         'street_address_column': 'ims_polo_mailing_line_2',
         'zip_column': 'ims_polo_zip',
-    }
+    },
+    extractor_output
 )
-transformer.run()
+transformer_output = transformer.run()
 
 load = LocalFileLoaderTask(
-    parameters={
-        'data': transformer.data,
+    {
         'base_path': f'data/{AS_OF_DATE}',
         'files': 'triangulation_iqvia.txt'
-    }
+    },
+    transformer_output
 )
 load.run()
-

@@ -21,7 +21,7 @@ from datalabs.analysis.address.scoring.features.entity_comm import EntityCommFea
 from datalabs.analysis.address.scoring.features.entity_comm_usg import EntityCommUsgFeatureGenerationTransformerTask
 from datalabs.analysis.address.scoring.features.humach import HumachFeatureGenerationTransformerTask
 from datalabs.analysis.address.scoring.features.license import LicenseFeatureGenerationTransformerTask
-from datalabs.analysis.address.scoring.features.triangulation import TriangulationFeatureTransformer
+from datalabs.analysis.address.scoring.features.triangulation import TriangulationFeatureTransformerTask
 from datalabs.etl.fs.extract import LocalFileExtractorTask
 from datalabs.etl.fs.load import LocalFileLoaderTask
 
@@ -371,7 +371,7 @@ extracted_data = extractor.run()
 
 TRIANGULATION_SOURCE = 'IQVIA'
 
-transformer = TriangulationFeatureTransformer(
+transformer = TriangulationFeatureTransformerTask(
     parameters={
         'data': extracted_data,
         'triangulation_source': TRIANGULATION_SOURCE,
@@ -403,7 +403,7 @@ extractor = LocalFileExtractorTask(
 )
 extracted_data = extractor.run()
 
-transformer = TriangulationFeatureTransformer(
+transformer = TriangulationFeatureTransformerTask(
     parameters={
         'data': extracted_data,
         'triangulation_source': TRIANGULATION_SOURCE,
