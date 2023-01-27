@@ -14,3 +14,4 @@ modspec:
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.jdbc
   - package: datalabs.etl.sftp
+  - package: datalabs.messaging
