@@ -40,7 +40,7 @@ from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.task import ETLException
 from   datalabs import feature
 from   datalabs.parameter import add_schema
 

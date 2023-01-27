@@ -1,10 +1,10 @@
 """ Extractor base class """
 from   abc import ABC, abstractmethod
 from   datetime import datetime, timedelta
-from   dateutil.parser import isoparse
-
 import json
 import pickle
+
+from   dateutil.parser import isoparse
 
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import Task
@@ -21,6 +21,19 @@ class IncludeNamesMixin:
             include_names = self._parameters.get('INCLUDE_NAMES', 'false').upper() == 'TRUE'
 
         return include_names
+
+
+class TargetOffsetMixin:
+    def _get_target_datetime(self):
+        target_offset = {}
+
+        if hasattr(self._parameters, 'execution_offset') and self._parameters.execution_offset:
+            target_offset = json.loads(self._parameters.execution_offsettime)
+
+        elif hasattr(self._parameters, 'get') and self._parameters.get('EXECUTION_OFFSET'):
+            target_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
+
+        return self.execution_time - timedelta(**target_offset)
 
 
 class NothingExtractorTask(Task):
@@ -132,16 +145,3 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
     @abstractmethod
     def _resolve_wildcard(self, file):
         return None
-
-
-class TargetOffsetMixin:
-    def _get_target_datetime(self):
-        target_offset = {}
-
-        if hasattr(self._parameters, 'execution_offset') and self._parameters.execution_offset:
-            target_offset = json.loads(self._parameters.execution_offsettime)
-
-        elif hasattr(self._parameters, 'get') and self._parameters.get('EXECUTION_OFFSET'):
-            target_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))
-
-        return self.execution_time - timedelta(**target_offset)

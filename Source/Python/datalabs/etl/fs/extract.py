@@ -4,7 +4,7 @@ from   glob import glob
 import os
 
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 
 

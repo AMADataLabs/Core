@@ -9,7 +9,7 @@ from   paramiko.sftp import SFTPError
 
 from   datalabs.access import sftp
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()

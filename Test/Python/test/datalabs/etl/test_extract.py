@@ -1,19 +1,20 @@
 """ source: datalabs.etl.extract """
-import pytest
-
-from   datetime import datetime, timedelta
+from   datetime import timedelta
 from   dateutil.parser import isoparse
 
+import pytest
 
 from   datalabs.etl.extract import FileExtractorTask, TargetOffsetMixin
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_default_get_target_datetime(file_extractor, parameters):
     date = file_extractor._get_target_datetime()
 
     assert date == isoparse(parameters.get('EXECUTION_TIME'))
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_resolve_timestamps(file_extractor):
     file_names = ["testfile1 - %Y-%m-%d.xlsx", "testfile2 - %Y-%m-%d.xlsx", "testfile3 - %Y-%m-%d.xlsx"]
 
@@ -22,6 +23,7 @@ def test_resolve_timestamps(file_extractor):
     assert files == ["testfile1 - 1900-01-01.xlsx", "testfile2 - 1900-01-01.xlsx", "testfile3 - 1900-01-01.xlsx"]
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_target_offset_mixin(mixin_parent_class, parameters):
     date = mixin_parent_class._get_target_datetime()
     actual_date = isoparse(parameters.get('EXECUTION_TIME')) - timedelta(weeks=1)
