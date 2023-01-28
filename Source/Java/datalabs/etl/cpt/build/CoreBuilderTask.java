@@ -60,21 +60,22 @@ public class CoreBuilderTask extends Task {
             loadSettings();
             stageInputFiles();
 
-            Path priorLinkPath = Paths.get(
+            Path annualCorePath = Paths.get(
                     settings.getProperty("input.directory"),
-                    settings.getProperty("prior.link.directory")
-            );
-            Path currentLinkPath = Paths.get(
-                    settings.getProperty("input.directory"),
-                    settings.getProperty("current.link.directory")
+                    settings.getProperty("annual.core.directory")
             );
 
-            DtkAccess priorLink = CoreBuilderTask.loadLink(priorLinkPath.toString());
-            DtkAccess currentLink = CoreBuilderTask.loadLink(currentLinkPath.toString());
+            Path incrementalCorePath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("incremental.core.directory")
+            );
 
-            CoreBuilderTask.updateConcepts(priorLink, currentLink);
+            DtkAccess annualCore = CoreBuilderTask.loadLink(annualCorePath.toString());
+            DtkAccess incrementalCore = CoreBuilderTask.loadLink(incrementalCorePath.toString());
 
-            DtkAccess core = CoreBuilderTask.buildCore(currentLink, parameters.releaseDate, dbParameters);
+            CoreBuilderTask.updateConcepts(annualCore, incrementalCore);
+
+            DtkAccess core = CoreBuilderTask.buildCore(incrementalCore, parameters.executionTime, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
 
@@ -99,13 +100,13 @@ public class CoreBuilderTask extends Task {
         return link;
 	}
 
-    private static void updateConcepts(DtkAccess priorLink, DtkAccess currentLink) throws IOException {
-        for (DtkConcept concept : currentLink.getConcepts()) {
+    private static void updateConcepts(DtkAccess annualCore, DtkAccess incrementalCore) throws IOException {
+        for (DtkConcept concept : incrementalCore.getConcepts()) {
             if (concept.getProperty(PropertyType.CORE_ID) != null) {
-                DtkConcept priorConcept = priorLink.getConcept(concept.getConceptId());
+                DtkConcept annualConcept = annualCore.getConcept(concept.getConceptId());
 
-                if (priorConcept != null) {
-                    priorConcept.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
+                if (annualCore != null) {
+                    annualConcept.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
                 } else {
                     LOGGER.warn("Concept deleted: " + concept.getLogString());
                 }
@@ -113,11 +114,11 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private static DtkAccess buildCore(DtkAccess currentLink, String releaseDate, DbParameters dbParameters)
+    private static DtkAccess buildCore(DtkAccess incrementalCore, String releaseDate, DbParameters dbParameters)
             throws Exception {
-        ConceptIdFactory.init(currentLink);
+        ConceptIdFactory.init(incrementalCore);
 
-        return new BuildCore(currentLink, releaseDate).walk(dbParameters, dbParameters);
+        return new BuildCore(incrementalCore, releaseDate).walk(dbParameters, dbParameters);
     }
 
     private static void exportConcepts(DtkAccess core, String outputDirectory) throws Exception {
@@ -146,24 +147,23 @@ public class CoreBuilderTask extends Task {
         settings = new Properties(){{
             put("output.directory", dataDirectory + File.separator + "output");
             put("input.directory", dataDirectory + File.separator + "input");
-            put("prior.link.directory", "/prior_link");
-            put("current.link.directory", "/current_link");
+            put("annual.core.directory", "/annual_core");
+            put("incremental.core.directory", "/incremental_core");
         }};
     }
 
     void stageInputFiles() throws IOException{
-        Path priorLinkPath = Paths.get(
+        Path annualCorePath = Paths.get(
                 settings.getProperty("input.directory"),
-                settings.getProperty("prior.link.directory")
+                settings.getProperty("annual.core.directory")
         );
-        Path currentLinkPath = Paths.get(
+        Path incrementalCorePath = Paths.get(
                 settings.getProperty("input.directory"),
-                settings.getProperty("current.link.directory")
+                settings.getProperty("incremental.core.directory")
         );
 
-        this.extractZipFiles(this.data.get(0), priorLinkPath.toString());
-        this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
-
+        this.extractZipFiles(this.data.get(0), annualCorePath.toString());
+        this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
     }
 
     private void extractZipFiles(byte[] zip, String directory) throws IOException{

@@ -1922,21 +1922,16 @@ pipelines:
 #                    --jdbc-driver DB2
 #                    --jdbc-driver Informix
 #                    --use-package
-#        - parallel:
-#            - step:
-#                name: Update Sandbox Lambda Function
-#                script:
-#                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                - bash Deploy/Master/update-functions -e sbx s CPT -p CPT/Files BuildDAG=Build.zip
-#            - step:
-#                name: Update Development Lambda Function
-#                script:
-#                - >-
-#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT -p CPT/Files
-#                    BuildDAG=Build.zip
+        - parallel:
+            - step:
+                name: Update Development Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
+                    BuilderDAG=Build.zip
 #            - step:
 #                name: Update Test Lambda Function
 #                script:
@@ -1944,8 +1939,8 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT -p CPT/Files
-#                    BuildDAG=Build.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
+#                    BuilderDAG=Build.zip
 #            - step:
 #                name: Update Production Lambda Function
 #                script:
@@ -1953,8 +1948,8 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT -p CPT/Files
-#                    BuildDAG=Build.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
+#                    BuilderDAG=Build.zip
 
         Scheduler:
         - step:
@@ -2239,16 +2234,16 @@ pipelines:
 #                    --project CPT/Files/Legacy
 #                    --bundle CPT/Files/Legacy.zip
 #                    --use-package
-#        - parallel:
-#            - step:
-#                name: Reload Development Lambda Functions
-#                script:
-#                - >-
-#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT/Files -p CPT/Files
-#                    Legacy=Legacy.zip
+        - parallel:
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
+                    Legacy=Legacy.zip
 #            - step:
 #                name: Reload Test Lambda Functions
 #                script:
@@ -2256,7 +2251,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT/Files -p CPT/Files
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
 #                    Legacy=Legacy.zip
 #            - step:
 #                name: Reload Production Lambda Functions

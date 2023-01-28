@@ -56,23 +56,23 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
             stageInputFiles();
             loadSettings();
 
-            Path linkBuilderOutputPath = Paths.get(
-                    settings.getProperty("input.directory"),
-                    settings.getProperty("link.builder.output.directory")
-            );
             Path currentLinkPath = Paths.get(
                     settings.getProperty("input.directory"),
                     settings.getProperty("current.link.directory")
+            );
+            Path incrementalCorePath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("incremental.core.directory")
             );
 
             String outputDirectory =  settings.getProperty("output.directory") + File.separator + parameters.versionNew + File.separator;
             Files.createDirectories(Paths.get(outputDirectory));
 
-            DtkAccess current_link = ConsumerClinicianDescriptorsBuilderTask.loadLink(currentLinkPath.toString());
-            DtkAccess linkBuilderOutput = ConsumerClinicianDescriptorsBuilderTask.loadLink(linkBuilderOutputPath.toString());
-            List<DtkConcept> concepts = new Legacy(linkBuilderOutput).getConceptsSorted(false, false);
+            DtkAccess incrementalCore = ConsumerClinicianDescriptorsBuilderTask.loadLink(incrementalCorePath.toString());
+            DtkAccess currentLink = ConsumerClinicianDescriptorsBuilderTask.loadLink(currentLinkPath.toString());
+            List<DtkConcept> concepts = new Legacy(currentLink).getConceptsSorted(false, false);
 
-            ConsumerClinicianWorkbookBuilder descriptorBuilder = new ConsumerClinicianWorkbookBuilder(current_link, linkBuilderOutput);
+            ConsumerClinicianWorkbookBuilder descriptorBuilder = new ConsumerClinicianWorkbookBuilder(incrementalCore, currentLink);
             descriptorBuilder.createConsumerClinican(concepts, outputDirectory + "cdfcdterms.xlsx");
 
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
@@ -130,7 +130,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         settings = new Properties(){{
             put("output.directory", dataDirectory + File.separator + "output");
             put("input.directory", dataDirectory + File.separator + "input");
-            put("core.directory", "core");
+            put("incremental.core.directory", "incremental_core");
             put("current.link.directory", "current_link");
         }};
     }
