@@ -44,14 +44,15 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     public ConsumerClinicianDescriptorsBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException
     {
-        super(parameters, data, ConsumerClinicianDescriptorsParameters.class);
+        super(parameters, data, ConsumerClinicianDescriptorsBuilderParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException{
         ArrayList<byte[]> outputFiles;
 
         try {
-            ConsumerClinicianDescriptorsParameters parameters = (ConsumerClinicianDescriptorsParameters) this.parameters;
+            ConsumerClinicianDescriptorsBuilderParameters parameters
+                = (ConsumerClinicianDescriptorsBuilderParameters) this.parameters;
 
             stageInputFiles();
             loadSettings();
