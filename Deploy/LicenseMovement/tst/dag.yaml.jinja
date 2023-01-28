@@ -103,7 +103,7 @@ data:
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__MAX_PARTS: '@MACRO_COUNT@'
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__PART_INDEX: '@MACRO_INDEX@'
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__SQL: "SELECT
-        SKIP {index} FIRST {count} usg.entity_id,
+        usg.entity_id,
         usg.comm_id AS previous_ppma_comm_id
     FROM
         entity_comm_usg_at usg
@@ -140,7 +140,7 @@ data:
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__MAX_PARTS: '@MACRO_COUNT@'
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__PART_INDEX: '@MACRO_INDEX@'
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__SQL: "SELECT
-        SKIP {index} FIRST {count} l.entity_id,
+        l.entity_id,
         l.state_cd AS license_state,
         l.lic_issue_dt,
         l.lic_exp_dt,
