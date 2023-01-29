@@ -45,7 +45,7 @@ class LinkBuilderTaskTests {
     void stageInputFilesTest(@TempDir Path dataDir, @TempDir Path workingDir)
             throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
         String[] testFiles = {"testFile1.txt", "testFile2.txt", "testFile3.txt"};
-        String[] testDirectories = {"prior_link", "current_link", "current_core"};
+        String[] testDirectories = {"annual_link", "incremental_core", "current_core"};
         String[] testInputFiles = {"HCPCS.xlsx", "cdcterms.xlsx", "coding_tips_attach.xlsx", "front_matter.docx",
                 "cpt_rvu.txt", "cpt_index.docx", "reviewed_used_input.xlsx"};
         ArrayList<byte[]> data = new ArrayList<>();
@@ -150,7 +150,7 @@ class LinkBuilderTaskTests {
         File dataOutputDirectory = new File(dataDir + File.separator + "output");
 
         generateOutputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir, expectedData);
-        ArrayList<byte[]> returnedData = loadOutputFiles(dataDir, data, dataOutputDirectory);
+        ArrayList<byte[]> returnedData = loadFiles(dataDir, data, dataOutputDirectory);
 
         assertOutputFilesMatch(returnedData, expectedData);
     }
@@ -174,23 +174,23 @@ class LinkBuilderTaskTests {
         }
     }
 
-    ArrayList<byte[]> loadOutputFiles(Path dataDir, ArrayList<byte[]> data, File dataOutputDirectory){
+    ArrayList<byte[]> loadFiles(Path dataDir, ArrayList<byte[]> data, File dataOutputDirectory){
         System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
 
         Map<String, String> parameters = new HashMap();
-        parameters.put("releaseDate", "20230101");
-        parameters.put("host", "host");
-        parameters.put("username", "username");
-        parameters.put("password", "password");
-        parameters.put("port", "port");
+        parameters.put("hcpsTerminationDate", "20220101");
+        parameters.put("linkDate", "2023");
+        parameters.put("linkIncrementalDate", "2022u05");
+        parameters.put("linkAnnualDate", "2022");
+        parameters.put("revisionDate", "20230101");
         ArrayList<byte[]>returnedData = new ArrayList<byte[]>();
 
         try {
-            CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
-            coreBuilderTask.loadSettings();
-            returnedData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
+            LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, data);
+            linkBuilderTask.loadSettings();
+            returnedData = linkBuilderTask.loadOutputFiles(dataOutputDirectory);
         } catch (Exception exception) {
-            CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
+            LinkBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
         }
 
         return returnedData;
