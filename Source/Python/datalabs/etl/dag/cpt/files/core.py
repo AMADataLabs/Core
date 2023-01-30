@@ -10,8 +10,8 @@ class CPTCoreDAG(DAG):
     FIND_INPUT_FILES: InputFilesListExtractorTask
     EXTRACT_INPUT_FILES: S3FileExtractorTask
     BUILD_CORE: 'datalabs.etl.cpt.build.CoreBuilderTask'
-    BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS: 'datalabs.etl.cpt.build.ConsumerClinicianBuilderTask'
-    LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS: SMTPFileLoaderTask
+    # BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS: 'datalabs.etl.cpt.build.ConsumerClinicianBuilderTask'
+    # LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS: SMTPFileLoaderTask
 
 
 # pylint: disable=pointless-statement
