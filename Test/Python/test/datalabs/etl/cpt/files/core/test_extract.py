@@ -37,11 +37,9 @@ def test_extract_yields_correct_input_files(parameters, object_listing):
 
         files = task.run( )
 
-    assert len(files) == 4
-    assert "AMA/CPT/20210831/output/internal_Property.txt" in files
-    assert "AMA/CPT/20210831/output/RelationshipGroup.txt" in files
-    assert "AMA/CPT/20220401/output/internal_Property.txt" in files
-    assert "AMA/CPT/20220401/output/RelationshipGroup.txt" in files
+    assert len(files) == 2
+    assert "AMA/CPT/20210831/output.zip" in files
+    assert "AMA/CPT/20220401/output.zip" in files
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
@@ -50,7 +48,8 @@ def parameters():
     return dict(
         BUCKET='ama-abc-datalake-ingest-us-east-1',
         BASE_PATH='AMA/CPT',
-        EXECUTION_TIME='20220701'
+        EXECUTION_TIME='20220701',
+        CORE_FILES_ZIP='output.zip'
     )
 
 
