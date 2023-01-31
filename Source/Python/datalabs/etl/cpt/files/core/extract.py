@@ -65,14 +65,14 @@ class InputFilesListExtractorTask(Task):
 
     def _get_incremental_files(self, execution_date, base_path, all_run_paths):
         core_path = self._get_incremental_core_path(execution_date, all_run_paths)
-        files = self._generate_incremental_files("/".join((base_path,  core_path)))
+        files = self._generate_incremental_files(core_path)
 
         return files
 
     def _get_annual_files(self, execution_date, base_path, all_run_paths):
         core_path = self._get_annual_core_path(execution_date, all_run_paths)
 
-        files = self._generate_annual_files("/".join((base_path,  core_path)))
+        files = self._generate_annual_files(core_path)
 
         return files
 
