@@ -1865,18 +1865,6 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/Files/Build
         - parallel:
             - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/Files/Build
-                    --bundle CPT/Files/Build.zip
-                    --use-package
-            - step:
                 name: Update Development Lambda Bundle
                 caches:
                     - environment-dev
