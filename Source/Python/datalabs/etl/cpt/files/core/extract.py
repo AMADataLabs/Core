@@ -38,7 +38,7 @@ class InputFilesListExtractorTask(Task):
 
         annual_files = self._get_annual_files(execution_date, base_path, all_run_paths)
 
-        return [incremental_files, annual_files]
+        return [annual_files, incremental_files]
 
     @classmethod
     def _get_datestamp_from_execution_time(cls, execution_time):
@@ -52,7 +52,7 @@ class InputFilesListExtractorTask(Task):
     @classmethod
     def _list_files(cls, client, bucket, path):
         response = client.list_objects_v2(Bucket=bucket, Prefix=path)
-        objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
+        objects = {x['Key'].split('/', 3)[3] for x in response['Contents']}
 
         if  '' in objects:
             objects.remove('')
