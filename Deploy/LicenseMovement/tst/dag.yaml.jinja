@@ -103,7 +103,7 @@ data:
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__MAX_PARTS: '@MACRO_COUNT@'
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__PART_INDEX: '@MACRO_INDEX@'
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__SQL: "SELECT
-        usg.entity_id as ME,
+        SKIP {index} FIRST {count} usg.entity_id,
         usg.comm_id AS previous_ppma_comm_id
     FROM
         entity_comm_usg_at usg
@@ -112,8 +112,7 @@ data:
     WHERE
         usg.comm_usage = 'PP' AND
         usg.end_dt IS NOT NULL
-    INTO TEMP license_movement_report;
-    SELECT * FROM license_movement_report ORDER BY ME SKIP {index} LIMIT {count}
+    ORDER BY usg.entity_id
 "
 
     LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__CACHE_OUTPUT_CLASS: ${S3_CACHE_JAVA_CLASS}
