@@ -40,7 +40,26 @@ import datalabs.task.TaskException;
 
 public class LinkBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkBuilderTask.class);
-    Properties settings = new Properties();
+    static final String DATA_PATH = System.getProperty("data.directory", "/tmp");
+    static final Path INPUT_PATH = DATA_PATH.resolve("input");
+    static final Path OUTPUT_PATH = DATA_PATH.resolve("output");
+    static final Path CURRENT_CORE_PATH = INPUT_PATH.resolve("current_core");
+    static final Path INCREMENTAL_CORE_PATH = INPUT_PATH.resolve("incremental_core");
+    static final Path ANNUAL_CORE_PATH = INPUT_PATH.resolve("annual_core");
+    static final Path PRIOR_LINK_PATH = INPUT_PATH.resolve("prior_link");
+    static final Path PRIOR_HISTORY_PATH = PRIOR_LINK_PATH.resolve("dtk");
+    static final Path EXPORT_PATH = OUTPUT_PATH.resolve("export");
+    static final Path EXTRACTS_PATH = OUTPUT_PATH.resolve("extracts");
+    static final Path HCPCS_PATH = INPUT_PATH.resolve("HCPCS.xlsx");
+    static final Path CONSUMER_AND_CLINICIAN_DESCRIPTORS_PATH = INPUT_PATH.resolve("cdcterms.xlsx");
+    static final Path CODING_TIPS_PATH = INPUT_PATH.resolve("coding_tips_attach.xlsx");
+    static final Path RVU_PATH = INPUT_PATH.resolve("cpt_rvu.txt");
+    static final Path FRONT_MATTER_PATH = INPUT_PATH.resolve("front_matter.docx");
+    static final Path EM_INPUT_PATH = INPUT_PATH.resolve("em");
+    static final Path EM_OUTPUT_PATH = OUTPUT_PATH.resolve("em");
+    static final Path INDEX_PATH = INPUT_PATH.resolve("cpt_index.docx");
+    static final Path EDITS_PATH = INPUT_PATH.resolve("reviewed_used_input.xlsx");
+
 
     public LinkBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
@@ -52,40 +71,18 @@ public class LinkBuilderTask extends Task {
 
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
-            loadSettings();
-
-            Path incrementalCorePath = Paths.get(
-                    settings.getProperty("input.directory"),
-                    settings.getProperty("incremental.core.directory")
-            );
-            Path exportPath = Paths.get(
-                    settings.getProperty("output.directory"),
-                    settings.getProperty("export.directory")
-            );
-            Path extractPath = Paths.get(
-                    settings.getProperty("input.directory"),
-                    settings.getProperty("extract.directory")
-            );
-            Path currentCorePath = Paths.get(
-                    settings.getProperty("input.directory"),
-                    settings.getProperty("current.core.directory")
-            );
 
             stageInputFiles();
 
-            DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString());
-            DtkAccess incrementalCore = LinkBuilderTask.loadLink(incrementalCorePath.toString());
+            LinkBuilderTask.buildLink(parameters);
 
-            LinkBuilderTask.buildLink(incrementalCore, core, parameters, this.settings);
+            LinkBuilderTask.exportConcepts(core);
 
-            LinkBuilderTask.exportConcepts(core, exportPath.toString());
+            LinkBuilderTask.createExtracts(core);
 
-            LinkBuilderTask.createExtracts(core, extractPath.toString());
+            LinkBuilderTask.createDistribution(parameters);
 
-            LinkBuilderTask.createDistribution(parameters, this.settings);
-
-            File outputFilesDirectory = new File(settings.getProperty("output.directory"));
-            outputFiles = loadOutputFiles(outputFilesDirectory);
+            outputFiles = loadOutputFiles();
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
@@ -104,40 +101,17 @@ public class LinkBuilderTask extends Task {
 		return link;
 	}
 
-    private static void buildLink(DtkAccess currentLink, DtkAccess core, LinkBuilderParameters parameters,
-                                  Properties settings)
+    private static void buildLink(LinkBuilderParameters parameters)
             throws Exception {
-        Path directory = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("hcpcs.input.directory")
-        );
-        Path hcpcsPath = Paths.get(
-                settings.getProperty("hcpcs.data.file")
-        );
-        Path consumerAndClinicianDescriptorsPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("consumer.and.clinician.descriptors")
-        );
-        Path codingTipsPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("coding.tips")
-        );
-        Path rvusPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("rvus")
-        );
-        Path frontMatterPath = Paths.get(
-                settings.getProperty("front.matter"),
-                settings.getProperty("prior.history.directory")
-        );
-
+        DtkAccess core = LinkBuilderTask.loadLink(CURRENT_CORE_PATH.toString());
+        DtkAccess incrementalCore = LinkBuilderTask.loadLink(INCREMENTAL_CORE_PATH.toString());
 
         ConceptIdFactory.init(core);
 
         BuildDtkFiles files = new BuildDtk.BuildDtkFiles(
-                directory.resolve(hcpcsPath.toString()).toString(),
-                null, consumerAndClinicianDescriptorsPath.toString(),
-                codingTipsPath.toString(), frontMatterPath.toString(), rvusPath.toString()
+                HCPCS_PATH.toString(),
+                null, CONSUMER_AND_CLINICIAN_DESCRIPTORS_PATH.toString(),
+                CODING_TIPS_PATH.toString(), FRONT_MATTER_PATH.toString(), RVU_PATH.toString()
         );
 
         BuildDtk linkBuilder = new BuildDtk(
@@ -151,24 +125,15 @@ public class LinkBuilderTask extends Task {
         linkBuilder.run();
     }
 
-    private static void updateEmTables(DtkAccess annualLink, DtkAccess core, Properties settings)
+    private void updateEmTables(DtkAccess annualLink, DtkAccess core, Properties settings)
             throws Exception {
-        Path inputDirectory = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("em.input.directory")
-        );
-        Path outputDirectory = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("em.output.directory")
-        );
-
-        Files.createDirectories(outputDirectory);
+        Files.createDirectories(EM_OUTPUT_PATH);
 
         IntroEmTables introEmTables = new IntroEmTables(annualLink, core);
 
-        introEmTables.buildTableFiles(inputDirectory, null, outputDirectory);
+        introEmTables.buildTableFiles(EM_INPUT_PATH, null, EM_OUTPUT_PATH);
 
-        introEmTables.updateEmTables(outputDirectory);
+        introEmTables.updateEmTables(EM_OUTPUT_PATH);
     }
 
     private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
@@ -179,10 +144,10 @@ public class LinkBuilderTask extends Task {
         return concepts;
     }
 
-    private static void exportConcepts(DtkAccess link, String directory) throws Exception {
+    private void exportConcepts(DtkAccess link) throws Exception {
         ArrayList<DtkConcept> concepts = LinkBuilderTask.getConcepts(link);
 
-        Files.createDirectories(Paths.get(directory));
+        Files.createDirectories(EXPORT_PATH);
 
         LinkBuilderTask.exportPsvConcepts(link, concepts, directory);
 
@@ -191,8 +156,8 @@ public class LinkBuilderTask extends Task {
         LinkBuilderTask.exportOwlConcepts(link, concepts, directory);
     }
 
-    private static void createExtracts(DtkAccess link, String directory) throws Exception {
-        Files.createDirectories(Paths.get(directory));
+    private void createExtracts(DtkAccess link) throws Exception {
+        Files.createDirectories(EXTRACTS_PATH);
 
         Extracts extracts = new Extracts(link, directory);
 
@@ -203,39 +168,25 @@ public class LinkBuilderTask extends Task {
         extracts.extract(concepts);
     }
 
-    public static void createDistribution(LinkBuilderParameters parameters, Properties settings)
+    public void createDistribution(LinkBuilderParameters parameters)
             throws Exception {
-        Path annualLinkPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("prior.link.directory")
-        );
-        Path currentLinkPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("current.link.directory")
-        );
-        Path exportPath = Paths.get(
-                settings.getProperty("output.directory"),
-                settings.getProperty("export.directory")
-        );
-
-        DtkAccess link = LinkBuilderTask.loadLink(exportPath.toString());
-
-        DtkAccess linkIncremental = LinkBuilderTask.loadLink(currentLinkPath.toString());
-        DtkAccess linkAnnual = LinkBuilderTask.loadLink(annualLinkPath.toString());
+        DtkAccess currentCore = LinkBuilderTask.loadLink(CURRENT_CORE_PATH.toString());
+        DtkAccess incrementalCore = LinkBuilderTask.loadLink(INCREMENTAL_CORE_PATH.toString());
+        DtkAccess annualCore = LinkBuilderTask.loadLink(ANNUAL_CORE_PATH.toString());
 
         Builder distribution = new Builder(
-            link,
+            currentCore,
             parameters.linkDate,
-            linkIncremental,
+            incrementalCore,
             parameters.linkIncrementalDate,
-            linkAnnual,
+            annualCore,
             parameters.linkAnnualDate,
             Collections.singletonList(parameters.revisionDate),
-            Paths.get(settings.getProperty("input.directory"), settings.getProperty("prior.history.directory")), //changes in current
-            Paths.get(settings.getProperty("input.directory"), settings.getProperty("index.file")),
+            PRIOR_HISTORY_PATH,
+            INDEX_PATH,
             null,
-            Paths.get(settings.getProperty("input.directory"), settings.getProperty("edits.file")),
-            Paths.get(settings.getProperty("output.directory"))
+            EDITS_PATH,
+            OUTPUT_PATH
         );
 
         distribution.index_format_2021 = true;
@@ -290,83 +241,16 @@ public class LinkBuilderTask extends Task {
         return concepts;
     }
 
-    void loadSettings() {
-        String dataDirectory = System.getProperty("data.directory", "/tmp");
-
-        settings = new Properties(){{
-            put("hcpcs.data.file", "HCPCS.xlsx");
-            put("hcpcs.input.directory", "/hcpcs_input_directory");
-            put("em.input.directory", "/em_input");
-            put("em.output.directory", "/em_output");
-            put("export.directory", "/export");
-            put("extract.directory", "/export");
-            put("prior.history.directory", "/current_link/changes/");
-            put("index.file", "cpt_index.docx");
-            put("edits.file", "reviewed_used_input.xlsx");
-            put("output.directory", dataDirectory + File.separator + "output");
-            put("input.directory",  dataDirectory + File.separator + "input");
-            put("consumer.and.clinician.descriptors", "cdcterms.xlsx");
-            put("coding.tips", "coding_tips_attach.xlsx");
-            put("front.matter", "front_matter.docx");
-            put("rvus", "cpt_rvu.txt");
-            put("annual.link.directory", "/annual_link");
-            put("incremental.core.directory", "/incremental_core");
-            put("current.core.directory", "/current_core");
-        }};
-    }
-
     void stageInputFiles() throws IOException{
-        Path annualLinkPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("annual.link.directory")
-        );
-        Path incrementalCorePath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("incremental.core.directory")
-        );
-        Path currentCorePath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("current.core.directory")
-        );
+        this.extractZipFiles(this.data.get(0), ANNUAL_CORE_PATH.toString());
+        this.extractZipFiles(this.data.get(1), INCREMENTAL_CORE_PATH.toString());
+        this.extractZipFiles(this.data.get(2), CURRENT_CORE_PATH.toString());
 
-        this.extractZipFiles(this.data.get(0), annualLinkPath.toString());
-        this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
-        this.extractZipFiles(this.data.get(2), currentCorePath.toString());
-
-        Path hcpcsPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("hcpcs.data.file")
-        );
-        Path consumerAndClinicianDescriptorsPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("consumer.and.clinician.descriptors")
-        );
-        Path codingTipsPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("coding.tips")
-        );
-        Path rvusPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("rvus")
-        );
-        Path frontMatterPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("front.matter")
-        );
-        Path indexPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("index.file")
-        );
-        Path editsPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("edits.file")
-        );
-
-        this.extractBytes(hcpcsPath.toString(), this.data.get(3));
-        this.extractBytes(consumerAndClinicianDescriptorsPath.toString(), this.data.get(4));
-        this.extractBytes(codingTipsPath.toString(),this.data.get(5));
-        this.extractBytes(frontMatterPath.toString(), this.data.get(6));
-        this.extractBytes(rvusPath.toString(), this.data.get(7));
+        this.extractBytes(HCPCS_PATH.toString(), this.data.get(3));
+        this.extractBytes(CONSUMER_AND_CLINICIAN_DESCRIPTORS_PATH.toString(), this.data.get(4));
+        this.extractBytes(CODING_TIPS_PATH.toString(),this.data.get(5));
+        this.extractBytes(FRONT_MATTER_PATH.toString(), this.data.get(6));
+        this.extractBytes(RVU_PATH.toString(), this.data.get(7));
         this.extractBytes(indexPath.toString(), this.data.get(8));
         this.extractBytes(editsPath.toString(),this.data.get(9));
 
@@ -406,9 +290,17 @@ public class LinkBuilderTask extends Task {
         fileOutputStream.close();
     }
 
-    ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
+    ArrayList<byte[]> loadOutputFiles() throws Exception {
+        /* FIXME:
+         *  1. Determine the most recent "Publish" directory under the output path,
+         *  2. Determine the most recent "Build" directory under the output path,
+         *  3. Remove all directories under the output path that are not #1 or #2,
+         *  4. Zip the output directory as a byte[] object,
+         *  5. Return an ArrayList<byte[]> with the byte[] from #4 as the only element.
+         */
         ArrayList<byte[]> outputFiles = new ArrayList<>();
-        File[] files = outputDirectory.listFiles();
+        File[] files = OUTPUT_PATH.listFiles();
+
 
         Arrays.sort(files);
 
