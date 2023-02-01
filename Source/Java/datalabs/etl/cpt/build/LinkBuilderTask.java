@@ -40,6 +40,7 @@ import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.DtkConceptIds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.zip.ZipUtil;
 
 import datalabs.task.Task;
 import datalabs.task.TaskException;
@@ -193,38 +194,17 @@ public class LinkBuilderTask extends Task {
     }
 
     ArrayList<byte[]> loadOutputFiles() throws Exception {
-        /* FIXME:
-         *  1. Determine the most recent "Publish" directory under the output path,
-         *  2. Determine the most recent "Build" directory under the output path,
-         *  3. Remove all directories under the output path that are not #1 or #2,
-         *  4. Zip the output directory as a byte[] object,
-         *  5. Return an ArrayList<byte[]> with the byte[] from #4 as the only element.
-         */
         Path publishPath = getPublishPath();
         Path buildPath = getBuildPath();
-        ArrayList<byte[]> outputFiles = new ArrayList<>();
-        // String[] files = new File(LinkBuilderTask.OUTPUT_PATH.toString()).list();
-        //
-        //
-        // Arrays.sort(files);
-        //
-        // for (File file: files) {
-        //     if (file.isDirectory()) {
-        //         ArrayList<byte[]> output = loadOutputFiles(file);
-        //
-        //         for (byte[] outputFile: output){
-        //             outputFiles.add(outputFile);
-        //         }
-        //
-        //     } else {
-        //         Path path = Paths.get(file.getPath());
-        //         byte[] data = Files.readAllBytes(path);
-        //         outputFiles.add(data);
-        //     }
-        //
-        // }
+        Path zipPath = OUTPUT_PATH.resolve("output.zip");
 
-        return outputFiles;
+        ZipUtil.pack(publishPath.toString(), zipPath.toString());
+        ZipUtil.pack(buildPath.toString(), zipPath.toString());
+        byte[] byteInput = Files.readAllBytes(zipPath.toPath());
+
+        return new ArrayList<byte[]>() {{
+            add(Files.readAllBytes(zipPath.toPath()));
+        }};
     }
 
     private void extractZipFiles(byte[] zip, String directory) throws IOException{

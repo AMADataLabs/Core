@@ -19,13 +19,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.core.util.ArrayUtils;
-
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.io.TempDir;
-import org.zeroturnaround.zip.ZipUtil;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +27,11 @@ import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.zeroturnaround.zip.ZipUtil;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
 import org.ama.dtk.DtkAccess;
@@ -133,7 +131,7 @@ class LinkBuilderTaskTests {
     void generateInputZipFiles(String[] testDirectories, ArrayList<byte[]> data, Path workingDir, String[] testFiles)
             throws IOException {
         for (String directory : testDirectories) {
-            File testDirectory = new File(workingDir + File.separator + "input" + File.separator + directory);
+            File testDirectory = new File(workingDir.resolve("input").resolve(directory).toString());
             testDirectory.mkdirs();
 
             for (String testFile : testFiles) {
