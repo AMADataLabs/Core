@@ -60,7 +60,7 @@ class CoreBuilderTaskTests {
     @DisplayName("Test stageOutputFiles return")
     void stageInputFilesTest(@TempDir Path dataDir, @TempDir Path workingDir) throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
         String[] testFiles = {"testFile1.txt", "testFile2.txt", "testFile3.txt"};
-        String[] testDirectories = {"prior_link", "current_link"};
+        String[] testDirectories = {"annual_core", "incremental_core"};
         ArrayList<byte[]> data = new ArrayList<>();
 
         for (String directory: testDirectories) {
@@ -84,7 +84,7 @@ class CoreBuilderTaskTests {
         System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
 
         Map<String, String> parameters = new HashMap();
-        parameters.put("releaseDate", "20230101");
+        parameters.put("executionTime", "20230101");
         parameters.put("host", "host");
         parameters.put("username", "username");
         parameters.put("password", "password");
@@ -138,7 +138,7 @@ class CoreBuilderTaskTests {
         }
 
         Map<String, String> parameters = new HashMap();
-        parameters.put("releaseDate", "20230101");
+        parameters.put("executionTime", "20230101");
         parameters.put("host", "host");
         parameters.put("username", "username");
         parameters.put("password", "password");
