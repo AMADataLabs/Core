@@ -151,7 +151,7 @@ class LinkBuilderTaskTests {
         File dataOutputDirectory = new File(dataDir + File.separator + "output");
 
         generateOutputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir, expectedData);
-        ArrayList<byte[]> returnedData = loadOutputFiles(dataDir, data, dataOutputDirectory);
+        ArrayList<byte[]> returnedData = loadFiles(dataDir, data, dataOutputDirectory);
 
         assertOutputFilesMatch(returnedData, expectedData);
     }

@@ -40,7 +40,7 @@ import datalabs.task.TaskException;
 
 public class LinkBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkBuilderTask.class);
-    static final String DATA_PATH = System.getProperty("data.directory", "/tmp");
+    static final Path DATA_PATH = System.getProperty("data.directory", "/tmp");
     static final Path INPUT_PATH = DATA_PATH.resolve("input");
     static final Path OUTPUT_PATH = DATA_PATH.resolve("output");
     static final Path CURRENT_CORE_PATH = INPUT_PATH.resolve("current_core");
