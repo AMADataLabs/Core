@@ -1,11 +1,20 @@
 package datalabs.etl.cpt.build;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -44,8 +53,10 @@ class LinkBuilderTaskTests {
     @DisplayName("Test stageOutputFiles return")
     void stageInputFilesTest(@TempDir Path dataDir, @TempDir Path workingDir)
             throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        System.setProperty("data.path", String.valueOf(dataDir));
+        LOGGER.info("Set data.path to " + System.getProperty("data.path"));
         String[] testFiles = {"testFile1.txt", "testFile2.txt", "testFile3.txt"};
-        String[] testDirectories = {"current_core", "incremental_core", "annual_core", "prior_link"};
+        String[] testDirectories = {"annual_core", "incremental_core", "current_core", "prior_link"};
         String[] testInputFiles = {"HCPCS.xlsx", "cdcterms.xlsx", "coding_tips_attach.xlsx", "front_matter.docx",
                 "cpt_rvu.txt", "cpt_index.docx", "reviewed_used_input.xlsx"};
         ArrayList<byte[]> data = new ArrayList<>();
@@ -58,6 +69,66 @@ class LinkBuilderTaskTests {
         assertZipInputsMatch(dataDir, workingDir, testDirectories, testFiles);
         assertOtherInputsMatch(testInputFiles, workingDir, dataDir);
     }
+
+
+    @Test
+    @DisplayName("Test loadOutputFiles return")
+    void loadOutputFilesTest(@TempDir Path dataDir)
+            throws IOException {
+        ArrayList<byte[]> data = new ArrayList<>();
+        ArrayList<byte[]> expectedData = new ArrayList<byte[]>();
+        List<String> testSubDirectories = Arrays.asList("testDirectory1", "testDirectory2", "testDirectory3");
+        List<String> testFiles = Arrays.asList("testFile1.txt", "testFile2.txt", "testFile3.txt");
+        File dataOutputDirectory = new File(dataDir + File.separator + "output");
+
+        generateOutputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir, expectedData);
+        ArrayList<byte[]> returnedData = loadFiles(dataDir, data, dataOutputDirectory);
+
+        assertOutputFilesMatch(returnedData, expectedData);
+    }
+
+
+    @Test
+    @DisplayName("Test determination of the publish path")
+    void getPublishPathTest(@TempDir Path dataDir)
+            throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        System.setProperty("data.path", String.valueOf(dataDir));
+        String timestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        Files.createDirectories(dataDir.resolve("output").resolve("publish" + timestamp));
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
+
+        LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, new ArrayList<byte[]>());
+        LOGGER.info("Expected Publish Path: " + dataDir.resolve("output").resolve("publish20230901_112233").toString());
+
+        Path publishPath = linkBuilderTask.getPublishPath();
+        LOGGER.info("Actual Publish Path: " + publishPath.toString());
+
+        assertTrue(publishPath.toString().startsWith(dataDir.resolve("output").resolve("publish").toString()));
+    }
+
+
+    @Test
+    @DisplayName("Test determination of the build path")
+    void getBuildPathTest(@TempDir Path dataDir)
+            throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        System.setProperty("data.path", String.valueOf(dataDir));
+        String timestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        Files.createDirectories(dataDir.resolve("output").resolve("build" + timestamp));
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
+
+        LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, new ArrayList<byte[]>());
+        LOGGER.info("Expected Publish Path: " + dataDir.resolve("output").resolve("build" + timestamp).toString());
+
+        Path buildPath = linkBuilderTask.getBuildPath();
+        LOGGER.info("Actual Build Path: " + buildPath.toString());
+
+        assertTrue(buildPath.toString().startsWith(dataDir.resolve("output").resolve("build").toString()));
+    }
+
 
     void generateInputZipFiles(String[] testDirectories, ArrayList<byte[]> data, Path workingDir, String[] testFiles)
             throws IOException {
@@ -79,6 +150,7 @@ class LinkBuilderTaskTests {
         }
     }
 
+
     void generateOtherInputFiles(String[] testInputFiles, ArrayList<byte[]> data, Path workingDir) throws IOException {
         for (String file: testInputFiles){
             FileWriter FileWriter = new FileWriter(workingDir + File.separator + "input" + File.separator + file);
@@ -86,26 +158,18 @@ class LinkBuilderTaskTests {
             bufferedWriter.write("content for " + file);
             bufferedWriter.close();
 
-            byte[] byteInput = Files.readAllBytes(
-                    new File(workingDir + File.separator + "input" + File.separator + file).toPath()
-            );
+            byte[] byteInput = Files.readAllBytes(workingDir.resolve("input").resolve(file));
             data.add(byteInput);
-
         }
     }
 
-    void stageInputFiles(Path dataDir, ArrayList<byte[]> data) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
-        System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
 
-        Map<String, String> parameters = new HashMap();
-        parameters.put("hcpsTerminationDate", "20220101");
-        parameters.put("linkDate", "2023");
-        parameters.put("linkIncrementalDate", "2022u05");
-        parameters.put("linkAnnualDate", "2022");
-        parameters.put("revisionDate", "20230101");
+    void stageInputFiles(Path dataDir, ArrayList<byte[]> data) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
 
         LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, data);
-        linkBuilderTask.loadSettings();
 
         try {
             linkBuilderTask.stageInputFiles();
@@ -114,93 +178,78 @@ class LinkBuilderTaskTests {
         }
     }
 
+
     void assertZipInputsMatch(Path dataDir, Path workingDir, String[] testDirectories, String[] testFiles) throws IOException {
         for (String directory : testDirectories) {
-            LOGGER.info("Path: " + dataDir + File.separator + "input" + File.separator + directory);
-            assertTrue(Files.exists(
-                    Paths.get(dataDir + File.separator + "input" + File.separator + directory)
-            ));
+            LOGGER.info("Data Path: " + dataDir.resolve("input").resolve(directory));
+            assertTrue(Files.exists(dataDir.resolve("input").resolve(directory)));
 
             for (String testFile : testFiles) {
                 assertEquals(
-                        Files.readString(new File(workingDir + File.separator + "input" + File.separator + directory + File.separator + testFile).toPath()).trim(),
-                        Files.readString(new File(dataDir + File.separator + "input" + File.separator + directory + File.separator + testFile).toPath()).trim()
+                        Files.readString(workingDir.resolve("input").resolve(directory).resolve(testFile)).trim(),
+                        Files.readString(dataDir.resolve("input").resolve(directory).resolve(testFile)).trim()
                 );
             }
         }
     }
 
+
     void assertOtherInputsMatch(String[] testInputFiles, Path workingDir, Path dataDir) throws IOException {
-        for (String testInput : testInputFiles){
-            assertEquals(
-                    Files.readString(new File(workingDir + File.separator + "input" + File.separator + testInput).toPath()).trim(),
-                    Files.readString(new File(dataDir + File.separator + "input" + File.separator + testInput).toPath()).trim()
-            );
+        for (String filename : testInputFiles){
+            LOGGER.info("Working File Path: " + workingDir.resolve("input").resolve(filename).toString());
+            LOGGER.info("Staged File Path: " + dataDir.resolve("input").resolve(filename).toString());
+            String workingFileContent = Files.readString(workingDir.resolve("input").resolve(filename)).trim();
+            String stagedFileContent = Files.readString(dataDir.resolve("input").resolve(filename)).trim();
+
+            LOGGER.info("Working File Content: " + workingFileContent);
+            LOGGER.info("Staged File Content: " + stagedFileContent);
+            assertEquals(workingFileContent, stagedFileContent);
         }
     }
 
 
-    @Test
-    @DisplayName("Test loadOutputFiles return")
-    void loadOutputFilesTest(@TempDir Path dataDir)
+    void generateOutputFiles(File dataOutputDirectory, List<String> testSubDirectories, List<String> testFiles, Path dataDir, ArrayList<byte[]> expectedData)
             throws IOException {
-        ArrayList<byte[]> data = new ArrayList<>();
-        ArrayList<byte[]> expectedData = new ArrayList<byte[]>();
-        List<String> testSubDirectories = Arrays.asList("testDirectory1", "testDirectory2", "testDirectory3");
-        List<String> testFiles = Arrays.asList("testFile1.txt", "testFile2.txt", "testFile3.txt");
-        File dataOutputDirectory = new File(dataDir + File.separator + "output");
+        dataOutputDirectory.mkdirs();
 
-        generateOutputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir, expectedData);
-        ArrayList<byte[]> returnedData = loadFiles(dataDir, data, dataOutputDirectory);
+        for (String testDirectory: testSubDirectories){
+            File directory = new File(dataDir + File.separator + "output" + File.separator + testDirectory);
+            directory.mkdirs();
 
-        assertOutputFilesMatch(returnedData, expectedData);
+            for (String testFile: testFiles) {
+                FileWriter fileWriter = new FileWriter(directory + File.separator + testFile);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write("content for " + testFile);
+                bufferedWriter.close();
+                byte[] bytes = Files.readAllBytes(new File(directory + File.separator + testFile).toPath());
+                expectedData.add(bytes);
+            }
+        }
     }
 
-    // FIXME
-    // void generateOutputFiles(File dataOutputDirectory, List<String> testSubDirectories, List<String> testFiles, Path dataDir, ArrayList<byte[]> expectedData)
-    //         throws IOException {
-    //     dataOutputDirectory.mkdirs();
-    //
-    //     for (String testDirectory: testSubDirectories){
-    //         File directory = new File(dataDir + File.separator + "output" + File.separator + testDirectory);
-    //         directory.mkdirs();
-    //
-    //         for (String testFile: testFiles) {
-    //             FileWriter fileWriter = new FileWriter(directory + File.separator + testFile);
-    //             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-    //             bufferedWriter.write("content for " + testFile);
-    //             bufferedWriter.close();
-    //             byte[] bytes = Files.readAllBytes(new File(directory + File.separator + testFile).toPath());
-    //             expectedData.add(bytes);
-    //         }
-    //     }
-    // }
-    //
-    // ArrayList<byte[]> loadOutputFiles(Path dataDir, ArrayList<byte[]> data, File dataOutputDirectory){
-    //     System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
-    //
-    //     Map<String, String> parameters = new HashMap();
-    //     parameters.put("releaseDate", "20230101");
-    //     parameters.put("host", "host");
-    //     parameters.put("username", "username");
-    //     parameters.put("password", "password");
-    //     parameters.put("port", "port");
-    //     ArrayList<byte[]>returnedData = new ArrayList<byte[]>();
-    //
-    //     try {
-    //         CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
-    //         coreBuilderTask.loadSettings();
-    //         returnedData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
-    //     } catch (Exception exception) {
-    //         CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
-    //     }
-    //
-    //     return returnedData;
-    // }
-    //
-    // void assertOutputFilesMatch(ArrayList<byte[]> returnedData, ArrayList<byte[]> expectedData){
-    //     for (int i = 0; i < returnedData.size(); i++){
-    //         assertArrayEquals(returnedData.get(i), expectedData.get(i));
-    //     }
-    // }
+
+    ArrayList<byte[]> loadFiles(Path dataDir, ArrayList<byte[]> data, File dataOutputDirectory){
+        System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
+
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
+        ArrayList<byte[]> returnedData = new ArrayList<byte[]>();
+
+        try {
+            LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, data);
+            returnedData = linkBuilderTask.loadOutputFiles();
+        } catch (Exception exception) {
+            LinkBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
+        }
+
+        return returnedData;
+    }
+
+
+    void assertOutputFilesMatch(ArrayList<byte[]> returnedData, ArrayList<byte[]> expectedData){
+        for (int i = 0; i < returnedData.size(); i++){
+            assertArrayEquals(returnedData.get(i), expectedData.get(i));
+        }
+    }
 }

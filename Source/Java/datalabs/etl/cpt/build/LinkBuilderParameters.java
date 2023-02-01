@@ -7,12 +7,7 @@ import datalabs.parameter.Parameters;
 
 
 public class LinkBuilderParameters extends Parameters {
-    public String hcpsTerminationDate;
-    public String linkDate;
-    public String linkIncrementalDate;
-    public String linkAnnualDate;
-    public String revisionDate;
-
+    public String executionTime;
 
     public Map<String, String> unknowns;
 
