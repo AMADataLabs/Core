@@ -11,6 +11,7 @@ data:
 
   S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
   S3_BASE_PATH: 'AMA/CPT/Core'
+  S3_CACHE_JAVA_CLASS: 'datalabs.etl.dag.cache.S3TaskDataCache'
 
   CORE_OUTPUT_ZIP: output.zip
 
@@ -28,6 +29,10 @@ data:
   CPT_CORE__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
   CPT_CORE__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
   CPT_CORE__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+  CPT_CORE__DAG__ENVIRONMENT: ${ENVIRONMENT}
+  CPT_CORE__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,rudainah.najeeb@ama-assn.org'
+  CPT_CORE__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
+  CPT_CORE__DAG__TASK_CLASS: ''  # Used by Java DAG tasks
 
 
   ##########################################################################
@@ -58,8 +63,8 @@ data:
   CPT_CORE__EXTRACT_INPUT_FILES__INCLUDE_DATESTAMP: 'False'
 
   CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: 'AMA/CPT/Core/input'
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_FILES: 'annual_core.zip, incremental_core.zip'
+  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_FILES: 'input/annual_core.zip, input/incremental_core.zip'
 
 
   # Build Core

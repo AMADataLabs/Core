@@ -195,28 +195,13 @@ public class CoreBuilderTask extends Task {
     }
 
     ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
-        ArrayList<byte[]> outputFiles = new ArrayList<>();
-        File[] files = outputDirectory.listFiles();
+        ArrayList<byte[]> outputFile = new ArrayList<>();
+        File zipFile = new File(outputDirectory + ".zip");
+        ZipUtil.pack(outputDirectory, zipFile);
 
-        Arrays.sort(files);
+        byte[] byteInput = Files.readAllBytes(zipFile.toPath());
+        data.add(outputFile);
 
-        for (File file: files) {
-            if (file.isDirectory()) {
-                ArrayList<byte[]> output = loadOutputFiles(file);
-
-                for (byte[] outputFile: output){
-                    outputFiles.add(outputFile);
-                }
-
-            } else {
-                Path path = Paths.get(file.getPath());
-                byte[] data = Files.readAllBytes(path);
-                outputFiles.add(data);
-            }
-
-        }
-
-        return outputFiles;
+        return outputFile;
     }
-
 }
