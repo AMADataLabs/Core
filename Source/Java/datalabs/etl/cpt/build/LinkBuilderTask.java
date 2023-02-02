@@ -6,6 +6,7 @@ import java.io.FilenameFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +39,7 @@ import org.ama.dtk.extracts.Extracts;
 import org.ama.dtk.headings.HeadingsWorkbookBuilder;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.DtkConceptIds;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeroturnaround.zip.ZipUtil;
@@ -66,7 +68,6 @@ public class LinkBuilderTask extends Task {
     final Path EM_OUTPUT_PATH = OUTPUT_PATH.resolve("em");
     final Path INDEX_PATH = INPUT_PATH.resolve("cpt_index.docx");
     final Path EDITS_PATH = INPUT_PATH.resolve("reviewed_used_input.xlsx");
-
 
     public LinkBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
@@ -103,7 +104,7 @@ public class LinkBuilderTask extends Task {
         return outputFiles;
     }
 
-    void stageInputFiles() throws IOException{
+    void stageInputFiles() throws IOException {
         this.extractZipFiles(this.data.get(0), ANNUAL_CORE_PATH.toString());
         this.extractZipFiles(this.data.get(1), INCREMENTAL_CORE_PATH.toString());
         this.extractZipFiles(this.data.get(2), CURRENT_CORE_PATH.toString());
@@ -193,21 +194,30 @@ public class LinkBuilderTask extends Task {
         outputBuilder.build();
     }
 
-    ArrayList<byte[]> loadOutputFiles() throws Exception {
-        Path publishPath = getPublishPath();
-        Path buildPath = getBuildPath();
+    ArrayList<byte[]> loadOutputFiles() throws IOException {
+        ArrayList<Path> pathsToKeep = new ArrayList<Path>() {{
+            add(getPublishPath());
+            add(getBuildPath());
+        }};
         Path zipPath = OUTPUT_PATH.resolve("output.zip");
+        File outputDirectory = new File(OUTPUT_PATH.toString());
 
-        ZipUtil.pack(publishPath.toString(), zipPath.toString());
-        ZipUtil.pack(buildPath.toString(), zipPath.toString());
-        byte[] byteInput = Files.readAllBytes(zipPath.toPath());
+        try (DirectoryStream<Path> listing = Files.newDirectoryStream(OUTPUT_PATH)) {
+            for (Path path : listing) {
+                if (!pathsToKeep.contains(path)) {
+                    FileUtils.deleteDirectory(path.toFile());
+                }
+            }
+        }
+
+        ZipUtil.pack(OUTPUT_PATH.toFile(), zipPath.toFile());
 
         return new ArrayList<byte[]>() {{
-            add(Files.readAllBytes(zipPath.toPath()));
+            add(Files.readAllBytes(zipPath));
         }};
     }
 
-    private void extractZipFiles(byte[] zip, String directory) throws IOException{
+    private void extractZipFiles(byte[] zip, String directory) throws IOException {
         ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
         ZipInputStream zipStream = new ZipInputStream(byteStream);
         ZipEntry file = null;
@@ -217,7 +227,7 @@ public class LinkBuilderTask extends Task {
         }
     }
 
-    private void extractBytes(String path, byte[] data) throws IOException{
+    private void extractBytes(String path, byte[] data) throws IOException {
         FileOutputStream fileOutputStream = new FileOutputStream(path);
         LOGGER.info("Writing file " + path.toString());
 
@@ -405,7 +415,7 @@ public class LinkBuilderTask extends Task {
         return Date.from(Instant.from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(executionTime)));
     }
 
-    private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
+    private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException {
         String fileName = zipEntry.getName();
         String filePath = Paths.get(directory, fileName).toString();
         File file = new File(filePath);
