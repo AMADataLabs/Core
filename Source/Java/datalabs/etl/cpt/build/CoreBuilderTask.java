@@ -15,7 +15,6 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
 import org.ama.dtk.Exporter;
@@ -30,6 +29,7 @@ import org.ama.dtk.model.PropertyType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.zip.ZipUtil;
 
 import datalabs.task.Task;
 import datalabs.task.TaskException;
@@ -200,7 +200,7 @@ public class CoreBuilderTask extends Task {
         ZipUtil.pack(outputDirectory, zipFile);
 
         byte[] byteInput = Files.readAllBytes(zipFile.toPath());
-        data.add(outputFile);
+        outputFile.add(byteInput);
 
         return outputFile;
     }
