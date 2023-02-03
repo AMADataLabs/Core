@@ -41,7 +41,7 @@ class MedicalLicensesCleanerTask(TransformerTask):
         )
         medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
             "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>29[0-9][0-9])",
-            lambda m: m.group("day") + "-" + m.group("month") + "-" + m.group("year").replace("29", "20")
+            lambda m: m.group("day") + "-" + m.group("month") + "-" + m.group("year").replace("29", "20"),
             regex=True
         )
 
