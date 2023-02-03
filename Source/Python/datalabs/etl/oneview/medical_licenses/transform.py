@@ -28,24 +28,26 @@ class MedicalLicensesCleanerTask(TransformerTask):
 
     @classmethod
     def _fix_timestamps(cls, medical_licenses):
-        replacement = lambda m: m.group(0)[:-2] + "20"
-
         medical_licenses.issue_date = medical_licenses.issue_date.str.replace(
             "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            replacement,
+            lambda m: m.group(0)[:-2] + "20",
             regex=True
         )
 
         medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
             "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            replacement,
+            lambda m: m.group(0)[:-2] + "20",
+            regex=True
+        )
+        medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
+            "29[0-9][0-9]-",
+            lambda m: "20" + m.group(0)[2:],
             regex=True
         )
 
-
         medical_licenses.renew_date = medical_licenses.renew_date.str.replace(
             "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            replacement,
+            lambda m: m.group(0)[:-2] + "20",
             regex=True
         )
         # medical_licenses.issue_date[medical_licenses.issue_date.astype(str).str.endswith("202")]
