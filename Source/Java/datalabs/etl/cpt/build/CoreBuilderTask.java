@@ -143,7 +143,7 @@ public class CoreBuilderTask extends Task {
     }
 
     void loadSettings(){
-        String dataDirectory = System.getProperty("data.directory", "/tmp");
+        String dataDirectory = System.getProperty("data.directory", "tmp");
 
         settings = new Properties(){{
             put("output.directory", dataDirectory + File.separator + "output");
@@ -165,13 +165,9 @@ public class CoreBuilderTask extends Task {
 
         this.extractZipFiles(this.data.get(0), annualCorePath.toString());
         this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
-        Scanner scanner = new Scanner(new File(annualCorePath.toString() + File.separator + "internal_Property.txt"));
-
-        int i = 0;
-        while (i < 101) {
-            LOGGER.debug(scanner.nextLine());
-            i++;
-		}
+        Path fileName = Path.of(annualCorePath.toString() + File.separator + "internal_Property.txt");
+        String fileContent = Files.readString(fileName);
+        LOGGER.info(fileContent);
 
     }
 
