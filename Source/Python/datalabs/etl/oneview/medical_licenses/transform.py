@@ -29,25 +29,25 @@ class MedicalLicensesCleanerTask(TransformerTask):
     @classmethod
     def _fix_timestamps(cls, medical_licenses):
         medical_licenses.issue_date = medical_licenses.issue_date.str.replace(
-            "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            lambda m: m.group(0)[:-2] + "20",
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>0[0-9])$",
+            lambda m: m.group("day") + "-" + m.group("month") + "-20" + m.group("year"),
             regex=True
         )
 
         medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
-            "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            lambda m: m.group(0)[:-2] + "20",
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>0[0-9])$",
+            lambda m: m.group("day") + "-" + m.group("month") + "-20" + m.group("year"),
             regex=True
         )
         medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
-            "29[0-9][0-9]-",
-            lambda m: "20" + m.group(0)[2:],
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>29[0-9][0-9])",
+            lambda m: m.group("day") + "-" + m.group("month") + "-" + m.group("year").replace("29", "20")
             regex=True
         )
 
         medical_licenses.renew_date = medical_licenses.renew_date.str.replace(
-            "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            lambda m: m.group(0)[:-2] + "20",
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>0[0-9])$",
+            lambda m: m.group("day") + "-" + m.group("month") + "-20" + m.group("year"),
             regex=True
         )
         # medical_licenses.issue_date[medical_licenses.issue_date.astype(str).str.endswith("202")]
