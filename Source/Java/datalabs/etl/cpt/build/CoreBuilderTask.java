@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -164,6 +165,14 @@ public class CoreBuilderTask extends Task {
 
         this.extractZipFiles(this.data.get(0), annualCorePath.toString());
         this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
+        Scanner scanner = new Scanner(new File(annualCorePath.toString() + File.separator + "internal_Property.txt"));
+
+        int i = 0;
+        while (i < 101) {
+            LOGGER.debug(scanner.nextLine());
+            i++;
+		}
+
     }
 
     private void extractZipFiles(byte[] zip, String directory) throws IOException{
