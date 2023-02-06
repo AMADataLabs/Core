@@ -20,15 +20,9 @@ import datalabs.task.TaskWrapper;
 
 public class DagTaskWrapper extends TaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
-    protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
 
     public DagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         super(environment, parameters);
-
-        this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
-            put(TaskDataCache.Direction.INPUT, null);
-            put(TaskDataCache.Direction.OUTPUT, null);
-        }};
     }
 
     @Override
@@ -86,23 +80,6 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
-        ArrayList<byte[]> inputData = new ArrayList<byte[]>();
-
-        try {
-            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
-
-            if (cachePlugin != null) {
-                inputData = cachePlugin.extractData();
-            }
-        } catch (Exception exception) {
-            throw new TaskException("Unable to get task input data from cache.", exception);
-        }
-
-        return inputData;
-    }
-
-    @Override
     protected String handleSuccess() throws TaskException {
         TaskDataCache cachePlugin = null;
 
@@ -149,27 +126,6 @@ public class DagTaskWrapper extends TaskWrapper {
         );
 
         return mergedParameters;
-    }
-
-    static void extractCacheParameters(
-        Map<String, String> taskParameters,
-        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
-    ) {
-        LOGGER.debug("Task parameters before extraction: " + taskParameters);
-        final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
-        final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
-
-        cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
-        cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
-        LOGGER.debug("Cache Parameters: " + cacheParameters);
-
-        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
-            if (key.startsWith("CACHE_")) {
-                LOGGER.debug("Removing cache parameter " + key + " from task parameters...");
-                taskParameters.remove(key);
-            }
-        }
-        LOGGER.debug("Task parameters after extraction: " + taskParameters);
     }
 
     void overrideParameter(Map<String, String> parameters, String key, String value) {

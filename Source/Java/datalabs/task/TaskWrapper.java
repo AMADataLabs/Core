@@ -15,6 +15,7 @@ import datalabs.plugin.PluginImporter;
 
 public class TaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(TaskWrapper.class);
+    protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
     protected Map<String, String> environment;
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;
@@ -24,6 +25,10 @@ public class TaskWrapper {
     public TaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         this.environment = environment;
         this.parameters = parameters;
+        this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
+            put(TaskDataCache.Direction.INPUT, null);
+            put(TaskDataCache.Direction.OUTPUT, null);
+        }};
     }
 
     public String run() {
@@ -61,11 +66,26 @@ public class TaskWrapper {
     }
 
     protected Map<String, String> getTaskParameters() throws TaskException {
+        DagTaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
+        LOGGER.debug("Cache Parameters: " + this.cacheParameters);
+
         return this.environment;
     }
 
     protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
-        return new ArrayList<byte[]>();
+        ArrayList<byte[]> inputData = new ArrayList<byte[]>();
+
+        try {
+            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
+
+            if (cachePlugin != null) {
+                inputData = cachePlugin.extractData();
+            }
+        } catch (Exception exception) {
+            throw new TaskException("Unable to get task input data from cache.", exception);
+        }
+
+        return inputData;
     }
 
     Class getTaskClass() throws TaskException {
@@ -105,6 +125,18 @@ public class TaskWrapper {
     }
 
     protected String handleSuccess() throws TaskException {
+        TaskDataCache cachePlugin = null;
+
+        try {
+            cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
+
+            if (cachePlugin != null) {
+                cachePlugin.loadData(this.output);
+            }
+        } catch (Exception exception) {
+            throw new TaskException("Unable to load task output data to cache.", exception);
+        }
+
         return "Success";
     }
 
@@ -121,5 +153,26 @@ public class TaskWrapper {
         );
 
         return PluginImporter.importPlugin(taskResolverClassName);
+    }
+
+    static void extractCacheParameters(
+        Map<String, String> taskParameters,
+        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
+    ) {
+        LOGGER.debug("Task parameters before extraction: " + taskParameters);
+        final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
+        final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
+
+        cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
+        cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
+        LOGGER.debug("Cache Parameters: " + cacheParameters);
+
+        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
+            if (key.startsWith("CACHE_")) {
+                LOGGER.debug("Removing cache parameter " + key + " from task parameters...");
+                taskParameters.remove(key);
+            }
+        }
+        LOGGER.debug("Task parameters after extraction: " + taskParameters);
     }
 }
