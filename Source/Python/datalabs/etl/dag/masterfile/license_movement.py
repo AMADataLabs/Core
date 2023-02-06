@@ -13,7 +13,7 @@ class DAG(dag.DAG):
     EXTRACT_PPD: SFTPFileExtractorTask
     EXTRACT_CREDENTIALING_ADDRESSES: SFTPFileExtractorTask
     EXTRACT_OLD_PPMA: SQLExtractorTask
-    EXTRACT_MISMATCHES: Repeat("SqlExtractorTask", 60)
+    EXTRACT_MISMATCHES: Repeat("SqlExtractorTask", 2)
     CONCATENATE_MISMATCHES: ConcatenateTransformerTask
     CREATE_BATCH_LOAD_FILE: LicenseMovementTransformerTask
     LOAD_BATCH_LOAD_FILE: SFTPFileLoaderTask
