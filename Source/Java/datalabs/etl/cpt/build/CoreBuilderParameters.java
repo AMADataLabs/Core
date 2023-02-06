@@ -8,7 +8,7 @@ import datalabs.parameter.Parameters;
 
 public class CoreBuilderParameters extends Parameters {
 
-    public String releaseDate;
+    public String executionTime;
     public String host;
     public String username;
     public String password;

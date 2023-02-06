@@ -28,7 +28,7 @@ class TargetOffsetMixin:
         target_offset = {}
 
         if hasattr(self._parameters, 'execution_offset') and self._parameters.execution_offset:
-            target_offset = json.loads(self._parameters.execution_offsettime)
+            target_offset = json.loads(self._parameters.execution_offset)
 
         elif hasattr(self._parameters, 'get') and self._parameters.get('EXECUTION_OFFSET'):
             target_offset = json.loads(self._parameters.get('EXECUTION_OFFSET'))

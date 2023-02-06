@@ -28,24 +28,26 @@ class MedicalLicensesCleanerTask(TransformerTask):
 
     @classmethod
     def _fix_timestamps(cls, medical_licenses):
-        replacement = lambda m: m.group(0)[:-2] + "20"
-
         medical_licenses.issue_date = medical_licenses.issue_date.str.replace(
-            "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            replacement,
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>02[0-9]{2})",
+            lambda m: m.group("day") + "-" + m.group("month") + "-20" + m.group("year")[2:],
             regex=True
         )
 
         medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
-            "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            replacement,
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>02[0-9]{2})",
+            lambda m: m.group("day") + "-" + m.group("month") + "-20" + m.group("year")[2:],
+            regex=True
+        )
+        medical_licenses.expiry_date = medical_licenses.expiry_date.str.replace(
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>29[0-9][0-9])",
+            lambda m: m.group("day") + "-" + m.group("month") + "-" + m.group("year").replace("29", "20"),
             regex=True
         )
 
-
         medical_licenses.renew_date = medical_licenses.renew_date.str.replace(
-            "[0-3][0-9]-[A-Z][a-z]{2}-0[0-9]",
-            replacement,
+            "(?P<day>[0-3][0-9])-(?P<month>[A-Z][a-z]{2})-(?P<year>02[0-9]{2})",
+            lambda m: m.group("day") + "-" + m.group("month") + "-20" + m.group("year")[2:],
             regex=True
         )
         # medical_licenses.issue_date[medical_licenses.issue_date.astype(str).str.endswith("202")]
@@ -55,8 +57,8 @@ class MedicalLicensesCleanerTask(TransformerTask):
     @classmethod
     def _standardize_timestamps(cls, medical_licenses):
         medical_licenses.issue_date = pandas.to_datetime(medical_licenses.issue_date).astype(str).replace("NaT", "")
-        medical_licenses.expiry_date = pandas.to_datetime(medical_licenses.expiry_date).astype(str).replace("NaT", "")
-        medical_licenses.renew_date = pandas.to_datetime(medical_licenses.renew_date).astype(str).replace("NaT", "")
+        # medical_licenses.expiry_date = pandas.to_datetime(medical_licenses.expiry_date).astype(str).replace("NaT", "")
+        # medical_licenses.renew_date = pandas.to_datetime(medical_licenses.renew_date).astype(str).replace("NaT", "")
 
         return medical_licenses
 
