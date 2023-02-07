@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import datalabs.task.Task;
 
 
-public class HelloWorldTask extends Task {
-    static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldTask.class);
+public class HelloWorldIoTask extends Task {
+    static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldIoTask.class);
 
-    public HelloWorldTask(Map<String, String> parameters, ArrayList<byte[]> data)
+    public HelloWorldIoTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters, data, HelloWorldParameters.class);
     }
@@ -27,7 +27,7 @@ public class HelloWorldTask extends Task {
             name = name + " " + parameters.lastName;
         }
 
-        String message = "Hello there, " + name + "!";
+        String message = "Hello there, " + name + "! You sent me the following text:\n" + new String(this.data.get(0), StandardCharsets.UTF_8);
         LOGGER.info(message);
 
         return new ArrayList<byte[]>() {{

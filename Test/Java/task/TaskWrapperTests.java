@@ -1,4 +1,4 @@
-package datalabs.etl.dag;
+package datalabs.task;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +14,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
-import datalabs.etl.dag.cache.TaskDataCache;
+import datalabs.task.TaskWrapper;
+import datalabs.task.cache.TaskDataCache;
 
 
-class DagTaskWrapperTests {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapperTests.class);
+class TaskWrapperTests {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(TaskWrapperTests.class);
 
     static HashMap<String, String> PARAMETER_MAP;
 
     @BeforeEach
     void beforeEach() {
-        DagTaskWrapperTests.PARAMETER_MAP = new HashMap<String, String>() {{
+        TaskWrapperTests.PARAMETER_MAP = new HashMap<String, String>() {{
             put("SOME_TASK_PARAMETER", "hoodoo");
             put("CACHE_INPUT_THIS_CACHE_PARAMETER", "voodoo");
             put("CACHE_OUTPUT_THAT_CACHE_PARAMETER", "voodoo");
@@ -42,12 +43,12 @@ class DagTaskWrapperTests {
                 put(TaskDataCache.Direction.OUTPUT, null);
             }};
 
-        Assertions.assertEquals(5, DagTaskWrapperTests.PARAMETER_MAP.size());
-        DagTaskWrapper.extractCacheParameters(DagTaskWrapperTests.PARAMETER_MAP, cacheParameters);
+        Assertions.assertEquals(5, TaskWrapperTests.PARAMETER_MAP.size());
+        TaskWrapper.extractCacheParameters(TaskWrapperTests.PARAMETER_MAP, cacheParameters);
 
-        Assertions.assertEquals(2, DagTaskWrapperTests.PARAMETER_MAP.size());
-        Assertions.assertTrue(DagTaskWrapperTests.PARAMETER_MAP.containsKey("SOME_TASK_PARAMETER"));
-        Assertions.assertTrue(DagTaskWrapperTests.PARAMETER_MAP.containsKey("EXECUTION_TIME"));
+        Assertions.assertEquals(2, TaskWrapperTests.PARAMETER_MAP.size());
+        Assertions.assertTrue(TaskWrapperTests.PARAMETER_MAP.containsKey("SOME_TASK_PARAMETER"));
+        Assertions.assertTrue(TaskWrapperTests.PARAMETER_MAP.containsKey("EXECUTION_TIME"));
 
         Map<String, String> inputCacheParameters = cacheParameters.get(TaskDataCache.Direction.INPUT);
         Assertions.assertEquals(2, inputCacheParameters.size());

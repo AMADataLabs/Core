@@ -35,6 +35,14 @@ install_python_virtual_environment_dependencies() {
 
     echo "--- Installing Python packages from requirements file $environment_path/requirements.txt ---"
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r $environment_path/requirements.txt
+    # CFLAGS="-g0 -Wl,--strip-all -I/usr/local/include -L/usr/lib:/usr/local/lib"
+    # pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+    #     --no-cache-dir \
+    #     --compile \
+    #     --global-option=build_ext \
+    #     --global-option="-j 4" \
+    #     -r $environment_path/requirements.txt
+
 
     deactivate
 }
