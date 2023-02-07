@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+
+main() {
+    # credentials=$($RUN ${SCRIPT_BASE_PATH}/assume_role.py "$@")
+    credentials='biff buff boof'
+
+
+}
+
+
+main "$@"
