@@ -49,7 +49,7 @@ data:
     DATABASE_PASSWORD:  '{{database_password}}'
 
     S3_CACHE_PYTHON_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_CACHE_JAVA_CLASS: 'datalabs.etl.dag.cache.S3TaskDataCache'
+    S3_CACHE_JAVA_CLASS: 'datalabs.task.cache.S3TaskDataCache'
     S3_BASE_PATH: 'AMA/OneView'
     DB2_DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
     DB2_DRIVER_TYPE: 'db2'

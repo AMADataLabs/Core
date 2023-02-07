@@ -1,15 +1,19 @@
 package datalabs.task;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import datalabs.task.TaskResolver;
+import datalabs.task.cache.TaskDataCache;
 import datalabs.plugin.PluginImporter;
 
 
@@ -39,6 +43,9 @@ public class TaskWrapper {
 
             Map<String, String> taskParameters = this.getTaskParameters();
 
+            TaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
+            LOGGER.debug("Cache Parameters: " + this.cacheParameters);
+
             ArrayList<byte[]> taskData = this.getTaskInputData(taskParameters);
 
             Class taskClass = this.getTaskClass();
@@ -47,7 +54,9 @@ public class TaskWrapper {
 
             this.preRun();
 
-            this.output = this.task.run();
+            ArrayList<byte[]> output = this.task.run();
+
+            this.putTaskOutputData(output);
 
             response = this.handleSuccess();
         } catch (Exception e) {
@@ -66,9 +75,6 @@ public class TaskWrapper {
     }
 
     protected Map<String, String> getTaskParameters() throws TaskException {
-        DagTaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
-        LOGGER.debug("Cache Parameters: " + this.cacheParameters);
-
         return this.environment;
     }
 
@@ -124,19 +130,21 @@ public class TaskWrapper {
     protected void preRun() throws TaskException {
     }
 
-    protected String handleSuccess() throws TaskException {
+    protected void putTaskOutputData(ArrayList<byte[]> output) throws TaskException {
         TaskDataCache cachePlugin = null;
 
         try {
             cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
 
             if (cachePlugin != null) {
-                cachePlugin.loadData(this.output);
+                cachePlugin.loadData(output);
             }
         } catch (Exception exception) {
             throw new TaskException("Unable to load task output data to cache.", exception);
         }
+    }
 
+    protected String handleSuccess() throws TaskException {
         return "Success";
     }
 
@@ -174,5 +182,67 @@ public class TaskWrapper {
             }
         }
         LOGGER.debug("Task parameters after extraction: " + taskParameters);
+    }
+
+    static Map<String, String> getCacheParameters(
+        Map<String, String> taskParameters,
+        TaskDataCache.Direction direction
+    ) {
+        HashMap<String, String> cacheParameters = new HashMap<String, String>();
+
+        taskParameters.forEach(
+            (key, value) -> TaskWrapper.putIfCacheVariable(key, value, direction, cacheParameters)
+        );
+
+        return cacheParameters;
+    }
+
+    static void putIfCacheVariable(
+        String name,
+        String value,
+        TaskDataCache.Direction direction,
+        Map<String, String> cacheParameters
+    ) {
+        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
+
+        if (direction == TaskDataCache.Direction.INPUT) {
+            otherDirection = TaskDataCache.Direction.OUTPUT;
+        }
+
+        if (name.startsWith("CACHE_")) {
+            Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
+            Matcher otherMatcher = Pattern.compile("CACHE_" + otherDirection.name() + "_(?<name>..*)").matcher(name);
+
+            if (matcher.find()) {
+                cacheParameters.put(matcher.group("name"), value);
+            } else if (!otherMatcher.find()) {
+                cacheParameters.put(name.substring("CACHE_".length()), value);
+            }
+        }
+    }
+
+    TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
+                   ClassNotFoundException {
+        TaskDataCache plugin = null;
+        Map<String, String> cacheParameters = this.cacheParameters.get(direction);
+
+        if (cacheParameters.size() > 1) {
+            String pluginName = null;
+
+            if (cacheParameters.containsKey("CLASS")) {
+                pluginName = cacheParameters.remove("CLASS");
+            } else {
+                throw new ClassNotFoundException("Cache class '" + pluginName + "' not found.");
+            }
+
+            Class pluginClass = PluginImporter.importPlugin(pluginName);
+
+            Constructor pluginConstructor = pluginClass.getConstructor(new Class[] {Map.class});
+
+            plugin = (TaskDataCache) pluginConstructor.newInstance(cacheParameters);
+        }
+
+        return plugin;
     }
 }
