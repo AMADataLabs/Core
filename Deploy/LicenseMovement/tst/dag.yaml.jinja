@@ -149,18 +149,7 @@ data:
         l.state_cd AS license_state,
         l.lic_issue_dt,
         l.lic_exp_dt,
-        l.lic_sts,
-        ppma.comm_id AS ppma_comm_id,
-        ppma.state_cd as ppma_state,
-        ppma.zip as ppma_zip,
-        ppma.usg_begin_dt AS ppma_begin_dt,
-        addr.comm_id AS license_addr_comm_id,
-        addr.addr_line0,
-        addr.addr_line1,
-        addr.addr_line2,
-        addr.city_cd,
-        addr.state_cd AS license_addr_state,
-        addr.zip
+        l.lic_sts
     FROM
         license_lt l
     ORDER BY l.entity_id
