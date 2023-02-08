@@ -130,7 +130,7 @@ data:
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
 
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__@MACRO_COUNT@: 2
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__@MACRO_COUNT@: 2
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_HOST: ${DATABASE_HOST}
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_USERNAME: ${DATABASE_USERNAME}
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
@@ -139,74 +139,63 @@ data:
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DRIVER: ${DRIVER}
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DRIVER_TYPE: ${DRIVER_TYPE}
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__JAR_PATH: ${JAR_PATH}
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CHUNK_SIZE: '50'
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__COUNT: '100'
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__START_INDEX: '@MACRO_INDEX@'
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__MAX_PARTS: '@MACRO_COUNT@'
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__PART_INDEX: '@MACRO_INDEX@'
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CHUNK_SIZE: '50'
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__COUNT: '100'
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__START_INDEX: '@MACRO_INDEX@'
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__MAX_PARTS: '@MACRO_COUNT@'
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__PART_INDEX: '@MACRO_INDEX@'
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__SQL: "SELECT
-        SKIP {index} FIRST 100 l.entity_id,
+        l.entity_id,
         l.state_cd AS license_state,
         l.lic_issue_dt,
         l.lic_exp_dt,
-        l.lic_sts
+        l.lic_sts,
+        ppma.comm_id AS ppma_comm_id,
+        ppma.state_cd as ppma_state,
+        ppma.zip as ppma_zip,
+        ppma.usg_begin_dt AS ppma_begin_dt,
+        addr.comm_id AS license_addr_comm_id,
+        addr.addr_line0,
+        addr.addr_line1,
+        addr.addr_line2,
+        addr.city_cd,
+        addr.state_cd AS license_addr_state,
+        addr.zip
     FROM
         license_lt l
-    ORDER BY l.entity_id
-"
-#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__SQL: "SELECT
-#        SKIP {index} FIRST 100 l.entity_id,
-#        l.state_cd AS license_state,
-#        l.lic_issue_dt,
-#        l.lic_exp_dt,
-#        l.lic_sts,
-#        ppma.comm_id AS ppma_comm_id,
-#        ppma.state_cd as ppma_state,
-#        ppma.zip as ppma_zip,
-#        ppma.usg_begin_dt AS ppma_begin_dt,
-#        addr.comm_id AS license_addr_comm_id,
-#        addr.addr_line0,
-#        addr.addr_line1,
-#        addr.addr_line2,
-#        addr.city_cd,
-#        addr.state_cd AS license_addr_state,
-#        addr.zip
-#    FROM
-#        license_lt l
-#        INNER JOIN
-#        (
-#            SELECT usg.entity_id, usg.comm_id, usg.usg_begin_dt, usg.comm_usage, addr.state_cd, addr.zip
-#            FROM
-#                entity_comm_usg_at usg
-#                INNER JOIN post_addr_at addr
-#                ON addr.comm_id = usg.comm_id
-#            WHERE
-#                usg.comm_usage = 'PP' AND
-#                usg.end_dt IS NULL
-#        ) as ppma
-#        ON ppma.entity_id = l.entity_id
-#        INNER JOIN
-#        post_addr_at addr
-#        ON addr.comm_id = l.comm_id
-#    WHERE
-#        l.lic_sts = 'A' AND
-#        l.lic_issue_dt > ppma.usg_begin_dt AND
-#        l.state_cd <> ppma.state_cd AND
-#        ppma.state_cd <> addr.state_cd
-#    ORDER BY l.entity_id
-#"
+        INNER JOIN
+        (
+            SELECT usg.entity_id, usg.comm_id, usg.usg_begin_dt, usg.comm_usage, addr.state_cd, addr.zip
+            FROM
+                entity_comm_usg_at usg
+                INNER JOIN post_addr_at addr
+                ON addr.comm_id = usg.comm_id
+            WHERE
+                usg.comm_usage = 'PP' AND
+                usg.end_dt IS NULL
+        ) as ppma
+        ON ppma.entity_id = l.entity_id
+        INNER JOIN
+        post_addr_at addr
+        ON addr.comm_id = l.comm_id
+    WHERE
+        l.lic_sts = 'A' AND
+        l.lic_issue_dt > ppma.usg_begin_dt AND
+        l.state_cd <> ppma.state_cd AND
+        ppma.state_cd <> addr.state_cd"
 
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_CLASS: ${S3_CACHE_JAVA_CLASS}
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_BASE_PATH: ${PPMA_BASE_PATH}
-    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_FILES: 'mismatch_@MACRO_INDEX@.csv'
+#    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_FILES: 'mismatch_@MACRO_INDEX@.csv'
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_FILES: 'mismatch.csv'
 
     # Concatenate Mismatchs
-    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_CLASS: ${S3_CACHE_CLASS}
-    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_BASE_PATH: ${PPMA_BASE_PATH}
-    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_INPUT_FILES: 'mismatch_*.csv'
-    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_OUTPUT_FILES: 'mismatch.csv'
+#    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_CLASS: ${S3_CACHE_CLASS}
+#    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+#    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_BASE_PATH: ${PPMA_BASE_PATH}
+#    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_INPUT_FILES: 'mismatch_*.csv'
+#    LICENSE_MOVEMENT__CONCATENATE_MISMATCHES__CACHE_OUTPUT_FILES: 'mismatch.csv'
 
     # Create Batch Load File
     LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_CLASS: ${S3_CACHE_CLASS}

@@ -1,8 +1,8 @@
 ''' DAG definition for License Movement Process '''
 from   datalabs.analysis.ppma.license_movement.transform import LicenseMovementTransformerTask
 from   datalabs.etl.dag import dag
-from   datalabs.etl.dag.dag import register, Repeat
-from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
+from   datalabs.etl.dag.dag import register
+#from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.sftp.load import SFTPFileLoaderTask
 from   datalabs.etl.sql.extract import SQLExtractorTask
@@ -15,8 +15,9 @@ class DAG(dag.DAG):
     EXTRACT_OLD_PPMA: SQLExtractorTask
     #EXTRACT_OLD_PPMA: Repeat("SqlExtractorTask", 2)
     #CONCATENATE_OLD_PPMA: ConcatenateTransformerTask
-    EXTRACT_MISMATCHES: Repeat("SqlExtractorTask", 2)
-    CONCATENATE_MISMATCHES: ConcatenateTransformerTask
+    EXTRACT_MISMATCHES: SQLExtractorTask
+    #EXTRACT_MISMATCHES: Repeat("SqlExtractorTask", 2)
+    #CONCATENATE_MISMATCHES: ConcatenateTransformerTask
     CREATE_BATCH_LOAD_FILE: LicenseMovementTransformerTask
     LOAD_BATCH_LOAD_FILE: SFTPFileLoaderTask
 
@@ -29,8 +30,9 @@ DAG.EXTRACT_OLD_PPMA >> DAG.CREATE_BATCH_LOAD_FILE
 #DAG.last('EXTRACT_OLD_PPMA') \
 #        >> DAG.CONCATENATE_OLD_PPMA \
 #        >> DAG.CREATE_BATCH_LOAD_FILE
-DAG.sequence('EXTRACT_MISMATCHES')
-DAG.last('EXTRACT_MISMATCHES') \
-        >> DAG.CONCATENATE_MISMATCHES \
-        >> DAG.CREATE_BATCH_LOAD_FILE
+DAG.EXTRACT_MISMATCHES >> DAG.CREATE_BATCH_LOAD_FILE
+#DAG.sequence('EXTRACT_MISMATCHES')
+#DAG.last('EXTRACT_MISMATCHES') \
+#        >> DAG.CONCATENATE_MISMATCHES \
+#        >> DAG.CREATE_BATCH_LOAD_FILE
 DAG.CREATE_BATCH_LOAD_FILE >> DAG.LOAD_BATCH_LOAD_FILE
