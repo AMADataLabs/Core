@@ -12,7 +12,7 @@ from   datalabs.task import Task
 @add_schema
 @dataclass
 class LicenseMovementTransformerParameter:
-    pass
+    execution_time: str = None
 
 
 class LicenseMovementTransformerTask(Task):
