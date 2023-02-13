@@ -200,7 +200,6 @@ class SqlExtractorTaskTests {
         try {
             when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
             when(statement.executeQuery("SELECT * FROM ping LIMIT 3, 3")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 6, 0")).thenReturn(new EmptyResultSet());
         } catch(java.sql.SQLException exception) {
             exception.printStackTrace();
         }
