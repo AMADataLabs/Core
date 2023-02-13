@@ -43,6 +43,16 @@ class QueryResults {
     public byte[] data;
 }
 
+class QueryIndices {
+    public int start;
+    public int stop;
+
+    public QueryIndices(int start, int stop) {
+        this.start = start;
+        this.stop = stop;
+    }
+}
+
 
 public class SqlExtractorTask extends Task {
     static final Logger LOGGER = LoggerFactory.getLogger(SqlExtractorTask.class);
@@ -200,52 +210,37 @@ public class SqlExtractorTask extends Task {
             throws IOException, SQLException {
         ArrayList<QueryResults> chunks = new ArrayList<QueryResults>();
         int chunkSize = Integer.parseInt(parameters.chunkSize);
-        int count;
-        int index = 0;
-        int stopIndex = -1;
+        QueryIndices queryIndices = SqlExtractorTask.calculateQueryIndices(parameters);
+        int index = queryIndices.start;
         boolean iterating = true;
         boolean includeHeaders = true;
 
-        if (!parameters.count.equals("")) {
-            count = Integer.parseInt(parameters.count);
-
-            if (parameters.startIndex.equals("")) {
-                index = Integer.parseInt(parameters.startIndex) * count;
-            }
-
-            stopIndex = index + count;
-        }
-
-        if (!parameters.maxParts.equals("") && !parameters.partIndex.equals("")) {
-            int maxParts = Integer.parseInt(parameters.maxParts);
-            int partIndex = Integer.parseInt(parameters.partIndex);
-
-            if (partIndex >= (maxParts -1)) {
-                stopIndex = -1;
-            }
-        }
-
         while (iterating) {
-            if (stopIndex >= 0 && (index + chunkSize) > stopIndex) {
-                chunkSize = stopIndex - index;
+            QueryResults chunk = null;
+
+            if (queryIndices.stop >= 0 && (index + chunkSize) > queryIndices.stop) {
+                chunkSize = queryIndices.stop - index;
             }
 
-            String resolvedQuery = resolveChunkedQuery(query, index, chunkSize);
-            LOGGER.debug("Unresolved Query: " + query);
-            LOGGER.debug("Index: " + index);
-            LOGGER.debug("Chunk Size: " + chunkSize);
-            LOGGER.debug("Resolved Query: " + resolvedQuery);
+            if (chunkSize > 0) {
+                String resolvedQuery = resolveChunkedQuery(query, index, chunkSize);
+                LOGGER.debug("Unresolved Query: " + query);
+                LOGGER.debug("Index: " + index);
+                LOGGER.debug("Chunk Size: " + chunkSize);
+                LOGGER.debug("Resolved Query: " + resolvedQuery);
 
-            QueryResults chunk = readSingleQuery(resolvedQuery, statement, includeHeaders);
+                chunk = readSingleQuery(resolvedQuery, statement, includeHeaders);
+            }
 
-            if (stopIndex >= 0 && index > stopIndex || chunk.data.length == 0) {
+            if (queryIndices.stop >= 0 && index >= queryIndices.stop || chunkSize <= 0 || chunk.data.length == 0) {
                 iterating = false;
             } else {
                 chunks.add(chunk);
+
+                index += chunk.rows;
             }
 
             includeHeaders = false;
-            index += chunk.rows;
         }
 
         return chunks;
@@ -271,6 +266,32 @@ public class SqlExtractorTask extends Task {
         }
 
         return new QueryResults(totalRows, data);
+    }
+
+    static QueryIndices calculateQueryIndices(SqlExtractorParameters parameters) {
+        int count;
+        QueryIndices queryIndices = new QueryIndices(0, -1);
+
+        if (!parameters.count.equals("")) {
+            count = Integer.parseInt(parameters.count);
+
+            if (parameters.startIndex.equals("")) {
+                queryIndices.start = Integer.parseInt(parameters.startIndex) * count;
+            }
+
+            queryIndices.stop = queryIndices.start + count;
+        }
+
+        if (!parameters.maxParts.equals("") && !parameters.partIndex.equals("")) {
+            int maxParts = Integer.parseInt(parameters.maxParts);
+            int partIndex = Integer.parseInt(parameters.partIndex);
+
+            if (partIndex >= (maxParts -1)) {
+                queryIndices.stop = -1;
+            }
+        }
+
+        return queryIndices;
     }
 
     static String resolveChunkedQuery(String query, int index, int count) {

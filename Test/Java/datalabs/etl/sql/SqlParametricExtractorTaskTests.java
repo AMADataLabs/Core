@@ -226,7 +226,6 @@ class SqlParametricExtractorTaskTests {
         try {
             when(statement.executeQuery(resolvedBaseQuery + "0, 3")).thenReturn(SqlParametricExtractorTaskTests.SINGLE_QUERY_RESULTS);
             when(statement.executeQuery(resolvedBaseQuery + "3, 3")).thenReturn(SqlParametricExtractorTaskTests.CHUNKED_QUERY_RESULTS);
-            when(statement.executeQuery(resolvedBaseQuery + "6, 0")).thenReturn(new EmptyResultSet());
         } catch(java.sql.SQLException exception) {
             exception.printStackTrace();
         }
