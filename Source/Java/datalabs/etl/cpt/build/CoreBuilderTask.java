@@ -90,6 +90,31 @@ public class CoreBuilderTask extends Task {
         return outputFiles;
     }
 
+    void loadSettings(){
+        String dataDirectory = System.getProperty("data.directory", "/tmp");
+
+        settings = new Properties(){{
+            put("output.directory", dataDirectory + File.separator + "output");
+            put("input.directory", dataDirectory + File.separator + "input");
+            put("annual.core.directory", "/annual_core");
+            put("incremental.core.directory", "/incremental_core");
+        }};
+    }
+
+    void stageInputFiles() throws IOException{
+        Path annualCorePath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("annual.core.directory")
+        );
+        Path incrementalCorePath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("incremental.core.directory")
+        );
+
+        this.extractZipFiles(this.data.get(0), annualCorePath.toString());
+        this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
+    }
+
     private static DtkAccess loadLink(String directory) throws Exception {
         DtkAccess link = new DtkAccess();
 
@@ -134,42 +159,6 @@ public class CoreBuilderTask extends Task {
         exporter.export(concepts, true);
     }
 
-    private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
-        ArrayList<DtkConcept> concepts = link.getConcepts();
-
-        DtkConcept.sort(concepts);
-
-        return concepts;
-    }
-
-    void loadSettings(){
-        String dataDirectory = System.getProperty("data.directory", "/tmp");
-
-        settings = new Properties(){{
-            put("output.directory", dataDirectory + File.separator + "output");
-            put("input.directory", dataDirectory + File.separator + "input");
-            put("annual.core.directory", "/annual_core");
-            put("incremental.core.directory", "/incremental_core");
-        }};
-    }
-
-    void stageInputFiles() throws IOException{
-        Path annualCorePath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("annual.core.directory")
-        );
-        Path incrementalCorePath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("incremental.core.directory")
-        );
-
-        this.extractZipFiles(this.data.get(0), annualCorePath.toString());
-        this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
-        Path fileName = Path.of(annualCorePath.toString() + File.separator + "internal_Property.txt");
-        String fileContent = Files.readString(fileName);
-
-    }
-
     private void extractZipFiles(byte[] zip, String directory) throws IOException{
         ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
         ZipInputStream zipStream = new ZipInputStream(byteStream);
@@ -180,6 +169,14 @@ public class CoreBuilderTask extends Task {
         }
         zipStream.closeEntry();
         zipStream.close();
+    }
+
+    private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
+        ArrayList<DtkConcept> concepts = link.getConcepts();
+
+        DtkConcept.sort(concepts);
+
+        return concepts;
     }
 
     private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
