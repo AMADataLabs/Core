@@ -167,7 +167,6 @@ public class CoreBuilderTask extends Task {
         this.extractZipFiles(this.data.get(1), incrementalCorePath.toString());
         Path fileName = Path.of(annualCorePath.toString() + File.separator + "internal_Property.txt");
         String fileContent = Files.readString(fileName);
-        LOGGER.info(fileContent);
 
     }
 
@@ -179,20 +178,27 @@ public class CoreBuilderTask extends Task {
         while((file = zipStream.getNextEntry())!=null) {
             this.writeZipEntryToFile(file, directory, zipStream);
         }
+        zipStream.closeEntry();
+        zipStream.close();
     }
 
     private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
 
-        new File(file.getParent()).mkdirs();
+        if (zipEntry.isDirectory()) {
+            if (!file.isDirectory() && !file.mkdirs()) {
+                throw new IOException("Failed to create directory " + file);
+            }
+        }
 
         if (!zipEntry.isDirectory()){
+            int bytesRead;
             byte[] data = new byte[1024];
             FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-            while (stream.read(data, 0, data.length) > 0) {
-                fileOutputStream.write(data, 0, data.length);
+            while ((bytesRead = stream.read(data, 0, data.length)) != -1) {
+                fileOutputStream.write(data, 0, bytesRead);
             }
             fileOutputStream.close();
         }
