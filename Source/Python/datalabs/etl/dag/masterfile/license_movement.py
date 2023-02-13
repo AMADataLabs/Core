@@ -16,7 +16,7 @@ class DAG(dag.DAG):
     #EXTRACT_OLD_PPMA: Repeat("SqlExtractorTask", 2)
     #CONCATENATE_OLD_PPMA: ConcatenateTransformerTask
     EXTRACT_MISMATCHES: SQLExtractorTask
-    EXTRACT_MISMATCHES: Repeat("SqlExtractorTask", 60)
+    EXTRACT_MISMATCHES: Repeat("SqlExtractorTask", 12)
     CONCATENATE_MISMATCHES: ConcatenateTransformerTask
     CREATE_BATCH_LOAD_FILE: LicenseMovementTransformerTask
     LOAD_BATCH_LOAD_FILE: SFTPFileLoaderTask
