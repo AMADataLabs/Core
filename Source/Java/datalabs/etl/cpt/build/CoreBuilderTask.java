@@ -164,6 +164,8 @@ public class CoreBuilderTask extends Task {
         ZipInputStream zipStream = new ZipInputStream(byteStream);
         ZipEntry file = null;
 
+        new File(directory).mkdirs();
+
         while((file = zipStream.getNextEntry())!=null) {
             this.writeZipEntryToFile(file, directory, zipStream);
         }
