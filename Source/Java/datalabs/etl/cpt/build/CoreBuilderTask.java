@@ -185,11 +185,7 @@ public class CoreBuilderTask extends Task {
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
 
-        if (zipEntry.isDirectory()) {
-            if (!file.isDirectory() && !file.mkdirs()) {
-                throw new IOException("Failed to create directory " + file);
-            }
-        }
+        new File(file.getParent()).mkdirs();
 
         if (!zipEntry.isDirectory()){
             int bytesRead;
