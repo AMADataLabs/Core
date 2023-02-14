@@ -13,7 +13,6 @@ modspec:
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cpt
   - package: datalabs.etl.dag.cpt.files
-  - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
@@ -23,4 +22,5 @@ modspec:
   - package: datalabs.etl.sftp
   - package: datalabs.etl.smtp
   - package: datalabs.etl.sns
+  - package: datalabs.task.cache
   - package: datalabs.messaging
