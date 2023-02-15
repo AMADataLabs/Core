@@ -238,6 +238,7 @@ public class SqlExtractorTask extends Task {
                 iterating = false;
             } else {
                 chunks.add(chunk);
+                LOGGER.debug("Read " + chunk.rows + " records.");
 
                 index += chunk.rows;
             }
