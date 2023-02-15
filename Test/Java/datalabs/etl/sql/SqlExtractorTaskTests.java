@@ -80,7 +80,7 @@ class SqlExtractorTaskTests {
             put("SQL", "SELECT * FROM ping LIMIT {index}, {count};SELECT * FROM pong LIMIT {index}, {count}");
             put("CHUNK_SIZE", "3");
             put("COUNT", "6");
-            put("START_INDEX", "0");
+            put("START_INDEX", "2");
             // put("MAX_PARTS", "1");
             // put("PART_INDEX", "0");
         }};
@@ -198,8 +198,8 @@ class SqlExtractorTaskTests {
 
     void setupChunkedQueryMockReturnValues() {
         try {
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 3, 3")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 12, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 15, 3")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
         } catch(java.sql.SQLException exception) {
             exception.printStackTrace();
         }

@@ -222,11 +222,13 @@ public class SqlExtractorTask extends Task {
                 chunkSize = queryIndices.stop - index;
             }
 
+            LOGGER.debug("Stop Index: " + queryIndices.stop);
+            LOGGER.debug("Index: " + index);
+            LOGGER.debug("Chunk Size: " + chunkSize);
+
             if (chunkSize > 0) {
                 String resolvedQuery = resolveChunkedQuery(query, index, chunkSize);
                 LOGGER.debug("Unresolved Query: " + query);
-                LOGGER.debug("Index: " + index);
-                LOGGER.debug("Chunk Size: " + chunkSize);
                 LOGGER.debug("Resolved Query: " + resolvedQuery);
 
                 chunk = readSingleQuery(resolvedQuery, statement, includeHeaders);
@@ -274,12 +276,15 @@ public class SqlExtractorTask extends Task {
 
         if (!parameters.count.equals("")) {
             count = Integer.parseInt(parameters.count);
+            LOGGER.debug("COUNT: " + count);
 
-            if (parameters.startIndex.equals("")) {
+            if (!parameters.startIndex.equals("")) {
                 queryIndices.start = Integer.parseInt(parameters.startIndex) * count;
+                LOGGER.debug("START_INDEX: " + queryIndices.start);
             }
 
             queryIndices.stop = queryIndices.start + count;
+            LOGGER.debug("Stop Index: " + queryIndices.stop);
         }
 
         if (!parameters.maxParts.equals("") && !parameters.partIndex.equals("")) {
