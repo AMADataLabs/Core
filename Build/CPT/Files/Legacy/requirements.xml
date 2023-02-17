@@ -65,4 +65,15 @@
         <version>1.15</version>
         <type>jar</type>
     </dependency>
+
+
+    <!-- Private Maven Repository Dependencies -->
+
+        <dependency>
+            <groupId>org.ama-assn.dtk</groupId>
+            <artifactId>dtk-core</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+
+    <!-- END Private Maven Repository Dependencies -->
 </dependencies>
