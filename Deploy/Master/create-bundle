@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+
+set -eux
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/determine-package-version.sh
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+AWS_DEFAULT_REGION=us-east-1
+DRIVER_BUCKET=ama-sbx-datalake-lambda-us-east-1
+INSTALL_DB2_DRIVER=False
+INSTALL_INFORMIX_DRIVER=False
+INSTALL_SQLSERVER_DRIVER=False
+
+ENVIRONMENT=
+PROJECT=
+EXTRA_FILES=
+PACKAGE=
+VERSION=
+NO_ZIP=
+
+
+main() {
+    process_arguments "$@"
+
+    determine_package_info
+
+    setup_virtual_environment
+
+    install_jdbc_drivers
+
+    create_code_bundle
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -j|--jdbc-driver)
+            if [[ "$2" == "DB2" ]]; then
+                INSTALL_DB2_DRIVER=True
+            elif [[ "$2" == "Informix" ]]; then
+                INSTALL_INFORMIX_DRIVER=True
+            elif [[ "$2" == "SQLServer" ]]; then
+                INSTALL_SQLSERVER_DRIVER=True
+            fi
+            shift
+            shift
+            ;;
+        -Z|--no-zip)
+            NO_ZIP="--no-zip"
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+}
+
+
+setup_virtual_environment() {
+    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
+    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+    export PATH="${VIRTUAL_ENV}/bin:$PATH"
+}
+
+
+install_jdbc_drivers() {
+    if [[ "$INSTALL_DB2_DRIVER" == "True" ]]; then
+        install_db2_driver
+    elif [[ "$INSTALL_INFORMIX_DRIVER" == "True" ]]; then
+        install_informix_driver
+    elif [[ "$INSTALL_SQLSERVER_DRIVER" == "True" ]]; then
+        install_sqlserver_driver
+    fi
+}
+
+
+create_code_bundle() {
+    if [[ "$ENVIRONMENT" == "sbx" || "$ENVIRONMENT" == "dev" ]]; then
+        export ENABLE_FEATURE_DEV=True
+    elif [[ "$ENVIRONMENT" == "tst" ]]; then
+        export ENABLE_FEATURE_TEST=True
+    elif [[ "$ENVIRONMENT" == "itg" ]]; then
+        export ENABLE_FEATURE_STAGE=True
+    elif [[ "$ENVIRONMENT" == "prd" ]]; then
+        export ENABLE_FEATURE_PROD=True
+    fi
+
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
+        local use_package=
+
+        if [[ "$USE_PACKAGE" == "True" ]]; then
+            use_package="--use-package"
+        fi
+
+        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $VERSION $NO_ZIP $EXTRA_FILES
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
+        cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
+
+        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $PACKAGE $VERSION $NO_ZIP $EXTRA_FILES -f ./log4j2.xml
+    else
+        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
+        exit 1
+    fi
+}
+
+
+print_usage() {
+    echo "Usage: create-bundle [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project <project>               project path relative to Build/"
+    echo "  -Z, --no-zip                          do not create a zip of the Bundle directory"
+}
+
+
+install_db2_driver() {
+    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
+    unzip ./Db2JdbcDriver.zip
+    echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+    EXTRA_FILES+="-f db2jcc4.jar -f DB2JccConfiguration.properties "
+}
+
+
+install_informix_driver() {
+    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
+    unzip ./InformixJdbcDriver.zip
+
+    EXTRA_FILES+="-f jdbc-4.50.4.1.jar -f bson-4.2.0.jar "
+}
+
+
+install_sqlserver_driver() {
+    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+    unzip ./SqlServerJdbcDriver.zip
+    mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
+
+    EXTRA_FILES+="-f mssql-jdbc-10.2.0.jre8.jar "
+}
+
+
+main "$@"

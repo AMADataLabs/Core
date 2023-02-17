@@ -6,6 +6,7 @@ PROJECT=
 EXTRA_FILES=()
 PACKAGE=
 VERSION=
+CREATE_ZIP=True
 
 
 
@@ -20,7 +21,9 @@ main() {
 
     copy_extra_files
 
-    create_zip
+    if [[ $CREATE_ZIP == "True" ]]; then
+        create_zip
+    fi
 }
 
 
@@ -49,6 +52,10 @@ process_arguments() {
         -V|--version)
             VERSION=$2
             shift
+            shift
+            ;;
+        -Z|--no-zip)
+            CREATE_ZIP=False
             shift
             ;;
         *)
