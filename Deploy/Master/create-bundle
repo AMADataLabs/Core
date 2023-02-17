@@ -106,12 +106,6 @@ create_code_bundle() {
     fi
 
     if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        local use_package=
-
-        if [[ "$USE_PACKAGE" == "True" ]]; then
-            use_package="--use-package"
-        fi
-
         ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $VERSION $NO_ZIP $EXTRA_FILES
     elif [[ "$RELEASE_TYPE" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
