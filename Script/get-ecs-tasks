@@ -64,7 +64,7 @@ print_task_arns() {
 
     tasks_json=$(aws $NO_VERIFY_SSL ecs describe-tasks --cluster $CLUSTER --tasks $task_ids)
 
-    echo "$tasks_json" | jq '.tasks | map({(.containers[0].name): .taskArn}) | add'
+    echo "$tasks_json" | jq '.tasks[].containers | map({(.name): .taskArn}) | add'
 }
 
 

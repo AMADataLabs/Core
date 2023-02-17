@@ -69,11 +69,11 @@
 
     <!-- Private Maven Repository Dependencies -->
 
-        <dependency>
-            <groupId>org.ama-assn.dtk</groupId>
-            <artifactId>dtk-core</artifactId>
-            <version>1.0.4</version>
-        </dependency>
+    <dependency>
+        <groupId>org.ama-assn.dtk</groupId>
+        <artifactId>dtk-core</artifactId>
+        <version>1.0.4</version>
+    </dependency>
 
     <!-- END Private Maven Repository Dependencies -->
 </dependencies>
