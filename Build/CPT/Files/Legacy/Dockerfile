@@ -21,6 +21,7 @@ COPY ./Build/Master ./Build/Master
 COPY ./Build/CPT/Files/Legacy ./Build/CPT/Files/Legacy
 COPY ./Deploy/Master ./Deploy/Master
 COPY ./Script ./Script
+COPY ./Source/Bash/environment/python/setup.sh ./Source/Bash/environment/python/setup.sh
 COPY ./Source/Python/datalabs/build ./Source/Python/datalabs/build
 
 RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
