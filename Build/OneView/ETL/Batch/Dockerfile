@@ -21,17 +21,10 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     unzip awscliv2.zip && \
     ./aws/install
 
-RUN pip install -r Build/Master/Docker/requirements.txt
+RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 
-RUN aws configure set profile.sandbox.aws_access_key_id $AWS_ACCESS_KEY_ID_SANDBOX && \
-    aws configure set profile.sandbox.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_SANDBOX && \
-    aws configure set profile.sandbox.region us-east-1 && \
-    aws configure set profile.sandbox.output json
-
-RUN aws --profile sandbox codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
-
-RUN pip install $PACKAGE_NAME==$PACKAGE_VERSION
-RUN cp ./Build/Master/settings.py ./settings.py
-RUN cp ./Build/Master/task.py ./task.py
+RUN /Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
 
 RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip
+
+RUN mv ./Bundle/* ./
