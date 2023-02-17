@@ -1,8 +1,8 @@
 # Build Example:
 #    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl-batch --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Batch/Dockerfile ./
 FROM python:3.9
-ARG PACKAGE_NAME
-ARG PACKAGE_VERSION
+ARG ENVIRONMENT
+ARG PROJECT
 ARG AWS_ACCESS_KEY_ID_SANDBOX
 ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 
