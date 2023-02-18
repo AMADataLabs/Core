@@ -29,6 +29,6 @@ RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_S
 
 RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
 
-RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip
+RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip ~/.aws
 
 RUN mv ./Bundle/* ./
