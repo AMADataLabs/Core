@@ -97,10 +97,11 @@ determine_package_info() {
 
 
 build_container_image() {
-    docker build --build-arg PACKAGE_NAME=${PACKAGE} --build-arg PACKAGE_VERSION=${VERSION} \
-         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
-         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
-         -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
+    docker build --build-arg ENVIRONMENT=${ENVIRONMENT} \
+        --build-arg PROJECT=${PROJECT} \
+        --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
+        --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
+        -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
 

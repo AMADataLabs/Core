@@ -66,7 +66,6 @@ pipelines:
                     --environment sbx
                     --project AMC
                     --bundle Masterfile/AMC.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -80,7 +79,6 @@ pipelines:
                     --environment tst
                     --project AMC
                     --bundle Masterfile/AMC.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -94,7 +92,6 @@ pipelines:
                     --environment prd
                     --project AMC
                     --bundle Masterfile/AMC.zip
-                    --use-package
         - parallel:
             - step:
                 name: Reload Test Lambda Functions
@@ -136,7 +133,6 @@ pipelines:
                     --project AMC/Extract
                     --bundle Masterfile/AMC-Extract.zip
                     --jdbc-driver Informix
-                    --use-package
             - step:
                 name: Update Test Lambda Bundle
                 caches:
@@ -151,7 +147,6 @@ pipelines:
                     --project AMC/Extract
                     --bundle Masterfile/AMC-Extract.zip
                     --jdbc-driver Informix
-                    --use-package
             - step:
                 name: Update Production Lambda Bundle
                 caches:
@@ -166,7 +161,6 @@ pipelines:
                     --project AMC/Extract
                     --bundle Masterfile/AMC-Extract.zip
                     --jdbc-driver Informix
-                    --use-package
         - parallel:
             - step:
                 name: Reload Test Lambda Functions
@@ -208,7 +202,6 @@ pipelines:
                     --environment sbx
                     --project HelloWorld
                     --bundle HelloWorld.zip
-                    --use-package
             - step:
                 name: Update Development Bundle
                 caches:
@@ -222,7 +215,6 @@ pipelines:
                     --environment dev
                     --project HelloWorld
                     --bundle Masterfile/HelloWorld.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -236,7 +228,6 @@ pipelines:
                     --environment tst
                     --project HelloWorld
                     --bundle Masterfile/HelloWorld.zip
-                    --use-package
             - step:
                 name: Update Staging Bundle
                 caches:
@@ -250,7 +241,6 @@ pipelines:
                     --environment itg
                     --project HelloWorld
                     --bundle Masterfile/HelloWorld.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -264,7 +254,6 @@ pipelines:
                     --environment prd
                     --project HelloWorld
                     --bundle Masterfile/HelloWorld.zip
-                    --use-package
 
         - parallel:
             - step:
@@ -330,7 +319,6 @@ pipelines:
                     --environment sbx
                     --project Cerner
                     --bundle CustomerIntelligence/Cerner.zip
-                    --use-package
             - step:
                 name: Update Development Bundle
                 caches:
@@ -344,7 +332,6 @@ pipelines:
                     --environment dev
                     --project Cerner
                     --bundle CustomerIntelligence/Cerner.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -358,7 +345,6 @@ pipelines:
                     --environment tst
                     --project Cerner
                     --bundle CustomerIntelligence/Cerner.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -372,7 +358,6 @@ pipelines:
                     --environment prd
                     --project Cerner
                     --bundle CustomerIntelligence/Cerner.zip
-                    --use-package
 
         - parallel:
             - step:
@@ -428,7 +413,6 @@ pipelines:
                     --environment sbx
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
-                    --use-package
             - step:
                 name: Update development Bundle
                 caches:
@@ -442,7 +426,6 @@ pipelines:
                     --environment dev
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
-                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -456,7 +439,6 @@ pipelines:
                     --environment tst
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
-                    --use-package
             - step:
                 name: Update staging Bundle
                 caches:
@@ -470,7 +452,6 @@ pipelines:
                     --environment itg
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
-                    --use-package
             - step:
                 name: Update production Bundle
                 caches:
@@ -484,7 +465,6 @@ pipelines:
                     --environment prd
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
-                    --use-package
         - step:
             name: Update sandbox Lambda Functions
             script:
@@ -541,7 +521,6 @@ pipelines:
                     --environment dev
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -555,7 +534,6 @@ pipelines:
                     --environment tst
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
-                    --use-package
             - step:
                 name: Update Staging Bundle
                 caches:
@@ -569,7 +547,6 @@ pipelines:
                     --environment itg
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -583,7 +560,6 @@ pipelines:
                     --environment prd
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
-                    --use-package
 
         - parallel:
             - step:
@@ -645,7 +621,6 @@ pipelines:
                     --environment dev
                     --project CPT/API/Endpoint
                     --bundle CPT/API/Endpoint.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -659,7 +634,6 @@ pipelines:
                     --environment tst
                     --project CPT/API/Endpoint
                     --bundle CPT/API/Endpoint.zip
-                    --use-package
             - step:
                 name: Update Staging Bundle
                 caches:
@@ -673,7 +647,6 @@ pipelines:
                     --environment itg
                     --project CPT/API/Endpoint
                     --bundle CPT/API/Endpoint.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -687,7 +660,6 @@ pipelines:
                     --environment prd
                     --project CPT/API/Endpoint
                     --bundle CPT/API/Endpoint.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update Development Lambda Functions
@@ -762,7 +734,6 @@ pipelines:
                     --environment dev
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
-                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -776,7 +747,6 @@ pipelines:
                     --environment tst
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
-                    --use-package
             - step:
                 name: Update Staging Bundle
                 caches:
@@ -790,7 +760,6 @@ pipelines:
                     --environment itg
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -804,7 +773,6 @@ pipelines:
                     --environment prd
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update Development Lambda Functions
@@ -866,7 +834,6 @@ pipelines:
                     --environment dev
                     --project AddressLoad
                     --bundle Masterfile/AddressLoadCompilerDAG.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -880,7 +847,6 @@ pipelines:
                     --environment tst
                     --project AddressLoad
                     --bundle Masterfile/AddressLoadCompilerDAG.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -894,7 +860,6 @@ pipelines:
                     --environment prd
                     --project AddressLoad
                     --bundle Masterfile/AddressLoadCompilerDAG.zip
-                    --use-package
 
         - parallel:
             - step:
@@ -948,7 +913,6 @@ pipelines:
 #                    --environment dev
 #                    --project LicenseMovement
 #                    --bundle Masterfile/LicenseMovementDAG.zip
-#                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -962,7 +926,6 @@ pipelines:
                     --environment tst
                     --project LicenseMovement
                     --bundle Masterfile/LicenseMovementDAG.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -976,7 +939,6 @@ pipelines:
                     --environment prd
                     --project LicenseMovement
                     --bundle Masterfile/LicenseMovementDAG.zip
-                    --use-package
         - parallel:
 #            - step:
 #                name: Update Development Lambda Functions
@@ -1027,7 +989,6 @@ pipelines:
 #                    --project LicenseMovement/Extract
 #                    --bundle Masterfile/LicenseMovement-Extract.zip
 #                    --jdbc-driver Informix
-#                    --use-package
             - step:
                 name: Update Test Lambda Bundle
                 caches:
@@ -1042,7 +1003,6 @@ pipelines:
                     --project LicenseMovement/Extract
                     --bundle Masterfile/LicenseMovement-Extract.zip
                     --jdbc-driver Informix
-                    --use-package
             - step:
                 name: Update Production Lambda Bundle
                 caches:
@@ -1057,7 +1017,6 @@ pipelines:
                     --project LicenseMovement/Extract
                     --bundle Masterfile/LicenseMovement-Extract.zip
                     --jdbc-driver Informix
-                    --use-package
         - parallel:
 #            - step:
 #                name: Reload Development Lambda Functions
@@ -1110,7 +1069,6 @@ pipelines:
                     --environment dev
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
-                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -1124,7 +1082,6 @@ pipelines:
                     --environment tst
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
-                    --use-package
             - step:
                 name: Update staging Bundle
                 caches:
@@ -1138,7 +1095,6 @@ pipelines:
                     --environment itg
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
-                    --use-package
             - step:
                 name: Update production Bundle
                 caches:
@@ -1152,7 +1108,6 @@ pipelines:
                     --environment prd
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update development Lambda Functions
@@ -1204,7 +1159,6 @@ pipelines:
                     --environment dev
                     --project DBL
                     --bundle Masterfile/DBLReport.zip
-                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -1218,7 +1172,6 @@ pipelines:
                     --environment tst
                     --project DBL
                     --bundle Masterfile/DBLReport.zip
-                    --use-package
             - step:
                 name: Update production Bundle
                 caches:
@@ -1232,7 +1185,6 @@ pipelines:
                     --environment prd
                     --project DBL
                     --bundle Masterfile/DBLReport.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update development Lambda Functions
@@ -1278,7 +1230,6 @@ pipelines:
                 --environment sbx
                 --project HelloWorldJava/DAG
                 --bundle HelloWorldJava/DAG.zip
-                --use-package
         - step:
             name: Update Lambda Functions
             script:
@@ -1304,7 +1255,6 @@ pipelines:
                 --environment sbx
                 --project HelloWorldJava/Task
                 --bundle HelloWorldJava/Task.zip
-                --use-package
 
             # Create the Docker image
             - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
@@ -1348,7 +1298,6 @@ pipelines:
                     --environment dev
                     --project IntelligentPlatform
                     --bundle IntelligentPlatform/DAG.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -1362,7 +1311,6 @@ pipelines:
                     --environment tst
                     --project IntelligentPlatform
                     --bundle IntelligentPlatform/DAG.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -1376,7 +1324,6 @@ pipelines:
                     --environment prd
                     --project IntelligentPlatform
                     --bundle IntelligentPlatform/DAG.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update Development Lambda Functions
@@ -1428,7 +1375,6 @@ pipelines:
                     --environment dev
                     --project IntelligentPlatform/Developer
                     --bundle IntelligentPlatform/DeveloperDAG.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -1442,7 +1388,6 @@ pipelines:
                     --environment tst
                     --project IntelligentPlatform/Developer
                     --bundle IntelligentPlatform/DeveloperDAG.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -1456,7 +1401,6 @@ pipelines:
                     --environment prd
                     --project IntelligentPlatform/Developer
                     --bundle IntelligentPlatform/DeveloperDAG.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update Development Lambda Functions
@@ -1508,7 +1452,6 @@ pipelines:
                     --environment dev
                     --project IntelligentPlatform/Licensing
                     --bundle IntelligentPlatform/LicensingDAG.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -1522,7 +1465,6 @@ pipelines:
                     --environment tst
                     --project IntelligentPlatform/Licensing
                     --bundle IntelligentPlatform/LicensingDAG.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -1536,7 +1478,6 @@ pipelines:
                     --environment prd
                     --project IntelligentPlatform/Licensing
                     --bundle IntelligentPlatform/LicensingDAG.zip
-                    --use-package
         - parallel:
              - step:
                    name: Update Development Lambda Function
@@ -1588,7 +1529,6 @@ pipelines:
                     --environment dev
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --use-package
             - step:
                 name: Update Test Lambda Bundle
                 caches:
@@ -1602,7 +1542,6 @@ pipelines:
                     --environment tst
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --use-package
             - step:
                 name: Update Production Lambda Bundle
                 caches:
@@ -1616,7 +1555,6 @@ pipelines:
                     --environment prd
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --use-package
         - parallel:
             - step:
                 name: Update Development Lambda Function
@@ -1713,7 +1651,6 @@ pipelines:
                     --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
-                    --use-package
             - step:
                 name: Update Test Lambda Bundle
                 caches:
@@ -1729,7 +1666,6 @@ pipelines:
                     --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
-                    --use-package
             - step:
                 name: Update Production Lambda Bundle
                 caches:
@@ -1745,7 +1681,6 @@ pipelines:
                     --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
-                    --use-package
         - parallel:
             - step:
                 name: Reload Development Lambda Functions
@@ -1797,7 +1732,6 @@ pipelines:
                     --environment dev
                     --project OneView/API
                     --bundle OneView/API.zip
-                    --use-package
             - step:
                 name: Update Test Lambda Bundle
                 caches:
@@ -1811,7 +1745,6 @@ pipelines:
                     --environment tst
                     --project OneView/API
                     --bundle OneView/API.zip
-                    --use-package
             - step:
                 name: Update Production Lambda Bundle
                 caches:
@@ -1825,7 +1758,6 @@ pipelines:
                     --environment prd
                     --project OneView/API
                     --bundle OneView/API.zip
-                    --use-package
         - parallel:
             - step:
                 name: Reload Development Lambda Functions
@@ -1875,7 +1807,6 @@ pipelines:
                     --environment sbx
                     --project CPT/Files/Build
                     --bundle CPT/Files/Build.zip
-                    --use-package
             - step:
                 name: Update Development Lambda Bundle
                 caches:
@@ -1889,7 +1820,6 @@ pipelines:
                     --environment dev
                     --project CPT/Files/Build
                     --bundle CPT/Files/Build.zip
-                    --use-package
 #            - step:
 #                name: Update Test Lambda Bundle
 #                caches:
@@ -1905,7 +1835,6 @@ pipelines:
 #                    --bundle CPT/Files/Build.zip
 #                    --jdbc-driver DB2
 #                    --jdbc-driver Informix
-#                    --use-package
 #            - step:
 #                name: Update Production Lambda Bundle
 #                caches:
@@ -1921,7 +1850,6 @@ pipelines:
 #                    --bundle CPT/Files/Build.zip
 #                    --jdbc-driver DB2
 #                    --jdbc-driver Informix
-#                    --use-package
         - parallel:
             - step:
                 name: Update Development Lambda Function
@@ -1971,7 +1899,6 @@ pipelines:
                     --environment sbx
                     --project Scheduler
                     --bundle Scheduler.zip
-                    --use-package
             - step:
                 name: Update Development Bundle
                 caches:
@@ -1985,7 +1912,6 @@ pipelines:
                     --environment dev
                     --project Scheduler
                     --bundle Scheduler.zip
-                    --use-package
             - step:
                 name: Update Test Bundle
                 caches:
@@ -1999,7 +1925,6 @@ pipelines:
                     --environment tst
                     --project Scheduler
                     --bundle Scheduler.zip
-                    --use-package
             - step:
                 name: Update Staging Bundle
                 caches:
@@ -2013,7 +1938,6 @@ pipelines:
                     --environment itg
                     --project Scheduler
                     --bundle Scheduler.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -2027,7 +1951,6 @@ pipelines:
                     --environment prd
                     --project Scheduler
                     --bundle Scheduler.zip
-                    --use-package
         - parallel:
             - step:
                 name: Reload Sandbox Lambda Functions
@@ -2108,7 +2031,6 @@ pipelines:
                     --environment sbx
                     --project VeriCre/DataSteward
                     --bundle VeriCre/DataStewardDAG.zip
-                    --use-package
             - step:
                 name: Update Development Bundle
                 caches:
@@ -2122,7 +2044,6 @@ pipelines:
                     --environment dev
                     --project VeriCre/DataSteward
                     --bundle VeriCre/DataStewardDAG.zip
-                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -2136,7 +2057,6 @@ pipelines:
                     --environment tst
                     --project VeriCre/DataSteward
                     --bundle VeriCre/DataStewardDAG.zip
-                    --use-package
             - step:
                 name: Update Production Bundle
                 caches:
@@ -2150,7 +2070,6 @@ pipelines:
                     --environment prd
                     --project VeriCre/DataSteward
                     --bundle VeriCre/DataStewardDAG.zip
-                    --use-package
         - parallel:
             - step:
                 name: Reload Sandbox Lambda Functions
@@ -2205,7 +2124,6 @@ pipelines:
                     --environment dev
                     --project CPT/Files/Legacy
                     --bundle CPT/Files/Legacy.zip
-                    --use-package
 #            - step:
 #                name: Update Test Lambda Bundle
 #                caches:
@@ -2219,7 +2137,6 @@ pipelines:
 #                    --environment tst
 #                    --project CPT/Files/Legacy
 #                    --bundle CPT/Files/Legacy.zip
-#                    --use-package
 #            - step:
 #                name: Update Production Lambda Bundle
 #                caches:
@@ -2233,7 +2150,6 @@ pipelines:
 #                    --environment prd
 #                    --project CPT/Files/Legacy
 #                    --bundle CPT/Files/Legacy.zip
-#                    --use-package
         - parallel:
             - step:
                 name: Reload Development Lambda Functions
