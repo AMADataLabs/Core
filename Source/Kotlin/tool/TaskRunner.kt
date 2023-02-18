@@ -71,6 +71,7 @@ object TaskRunner {
 
             parameters = commandLineParameters
         } else if (args.hasOption("event")) {
+            @Suppress("UNCHECKED_CAST")
             parameters = Gson().fromJson(args.getOptionValue("event"), Map::class.java) as Map<String, String>
         }
 
