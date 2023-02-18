@@ -65,7 +65,8 @@ class LocalProjectBundler(ProjectBundler):
             self._copy_local_task_script(target_path)
 
             LOGGER.info('=== Creating Zip Archive ===')
-            self._zip_bundle_directory(project, target_path)
+            if not kwargs['no_zip']:
+                self._zip_bundle_directory(project, target_path)
 
     def _copy_build_files(self, project, target_path):
         self._copy_alembic_files(project, target_path)
@@ -226,6 +227,8 @@ if __name__ == '__main__':
     ap.add_argument(
         '-f', '--file', action='append', required=False, help='Include the given file in the bundle.'
     )
+    ap.add_argument('-Z', '--no-zip', action='store_true', default=False,
+        help='Do not zip the Bundle/ directory (used to build container images).')
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)
