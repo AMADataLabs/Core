@@ -9,9 +9,11 @@ ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 WORKDIR /CPT
 ENV AWS_DEFAULT_REGION=us-east-1
 
-RUN add-apt-repository ppa:deadsnakes/ppa && \
+RUN apt update && \
+    apt install -y wget software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
-    apt install -y jq unzip wget software-properties-common python3.9
+    apt install -y jq unzip python3.9
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
