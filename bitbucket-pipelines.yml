@@ -2133,7 +2133,6 @@ pipelines:
                 - source Build/CPT/Files/Legacy/.ci/release.sh
 
                 # Create the Docker image
-                - mv Bundle.zip Bundle.ZIP  # circumvent .dockerignore
                 - docker build -t cpt-files-sbx -f Build/CPT/Files/Legacy/Dockerfile ./
 
                 # Push the Docker image to ECR
