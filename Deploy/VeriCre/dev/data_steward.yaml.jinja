@@ -36,7 +36,7 @@ data:
     VERICRE_DATA_STEWARD__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
     VERICRE_DATA_STEWARD__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     VERICRE_DATA_STEWARD__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-
+    VERICRE_DATA_STEWARD__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
     ##########################################################################
     # Task Variables - ({"DAG": {"S": "VERICRE_DATA_STEWARD"}, "Task": {"S": "<Task ID>"}})
