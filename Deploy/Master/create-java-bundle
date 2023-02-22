@@ -139,7 +139,7 @@ download_package_jar() {
 
     cd Bundle
 
-    jar xf ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar
+    java -jar xf ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar
 
     cd ..
 }
