@@ -2112,18 +2112,51 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/Files/Legacy
         - parallel:
             - step:
-                name: Update Development Lambda Bundle
+                name: Update Sandbox Lambda bundle
                 caches:
-                    - environment-dev
+                - environment-master
                 script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
                     --project CPT/Files/Legacy
                     --bundle CPT/Files/Legacy.zip
+            - step:
+                name: Update Sandbox ECR Image
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+
+                # Set RELEASE_VERSION environment variable
+                - source Build/CPT/Files/Legacy/.ci/release.sh
+
+                # Create the Docker image
+                - mv Bundle.zip Bundle.ZIP  # circumvent .dockerignore
+                - docker build -t cpt-files-sbx -f Build/CPT/Files/Legacy/Dockerfile ./
+
+                # Push the Docker image to ECR
+                - pipe: atlassian/aws-ecr-push-image:1.5.0
+                variables:
+                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
+                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    AWS_DEFAULT_REGION: 'us-east-1'
+                    IMAGE_NAME: 'cpt-files-sbx'
+                    TAGS: '$RELEASE_VERSION latest'
+            # - step:
+            #     name: Update Development Lambda Bundle
+            #     caches:
+            #         - environment-dev
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+            #         --environment dev
+            #         --project CPT/Files/Legacy
+            #         --bundle CPT/Files/Legacy.zip
 #            - step:
 #                name: Update Test Lambda Bundle
 #                caches:
