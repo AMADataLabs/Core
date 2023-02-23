@@ -13,7 +13,7 @@ RUN apt update && \
     apt install -y wget software-properties-common && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt update && \
-    apt install -y jq unzip python3.9 python3-pip
+    apt install -y jq unzip python3.9 python3-pip python3.9-venv
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
