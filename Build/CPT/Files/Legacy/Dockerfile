@@ -11,9 +11,9 @@ ENV AWS_DEFAULT_REGION=us-east-1
 
 RUN apt update && \
     apt install -y wget software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
     apt update && \
-    apt install -y jq unzip python3.9
+    apt install -y jq unzip python3.9 python3-pip
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
