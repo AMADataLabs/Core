@@ -19,7 +19,7 @@ RUN apt update && \
     apt install -y jq unzip python3.9 python3-pip python3.9-venv
 
 RUN curl "${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o apache-maven.tar.gz && \
-    tar xzr apache-maven.tar.gz
+    tar xzf apache-maven.tar.gz
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
