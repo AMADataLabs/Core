@@ -8,12 +8,18 @@ ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 
 WORKDIR /CPT
 ENV AWS_DEFAULT_REGION=us-east-1
+ENV MAVEN_VERSION=3.9.0
+ENV MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
+ENV PATH="/CPT/apache-maven-${MAVEN_VERSION}/bin:$PATH"
 
 RUN apt update && \
     apt install -y wget software-properties-common && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y jq unzip python3.9 python3-pip python3.9-venv
+
+RUN curl "${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o apache-maven.tar.gz && \
+    tar xzr apache-maven.tar.gz
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
@@ -31,6 +37,6 @@ RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_S
 
 RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
 
-RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip ~/.aws
+RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip ~/.aws ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
 
 RUN mv ./Bundle/* ./
