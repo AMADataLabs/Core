@@ -37,6 +37,8 @@ RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_S
 
 RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
 
-RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip ~/.aws ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
+RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip ~/.aws \
+    ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION} && \
+    apt uninstall python3.9 python3-pip python3.9-venv
 
 RUN mv ./Bundle/* ./
