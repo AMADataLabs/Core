@@ -72,7 +72,7 @@ data:
 	    WHERE status IN ('CREATED_N_SUBMITTED', 'RESUBMITTED_TO_DS')
 	    ORDER BY updated_datetime DESC
 	) AS a
-	JOIN `user` ON a.user = `user`.id
+	JOIN user ON a.user = user.id
     ) AS d
     WHERE updated_datetime
     BETWEEN timestamp '%Y-%m-%d %H:%M:%S' - interval '1 day'
