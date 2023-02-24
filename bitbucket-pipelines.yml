@@ -2140,8 +2140,9 @@ pipelines:
 
                 # Set RELEASE_VERSION environment variable
                 - source Build/CPT/Files/Legacy/.ci/release.sh $ENVIRONMENT
+                - export IMAGE_VERSION=`Script/get-latest-component-version CPT/Files/Legacy | sed 's/..* //'`
 
-                - docker tag cpt-files-sbx cpt-files-sbx:$RELEASE_VERSION
+                - docker tag cpt-files-sbx cpt-files-sbx:$IMAGE_VERSION
                 - docker tag cpt-files-sbx cpt-files-sbx:latest
 
                 # Push the Docker image to ECR
@@ -2152,7 +2153,7 @@ pipelines:
                     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
                     AWS_DEFAULT_REGION: 'us-east-1'
                     IMAGE_NAME: "cpt-files-$ENVIRONMENT"
-                    TAGS: "$RELEASE_VERSION latest"
+                    TAGS: "$IMAGE_VERSION latest"
         #     - step:
         #         name: Update Development Lambda Bundle
         #         caches:
