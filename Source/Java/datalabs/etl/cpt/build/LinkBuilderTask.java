@@ -441,8 +441,8 @@ public class LinkBuilderTask extends Task {
     public void renameFolderToLink() throws  IOException{
         Path publishFolderPath = getPublishPath();
 
-        File linkFolder = new File(publishFolderPath + File.separator + "dtk");
-        File renamedLinkFolder = new File(publishFolderPath + File.separator + "CPT Link");
+        File linkFolder = publishFolderPath.resolve("dtk").toFile();
+        File renamedLinkFolder = publishFolderPath.resolve("CPT Link").toFile();
 
         linkFolder.renameTo(renamedLinkFolder);
     }

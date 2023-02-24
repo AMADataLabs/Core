@@ -159,7 +159,7 @@ class LinkBuilderTaskTests {
 
         linkBuilderTask.renameFolderToLink();
 
-        assertTrue(Files.exists(Path.of(dataOutputDirectory + File.separator + "publish" + datestamp + "_112233" + File.separator + "CPT Link")));
+        assertTrue(Files.exists(Paths.get(String.valueOf(dataOutputDirectory), "publish" + datestamp + "_112233", "CPT Link")));
     }
 
     void generateInputZipFiles(String[] testDirectories, ArrayList<byte[]> data, Path workingDir, String[] testFiles)
