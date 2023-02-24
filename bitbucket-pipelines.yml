@@ -1244,34 +1244,41 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project HelloWorldJava/Task
-        - step:
-            name: Update ECR Bundle
-            caches:
-            - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project HelloWorldJava/Task
-                --bundle HelloWorldJava/Task.zip
+        - parallel:
+            - step:
+                name: Update Lambda bundle
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project HelloWorldJava/Task
+                    --bundle HelloWorldJava/Task.zip
+            - step:
+                name: Update ECR Image
+                caches:
+                - environment-master
+                script:
+                # Create the Docker image
+                - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
 
-            # Create the Docker image
-            - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
-            - mv Bundle.zip Bundle.ZIP  # circumvent .dockerignore
-            - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - export IMAGE_VERSION=`Deploy/Master/determine-package-version -e sbx -p HelloWorldJava/Task`
+                - docker tag hello_world_java-sbx hello_world_java-sbx:$VERSION
+                - docker tag hello_world_java-sbx hello_world_java-sbx:latest
 
-            # Push the Docker image to ECR
-            - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
-            - pipe: atlassian/aws-ecr-push-image:1.5.0
-              variables:
-                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
-                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
-                AWS_DEFAULT_REGION: 'us-east-1'
-                IMAGE_NAME: 'hello_world_java-sbx'
-                TAGS: '$VERSION latest'
+                # Push the Docker image to ECR
+                - pipe: atlassian/aws-ecr-push-image:2.0.0
+                variables:
+                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
+                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    AWS_DEFAULT_REGION: 'us-east-1'
+                    IMAGE_NAME: "hello_world_java-$ENVIRONMENT"
+                    TAGS: "$IMAGE_VERSION latest"
         - step:
-            name: Update Lambda Function
+            name: Reload Lambda Function
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava HelloWorldJavaTask=Task.zip
@@ -2128,21 +2135,19 @@ pipelines:
                 - environment-master
                 script:
                 - export ENVIRONMENT=sbx
+                - export PROJECT=CPT/Files/Legacy
 
                 # Create the Docker image
                 - >-
-                    docker build -t cpt-files-sbx -f Build/CPT/Files/Legacy/Dockerfile
+                    docker build -t cpt-files-sbx -f Build/$PROJECT/Dockerfile
                     --build-arg ENVIRONMENT=$ENVIRONMENT
-                    --build-arg PROJECT=CPT/Files/Legacy
+                    --build-arg PROJECT=$PROJECT
                     --build-arg AWS_ACCESS_KEY_ID_SANDBOX=$AWS_ACCESS_KEY_ID_SANDBOX
                     --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=$AWS_SECRET_ACCESS_KEY_SANDBOX
                     ./
 
-                # Set RELEASE_VERSION environment variable
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - source Build/CPT/Files/Legacy/.ci/release.sh $ENVIRONMENT
-                - export IMAGE_VERSION=$(Script/get-latest-component-version CPT/Files/Legacy | sed 's/..* //')
-
+                - export IMAGE_VERSION=`Deploy/Master/determine-package-version -e $ENVIRONMENT -p $PROJECT`
                 - docker tag cpt-files-sbx cpt-files-sbx:$IMAGE_VERSION
                 - docker tag cpt-files-sbx cpt-files-sbx:latest
 

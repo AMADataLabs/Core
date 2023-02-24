@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/determine_package_version.sh
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+ENVIRONMENT=sbx
+
+PROJECT=
+VERSION=
+
+
+main() {
+    process_arguments "$@"
+
+    determine_package_info
+
+    echo $VERSION | sed 's/--version //'
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+
+    if  [[ "$PROJECT" == "" ]]; then
+        echo "Missing project argument."
+        exit 1
+    fi
+}
+
+
+setup_virtual_environment() {
+    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
+    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+    export PATH="${VIRTUAL_ENV}/bin:$PATH"
+}
+
+
+print_usage() {
+    echo "Usage: determin-package-version [OPTIONS]..."
+    echo "Build and upload a Python package for a component."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project                         project path relative to Build/"
+}
+
+
+main "$@"
