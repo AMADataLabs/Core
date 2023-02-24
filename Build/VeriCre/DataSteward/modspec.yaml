@@ -19,6 +19,7 @@ modspec:
       - sqlalchemy
   - package: datalabs.access.parameter
   - package: datalabs.etl
+  - package: datalabs.etl.archive
   - package: datalabs.etl.s3
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
