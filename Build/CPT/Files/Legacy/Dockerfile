@@ -1,6 +1,6 @@
 # Build Example:
 #    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl-batch --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Batch/Dockerfile ./
-FROM eclipse-temurin:18.0.2.1_1-jdk
+FROM eclipse-temurin:18.0.2.1_1-jdk AS build
 ARG ENVIRONMENT
 ARG PROJECT
 ARG AWS_ACCESS_KEY_ID_SANDBOX
@@ -38,7 +38,7 @@ RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_S
 RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
 
 RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip ~/.aws \
-    ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION} && \
-    apt uninstall python3.9 python3-pip python3.9-venv
+    ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
 
-RUN mv ./Bundle/* ./
+FROM eclipse-temurin:18.0.2.1_1-jdk
+COPY --from=builder ./Bundle/* ./
