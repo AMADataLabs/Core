@@ -2140,7 +2140,6 @@ pipelines:
 
                 # Set RELEASE_VERSION environment variable
                 - source Build/CPT/Files/Legacy/.ci/release.sh $ENVIRONMENT
-                - bash echo "Image Version: $RELEASE_VERSION"
 
                 # Push the Docker image to ECR
                 - set +u
