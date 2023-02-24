@@ -2143,7 +2143,7 @@ pipelines:
 
                 # Push the Docker image to ECR
                 - set +u
-                - pipe: atlassian/aws-ecr-push-image:1.5.0
+                - pipe: atlassian/aws-ecr-push-image:2.0.0
                 variables:
                     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
                     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX

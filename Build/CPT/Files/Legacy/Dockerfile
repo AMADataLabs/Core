@@ -40,6 +40,6 @@ RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT 
 RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip ~/.aws \
     ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
 
-FROM eclipse-temurin:18.0.2.1_1-jdk
+FROM eclipse-temurin:18.0.2.1_1-jre
 WORKDIR /CPT
 COPY --from=build /CPT/Bundle/* ./
