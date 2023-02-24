@@ -42,4 +42,4 @@ RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip
 
 FROM eclipse-temurin:18.0.2.1_1-jre
 WORKDIR /CPT
-COPY --from=build /CPT/Bundle/* ./
+COPY --from=build /CPT/Bundle/ /CPT
