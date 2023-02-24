@@ -2140,7 +2140,7 @@ pipelines:
 
                 # Set RELEASE_VERSION environment variable
                 - source Build/CPT/Files/Legacy/.ci/release.sh $ENVIRONMENT
-                - export IMAGE_VERSION=`Script/get-latest-component-version CPT/Files/Legacy | sed 's/..* //'`
+                - export IMAGE_VERSION=$(Script/get-latest-component-version CPT/Files/Legacy | sed 's/..* //')
 
                 - docker tag cpt-files-sbx cpt-files-sbx:$IMAGE_VERSION
                 - docker tag cpt-files-sbx cpt-files-sbx:latest
