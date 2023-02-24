@@ -2193,8 +2193,8 @@ pipelines:
             - step:
                 name: Reload Sandbox Lambda Function
                 script:
-                - bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash -Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files Legacy=Legacy.zip
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files Legacy=Legacy.zip
               # - step:
             #     name: Reload Development Lambda Functions
             #     script:
