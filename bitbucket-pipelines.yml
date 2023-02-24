@@ -2145,11 +2145,11 @@ pipelines:
                 - set +u
                 - pipe: atlassian/aws-ecr-push-image:2.0.0
                 variables:
+                    IMAGE_NAME: "cpt-files-sbx"
+                    TAGS: "$RELEASE_VERSION latest"
                     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
                     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
                     AWS_DEFAULT_REGION: 'us-east-1'
-                    IMAGE_NAME: "cpt-files-sbx"
-                    TAGS: "$RELEASE_VERSION latest"
         - parallel:
             - step:
                 name: Reload Sandbox Lambda Function
