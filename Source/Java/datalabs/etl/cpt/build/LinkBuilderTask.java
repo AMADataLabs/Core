@@ -210,6 +210,8 @@ public class LinkBuilderTask extends Task {
             }
         }
 
+        renameFolderToLink();
+
         ZipUtil.pack(OUTPUT_PATH.toFile(), zipPath.toFile());
 
         return new ArrayList<byte[]>() {{
@@ -434,6 +436,15 @@ public class LinkBuilderTask extends Task {
             fileOutputStream.close();
         }
 
+    }
+
+    public void renameFolderToLink() throws  IOException{
+        Path publishFolderPath = getPublishPath();
+
+        File linkFolder = new File(publishFolderPath + File.separator + "dtk");
+        File renamedLinkFolder = new File(publishFolderPath + File.separator + "CPT Link");
+
+        linkFolder.renameTo(renamedLinkFolder);
     }
 
     // FIXME: this doesn't get called anywhere
