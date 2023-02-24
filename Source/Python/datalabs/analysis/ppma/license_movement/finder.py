@@ -8,13 +8,16 @@ import pandas as pd
 
 from pgeocode import GeoDistance
 
-from datalabs.access.aims import AIMS
+from datalabs import feature
 from datalabs.analysis.ppma.license_movement.sql_statements import *
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+
+if feature.enabled("ODBC"):
+    from datalabs.access.aims import AIMS
 
 class LicenseMovementFinder:
     def __init__(self):

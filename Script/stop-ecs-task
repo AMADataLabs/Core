@@ -60,7 +60,7 @@ process_arguments() {
 
 
 get_task_arn() {
-    TASK_ARN=$($SCRIPT_BASE_PATH/get-ecs-tasks --cluster $CLUSTER | jq ".\"$TASK\"" | sed 's/",*//g')
+    TASK_ARN=$($SCRIPT_BASE_PATH/get-ecs-tasks --cluster $CLUSTER | jq "select(has(\"$TASK\")) | .[\"$TASK\"]" | sed 's/",*//g')
 }
 
 

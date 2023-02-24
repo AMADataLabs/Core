@@ -39,8 +39,8 @@ from   urllib.parse import quote
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
+from   datalabs.etl.task import ETLException
 from   datalabs import feature
 from   datalabs.parameter import add_schema
 
@@ -69,10 +69,11 @@ class S3FileExtractorParameters:
     secret_key: str = None
     region_name: str = None
     assume_role: str = None
+    execution_offset: str = None
 
 
 # pylint: disable=too-many-ancestors
-class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
+class S3FileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
 
     def _get_client(self):
@@ -122,7 +123,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         LOGGER.debug(f'Extracting file {file} from bucket {self._parameters.bucket}...')
-        quoted_file = quote(file).replace('%2B', '+').replace('%22', '')
+        quoted_file = quote(file).replace('%2B', '+').replace('%22', '').replace('%20', ' ')
         data = None
 
         if feature.enabled("PROFILE"):
@@ -132,7 +133,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=quoted_file)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
+                f"Unable to get file '{quoted_file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
@@ -242,7 +243,7 @@ class S3DirectoryListingExtractorParameters:
 
 
 # pylint: disable=too-many-ancestors
-class S3DirectoryListingExtractorTask(ExecutionTimeMixin, FileExtractorTask):
+class S3DirectoryListingExtractorTask(TargetOffsetMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
 
     def _get_client(self):

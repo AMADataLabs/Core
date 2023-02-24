@@ -19,6 +19,10 @@ modspec:
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.execute
+  - package: datalabs.etl.manipulate
+  - package: datalabs.etl.dag.masterfile
+  - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.jdbc
@@ -35,10 +39,9 @@ modspec:
       - aims
       - odbc
   - package: datalabs.access.parameter
-    include:
-      - system
   - package: datalabs.analysis.ppma.license_movement
     include:
       - finder
       - sql_statements
       - transform
+  - package: datalabs.messaging

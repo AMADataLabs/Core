@@ -250,7 +250,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
 def register(*args, **kwargs):
     def register_class(dag_class):
         if "name" in kwargs:
-            dag_class.CLASSES[kwargs["name"]] = dag_class
+            DAG.CLASSES[kwargs["name"]] = dag_class
 
         return dag_class
 

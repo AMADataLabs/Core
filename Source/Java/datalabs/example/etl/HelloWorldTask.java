@@ -16,7 +16,7 @@ public class HelloWorldTask extends Task {
 
     public HelloWorldTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, null, HelloWorldParameters.class);
+        super(parameters, data, HelloWorldParameters.class);
     }
 
     public ArrayList<byte[]> run() {

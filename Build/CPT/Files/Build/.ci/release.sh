@@ -10,7 +10,6 @@ main() {
         [sbx]=dev
         [dev]=dev
 #        [tst]=1.0.0
-        [itg]=1.0.0
 #        [prd]=1.0.0
     )
 
@@ -18,9 +17,9 @@ main() {
         export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
     fi
 
-    export RELEASE_TYPE="Java"
+    export RELEASE_TYPE="Python"
     export RELEASE_NAME="datalabs-cpt-files-build"
-    export RELEASE_DESCRIPTION="CPT Files Builder DAG Tasks"
+    export RELEASE_DESCRIPTION="CPT Files Builder DAG definition and tasks"
 }
 
 

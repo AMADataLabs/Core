@@ -90,7 +90,7 @@ class ORMLoaderTask(Task):
         columns = provider.get_database_columns(database, schema, table)
         hash_columns = self._get_hash_columns(columns, ignore_columns)
 
-        if autoincrement:
+        if autoincrement and primary_key not in data:
             data[primary_key] = range(len(data))
         else:
             data[primary_key] = [str(key) for key in data[primary_key]]
@@ -133,10 +133,10 @@ class ORMLoaderTask(Task):
         append = self._parameters.append
         delete = self._parameters.delete
 
-        if append is None or append.upper() != 'TRUE' or (delete is not None and delete.upper() == 'TRUE'):
+        if (append is None or append.upper() != 'TRUE') or (delete is not None and delete.upper() == 'TRUE'):
             self._delete_data(database, table_parameters)
 
-        if delete is None or delete.upper() != 'TRUE' or (append is not None and append.upper() == 'TRUE'):
+        if (delete is None or delete.upper() != 'TRUE') or (append is not None and append.upper() == 'TRUE'):
             self._update_data(database, table_parameters)
 
             self._add_data(database, table_parameters)
@@ -225,25 +225,24 @@ class ORMLoaderTask(Task):
     def _select_updated_data(cls, table_parameters):
         updated_data = pandas.DataFrame(columns=table_parameters.data.columns)
 
-        if not table_parameters.autoincrement:
-            old_current_hashes = table_parameters.current_hashes[
-                table_parameters.current_hashes[table_parameters.primary_key].isin(
-                    table_parameters.incoming_hashes[table_parameters.primary_key]
-                )
-            ]
+        old_current_hashes = table_parameters.current_hashes[
+            table_parameters.current_hashes[table_parameters.primary_key].isin(
+                table_parameters.incoming_hashes[table_parameters.primary_key]
+            )
+        ]
 
-            old_new_hashes = table_parameters.incoming_hashes[
-                table_parameters.incoming_hashes[table_parameters.primary_key].isin(
-                    old_current_hashes[table_parameters.primary_key]
-                )
-            ]
+        old_new_hashes = table_parameters.incoming_hashes[
+            table_parameters.incoming_hashes[table_parameters.primary_key].isin(
+                old_current_hashes[table_parameters.primary_key]
+            )
+        ]
 
-            updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
-            updated_data = table_parameters.data[
-                table_parameters.data[table_parameters.primary_key].isin(
-                    updated_hashes[table_parameters.primary_key]
-                )
-            ].reset_index(drop=True)
+        updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
+        updated_data = table_parameters.data[
+            table_parameters.data[table_parameters.primary_key].isin(
+                updated_hashes[table_parameters.primary_key]
+            )
+        ].reset_index(drop=True)
         LOGGER.debug('Updated Data: %s', updated_data)
 
         return updated_data
@@ -316,7 +315,11 @@ class ORMLoaderTask(Task):
 
     @classmethod
     def _update_row_of_table(cls, database, table_parameters, model):
-        columns = cls._get_model_columns(table_parameters.model_class)
+        model_columns = cls._get_model_columns(table_parameters.model_class)
+        columns = [
+            column for column in table_parameters.columns if column in model_columns
+        ] + [table_parameters.primary_key]
+
         primary_key = getattr(model, table_parameters.primary_key)
         row = database.query(table_parameters.model_class).get(primary_key)
 
@@ -346,7 +349,7 @@ class ORMLoaderTask(Task):
 
     @classmethod
     def _set_column_type(cls, data, column, column_type):
-        if column_type in cls.COLUMN_TYPE_CONVERTERS:
+        if column_type in cls.COLUMN_TYPE_CONVERTERS and column in data:
             data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
 
     @classmethod

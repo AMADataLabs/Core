@@ -12,18 +12,14 @@ from   datalabs.task import Task
 @add_schema
 @dataclass
 class LicenseMovementTransformerParameter:
-    pass
+    execution_time: str = None
 
 
 class LicenseMovementTransformerTask(Task):
     PARAMETER_CLASS = LicenseMovementTransformerParameter
 
     def run(self):
-        dataframes = [pd.read_csv(BytesIO(file)) for file in self._data]
-        mismatch_data = dataframes[0]
-        old_ppma_data = dataframes[1]
-        credentialing_data = dataframes[2]
-        ppd = dataframes[3]
+        mismatch_data, old_ppma_data, credentialing_data, ppd = [pd.read_csv(BytesIO(file)) for file in self._data]
 
         finder = LicenseMovementFinder()
 

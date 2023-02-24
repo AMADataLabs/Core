@@ -3,7 +3,7 @@ from   datalabs.etl.dag import dag
 from   datalabs.etl.intelligent_platform.token import ExpiredTokenPurgeTask
 
 
-@dag.register(name="USER_TOKENS")
+@dag.register(name="PLATFORM_USER_TOKENS")
 class DAG(dag.DAG):
     DELETE_EXPIRED_TOKENS: ExpiredTokenPurgeTask
 

@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 import logging
 import os
+import re
+
 import pandas
 import pysftp
 
@@ -41,7 +43,7 @@ class SFTP(Datastore):
         files = []
 
         def file_callback(file):
-            files.append(file)
+            files.append(re.sub(r"^\./", "", file))
 
         # pylint: disable=unused-argument
         def directory_callback(directory):
@@ -109,7 +111,7 @@ class SFTP(Datastore):
 
         if filter and '*' in filter:
             filter_parts = filter.split('*')
-            prefix = './' + filter_parts[0]
+            prefix = filter_parts[0]
             suffix = filter_parts[-1]
             filtered_files = [file for file in files if file.startswith(prefix) and file.endswith(suffix)]
 

@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import datalabs.task.Task
 
 
+@Suppress("UNUSED_PARAMETER")
 open class S3FileExtractorTask(parameters: Map<String, String>, data: ArrayList<ByteArray>):
         Task(parameters, null, S3Parameters::class.java) {
     internal val logger = LoggerFactory.getLogger(S3FileExtractorTask::class.java)
