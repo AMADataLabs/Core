@@ -41,4 +41,5 @@ RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip
     ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
 
 FROM eclipse-temurin:18.0.2.1_1-jdk
-COPY --from=build ./Bundle/* ./
+WORKDIR /CPT
+COPY --from=build /CPT/Bundle/* ./
