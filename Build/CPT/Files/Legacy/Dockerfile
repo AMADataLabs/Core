@@ -33,13 +33,13 @@ COPY ./Script ./Script
 COPY ./Source/Bash/environment/python/setup.sh ./Source/Bash/environment/python/setup.sh
 COPY ./Source/Python/datalabs/build ./Source/Python/datalabs/build
 
-RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+# RUN ./Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 
-RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
+# RUN ./Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT --no-zip
 
-RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip ~/.aws \
-    ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
+# RUN rm -rf ./Build ./Deploy ./Environment ./Script ./Source ./aws ./awscliv2.zip ~/.aws \
+#     ./apache-maven.tar.gz ./apache-maven-${MAVEN_VERSION}
 
-FROM eclipse-temurin:18.0.2.1_1-jre
-WORKDIR /CPT
-COPY --from=build /CPT/Bundle/* ./
+# FROM eclipse-temurin:18.0.2.1_1-jre
+# WORKDIR /CPT
+# COPY --from=build /CPT/Bundle/* ./
