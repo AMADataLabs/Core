@@ -2137,6 +2137,8 @@ pipelines:
                     --build-arg AWS_ACCESS_KEY_ID_SANDBOX=$AWS_ACCESS_KEY_ID_SANDBOX
                     --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=$AWS_SECRET_ACCESS_KEY_SANDBOX
                     ./
+                - docker tag cpt-files-sbx cpt-files-sbx:$RELEASE_VERSION
+                - docker tag cpt-files-sbx cpt-files-sbx:latest
 
                 # Set RELEASE_VERSION environment variable
                 - source Build/CPT/Files/Legacy/.ci/release.sh $ENVIRONMENT
