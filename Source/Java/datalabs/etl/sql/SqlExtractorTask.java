@@ -301,9 +301,7 @@ public class SqlExtractorTask extends Task {
     }
 
     static String resolveChunkedQuery(String query, int index, int count) {
-        PartialFormatter formatter = new PartialFormatter();
-
-        return formatter.format(
+        return PartialFormatter.format(
             query,
             new HashMap<String, Object>() {{
                 put("index", index);

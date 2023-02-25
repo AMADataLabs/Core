@@ -25,20 +25,18 @@ class PartialFormatterTests {
 
     @Test
     void variablesAreReplacedWithValues() {
-        PartialFormatter formatter = new PartialFormatter();
         String value = "The giant said, \"{tick}! {tack}! {toe}! {FUM}!\"";
 
-        String resolvedValue = formatter.format(value, PartialFormatterTests.PARAMETERS);
+        String resolvedValue = PartialFormatter.format(value, PartialFormatterTests.PARAMETERS);
 
         Assertions.assertEquals("The giant said, \"Fee! Fye! Fo! {FUM}!\"", resolvedValue);
     }
 
     @Test
     void allReferencesToSameVariableAreReplaced() {
-        PartialFormatter formatter = new PartialFormatter();
         String value = "What is the {tick} for using your {tick}d {toe}rward network for {toe}ur hours?";
 
-        String resolvedValue = formatter.format(value, PartialFormatterTests.PARAMETERS);
+        String resolvedValue = PartialFormatter.format(value, PartialFormatterTests.PARAMETERS);
 
         Assertions.assertEquals("What is the Fee for using your Feed Forward network for Four hours?", resolvedValue);
     }
