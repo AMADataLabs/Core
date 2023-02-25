@@ -27,7 +27,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     rm -rf ./aws
 
 COPY ./Build/Master ./Build/Master
-COPY ./Build/CPT/Files/Legacy ./Build/CPT/Files/Legacy
+COPY ./Build/HelloWorldJava/Task ./Build/HelloWorldJava/Task
 COPY ./Deploy/Master ./Deploy/Master
 COPY ./Script ./Script
 COPY ./Source/Bash/environment/python/setup.sh ./Source/Bash/environment/python/setup.sh
