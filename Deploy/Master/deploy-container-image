@@ -107,14 +107,20 @@ build_container_image() {
 
 
 upload_container_image() {
+    ECR_ACCOUNT=394406051370
+
+    if [[ $ENVIRONMENT == "sbx" ]]; then
+        ECR_ACCOUNT=644454719059
+    fi
+
     aws ecr get-login-password --region us-east-1 \
-        | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
+        | docker login --username AWS --password-stdin ${ECR_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com
 
-    docker tag  ${PACKAGE} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
-    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
+    docker tag  ${PACKAGE} ${ECR_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
+    docker push ${ECR_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
 
-    docker tag ${PACKAGE} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
-    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+    docker tag ${PACKAGE} ${ECR_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+    docker push ${ECR_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
 }
 
 
@@ -126,7 +132,7 @@ print_usage() {
     echo "  -h, --help                            print this usage text"
     echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project <project>               project path relative to Build/"
-    echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
+    echo "  -R, --repo <bundle>                   ECR repository name"
 }
 
 
