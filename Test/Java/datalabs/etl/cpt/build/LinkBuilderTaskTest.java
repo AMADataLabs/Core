@@ -136,6 +136,37 @@ class LinkBuilderTaskTests {
 
     @Test
     @DisplayName("Test for checking folder name change")
+    void renameFolderToDtkTest(@TempDir Path dataDir)
+            throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+
+        System.setProperty("data.path", String.valueOf(dataDir));
+
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
+        String datestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        ArrayList<String> testSubDirectories = new ArrayList<String>() {{
+            add("publish" + datestamp + "_112233");
+            add("build" + datestamp + "_112233");
+            add("export");
+        }};
+        List<String> testFiles = Arrays.asList("CPT Link", "testFile2.txt", "testFile3.txt");
+        Path dataPriorLinkDirectory = dataDir.resolve("input").resolve("prior_link");
+
+        generateOutputFiles(dataPriorLinkDirectory, testSubDirectories, testFiles, dataDir);
+
+        LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, new ArrayList<byte[]>());
+
+        linkBuilderTask.renameFolderToDtk(dataPriorLinkDirectory);
+
+        assertTrue(
+                Files.exists(dataPriorLinkDirectory.resolve("publish" + datestamp + "_112233").resolve("dtk"))
+        );
+
+    }
+
+    @Test
+    @DisplayName("Test for checking folder name change")
     void renameFolderToLinkTest(@TempDir Path dataDir)
             throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
 
@@ -159,7 +190,9 @@ class LinkBuilderTaskTests {
 
         linkBuilderTask.renameFolderToLink();
 
-        assertTrue(Files.exists(Paths.get(String.valueOf(dataOutputDirectory), "publish" + datestamp + "_112233", "CPT Link")));
+        assertTrue(
+                Files.exists(dataOutputDirectory.resolve("publish" + datestamp + "_112233").resolve("CPT Link"))
+        );
     }
 
     void generateInputZipFiles(String[] testDirectories, ArrayList<byte[]> data, Path workingDir, String[] testFiles)
