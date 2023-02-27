@@ -10,7 +10,7 @@ from   datalabs.etl.dag.state import Status
 
 
 class DAGTask:
-    def __init__(self, task_id: str, task_class: str):
+    def __init__(self, task_id: str, task_class: type):
         self._id = task_id
         self._task_class = task_class
         self._successors = []
@@ -97,8 +97,10 @@ class DAGMeta(type):
         elif type(task_annotation).__name__ == "Repeat":
             # pylint: disable=no-value-for-parameter
             cls._generate_subtasks(task, task_annotation)
+        elif hasattr(task_annotation, "run"):
+            cls.__task_classes__[task] =  DAGTask(task, task_annotation)
         else:
-            cls.__task_classes__[task] = DAGTask(task, task_annotation)
+            cls.__task_classes__[task] = DAGTask(task, PythonTask(task_annotation).task_class)
 
     def _generate_subtasks(cls, task, repeat):
         for index in range(repeat.start, repeat.count):

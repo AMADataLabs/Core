@@ -13,6 +13,7 @@ open class S3TaskDataCache(parameters: Map<String, String>): TaskDataCache(param
 
         val inputData = extractor.run()
 
+        @Suppress("SENSELESS_COMPARISON")  // This is empirically not always null
         if (inputData == null) {
             throw TaskException("No data was extracted.")
         }

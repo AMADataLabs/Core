@@ -69,8 +69,6 @@ public class SqlParametricExtractorTask extends SqlExtractorTask {
     }
 
     static String resolveQuery(String query, Map<String, Object> parameters) {
-        PartialFormatter formatter = new PartialFormatter();
-
-        return formatter.format(query, parameters);
+        return PartialFormatter.format(query, parameters);
     }
 }

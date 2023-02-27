@@ -117,6 +117,8 @@ public class LinkBuilderTask extends Task {
         this.extractBytes(RVU_PATH.toString(), this.data.get(8));
         this.extractBytes(INDEX_PATH.toString(), this.data.get(9));
         this.extractBytes(EDITS_PATH.toString(),this.data.get(10));
+
+        renameFolderToDtk(PRIOR_LINK_PATH);
     }
 
     private void buildLink(LinkBuilderParameters parameters, DtkAccess priorLink, DtkAccess currentCore)
@@ -209,6 +211,8 @@ public class LinkBuilderTask extends Task {
                 }
             }
         }
+
+        renameFolderToLink();
 
         ZipUtil.pack(OUTPUT_PATH.toFile(), zipPath.toFile());
 
@@ -434,6 +438,34 @@ public class LinkBuilderTask extends Task {
             fileOutputStream.close();
         }
 
+    }
+
+    public void renameFolderToDtk(Path priorLinkPath) throws  IOException{
+        File priorLink = new File(priorLinkPath.toString());
+
+        File[] files = priorLink.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                LOGGER.info("Testing for publish directory: " + name + " in directory " + dir.getPath());
+                return name.startsWith("publish");
+            }
+        });
+
+        Path publishFolderPath = Paths.get(String.valueOf(files[0]));
+
+        File linkFolder = publishFolderPath.resolve("CPT Link").toFile();
+        File renamedLinkFolder = publishFolderPath.resolve("dtk").toFile();
+
+        linkFolder.renameTo(renamedLinkFolder);
+    }
+
+    public void renameFolderToLink() throws  IOException{
+        Path publishFolderPath = getPublishPath();
+
+        File linkFolder = publishFolderPath.resolve("dtk").toFile();
+        File renamedLinkFolder = publishFolderPath.resolve("CPT Link").toFile();
+
+        linkFolder.renameTo(renamedLinkFolder);
     }
 
     // FIXME: this doesn't get called anywhere

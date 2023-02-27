@@ -16,7 +16,8 @@ open class KParameters(parameters: Map<String, String>)  : Parameters() {
         val fields = this::class.java.declaredFields
         for (field in fields) {
             val annotation = field.getAnnotation(Optional::class.java)
-            val property = this::class.members.first { it.name == field.name } as KMutableProperty1<Any, *>
+            @Suppress("UNCHECKED_CAST")
+            val property = this::class.members.first { it.name == field.name }  as KMutableProperty1<Any, *>
             val key = standardizeName(field.name)
 
             if (key in parameters) {

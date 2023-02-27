@@ -1,14 +1,12 @@
 ''' AMC address flagging DAG definition. '''
-from   datalabs.analysis.amc.load import AMCReportSMTPLoaderTask
-from   datalabs.analysis.amc.transform import AMCAddressFlaggingTransformerTask
-from   datalabs.etl.dag import dag
+from   datalabs.etl.dag import dag, JavaTask
 
 
 @dag.register(name="ADDRESS_FLAGGING_REPORT")
 class DAG(dag.DAG):
-    EXTRACT_AMC: "datalabs.etl.sql.SqlExtractorTask"
-    FLAG_ADDRESSES: AMCAddressFlaggingTransformerTask
-    EMAIL_ADDRESS_REPORT: AMCReportSMTPLoaderTask
+    EXTRACT_AMC: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    FLAG_ADDRESSES: "datalabs.analysis.amc.transform.AMCAddressFlaggingTransformerTask"
+    EMAIL_ADDRESS_REPORT: "AMCReportSMTPLoaderTask.AMCReportSMTPLoaderTask"
 
 
 # pylint: disable=pointless-statement

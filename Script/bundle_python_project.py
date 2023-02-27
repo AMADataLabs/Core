@@ -43,8 +43,8 @@ class LocalProjectBundler(ProjectBundler):
 
         os.makedirs(target_path, exist_ok=True)
 
-        LOGGER.info('=== Copying Source Files ===')
         if not kwargs['no_sources']:
+            LOGGER.info('=== Copying Source Files ===')
             self._copy_source_files(project, target_path)
 
         if not kwargs['no_dependencies']:
@@ -64,8 +64,9 @@ class LocalProjectBundler(ProjectBundler):
             LOGGER.info('=== Copying Local Task Script ===')
             self._copy_local_task_script(target_path)
 
-            LOGGER.info('=== Creating Zip Archive ===')
-            self._zip_bundle_directory(project, target_path)
+            if not kwargs['no_zip']:
+                LOGGER.info('=== Creating Zip Archive ===')
+                self._zip_bundle_directory(project, target_path)
 
     def _copy_build_files(self, project, target_path):
         self._copy_alembic_files(project, target_path)
@@ -226,6 +227,8 @@ if __name__ == '__main__':
     ap.add_argument(
         '-f', '--file', action='append', required=False, help='Include the given file in the bundle.'
     )
+    ap.add_argument('-Z', '--no-zip', action='store_true', default=False,
+        help='Do not zip the Bundle/ directory (used to build container images).')
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)
@@ -248,7 +251,8 @@ if __name__ == '__main__':
             install_jdk=args['install_jdk'],
             in_place=args['in_place'],
             no_dependencies=args['no_dependencies'],
-            no_sources=args['no_sources']
+            no_sources=args['no_sources'],
+            no_zip=args['no_zip']
         )
     except Exception as e:
         LOGGER.exception("Failed to create project bundle.")

@@ -126,12 +126,73 @@ class LinkBuilderTaskTests {
         }};
 
         LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, new ArrayList<byte[]>());
-        LOGGER.info("Expected Publish Path: " + dataDir.resolve("output").resolve("build" + timestamp).toString());
+        LOGGER.info("Expected Build Path: " + dataDir.resolve("output").resolve("build" + timestamp).toString());
 
         Path buildPath = linkBuilderTask.getBuildPath();
         LOGGER.info("Actual Build Path: " + buildPath.toString());
 
         assertTrue(buildPath.toString().startsWith(dataDir.resolve("output").resolve("build").toString()));
+    }
+
+    @Test
+    @DisplayName("Test for checking folder name change")
+    void renameFolderToDtkTest(@TempDir Path dataDir)
+            throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+
+        System.setProperty("data.path", String.valueOf(dataDir));
+
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
+        String datestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        ArrayList<String> testSubDirectories = new ArrayList<String>() {{
+            add("publish" + datestamp + "_112233");
+            add("build" + datestamp + "_112233");
+            add("export");
+        }};
+        List<String> testFiles = Arrays.asList("CPT Link", "testFile2.txt", "testFile3.txt");
+        Path dataPriorLinkDirectory = dataDir.resolve("input").resolve("prior_link");
+
+        generateOutputFiles(dataPriorLinkDirectory, testSubDirectories, testFiles, dataDir);
+
+        LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, new ArrayList<byte[]>());
+
+        linkBuilderTask.renameFolderToDtk(dataPriorLinkDirectory);
+
+        assertTrue(
+                Files.exists(dataPriorLinkDirectory.resolve("publish" + datestamp + "_112233").resolve("dtk"))
+        );
+
+    }
+
+    @Test
+    @DisplayName("Test for checking folder name change")
+    void renameFolderToLinkTest(@TempDir Path dataDir)
+            throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+
+        System.setProperty("data.path", String.valueOf(dataDir));
+
+        Map<String, String> parameters = new HashMap() {{
+            put("EXECUTION_TIME", "2023-09-01T00:00:00");
+        }};
+        String datestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        ArrayList<String> testSubDirectories = new ArrayList<String>() {{
+            add("publish" + datestamp + "_112233");
+            add("build" + datestamp + "_112233");
+            add("export");
+        }};
+        List<String> testFiles = Arrays.asList("dtk", "testFile2.txt", "testFile3.txt");
+        Path dataOutputDirectory = dataDir.resolve("output");
+
+        generateOutputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir);
+
+        LinkBuilderTask linkBuilderTask = new LinkBuilderTask(parameters, new ArrayList<byte[]>());
+
+        linkBuilderTask.renameFolderToLink();
+
+        assertTrue(
+                Files.exists(dataOutputDirectory.resolve("publish" + datestamp + "_112233").resolve("CPT Link"))
+        );
     }
 
     void generateInputZipFiles(String[] testDirectories, ArrayList<byte[]> data, Path workingDir, String[] testFiles)
