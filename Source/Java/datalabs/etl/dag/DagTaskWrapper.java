@@ -85,6 +85,16 @@ public class DagTaskWrapper extends TaskWrapper {
         return null;
     }
 
+    @Override
+    protected Class getTaskResolverClass() throws ClassNotFoundException {
+        String taskResolverClassName = (String) this.environment.getOrDefault(
+            "TASK_RESOLVER_CLASS",
+            "datalabs.task.RuntimeTaskResolver"
+        );
+
+        return PluginImporter.importPlugin(taskResolverClassName);
+    }
+
     protected Map<String, String> getDefaultParameters() {
         Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagId());
         String execution_time = getExecutionTime();

@@ -154,7 +154,7 @@ public class TaskWrapper {
         return exception.getMessage();
     }
 
-    Class getTaskResolverClass() throws ClassNotFoundException {
+    protected Class getTaskResolverClass() throws ClassNotFoundException {
         String taskResolverClassName = (String) this.environment.getOrDefault(
             "TASK_RESOLVER_CLASS",
             "datalabs.task.EnvironmentTaskResolver"
