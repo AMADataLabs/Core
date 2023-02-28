@@ -24,7 +24,7 @@ main() {
 
     determine_package_info
 
-    if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
+    if [[ "$RELEASE_VERSION" == "dev" || "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
         build_container_image
 
         upload_container_image
