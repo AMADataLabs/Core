@@ -29,8 +29,8 @@ determine_python_package_info() {
         fi
     fi
 
-    PACKAGE="--package $RELEASE_NAME"
-    VERSION="--version $version"
+    PACKAGE="$RELEASE_NAME"
+    VERSION="$version"
     METADATA='--metadata {"package_version":"'${version}'"}'
 
     return $return_code
@@ -55,8 +55,8 @@ determine_java_package_info() {
         fi
     fi
 
-    PACKAGE="--package $package"
-    VERSION="--version $version"
+    PACKAGE="$package"
+    VERSION="$version"
     METADATA='--metadata {"package_version":"'${version}'"}'
 
     return $return_code

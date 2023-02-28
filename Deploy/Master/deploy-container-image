@@ -89,7 +89,7 @@ build_container_image() {
         --build-arg PROJECT=${PROJECT} \
         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
-        -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
+        -t ${RELEASE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
 
