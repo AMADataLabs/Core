@@ -91,7 +91,7 @@ public class CoreBuilderTask extends Task {
     }
 
     void loadSettings(){
-        String dataDirectory = System.getProperty("data.directory", "/tmp");
+        String dataDirectory = System.getProperty("data.directory", "test");
 
         settings = new Properties(){{
             put("output.directory", dataDirectory + File.separator + "output");
