@@ -4,6 +4,7 @@ set -eux
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/determine_package_version.sh
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
@@ -82,20 +83,6 @@ get_deployed_version() {
 }
 
 
-determine_package_info() {
-    source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
-
-    if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        determine_python_package_info
-    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
-        determine_java_package_info
-    else
-        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
-        exit 1
-    fi
-}
-
-
 build_container_image() {
     docker build \
         --build-arg ENVIRONMENT=${ENVIRONMENT} \
@@ -133,40 +120,6 @@ print_usage() {
     echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project <project>               project path relative to Build/"
     echo "  -R, --repo <bundle>                   ECR repository name"
-}
-
-
-determine_python_package_info() {
-    local version=$RELEASE_VERSION
-
-    if [[ "$version" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
-        )
-    fi
-
-    PACKAGE=$RELEASE_NAME
-    VERSION=$version
-}
-
-
-determine_java_package_info() {
-    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
-    local package=${RELEASE_NAME#datalabs-}
-    local version=$RELEASE_VERSION
-
-    if [[ "$VERSION" == "dev" ]]; then
-        VERSION=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
-                --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
-        )
-    fi
-
-    PACKAGE=$package
-    VERSION=$version
 }
 
 
