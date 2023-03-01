@@ -35,7 +35,7 @@ def get_to_login(driver):
 
 def log_in(driver, login, password):
     '''Login to portal'''
-    login_input = wait(driver).until(presence_of_element_located((By.ID, "mat-input-2")))
+    login_input = wait(driver).until(presence_of_element_located((By.ID, "mat-input-4")))
     login_input.send_keys(login)
     password_input = driver.find_element(By.ID, "password-field")
     password_input.send_keys(password)
