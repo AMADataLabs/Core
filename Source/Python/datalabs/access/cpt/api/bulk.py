@@ -50,7 +50,7 @@ class FilesEndpointTask(APIEndpointTask):
 
     def _run(self, database):
         release = self._get_release_parameter(self._parameters.query)
-        code_set = release.code_set
+        code_set = self._get_release_code_set(database, release)
         authorized = self._authorized(self._parameters.authorization["authorizations"], code_set)
         self._status_code = 403
         LOGGER.debug('Code set: %s', code_set)
@@ -70,6 +70,12 @@ class FilesEndpointTask(APIEndpointTask):
             release = release[0]
 
         return release
+
+    @classmethod
+    def _get_release_code_set(cls, release_id, database):
+        release = database.query(Release).filter(Release.id == release_id).one()
+
+        return release.code_set
 
     @classmethod
     def _authorized(cls, authorizations, code_set):
@@ -140,8 +146,8 @@ class FilesEndpointTask(APIEndpointTask):
         return self._get_files_archive_path_for_user(release_directory, self._parameters.authorization["user_id"])
 
     @classmethod
-    def _get_release_date(cls, release, database):
-        release = database.query(Release).filter(Release.id == release).one()
+    def _get_release_date(cls, release_id, database):
+        release = database.query(Release).filter(Release.id == release_id).one()
 
         return release.date
 
