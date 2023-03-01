@@ -109,14 +109,18 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_authorized_years(cls, authorizations):
-        '''Get year from authorizations which are of the form CPTAPIYY: YYYY-MM-DD-hh:mm'''
+        '''Get year from authorizations which are of one of the form:
+            CPTAPIYY: ISO-8601 Timestamp
+           For example,
+            CPTAPI23: 2023-10-11T00:00:00-05:00
+        '''
         cpt_api_authorizations = {key:value for key, value in authorizations.items() if key.startswith('CPTAPI')}
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
         for name, end_datestamp in cpt_api_authorizations.items():
             year = cls._parse_authorization_year(name, current_time)
-            end_date = datetime.strptime(end_datestamp, '%Y-%m-%d-%M:%S').astimezone(timezone.utc)
+            end_date = datetime.fromisoformat(end_datestamp).astimezone(timezone.utc)
 
             if current_time <= end_date:
                 authorized_years.append(year)
