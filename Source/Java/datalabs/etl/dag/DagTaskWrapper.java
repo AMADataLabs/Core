@@ -1,18 +1,14 @@
 package datalabs.etl.dag;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import datalabs.access.environment.VariableTree;
-import datalabs.etl.dag.cache.TaskDataCache;
+import datalabs.task.cache.TaskDataCache;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskException;
 import datalabs.task.TaskWrapper;
@@ -20,15 +16,9 @@ import datalabs.task.TaskWrapper;
 
 public class DagTaskWrapper extends TaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
-    protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
 
     public DagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         super(environment, parameters);
-
-        this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
-            put(TaskDataCache.Direction.INPUT, null);
-            put(TaskDataCache.Direction.OUTPUT, null);
-        }};
     }
 
     @Override
@@ -70,9 +60,6 @@ public class DagTaskWrapper extends TaskWrapper {
             taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
             LOGGER.debug("Raw Task Parameters: " + dagTaskParameters);
 
-            DagTaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
-            LOGGER.debug("Cache Parameters: " + this.cacheParameters);
-
             LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
             taskParameters.forEach(
                 (key, value) -> overrideParameter(this.runtimeParameters, key, value)
@@ -86,36 +73,7 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
-        ArrayList<byte[]> inputData = new ArrayList<byte[]>();
-
-        try {
-            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
-
-            if (cachePlugin != null) {
-                inputData = cachePlugin.extractData();
-            }
-        } catch (Exception exception) {
-            throw new TaskException("Unable to get task input data from cache.", exception);
-        }
-
-        return inputData;
-    }
-
-    @Override
     protected String handleSuccess() throws TaskException {
-        TaskDataCache cachePlugin = null;
-
-        try {
-            cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
-
-            if (cachePlugin != null) {
-                cachePlugin.loadData(this.output);
-            }
-        } catch (Exception exception) {
-            throw new TaskException("Unable to load task output data to cache.", exception);
-        }
-
         return null;
     }
 
@@ -125,6 +83,16 @@ public class DagTaskWrapper extends TaskWrapper {
         exception.printStackTrace();
 
         return null;
+    }
+
+    @Override
+    protected Class getTaskResolverClass() throws ClassNotFoundException {
+        String taskResolverClassName = (String) this.environment.getOrDefault(
+            "TASK_RESOLVER_CLASS",
+            "datalabs.task.RuntimeTaskResolver"
+        );
+
+        return PluginImporter.importPlugin(taskResolverClassName);
     }
 
     protected Map<String, String> getDefaultParameters() {
@@ -151,54 +119,10 @@ public class DagTaskWrapper extends TaskWrapper {
         return mergedParameters;
     }
 
-    static void extractCacheParameters(
-        Map<String, String> taskParameters,
-        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
-    ) {
-        LOGGER.debug("Task parameters before extraction: " + taskParameters);
-        final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
-        final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
-
-        cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
-        cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
-        LOGGER.debug("Cache Parameters: " + cacheParameters);
-
-        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
-            if (key.startsWith("CACHE_")) {
-                LOGGER.debug("Removing cache parameter " + key + " from task parameters...");
-                taskParameters.remove(key);
-            }
-        }
-        LOGGER.debug("Task parameters after extraction: " + taskParameters);
-    }
-
     void overrideParameter(Map<String, String> parameters, String key, String value) {
         if (parameters.containsKey(key)) {
             parameters.put(key, value);
         }
-    }
-
-    TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
-                   ClassNotFoundException {
-        TaskDataCache plugin = null;
-        Map<String, String> cacheParameters = this.cacheParameters.get(direction);
-
-        if (cacheParameters.size() > 1) {
-            String pluginName = "datalabs.etl.dag.cache.s3.S3TaskTaskDataCache";
-
-            if (cacheParameters.containsKey("CLASS")) {
-                pluginName = cacheParameters.remove("CLASS");
-            }
-
-            Class pluginClass = PluginImporter.importPlugin(pluginName);
-
-            Constructor pluginConstructor = pluginClass.getConstructor(new Class[] {Map.class});
-
-            plugin = (TaskDataCache) pluginConstructor.newInstance(cacheParameters);
-        }
-
-        return plugin;
     }
 
     protected String getDagId() {
@@ -237,19 +161,6 @@ public class DagTaskWrapper extends TaskWrapper {
         return parameters;
     }
 
-    static Map<String, String> getCacheParameters(
-        Map<String, String> taskParameters,
-        TaskDataCache.Direction direction
-    ) {
-        HashMap<String, String> cacheParameters = new HashMap<String, String>();
-
-        taskParameters.forEach(
-            (key, value) -> DagTaskWrapper.putIfCacheVariable(key, value, direction, cacheParameters)
-        );
-
-        return cacheParameters;
-    }
-
     static Map<String, String> getParameters(String[] branch) {
         VariableTree variableTree = VariableTree.fromEnvironment();
 
@@ -262,29 +173,5 @@ public class DagTaskWrapper extends TaskWrapper {
         LOGGER.debug("Environment Parameters: " + parameters);
 
         return parameters;
-    }
-
-    static void putIfCacheVariable(
-        String name,
-        String value,
-        TaskDataCache.Direction direction,
-        Map<String, String> cacheParameters
-    ) {
-        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
-
-        if (direction == TaskDataCache.Direction.INPUT) {
-            otherDirection = TaskDataCache.Direction.OUTPUT;
-        }
-
-        if (name.startsWith("CACHE_")) {
-            Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
-            Matcher otherMatcher = Pattern.compile("CACHE_" + otherDirection.name() + "_(?<name>..*)").matcher(name);
-
-            if (matcher.find()) {
-                cacheParameters.put(matcher.group("name"), value);
-            } else if (!otherMatcher.find()) {
-                cacheParameters.put(name.substring("CACHE_".length()), value);
-            }
-        }
     }
 }

@@ -1,5 +1,11 @@
 <dependencies>
     <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.11.0</version>
+    </dependency>
+
+    <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
         <version>${poi.version}</version>
@@ -52,4 +58,22 @@
         <artifactId>antlr</artifactId>
         <version>3.5.2</version>
     </dependency>
+
+    <dependency>
+        <groupId>org.zeroturnaround</groupId>
+        <artifactId>zt-zip</artifactId>
+        <version>1.15</version>
+        <type>jar</type>
+    </dependency>
+
+
+    <!-- Private Maven Repository Dependencies -->
+
+    <dependency>
+        <groupId>org.ama-assn.dtk</groupId>
+        <artifactId>dtk-core</artifactId>
+        <version>1.0.4</version>
+    </dependency>
+
+    <!-- END Private Maven Repository Dependencies -->
 </dependencies>

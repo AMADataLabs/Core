@@ -452,9 +452,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
                     <configuration>
-                        <release>11</release>
-                        <!-- <source>${java.version}</source>
-                        <target>${java.version}</target> -->
+                        <release>11</release>  <!-- AWS Lambda only supports Java runtimes up to 11 as of February 2023. -->
                     </configuration>
                 </plugin>
             </plugins>

@@ -8,3 +8,5 @@ LICENSING_SYNC,0 0 * * sun-thu
 LICENSING_TRAFFIC,0 0 * * sun-thu
 ONEVIEW,0 0 * * tue-sat
 PLATFORM_USER_TOKENS,0 0 * * sun-thu
+LICENSE_MOVEMENT,10 19 * * mon-fri
+VERICRE_DATA_STEWARD,10 19 * * mon-fri

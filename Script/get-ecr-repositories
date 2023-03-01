@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+NO_VERIFY_SSL=
+
+
+main() {
+    process_arguments "$@"
+
+    print_ecr_uris
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "Unexpected positional argument $1"
+            print_usage
+            exit 1
+            ;;
+      esac
+    done
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
+}
+
+
+print_ecr_uris() {
+    aws ecr describe-repositories | jq '.repositories[].repositoryUri' | sed 's/"//g'
+}
+
+
+print_usage() {
+    echo "Usage: get-ecr-repositories [OPTION]..."
+    echo "Get tasks associated with an ECS cluster."
+    echo
+    echo "Options:"
+    echo "  -h|--help                  Print usage."
+}
+
+
+main "$@"

@@ -78,11 +78,6 @@ class SqlExtractorTaskTests {
             put("DATABASE_NAME", "pootitang");
             put("DATABASE_PARAMETERS", "create=true");
             put("SQL", "SELECT * FROM ping LIMIT {index}, {count};SELECT * FROM pong LIMIT {index}, {count}");
-            put("CHUNK_SIZE", "3");
-            put("COUNT", "6");
-            put("START_INDEX", "0");
-            // put("MAX_PARTS", "1");
-            // put("PART_INDEX", "0");
         }};
 
         try {
@@ -150,7 +145,18 @@ class SqlExtractorTaskTests {
 
     @Test
     public void readChunkedQueryReturnsCorrectData()  {
-        setupChunkedQueryMockReturnValues();
+        SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETER_MAP.put("CHUNK_SIZE", "3");
+        SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETER_MAP.put("COUNT", "6");
+        SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETER_MAP.put("START_INDEX", "2");
+        // put("MAX_PARTS", "1");
+        // put("PART_INDEX", "0");
+
+        try {
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 12, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 15, 3")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
+        } catch(java.sql.SQLException exception) {
+            exception.printStackTrace();
+        }
 
         byte[] outputDatum = readChunkedQuery();
 
@@ -170,6 +176,39 @@ class SqlExtractorTaskTests {
             "\"id\",\"name\"\n" +
             SqlExtractorTaskTests.SINGLE_QUERY_OUTPUT_CSV +
             SqlExtractorTaskTests.CHUNKED_QUERY_OUTPUT_CSV
+        ));
+    }
+
+    @Test
+    public void readSingleChunkedQueryReturnsCorrectData()  {
+        SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETER_MAP.put("CHUNK_SIZE", "3");
+        SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETER_MAP.put("COUNT", "3");
+        SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETER_MAP.put("START_INDEX", "2");
+        // put("MAX_PARTS", "1");
+        // put("PART_INDEX", "0");
+
+        try {
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 6, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
+        } catch(java.sql.SQLException exception) {
+            exception.printStackTrace();
+        }
+
+        byte[] outputDatum = readChunkedQuery();
+
+        assertNotNull(outputDatum);
+
+        String outputCsv = new String(outputDatum, StandardCharsets.UTF_8);
+
+        LOGGER.debug(
+            "Expected: |\"id\",\"name\"\n" +
+            SqlExtractorTaskTests.SINGLE_QUERY_OUTPUT_CSV +
+            "|"
+        );
+        LOGGER.debug("Actual: |" + outputCsv + "|");
+
+        assertTrue(outputCsv.equals(
+            "\"id\",\"name\"\n" +
+            SqlExtractorTaskTests.SINGLE_QUERY_OUTPUT_CSV
         ));
     }
 
@@ -194,16 +233,6 @@ class SqlExtractorTaskTests {
         }
 
         return outputDatum;
-    }
-
-    void setupChunkedQueryMockReturnValues() {
-        try {
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 3, 3")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 6, 0")).thenReturn(new EmptyResultSet());
-        } catch(java.sql.SQLException exception) {
-            exception.printStackTrace();
-        }
     }
 
     byte[] readChunkedQuery() {

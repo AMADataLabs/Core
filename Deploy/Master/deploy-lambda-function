@@ -4,39 +4,28 @@ set -eux
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/determine_package_version.sh
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
 DRIVER_BUCKET=ama-sbx-datalake-lambda-us-east-1
-INSTALL_DB2_DRIVER=False
-INSTALL_INFORMIX_DRIVER=False
-INSTALL_SQLSERVER_DRIVER=False
-USE_PACKAGE=False
 
 ENVIRONMENT=
 PROJECT=
 BUNDLE=
-EXTRA_FILES=
+JDBC_DRIVER=
 DEPLOYED_VERSION=
 METADATA=
-PACKAGE=
-VERSION=
 
 
 main() {
     process_arguments "$@"
 
-    if [[ "$USE_PACKAGE" == "True" ]]; then
-        get_deployed_version
+    get_deployed_version
 
-        determine_package_info
-    fi
+    determine_package_info
 
-    if [[ "$USE_PACKAGE" == "False" || "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
-        setup_virtual_environment
-
-        install_jdbc_drivers
-
+    if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
         create_code_bundle
 
         upload_code_bundle
@@ -67,18 +56,8 @@ process_arguments() {
             shift
             ;;
         -j|--jdbc-driver)
-            if [[ "$2" == "DB2" ]]; then
-                INSTALL_DB2_DRIVER=True
-            elif [[ "$2" == "Informix" ]]; then
-                INSTALL_INFORMIX_DRIVER=True
-            elif [[ "$2" == "SQLServer" ]]; then
-                INSTALL_SQLSERVER_DRIVER=True
-            fi
+            JDBC_DRIVER="$JDBC_DRIVER --jdbc-driver $2"
             shift
-            shift
-            ;;
-        -u|--use-package)
-            USE_PACKAGE=True
             shift
             ;;
         *)
@@ -99,51 +78,8 @@ get_deployed_version() {
 }
 
 
-setup_virtual_environment() {
-    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
-    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-    export PATH="${VIRTUAL_ENV}/bin:$PATH"
-}
-
-
-install_jdbc_drivers() {
-    if [[ "$INSTALL_DB2_DRIVER" == "True" ]]; then
-        install_db2_driver
-    elif [[ "$INSTALL_INFORMIX_DRIVER" == "True" ]]; then
-        install_informix_driver
-    elif [[ "$INSTALL_SQLSERVER_DRIVER" == "True" ]]; then
-        install_sqlserver_driver
-    fi
-}
-
-
 create_code_bundle() {
-    if [[ "$ENVIRONMENT" == "sbx" || "$ENVIRONMENT" == "dev" ]]; then
-        export ENABLE_FEATURE_DEV=True
-    elif [[ "$ENVIRONMENT" == "tst" ]]; then
-        export ENABLE_FEATURE_TEST=True
-    elif [[ "$ENVIRONMENT" == "itg" ]]; then
-        export ENABLE_FEATURE_STAGE=True
-    elif [[ "$ENVIRONMENT" == "prd" ]]; then
-        export ENABLE_FEATURE_PROD=True
-    fi
-
-    if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        local use_package=
-
-        if [[ "$USE_PACKAGE" == "True" ]]; then
-            use_package="--use-package"
-        fi
-
-        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $VERSION $EXTRA_FILES
-    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
-        cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
-
-        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $PACKAGE $VERSION $EXTRA_FILES -f ./log4j2.xml
-    else
-        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
-        exit 1
-    fi
+    ${PWD}/Deploy/Master/create-bundle --environment $ENVIRONMENT --project $PROJECT $JDBC_DRIVER
 }
 
 
@@ -161,98 +97,6 @@ print_usage() {
     echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project <project>               project path relative to Build/"
     echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
-    echo "  -u, --use-package                     use the associated component package instead of sources"
-}
-
-
-install_db2_driver() {
-    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
-    unzip ./Db2JdbcDriver.zip
-    echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
-
-    EXTRA_FILES+="-f db2jcc4.jar -f DB2JccConfiguration.properties "
-}
-
-
-install_informix_driver() {
-    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
-    unzip ./InformixJdbcDriver.zip
-
-    EXTRA_FILES+="-f jdbc-4.50.4.1.jar -f bson-4.2.0.jar "
-}
-
-
-install_sqlserver_driver() {
-    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
-    unzip ./SqlServerJdbcDriver.zip
-    mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
-
-    EXTRA_FILES+="-f mssql-jdbc-10.2.0.jre8.jar "
-}
-
-
-determine_package_info() {
-    source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
-
-    if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        determine_python_package_info
-    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
-        determine_java_package_info
-    else
-        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
-        exit 1
-    fi
-}
-
-
-determine_python_package_info() {
-    local version=$RELEASE_VERSION
-    local return_code=0
-
-    if [[ "$version" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
-        )
-
-        if [[ ${PIPESTATUS[0]} != 0 ]]; then
-            echo "Error: Package ${RELEASE_NAME} does not exist."
-            return_code=${PIPESTATUS[0]}
-        fi
-    fi
-
-    PACKAGE="--package $RELEASE_NAME"
-    VERSION="--version $version"
-    METADATA='--metadata {"package_version":"'${version}'"}'
-
-    return $return_code
-}
-
-
-determine_java_package_info() {
-    local package=${RELEASE_NAME#datalabs-}
-    local version=$RELEASE_VERSION
-    local return_code=0
-
-    if [[ "$version" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
-                --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
-        )
-
-        if [[ ${PIPESTATUS[0]} != 0 ]]; then
-            echo "Error: Package ${package} does not exist."
-            return_code=${PIPESTATUS[0]}
-        fi
-    fi
-
-    PACKAGE="--package $package"
-    VERSION="--version $version"
-    METADATA='--metadata {"package_version":"'${version}'"}'
-
-    return $return_code
 }
 
 
