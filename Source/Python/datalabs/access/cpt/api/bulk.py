@@ -50,7 +50,7 @@ class FilesEndpointTask(APIEndpointTask):
 
     def _run(self, database):
         release = self._get_release_parameter(self._parameters.query)
-        code_set = release.code_set
+        code_set = self._get_release_code_set(release, database)
         authorized = self._authorized(self._parameters.authorization["authorizations"], code_set)
         self._status_code = 403
         LOGGER.debug('Code set: %s', code_set)
@@ -70,6 +70,12 @@ class FilesEndpointTask(APIEndpointTask):
             release = release[0]
 
         return release
+
+    @classmethod
+    def _get_release_code_set(cls, release_id, database):
+        release = database.query(Release).filter(Release.id == release_id).one()
+
+        return release.code_set
 
     @classmethod
     def _authorized(cls, authorizations, code_set):
@@ -109,14 +115,18 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_authorized_years(cls, authorizations):
-        '''Get year from authorizations which are of the form CPTAPIYY: YYYY-MM-DD-hh:mm'''
+        '''Get year from authorizations which are of one of the form:
+            CPTAPIYY: ISO-8601 Timestamp
+           For example,
+            CPTAPI23: 2023-10-11T00:00:00-05:00
+        '''
         cpt_api_authorizations = {key:value for key, value in authorizations.items() if key.startswith('CPTAPI')}
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
         for name, end_datestamp in cpt_api_authorizations.items():
             year = cls._parse_authorization_year(name, current_time)
-            end_date = datetime.strptime(end_datestamp, '%Y-%m-%d-%M:%S').astimezone(timezone.utc)
+            end_date = datetime.fromisoformat(end_datestamp).astimezone(timezone.utc)
 
             if current_time <= end_date:
                 authorized_years.append(year)
@@ -136,8 +146,8 @@ class FilesEndpointTask(APIEndpointTask):
         return self._get_files_archive_path_for_user(release_directory, self._parameters.authorization["user_id"])
 
     @classmethod
-    def _get_release_date(cls, release, database):
-        release = database.query(Release).filter(Release.id == release).one()
+    def _get_release_date(cls, release_id, database):
+        release = database.query(Release).filter(Release.id == release_id).one()
 
         return release.date
 
