@@ -1,5 +1,4 @@
 """ source: datalabs.access.cpt.api.bulk """
-import pytest
 from   datetime import datetime, timezone
 
 from   datalabs.access.cpt.api.bulk import FilesEndpointTask
