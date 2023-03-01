@@ -22,8 +22,8 @@ start_time_str = current_time.strftime("%Y-%m-%d")
 
 ods = ODS(
     parameters={
-        'username': 'username',
-        'password': 'password',
+        'username': 'vigrose',
+        'password': 'Ravenclaw10946!',
         'name': 'ODS'  # Your ODBC registered source name for ODS
     }
 )
