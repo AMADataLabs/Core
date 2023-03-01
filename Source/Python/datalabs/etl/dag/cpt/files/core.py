@@ -1,15 +1,12 @@
 ''' DAG definition for CPT Core Files Process '''
-from   datalabs.etl.cpt.files.core.extract import InputFilesListExtractorTask
-from   datalabs.etl.dag.dag import DAG, register
-from   datalabs.etl.s3.extract import S3FileExtractorTask
-from   datalabs.etl.smtp.load import SMTPFileLoaderTask
+from   datalabs.etl.dag.dag import DAG, register, Repeat, JavaTask
 
 
 @register(name="CPT_CORE")
 class CPTCoreDAG(DAG):
-    FIND_INPUT_FILES: InputFilesListExtractorTask
-    EXTRACT_INPUT_FILES: S3FileExtractorTask
-    BUILD_CORE: 'datalabs.etl.cpt.build.CoreBuilderTask'
+    FIND_INPUT_FILES: "datalabs.etl.cpt.files.core.extract.InputFilesListExtractorTask"
+    EXTRACT_INPUT_FILES: "datalabs.etl.s3.extract.S3FileExtractorTask"
+    BUILD_CORE: JavaTask("datalabs.etl.cpt.build.CoreBuilderTask")
     # BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS: 'datalabs.etl.cpt.build.ConsumerClinicianBuilderTask'
     # LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS: SMTPFileLoaderTask
 
