@@ -50,7 +50,7 @@ class FilesEndpointTask(APIEndpointTask):
 
     def _run(self, database):
         release = self._get_release_parameter(self._parameters.query)
-        code_set = self._get_release_code_set(database, release)
+        code_set = self._get_release_code_set(release, database)
         authorized = self._authorized(self._parameters.authorization["authorizations"], code_set)
         self._status_code = 403
         LOGGER.debug('Code set: %s', code_set)
