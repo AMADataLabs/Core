@@ -6,9 +6,12 @@ from   datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
+SCHEMA = 'marketing'
+
 
 class Contact(Base):
     __tablename__ = 'contact'
+    __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.Integer, primary_key=True)
     record_sequence = sa.Column(sa.String)
