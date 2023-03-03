@@ -1,7 +1,7 @@
 """Initial marketing contact database
 
 Revision ID: cd56a2ea0c5a
-Revises: 
+Revises:
 Create Date: 2023-03-03 18:15:45.952479+00:00
 
 """

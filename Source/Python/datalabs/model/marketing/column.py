@@ -3,7 +3,7 @@
 CONTACT_COLUMNS = dict(
     id="EMPPID",
     record_sequence="RECSEQ",
-    business="BUSPID",
+    business_id="BUSPID",
     name="NAME",
     business_title="BUSTITLE",
     business_name="BUSNAME",
@@ -156,10 +156,6 @@ CONTACT_COLUMNS = dict(
     all_products_2="ALL_PROD2",
     original_product_1="ALL_ORG_PROD1",
     original_product_2="ALL_ORG_PROD2",
-    industry_description_1="INDUSTRY_DESC.1",
-    email_1="EMAIL.1",
-    day_phone_1="DAY_PHONE.1",
-    evening_phone_1="EVENING_PHONE.1",
-    hs_contact_id="hs_contact_id",
+    hs_contact_id="HSContact_ID",
     email_last_validated="email_last_validated",
 )
