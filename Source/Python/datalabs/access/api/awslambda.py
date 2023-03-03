@@ -4,7 +4,7 @@ import logging
 import os
 
 import datalabs.access.api.task as api
-from   datalabs.awslambda import TaskWrapper
+from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -14,7 +14,9 @@ LOGGER.setLevel(logging.DEBUG)
 class APIEndpointTaskWrapper(TaskWrapper):
     def _get_runtime_parameters(self, parameters):
         return dict(
+            api_id = os.getenv('API_ID'),
             path = parameters.get('path', ""),
+            payload = parameters.get('payload', {})
         )
 
     def _get_task_parameters(self):
@@ -63,6 +65,14 @@ class APIEndpointTaskWrapper(TaskWrapper):
             "body": message,
             "isBase64Encoded": False,
         }
+
+    def _get_task_id(self):
+        task_class = self._get_task_class()
+
+        if not hasattr(task_class, 'run'):
+            raise TypeError('Task class does not have a "run" method.')
+
+        return task_class
 
     @classmethod
     def _extract_authorization_parameters(cls, parameters):

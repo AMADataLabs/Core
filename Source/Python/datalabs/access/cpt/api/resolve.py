@@ -20,11 +20,11 @@ LOGGER.setLevel(logging.INFO)
 
 
 TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
+TaskIDMapping = namedtuple('TaskIdMapping', 'path task_id')
 
 class TaskResolver(task.TaskResolver):
-    # pylint: disable=line-too-long
     TASK_CLASSES = [
-        # Granular Endpoints
+        # JSON Endpoints
         TaskClassMapping('/descriptor/*',             DescriptorEndpointTask),
         TaskClassMapping('/descriptors',              AllDescriptorsEndpointTask),
         TaskClassMapping('/consumer/descriptor/*',    consumer_descriptor.ConsumerDescriptorEndpointTask),
@@ -38,12 +38,35 @@ class TaskResolver(task.TaskResolver):
         TaskClassMapping('/pdfs',                     LatestPDFsEndpointTask),
         TaskClassMapping('/releases',                 ReleasesEndpointTask),
 
-        # Bulk Endpoints
+        # Zip Endpoints
         TaskClassMapping('/bulk_zip/releases',        ReleasesEndpointTask),
         TaskClassMapping('/bulk_zip/files',           FilesEndpointTask),
 
         # Default Endpoint (Must be the last endpoint in this list)
         TaskClassMapping('/*',                        DefaultEndpointTask)
+    ]
+
+    TASK_IDS = [
+        # JSON Endpoints
+        TaskClassMapping('/descriptor/*',             "DESCRIPTOR"),
+        TaskClassMapping('/descriptors',              "DESCRIPTORS"),
+        TaskClassMapping('/consumer/descriptor/*',    "CONSUMER_DESCRIPTOR"),
+        TaskClassMapping('/consumer/descriptors',     "CONSUMER_DESCRIPTORS"),
+        TaskClassMapping('/clinician/descriptors/*',  "CLINICIAN_DESCRIPTORS"),
+        TaskClassMapping('/clinician/descriptors',    "ALL_CLINICIAN_DESCRIPTORS"),
+        TaskClassMapping('/pla/details/*',            "PLA_DETAILS"),
+        TaskClassMapping('/pla/details',              "ALL_PLA_DETAILS"),
+        TaskClassMapping('/modifier/*',               "MODIFIER"),
+        TaskClassMapping('/modifiers',                "MODIFIERS"),
+        TaskClassMapping('/pdfs',                     "PDFS"),
+        TaskClassMapping('/releases',                 "RELEASES"),
+
+        # Zip Endpoints
+        TaskClassMapping('/bulk_zip/releases',        "RELEASES"),
+        TaskClassMapping('/bulk_zip/files',           "FILES"),
+
+        # Default Endpoint (Must be the last endpoint in this list)
+        TaskClassMapping('/*',                        "DEFAULT")
     ]
 
     @classmethod
@@ -60,3 +83,18 @@ class TaskResolver(task.TaskResolver):
         LOGGER.info('Resolved path %s to implementation class %s', path, str(task_class))
 
         return task_class
+
+    @classmethod
+    def get_task_id(cls, runtime_parameters):
+        path = runtime_parameters['path']
+        task_id = None
+
+        for mapping in cls.TASK_IDS:
+            path_pattern = mapping.path.replace('*', '[^/]+')
+
+            if re.match(path_pattern, path):
+                task_id = mapping.task_id
+                break
+        LOGGER.info('Resolved path %s to implementation ID %s', path, str(task_id))
+
+        return task_id
