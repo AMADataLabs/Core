@@ -1,3 +1,5 @@
+""" Column maps for marketing data """
+
 CONTACT_COLUMNS = dict(
     record_sequence="RECSEQ",
     EMPPID="EMPPID",

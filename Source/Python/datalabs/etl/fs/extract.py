@@ -54,7 +54,7 @@ class LocalFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractor
         return files
 
     def _extract_file(self, file):
-        LOGGER.info(f'Reading file {file} from the local file system...')
+        LOGGER.info('Reading file %s from the local file system...', file)
         data = None
 
         try:

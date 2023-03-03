@@ -3,13 +3,13 @@ from   dataclasses import dataclass
 import logging
 import os
 
-logging.basicConfig()
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-
 from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, BasePathMixin
 from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -43,7 +43,7 @@ class LocalFileLoaderTask(BasePathMixin, IncludesNamesMixin, FileLoaderTask):
         return DummyFSClient()
 
     def _load_file(self, data, file):
-        LOGGER.info(f'Writing file {file} to the local file system...')
+        LOGGER.info('Writing file %s to the local file system...', file)
         try:
             with open(file, 'wb') as _file:
                 _file.write(data)

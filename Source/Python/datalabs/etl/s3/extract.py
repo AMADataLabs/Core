@@ -122,7 +122,7 @@ class S3FileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorTas
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
-        LOGGER.info(f'Extracting file {file} from bucket {self._parameters.bucket}...')
+        LOGGER.info('Extracting file %s from bucket %s...', file, self._parameters.bucket)
         quoted_file = quote(file).replace('%2B', '+').replace('%22', '').replace('%20', ' ')
         data = None
 

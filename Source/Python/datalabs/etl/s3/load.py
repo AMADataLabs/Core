@@ -54,7 +54,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _load_file(self, data, file):
-        LOGGER.info(f'Loading file {file} to bucket {self._parameters.bucket}...')
+        LOGGER.info('Loading file %s to bucket %s...', file, self._parameters.bucket)
         response = None
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
