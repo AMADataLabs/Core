@@ -36,6 +36,12 @@ def _configure_app(args):
     variables = args["variable"]
     template_args = {}
 
+    if not args["check"]:
+        args["force"] = True
+
+    if not args["script"]:
+        args["build"] = True
+
     if variables:
         template_args = {v.split('=')[0]:v.split('=')[1] for v in variables}
 
@@ -68,13 +74,19 @@ if __name__ == '__main__':
         '-a', '--args', action='append', help='Command-line arguments to send to the task wrapper.'
     )
     ap.add_argument(
-        '-b', '--build', action='store_true', required=False, help='Use templates from Build/ instead of Script/Environment/.'
+        '-b', '--build', action='store_true', required=False, help='Use templates from paths under Build/. (default)'
+    )
+    ap.add_argument(
+        '-s', '--script', action='store_true', required=False, help='Template paths are with respect to Script/Environment/ instead of Build/.'
     )
     ap.add_argument(
         '-e', '--event', required=False, help='JSON event passed in as a single command-line argument.'
     )
     ap.add_argument(
-        '-f', '--force', required=False, action='store_true', help='Force overwritting of the resolved .env template.'
+        '-c', '--check', required=False, action='store_true', help='Check for an existing .env output file, and exit if it exists.'
+    )
+    ap.add_argument(
+        '-f', '--force', required=False, action='store_true', help='Force overwritting of the resolved .env template. (default)'
     )
     ap.add_argument('-p', '--path', required=False, help='Path relative to Script/Environment to look for .env templates.')
     ap.add_argument('-t', '--task', required=True, help='Task name used to load environment template.')
