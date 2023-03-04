@@ -1,4 +1,5 @@
 import argparse
+from   collections import defaultdict
 import json
 import os
 import subprocess
@@ -15,11 +16,27 @@ def main(args):
 
     os.environ["DYNAMODB_CONFIG_TABLE"] = "DataLake-configuration-dev"
     os.environ["API_ID"] = args["api"]
-    task_wrapper = APIEndpointTaskWrapper(generate_api_gateway_event(args["endpoint"]))
 
-    task_wrapper.run()
+    query_parameters = aggregate_query_parameters(args["query_parameter"])
 
-def generate_api_gateway_event(endpoint):
+    task_wrapper = APIEndpointTaskWrapper(generate_api_gateway_event(args["endpoint"], query_parameters))
+
+    print(task_wrapper.run())
+
+
+def aggregate_query_parameters(query_parameter_kvargs):
+    query_parameters = defaultdict(list)
+
+    for kvarg in query_parameter_kvargs:
+        key, value = tuple(kvarg.split("="))
+
+        query_parameters[key].append(value)
+
+    return query_parameters
+
+def generate_api_gateway_event(endpoint, query_parameters):
+    single_query_parameters = {key:value[0] for key, value in query_parameters.items()}
+
     event = f'''{{
         "resource": "/files",
         "path": "{endpoint}",
@@ -52,8 +69,8 @@ def generate_api_gateway_event(endpoint):
             "x-amzn-vpce-id": ["vpce-0bc731de06c089ce1"],
             "X-Forwarded-For": ["172.31.10.211"]
         }},
-        "queryStringParameters": null,
-        "multiValueQueryStringParameters": null,
+        "queryStringParameters": {json.dumps(single_query_parameters)},
+        "multiValueQueryStringParameters": {json.dumps(query_parameters)},
         "pathParameters": null,
         "stageVariables": null,
         "requestContext": {{
@@ -105,6 +122,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-a', '--api', help='API ID.')
     ap.add_argument('-e', '--endpoint', help='Endpoint path.')
+    ap.add_argument('-p', '--query-parameter', action='append', help='Query parameter as name=value.')
     args = vars(ap.parse_args())
 
     main(args)

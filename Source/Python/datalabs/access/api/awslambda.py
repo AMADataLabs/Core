@@ -11,7 +11,7 @@ from   datalabs.etl.dag.aws import DynamoDBTaskParameterGetterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
