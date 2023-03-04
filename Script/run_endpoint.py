@@ -17,9 +17,9 @@ def main(args):
     os.environ["DYNAMODB_CONFIG_TABLE"] = "DataLake-configuration-dev"
     os.environ["API_ID"] = args["api"]
 
-    query_parameters = aggregate_query_parameters(args["query_parameter"])
+    query_parameters = aggregate_query_parameters(args["query_parameter"] or [])
 
-    task_wrapper = APIEndpointTaskWrapper(generate_api_gateway_event(args["endpoint"], query_parameters))
+    task_wrapper = APIEndpointTaskWrapper(generate_api_gateway_event(args["method"], args["endpoint"], query_parameters))
 
     print(task_wrapper.run())
 
@@ -34,13 +34,16 @@ def aggregate_query_parameters(query_parameter_kvargs):
 
     return query_parameters
 
-def generate_api_gateway_event(endpoint, query_parameters):
+def generate_api_gateway_event(method, endpoint, query_parameters):
     single_query_parameters = {key:value[0] for key, value in query_parameters.items()}
 
+    if not method:
+        method = "GET"
+
     event = f'''{{
-        "resource": "/files",
+        "resource": "{endpoint}",
         "path": "{endpoint}",
-        "httpMethod": "GET",
+        "httpMethod": "{method}",
         "headers": {{
             "Accept": "*/*",
             "Accept-Encoding": "gzip,deflate, br",
@@ -83,7 +86,7 @@ def generate_api_gateway_event(endpoint, query_parameters):
                 "customerName": "TEST Health Solutions"
             }}, "resourcePath": "{endpoint}",
             "operationName": "getFiles",
-            "httpMethod": "GET",
+            "httpMethod": "{endpoint}",
             "extendedRequestId": "QmOw7G1BIAMFYJQ=",
             "requestTime": "15/Apr/2022:01:05:22 +0000",
             "path": "{endpoint}",
@@ -123,6 +126,7 @@ if __name__ == '__main__':
     ap.add_argument('-a', '--api', help='API ID.')
     ap.add_argument('-e', '--endpoint', help='Endpoint path.')
     ap.add_argument('-p', '--query-parameter', action='append', help='Query parameter as name=value.')
+    ap.add_argument('-m', '--method', help='Use specified HTTP method.')
     args = vars(ap.parse_args())
 
     main(args)
