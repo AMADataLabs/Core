@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 
 import datalabs.access.api.task as api
 from   datalabs.task import TaskWrapper
@@ -15,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _get_runtime_parameters(self, parameters):
-        api = os.getenv('API_ID')
+        api = os.environ['API_ID']
         path = parameters.get('path', "")
         route_parameters = self._get_dag_task_parameters_from_dynamodb(api, "ROUTE")
         task = self._get_task_id(api, path, route_parameters)
@@ -35,7 +36,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
         standard_parameters = dict(
             path=self._parameters.pop("pathParameters") or {},
             query={**query_parameters, **multivalue_query_parameters},
-            payload=self._parameters["payload"],
+            payload=self._parameters.get("payload"),
             authorization=self._extract_authorization_parameters(self._parameters)
         )
 
