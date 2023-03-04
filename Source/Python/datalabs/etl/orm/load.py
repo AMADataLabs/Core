@@ -54,7 +54,7 @@ class ORMLoaderTask(Task):
 
     COLUMN_TYPE_CONVERTERS = {
         'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
-        'INTEGER': lambda x: x.astype(float).astype('Int64', copy=False)
+        'INTEGER': lambda x: x.astype(float).astype('Int32', copy=False)
     }
 
     def run(self):
