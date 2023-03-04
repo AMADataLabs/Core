@@ -75,6 +75,15 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
         return f'Failed: {str(exception)}'
 
+    def _get_task_resolver_class(self):
+        task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.etl.dag.resolve.TaskResolver')
+        task_resolver_class = import_plugin(task_resolver_class_name)
+
+        if not hasattr(task_resolver_class, 'get_task_class'):
+            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
+
+        return task_resolver_class
+
     def _get_dag_task_parameters(self):
         dag_id = self._get_dag_id()
         dag_name = self._get_dag_name()

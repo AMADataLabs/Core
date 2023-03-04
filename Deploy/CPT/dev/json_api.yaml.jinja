@@ -26,10 +26,22 @@ data:
 
 
     #######################################################################
-    # DAG Variables - ({"DAG": {"S": "CPT_JSON_API"}, "Task": {"S": "API"}})
+    # Route Variables - ({"DAG": {"S": "CPT_JSON_API"}, "Task": {"S": "API"}})
     #######################################################################
 
-    CPT_JSON_API__API__TASK_RESOLVER_CLASS: 'datalabs.access.cpt.api.resolve.TaskResolver'
+    CPT_JSON_API__ROUTE__DESCRIPTOR: '/descriptor/*'
+    CPT_JSON_API__ROUTE__DESCRIPTORS: '/descriptors'
+    CPT_JSON_API__ROUTE__CONSUMER_DESCRIPTOR: '/consumer/descriptor/*'
+    CPT_JSON_API__ROUTE__CONSUMER_DESCRIPTORS: '/consumer/descriptors'
+    CPT_JSON_API__ROUTE__CLINICIAN_DESCRIPTORS: '/clinician/descriptors/*'
+    CPT_JSON_API__ROUTE__ALL_CLINICIAN_DESCRIPTORS: '/clinician/descriptors'
+    CPT_JSON_API__ROUTE__PLA_DETAILS: '/pla/details/*'
+    CPT_JSON_API__ROUTE__ALL_PLA_DETAILS: '/pla/details'
+    CPT_JSON_API__ROUTE__MODIFIER: '/modifier/*'
+    CPT_JSON_API__ROUTE__MODIFIERS: '/modifiers'
+    CPT_JSON_API__ROUTE__PDFS: '/pdfs'
+    CPT_JSON_API__ROUTE__RELEASES: '/releases'
+    CPT_JSON_API__ROUTE__DEFAULT: '/*'
 
 
     ##########################################################################
@@ -38,6 +50,7 @@ data:
 
 
     # GET /descriptor/{code}
+    CPT_JSON_API__DESCRIPTOR__TASK_CLASS:  ${DATABASE_NAME}
     CPT_JSON_API__DESCRIPTOR__DATABASE_NAME:  ${DATABASE_NAME}
     CPT_JSON_API__DESCRIPTOR__DATABASE_BACKEND: ${DATABASE_BACKEND}
     CPT_JSON_API__DESCRIPTOR__DATABASE_HOST: ${DATABASE_HOST}

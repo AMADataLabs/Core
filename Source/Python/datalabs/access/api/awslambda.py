@@ -5,16 +5,22 @@ import os
 
 import datalabs.access.api.task as api
 from   datalabs.task import TaskWrapper
+from   datalabs.plugin import import_plugin
+from   datalabs.etl.dag.aws import DynamoDBTaskParameterGetterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class APIEndpointTaskWrapper(TaskWrapper):
+class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _get_runtime_parameters(self, parameters):
+        api_id = os.getenv('API_ID')
+        path = parameters.get('path', "")
+        task_id = self._get_task_id(api_id, path)
+
         return dict(
-            api_id = os.getenv('API_ID'),
+            api_id = api_id,
             path = parameters.get('path', ""),
             payload = parameters.get('payload', {})
         )
@@ -66,13 +72,19 @@ class APIEndpointTaskWrapper(TaskWrapper):
             "isBase64Encoded": False,
         }
 
-    def _get_task_id(self):
-        task_class = self._get_task_class()
+    def _get_task_resolver_class(self):
+        task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.RuntimeTaskResolver')
+        task_resolver_class = import_plugin(task_resolver_class_name)
 
-        if not hasattr(task_class, 'run'):
-            raise TypeError('Task class does not have a "run" method.')
+        if not hasattr(task_resolver_class, 'get_task_class'):
+            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
 
-        return task_class
+        return task_resolver_class
+
+    @classmethod
+    def _get_task_id(cls, api_id, path):
+        route_parameters = self._get_dag_task_parameters_from_dynamodb(api_id, "ROUTE")
+        route_map = {pattern: task_id for task_id, pattern in route_parameters.items()}
 
     @classmethod
     def _extract_authorization_parameters(cls, parameters):

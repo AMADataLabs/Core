@@ -21,8 +21,8 @@ class PDFsEndpointParameters:
     query: dict
     authorization: dict
     bucket: str
-    bucket_base_path: str
-    bucket_url_duration: str
+    base_path: str
+    url_duration: str
     unknowns: dict=None
 
 
