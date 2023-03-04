@@ -4,10 +4,10 @@ import os
 import subprocess
 import sys
 
+from   datalabs.access.api.awslambda import APIEndpointTaskWrapper
 from   datalabs.plugin import import_plugin
 
 import repo
-import run_task
 
 
 def main(args):
@@ -15,12 +15,9 @@ def main(args):
 
     os.environ["DYNAMODB_CONFIG_TABLE"] = "DataLake-configuration-dev"
     os.environ["API_ID"] = args["api"]
+    task_wrapper = APIEndpointTaskWrapper(generate_api_gateway_event(args["endpoint"]))
 
-    args.update(dict(args=None, check=False, script=False))
-
-    args["event"] = generate_api_gateway_event(args["endpoint"])
-
-    run_task.main("python", args)
+    task_wrapper.run()
 
 def generate_api_gateway_event(endpoint):
     event = f'''{{
@@ -102,17 +99,12 @@ def generate_api_gateway_event(endpoint):
         "isBase64Encoded": false
     }}'''
 
-    return event
+    return json.loads(event)
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-a', '--api', help='API ID.')
     ap.add_argument('-e', '--endpoint', help='Endpoint path.')
-    ap.add_argument('-p', '--path', required=False, help='Path relative to Script/Environment to look for .env templates.')
-    ap.add_argument('-t', '--task', required=True, help='Task name used to load environment template.')
-    ap.add_argument(
-        '-v', '--variable', action='append', required=False, help='Template variable to set in the form name=value.'
-    )
     args = vars(ap.parse_args())
 
     main(args)
