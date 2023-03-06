@@ -22,7 +22,4 @@ modspec:
   - package: datalabs.access.cpt.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
-  - package: datalabs.etl.dag
-    include:
-      - aws
   - package: datalabs.model.cpt

@@ -7,7 +7,7 @@ import re
 import datalabs.access.api.task as api
 from   datalabs.task import TaskWrapper
 from   datalabs.plugin import import_plugin
-from   datalabs.etl.dag.aws import DynamoDBTaskParameterGetterMixin
+from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

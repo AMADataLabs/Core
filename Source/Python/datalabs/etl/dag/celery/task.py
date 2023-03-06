@@ -4,6 +4,7 @@ import logging
 
 from   celery import Celery  # pylint: disable=import-error
 
+from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 from   datalabs.etl.dag import aws
 from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.dag.task
@@ -48,7 +49,7 @@ def run_task_processor(dag, task, execution_time, parameters=None):
 
 class DAGProcessorTaskWrapper(
     ExecutionTimeMixin,
-    aws.DynamoDBTaskParameterGetterMixin,
+    DynamoDBTaskParameterGetterMixin,
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):
@@ -74,7 +75,7 @@ class DAGProcessorTaskWrapper(
 
 class TaskProcessorTaskWrapper(
     ExecutionTimeMixin,
-    aws.DynamoDBTaskParameterGetterMixin,
+    DynamoDBTaskParameterGetterMixin,
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):

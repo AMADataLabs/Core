@@ -3,7 +3,7 @@ import json
 import logging
 import os
 
-from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
+from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader, DynamoDBTaskParameterGetterMixin
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
@@ -16,22 +16,6 @@ import datalabs.etl.dag.task
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-
-class DynamoDBTaskParameterGetterMixin:
-    # pylint: disable=redefined-outer-name
-    @classmethod
-    def _get_dag_task_parameters_from_dynamodb(cls, dag: str, task: str):
-        parameters = {}
-
-        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-            table=os.environ["DYNAMODB_CONFIG_TABLE"],
-            dag=dag,
-            task=task
-        ))
-        dynamodb_loader.load(environment=parameters)
-
-        return parameters
 
 
 class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):

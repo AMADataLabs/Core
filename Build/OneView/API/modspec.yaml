@@ -29,7 +29,4 @@ modspec:
   - package: datalabs.access.oneview.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
-  - package: datalabs.etl.dag
-    include:
-      - aws
   - package: datalabs.model.masterfile.oneview
