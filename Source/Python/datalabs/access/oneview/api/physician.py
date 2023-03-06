@@ -99,6 +99,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _query_for_values(cls, values, field, filter_conditions):
         for value in values:
-            filter_conditions += [(func.lower(getattr(Physician, field)) == value)]
+            filter_conditions += [(func.lower(getattr(Physician, field)) == value.lower())]
 
         return filter_conditions

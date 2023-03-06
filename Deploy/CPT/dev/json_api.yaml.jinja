@@ -10,8 +10,6 @@ data:
     ENVIRONMENT: dev
     ACCOUNT: '191296302136'
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
     S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
 
     DATABASE_HOST: cpt-api-dev-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
@@ -20,9 +18,6 @@ data:
     DATABASE_NAME: 'cpt'
     DATABASE_USERNAME:  cptadmin
     DATABASE_PASSWORD:  '{{database_password}}'
-
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/CPT'
 
 
     #######################################################################
