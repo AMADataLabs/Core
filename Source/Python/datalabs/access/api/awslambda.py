@@ -102,11 +102,14 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     @classmethod
     def _extract_authorization_parameters(cls, parameters):
         known_keys = ["customerNumber", "customerName", "principalId", "integrationLatency"]
-        authorization_context = parameters["requestContext"].get("authorizer").copy()
-        authorizations = {key:value for key, value in authorization_context.items() if key not in known_keys}
+        authorization_context = parameters["requestContext"].get("authorizer")
+        parameters = {}
 
-        return dict(
-            user_id=authorization_context.get("customerNumber"),
-            user_name=authorization_context.get("customerName"),
-            authorizations=authorizations
-        )
+        if authorization_context:
+            parameters = dict(
+                user_id=authorization_context.get("customerNumber"),
+                user_name=authorization_context.get("customerName"),
+                authorizations={key:value for key, value in authorization_context.items() if key not in known_keys}
+            )
+
+        return parameters
