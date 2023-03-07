@@ -3,7 +3,7 @@ import json
 import logging
 import os
 
-from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader, DynamoDBTaskParameterGetterMixin
+from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier

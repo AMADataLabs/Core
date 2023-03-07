@@ -16,11 +16,11 @@ LOGGER.setLevel(logging.INFO)
 
 class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _get_runtime_parameters(self, parameters):
-        api = os.environ['API_ID']
+        api_id = os.environ['API_ID']
         path = parameters.get('path', "")
-        route_parameters = self._get_dag_task_parameters_from_dynamodb(api, "ROUTE")
-        task = self._get_task_id(api, path, route_parameters)
-        task_parameters = self._get_dag_task_parameters_from_dynamodb(api, task)
+        route_parameters = self._get_dag_task_parameters_from_dynamodb(api_id, "ROUTE")
+        task_id = self._get_task_id(path, route_parameters)
+        task_parameters = self._get_dag_task_parameters_from_dynamodb(api_id, task_id)
         task_class = task_parameters.pop("TASK_CLASS")
 
         runtime_parameters = dict(
@@ -87,14 +87,13 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
         return task_resolver_class
 
     @classmethod
-    def _get_task_id(cls, api_id, path, route_parameters):
+    def _get_task_id(cls, path, route_parameters):
         task_id = None
 
-        for id, pattern in route_parameters.items():
+        for task_id, pattern in route_parameters.items():
             pattern = pattern.replace('*', '[^/]+')
 
             if re.match(pattern, path):
-                task_id = id
                 break
         LOGGER.info('Resolved path %s to implementation ID %s', path, str(task_id))
 
@@ -103,7 +102,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     @classmethod
     def _extract_authorization_parameters(cls, parameters):
         known_keys = ["customerNumber", "customerName", "principalId", "integrationLatency"]
-        authorization_context = parameters["requestContext"]["authorizer"].copy()
+        authorization_context = parameters["requestContext"].get("authorizer").copy()
         authorizations = {key:value for key, value in authorization_context.items() if key not in known_keys}
 
         return dict(
@@ -111,36 +110,3 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
             user_name=authorization_context.get("customerName"),
             authorizations=authorizations
         )
-
-
-    @classmethod
-    def _resolve_secrets_manager_environment_variables(cls):
-        super()._resolve_secrets_manager_environment_variables()
-
-        if 'DATABASE_SECRET' in os.environ:
-            cls._populate_database_parameters_from_secret()
-
-    @classmethod
-    def _populate_database_parameters_from_secret(cls):
-        secret = os.getenv('DATABASE_SECRET')
-
-        for name, value in cls._get_database_parameters_from_secret('DATABASE_SECRET', secret).items():
-            os.environ[name] = value
-
-    @classmethod
-    def _get_database_parameters_from_secret(cls, name, secret_string):
-        secret = json.loads(secret_string)
-        engine = secret.get('engine')
-        variables = dict(
-            DATABASE_NAME=secret.get('dbname'),
-            DATABASE_PORT=str(secret.get('port')),
-            DATABASE_USERNAME=secret.get('username'),
-            DATABASE_PASSWORD=secret.get('password')
-        )
-
-        if engine == 'postgres':
-            variables['DATABASE_BACKEND'] = os.getenv('DATABASE_BACKEND') or 'postgresql+psycopg2'
-
-        os.environ.pop(name)
-
-        return variables

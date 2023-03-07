@@ -18,8 +18,12 @@ def main(args):
     os.environ["API_ID"] = args["api"]
 
     query_parameters = aggregate_query_parameters(args["query_parameter"] or [])
+    payload = json.loads(args["payload"])
+    event = generate_api_gateway_event(args["method"], args["endpoint"], query_parameters, args["no_auth"])
 
-    task_wrapper = APIEndpointTaskWrapper(generate_api_gateway_event(args["method"], args["endpoint"], query_parameters))
+    event["payload"] = payload
+
+    task_wrapper = APIEndpointTaskWrapper(event)
 
     print(task_wrapper.run())
 
@@ -34,11 +38,23 @@ def aggregate_query_parameters(query_parameter_kvargs):
 
     return query_parameters
 
-def generate_api_gateway_event(method, endpoint, query_parameters):
+def generate_api_gateway_event(method, endpoint, query_parameters, no_auth):
     single_query_parameters = {key:value[0] for key, value in query_parameters.items()}
+    authorizer_context = ""
 
     if not method:
         method = "GET"
+
+    if not no_auth:
+        authorizer_context = f'''
+            "authorizer": {{
+                "CPTAPI": "2048-10-06-05:00",
+                "principalId": "username",
+                "integrationLatency": 0,
+                "customerNumber": "000002164389",
+                "customerName": "TEST Health Solutions"
+            }}, "resourcePath": "{endpoint}",
+        '''
 
     event = f'''{{
         "resource": "{endpoint}",
@@ -78,13 +94,8 @@ def generate_api_gateway_event(method, endpoint, query_parameters):
         "stageVariables": null,
         "requestContext": {{
             "resourceId": "zs07zi",
-            "authorizer": {{
-                "CPTAPI": "2048-10-06-05:00",
-                "principalId": "username",
-                "integrationLatency": 0,
-                "customerNumber": "000002164389",
-                "customerName": "TEST Health Solutions"
-            }}, "resourcePath": "{endpoint}",
+            {authorizer_context}
+            "resourcePath": "{endpoint}",
             "operationName": "getFiles",
             "httpMethod": "{endpoint}",
             "extendedRequestId": "QmOw7G1BIAMFYJQ=",
@@ -127,6 +138,8 @@ if __name__ == '__main__':
     ap.add_argument('-e', '--endpoint', help='Endpoint path.')
     ap.add_argument('-p', '--query-parameter', action='append', help='Query parameter as name=value.')
     ap.add_argument('-m', '--method', help='Use specified HTTP method.')
+    ap.add_argument('-P', '--payload', default='{}', help='JSON paylod.')
+    ap.add_argument('-A', '--no-auth', action='store_true', help='Do not add Authorizer context.')
     args = vars(ap.parse_args())
 
     main(args)
