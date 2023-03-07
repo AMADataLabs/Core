@@ -25,6 +25,7 @@ modspec:
       - datastore
       - environment
       - orm
+      - sqlalchemy
   - package: datalabs.access.api
   - package: datalabs.access.oneview.api
   - package: datalabs.access.parameter
