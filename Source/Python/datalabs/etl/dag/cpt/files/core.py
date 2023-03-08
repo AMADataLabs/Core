@@ -1,5 +1,5 @@
 ''' DAG definition for CPT Core Files Process '''
-from   datalabs.etl.dag.dag import DAG, JavaTask
+from   datalabs.etl.dag.dag import DAG, register, JavaTask
 
 
 @register(name="CPT_CORE")
