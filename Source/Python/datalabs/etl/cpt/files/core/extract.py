@@ -4,7 +4,6 @@ from   dataclasses import dataclass
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.cpt.files.core.input import SOURCE_FILES
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -34,9 +33,9 @@ class InputFilesListExtractorTask(Task):
         base_path = self._parameters.base_path
         all_run_paths = sorted(self._list_files(client, self._parameters.bucket, base_path))
 
-        incremental_files = self._get_incremental_files(execution_date, base_path, all_run_paths)
+        incremental_files = self._get_incremental_files(execution_date, all_run_paths)
 
-        annual_files = self._get_annual_files(execution_date, base_path, all_run_paths)
+        annual_files = self._get_annual_files(execution_date, all_run_paths)
 
         annual_incremental_files = [annual_files, incremental_files]
 
@@ -63,13 +62,13 @@ class InputFilesListExtractorTask(Task):
 
         return objects
 
-    def _get_incremental_files(self, execution_date, base_path, all_run_paths):
+    def _get_incremental_files(self, execution_date, all_run_paths):
         core_path = self._get_incremental_core_path(execution_date, all_run_paths)
         files = self._generate_incremental_files(core_path)
 
         return files
 
-    def _get_annual_files(self, execution_date, base_path, all_run_paths):
+    def _get_annual_files(self, execution_date, all_run_paths):
         core_path = self._get_annual_core_path(execution_date, all_run_paths)
 
         files = self._generate_annual_files(core_path)
