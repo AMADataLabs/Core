@@ -18,7 +18,7 @@ class SourceBundle:
 
     @classmethod
     def from_file(cls, modspec_path):
-        LOGGER.debug('Modspec path: %s', modspec_path)
+        LOGGER.info('Modspec path: %s', modspec_path)
         modspec_yaml = None
 
         with open(modspec_path, 'r', encoding="utf-8") as file:

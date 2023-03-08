@@ -3,8 +3,8 @@ data:
   # Global Variables - {"DAG": {"S": "CPTCORE"}, "Task": {"S": "GLOBAL"}}
   #######################################################################
 
-  ENVIRONMENT: dev
-  ACCOUNT: '191296302136'
+  ENVIRONMENT: sbx
+  ACCOUNT: '644454719059'
 
   S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
   S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
@@ -33,6 +33,8 @@ data:
   CPT_CORE__DAG__ENVIRONMENT: ${ENVIRONMENT}
   CPT_CORE__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,rudainah.najeeb@ama-assn.org'
   CPT_CORE__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
+  CPT_CORE__DAG__JOB_QUEUE: 'CPT-API-${ENVIRONMENT}-Files'
+  CPT_CORE__DAG__JOB_DEFINITION: 'CPT-API-${ENVIRONMENT}-Files'
   CPT_CORE__DAG__TASK_CLASS: ''  # Used by Java DAG tasks
 
 
@@ -69,7 +71,7 @@ data:
 
 
   # Build Core
-  CPT_CORE__BUILD_CORE__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-Legacy'
+  CPT_CORE__BUILD_CORE__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
   CPT_CORE__BUILD_CORE__TASK_CLASS: datalabs.etl.cpt.build.CoreBuilderTask
   CPT_CORE__BUILD_CORE__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
   CPT_CORE__BUILD_CORE__CACHE_CLASS: ${JAVA_S3_CACHE_CLASS}

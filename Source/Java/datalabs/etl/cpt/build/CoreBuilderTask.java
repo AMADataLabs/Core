@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
@@ -30,6 +30,7 @@ import org.ama.dtk.model.PropertyType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.zip.ZipUtil;
 
 import datalabs.task.Task;
 import datalabs.task.TaskException;
@@ -158,39 +159,18 @@ public class CoreBuilderTask extends Task {
         exporter.export(concepts, true);
     }
 
-    ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
-        ArrayList<byte[]> outputFiles = new ArrayList<>();
-        File[] files = outputDirectory.listFiles();
-
-        Arrays.sort(files);
-
-        for (File file: files) {
-            if (file.isDirectory()) {
-                ArrayList<byte[]> output = loadOutputFiles(file);
-
-                for (byte[] outputFile: output){
-                    outputFiles.add(outputFile);
-                }
-
-            } else {
-                Path path = Paths.get(file.getPath());
-                byte[] data = Files.readAllBytes(path);
-                outputFiles.add(data);
-            }
-
-        }
-
-        return outputFiles;
-    }
-
     private void extractZipFiles(byte[] zip, String directory) throws IOException{
         ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
         ZipInputStream zipStream = new ZipInputStream(byteStream);
         ZipEntry file = null;
 
+        new File(directory).mkdirs();
+
         while((file = zipStream.getNextEntry())!=null) {
             this.writeZipEntryToFile(file, directory, zipStream);
         }
+        zipStream.closeEntry();
+        zipStream.close();
     }
 
     private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
@@ -208,14 +188,26 @@ public class CoreBuilderTask extends Task {
         new File(file.getParent()).mkdirs();
 
         if (!zipEntry.isDirectory()){
+            int bytesRead;
             byte[] data = new byte[1024];
             FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-            while (stream.read(data, 0, data.length) > 0) {
-                fileOutputStream.write(data, 0, data.length);
+            while ((bytesRead = stream.read(data, 0, data.length)) != -1) {
+                fileOutputStream.write(data, 0, bytesRead);
             }
             fileOutputStream.close();
         }
 
+    }
+
+    ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
+        ArrayList<byte[]> outputFile = new ArrayList<>();
+        File zipFile = new File(outputDirectory + ".zip");
+        ZipUtil.pack(outputDirectory, zipFile);
+
+        byte[] byteInput = Files.readAllBytes(zipFile.toPath());
+        outputFile.add(byteInput);
+
+        return outputFile;
     }
 }
