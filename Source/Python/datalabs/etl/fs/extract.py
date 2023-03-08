@@ -2,10 +2,15 @@
 from   dataclasses import dataclass
 from   glob import glob
 import os
+import logging
 
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, TargetOffsetMixin
 from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -49,6 +54,7 @@ class LocalFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractor
         return files
 
     def _extract_file(self, file):
+        LOGGER.info('Reading file %s from the local file system...', file)
         data = None
 
         try:
