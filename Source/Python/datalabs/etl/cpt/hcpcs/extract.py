@@ -7,6 +7,7 @@ import requests
 
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+from dateutil.parser import isoparse
 
 
 @add_schema
@@ -38,7 +39,7 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(Task):
         page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
 
-        return soup.find(id="block-cms-drupal-global-content").find('ul').find_all("li")
+        return soup.find(id="block-cms-evo-content").find('ul').find_all("li")
 
     def _select_latest_quarterly_update_report_url(self, url_list):
         reports = {}
@@ -63,17 +64,20 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(Task):
             year_month = url_split[1] + months[url_split[0].lower()]
             reports[year_month] = "https://www.cms.gov" + url_suffix
 
-        if self._parameters.filter_future.upper() == 'TRUE':
-            reports = self._filter_future_reports(reports)
+        report = self._choose_report(reports)
 
-        return reports[max(reports.keys())]
+        return report
 
-    @classmethod
-    def _filter_future_reports(cls, report_dict):
-        current_year_month = datetime.today().strftime('%Y%m')
+    def _choose_report(self, report_dict):
+        if self._parameters.execution_time:
+            current_year_month = isoparse(self._parameters.execution_time).date().strftime('%Y%m')
+        else:
+            current_year_month = datetime.today().strftime('%Y%m')
 
         for key in list(report_dict.keys()):
-            if key > current_year_month:
+            if key <= current_year_month:
                 del report_dict[key]
 
-        return report_dict
+        latest_reports = list(dict(sorted(report_dict.items(), key=lambda x: x[1], reverse=True)).values())
+
+        return latest_reports[0]
