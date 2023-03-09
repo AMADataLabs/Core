@@ -69,15 +69,12 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(Task):
         return report
 
     def _choose_report(self, report_dict):
-        if self._parameters.execution_time:
-            current_year_month = isoparse(self._parameters.execution_time).date().strftime('%Y%m')
-        else:
-            current_year_month = datetime.today().strftime('%Y%m')
+        current_year_month = isoparse(self._parameters.execution_time).date().strftime('%Y%m')
 
         for key in list(report_dict.keys()):
-            if key <= current_year_month:
+            if key > current_year_month:
                 del report_dict[key]
 
-        latest_reports = list(dict(sorted(report_dict.items(), key=lambda x: x[1], reverse=True)).values())
+        latest_reports = list(dict(sorted(report_dict.items(), reverse=True)).values())
 
         return latest_reports[0]
