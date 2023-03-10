@@ -5,6 +5,7 @@ import re
 
 from   dateutil.parser import isoparse
 
+from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.etl.dag import aws
 import datalabs.etl.dag.task
@@ -16,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ProcessorTaskWrapper(
     ExecutionTimeMixin,
-    aws.DynamoDBTaskParameterGetterMixin,
+    DynamoDBTaskParameterGetterMixin,
     datalabs.etl.task.TaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):

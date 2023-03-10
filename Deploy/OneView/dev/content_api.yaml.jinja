@@ -1,0 +1,45 @@
+# Render as follows:
+#
+# update-dag-config -e sbx -p CPT -t zip_api -v "database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "ONEVIEW_API"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    DATABASE_HOST: oneview-dev-content-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'oneview_content'
+    DATABASE_USERNAME:  oneviewadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+
+    #######################################################################
+    # Route Variables - ({"DAG": {"S": "ONEVIEW_API"}, "Task": {"S": "API"}})
+    #######################################################################
+
+    ONEVIEW_API__ROUTE__PHYSICIANS: '/physicians'
+    ONEVIEW_API__ROUTE__DEFAULT: '/*'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "ONEVIEW_API"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+
+    # GET /releases
+    ONEVIEW_API__PHYSICIANS__TASK_CLASS: 'datalabs.access.oneview.api.physician.PhysiciansEndpointTask'
+    ONEVIEW_API__PHYSICIANS__DATABASE_NAME:  ${DATABASE_NAME}
+    ONEVIEW_API__PHYSICIANS__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    ONEVIEW_API__PHYSICIANS__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW_API__PHYSICIANS__DATABASE_PORT: ${DATABASE_PORT}
+    ONEVIEW_API__PHYSICIANS__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    ONEVIEW_API__PHYSICIANS__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    # default
+    ONEVIEW_API__DEFAULT__TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'

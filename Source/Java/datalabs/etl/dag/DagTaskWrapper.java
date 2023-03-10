@@ -41,7 +41,7 @@ public class DagTaskWrapper extends TaskWrapper {
             runtimeParameters = new HashMap<String, String>() {{
                 put("dag", runtimeParameterValues[0]);
                 put("task", runtimeParameterValues[1]);
-                put("execution_time", runtimeParameterValues[2].replace("T", " "));
+                put("execution_time", runtimeParameterValues[2]);
             }};
         } catch (Exception exception) {
             throw new TaskException("Unable to get runtime parameters.", exception);

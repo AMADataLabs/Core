@@ -41,7 +41,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
-        LOGGER.debug('Parameters: %s', self._parameters)
 
         query = self._query_for_physicians(database)
 
@@ -99,6 +98,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _query_for_values(cls, values, field, filter_conditions):
         for value in values:
-            filter_conditions += [(func.lower(getattr(Physician, field)) == value)]
+            filter_conditions += [(func.lower(getattr(Physician, field)) == value.lower())]
 
         return filter_conditions
