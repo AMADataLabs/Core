@@ -30,7 +30,7 @@ class ListKeysCompilerTask:
     pass
 
 
-class SFMCLoderTask:
+class SFMCLoaderTask:
     pass
 
 
