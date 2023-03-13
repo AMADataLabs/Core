@@ -4,9 +4,9 @@ import io
 import logging
 import math
 
-#import fnmatch
 import numpy as np
 import pandas
+from psycopg2.extensions import register_adapter, AsIs
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
@@ -19,16 +19,11 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-from psycopg2.extensions import register_adapter, AsIs
-#def addapt_numpy_float64(numpy_float64):
-#    return AsIs(numpy_float64)
 def addapt_numpy_int64(numpy_int64):
     return AsIs(numpy_int64)
-#register_adapter(np.float64, addapt_numpy_float64)
+
 register_adapter(np.int64, addapt_numpy_int64)
-#def addapt_pandas_na(pandas_na):
-#    return AsIs(tuple(pandas_na))
-#register_adapter(pandas.NA, addapt_pandas_na)
+
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
@@ -62,7 +57,7 @@ class ORMLoaderParameters:
 
 class ORMLoaderTask(Task):
     PARAMETER_CLASS = ORMLoaderParameters
-    
+
     COLUMN_TYPE_CONVERTERS = {
         'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
         'INTEGER': lambda x: x.astype(float).astype('Int64')
@@ -72,7 +67,7 @@ class ORMLoaderTask(Task):
         LOGGER.debug('Input data: \n%s', self._data)
         model_classes = self._get_model_classes()
         data = [self._csv_to_dataframe(datum) for datum in self._data]
- 
+
         with self._get_database() as database:
             for model_class, data in zip(model_classes, data):
                 table_parameters = self._generate_table_parameters(database, model_class, data)
@@ -304,7 +299,7 @@ class ORMLoaderTask(Task):
                     setattr(model, table_parameters.primary_key, None)
 
                 database.add(model)  # pylint: disable=no-member
- 
+
                 count += 1
                 if count % 10000 == 0:
                     database.commit()  # pylint: disable=no-member
@@ -314,7 +309,7 @@ class ORMLoaderTask(Task):
         columns = cls._get_model_columns(model_class)
 
         cls._set_column_types(data, model_class, columns)
- 
+
         for row in data.itertuples(index=False):
             yield cls._create_model(model_class, row, columns)
 
@@ -363,8 +358,6 @@ class ORMLoaderTask(Task):
     def _set_column_type(cls, data, column, column_type):
         if column_type in cls.COLUMN_TYPE_CONVERTERS and column in data:
             data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
-        elif column_type not in ('BOOLEAN','INTEGER','FLOAT','DATE','DATETIME') and column in data:
-            data[column] = data[column].fillna('').astype(str).apply(lambda x: x.replace('.0', ''))
 
     @classmethod
     def _replace_nan(cls, value):
