@@ -35,7 +35,7 @@ def get_do_counts(ppd):
     LOGGER.info('Getting DO physician count...')
     phys_count = len(ppd[ppd.MD_DO_CODE==2])
     LOGGER.info(f'{phys_count} DO physicians on ppd')
-    phys_count += 13132
+    phys_count += 13091
     student_query = os.environ.get('STUDENT_QUERY')
     username = os.environ.get('CREDENTIALS_EDW_USERNAME')
     password_edw = os.environ.get('CREDENTIALS_EDW_PASSWORD')
@@ -119,7 +119,7 @@ def get_total_table(ppd_df, phones):
 def get_wslive_results(wslive_file_location):
     '''Read WSLive Results'''
     wslive_table = pd.read_excel(wslive_file_location, sheet_name='Summary Percentage', header=3)
-    values = list(wslive_table[wslive_table['POLO Address Status'] == 'Confirmed'].iloc[:, -3])
+    values = list(wslive_table[wslive_table['POLO Address Status'] == 'Confirmed'].iloc[:, -2])
     LOGGER.info(values)
     # cleaned_values = [x for x in values if (np.isnan(x) == False)]
     cleaned_values = list(values[i] for i in [0, 2, 3])
@@ -301,7 +301,8 @@ def main():
     LOGGER.info('Grabbing file names...')
     ppd_file = create_ppd_csv()
     wslive_file = newest(local_directory, 'WSLive')
-    old_scorecard = newest(local_directory, 'Masterfile-Scorecard')
+    print(wslive_file)
+    old_scorecard = newest(local_directory, 'PPD-Scorecard')
     LOGGER.info(old_scorecard)
     email_file = newest(local_directory, 'Email')
     LOGGER.info('Reading ppd...')

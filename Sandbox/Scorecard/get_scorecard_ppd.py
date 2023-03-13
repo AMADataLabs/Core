@@ -129,4 +129,7 @@ def create_ppd_csv():
     ppd.to_csv(scorecard_ppd_file, header=True, index=False)
     return scorecard_ppd_file
 
+if __name__ == "__main__":
+    create_ppd_csv()
+
 

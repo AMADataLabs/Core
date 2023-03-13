@@ -1,0 +1,147 @@
+data:
+  #######################################################################
+  # Global Variables - {"DAG": {"S": "CPTLINK"}, "Task": {"S": "GLOBAL"}}
+  #######################################################################
+
+  ENVIRONMENT: sbx
+  ACCOUNT: '644454719059'
+
+  S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+  S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+  S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
+
+  S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+  S3_BASE_PATH: 'AMA/CPT/Link'
+
+
+  #######################################################################
+  # DAG Variables - ({"DAG": {"S": "CPTLINK"}, "Task": {"S": "DAG"}})
+  #######################################################################
+
+  CPT_LINK__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-LinkDAG'
+  CPT_LINK__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.link.CPTLinkDAG'
+  CPT_LINK__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+  CPT_LINK__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+  CPT_LINK__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+  CPT_LINK__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+  CPT_LINK__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+  CPT_LINK__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+  CPT_LINK__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+  ##########################################################################
+  # Task Variables - ({"DAG": {"S": "CPTLINK"}, "Task": {"S": "<Task ID>"}})
+  ##########################################################################
+
+
+  # Find Input Files
+  CPT_LINK__FIND_INPUT_FILES__BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+  CPT_LINK__FIND_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
+
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_FILES: changes/History.txt,changes/HistoryModifers.txt, changes/HistoryReference.txt, changes/RenumberedCodesCitationsCrosswalk.txt, changes/RenumberedCodesCitationsCrosswalkDescriptors.txt, RelationshipGroup.txt, internal_Property.txt, internal_Type.txt
+
+
+  # Extract Input Files
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CACHE_CLASS: ${S3_CACHE_CLASS}
+
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CACHE_INPUT_FILES: changes/History.txt,changes/HistoryModifers.txt, changes/HistoryReference.txt, changes/RenumberedCodesCitationsCrosswalk.txt, changes/RenumberedCodesCitationsCrosswalkDescriptors.txt, RelationshipGroup.txt, internal_Property.txt, internal_Type.txt
+
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
+
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_STATIC_INPUT_FILES__CAHCE_OUTPUT_FILES: 'prior_link_files.zip, incremental_core.zip, annual_core.zip, core.zip'
+
+
+  # Extract Edits
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__BUCKET: ${S3_STAGED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__BASE_PATH: '${S3_BASE_PATH}/%Y'
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__FILES: edits.txt,rvus.txt
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__INCLUDE_TIMESTAMP=False
+
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_STAGED_INPUT_FILES__CACHE_OUTPUT_FILES: edits.txt,rvus.txt
+
+  # Scrape HCPCS Report
+  CPT_LINK__SCRAPE_HCPCS_REPORT__URL: https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets/HCPCS-Quarterly-Update
+  CPT_LINK__SCRAPE_HCPCS_REPORT__INCLUDE_NAMES: True
+
+  CPT_LINK__SCRAPE_HCPCS_REPORT__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__SCRAPE_HCPCS_REPORT__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__SCRAPE_HCPCS_REPORT__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__SCRAPE_HCPCS_REPORT__CAHCE_OUTPUT_FILES: hcpcs_latest_report.txt
+
+  # Extract HCPCS Repport
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CACHE_CLASS: ${S3_CACHE_CLASS}
+
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CACHE_INPUT_FILES: hcpcs_latest_report.txt
+
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_HCPCS_REPORT__CAHCE_OUTPUT_FILES: hcpcs_latest_report.zip
+
+  # Build Link
+  CPT_CORE__BUILD_LINK__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
+  CPT_CORE__BUILD_LINK__TASK_CLASS: datalabs.etl.cpt.build.LinkBuilderTask
+  CPT_CORE__BUILD_LINK__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+  CPT_CORE__BUILD_CORE__CACHE_CLASS: ${JAVA_S3_CACHE_CLASS}
+
+  CPT_CORE__BUILD_LINK__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_CORE__BUILD_LINK__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_CORE__BUILD_LINK__CACHE_INPUT_FILES: 'input/annual_core.zip,input/incremental_core.zip,input/current_core.zip,input/prior_link.zip,input/incremental_core.zip,hcpcs.xlsx,consumer_clinician_descriptor.xlsx,coding_tips.xlsx,front_matter.docx,rvus.txt,index.docx,edits.txt'
+
+  CPT_CORE__BUILD_LINK__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+  CPT_CORE__BUILD_LINK__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_CORE__BUILD_LINK__CACHE_OUTPUT_FILES: ${CORE_OUTPUT_ZIP}
+
+  # Generate Fixed Width Descriptor Files
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CACHE_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CACHE_INPUT_FILES: 'LONGULT.txt,MEDU.txt,SHORTU.txt'
+
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__PARSERS: 'datalabs.curate.cpt.descriptor.LongFixedWidthDescriptorParser,datalabs.curate.cpt.descriptor.MediumFixedWidthDescriptorParser,datalabs.curate.cpt.descriptor.ShortFixedWidthDescriptorParser'
+
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES__CAHCE_OUTPUT_FILES: 'LONGULF.txt,MEDU.txt,SHORTU.txt'
+
+  # Generate Longu Files
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_INPUT_FILES: 'LONGULF.txt,LONGULT.txt'
+
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__GENERATE_LONGU_FILES__CAHCE_OUTPUT_FILES: 'LONGUF.txt,LONGUT.txt'
+
+  # Create Standard Bundle
+  CPT_LINK__CREATE_STANDARD_BUNDLE__CACHE_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__CREATE_STANDARD_BUNDLE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__CREATE_STANDARD_BUNDLE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__CREATE_STANDARD_BUNDLE__CACHE_INPUT_FILES: 'AbbreviationKey.pdf,AnesthesiaGuidelines.pdf,AppendixB.pdf,AppendixN.pdfAppendixO.pdf,AppendixQ.pdf,AppendisR.pdf,CategoryIIGuidelines.pdf,CategoryIIIGuidelines.pdf,CPT %Y README.pdf,EvalManagementGuidelines.pdf,LONGUF.txt,LONGULF.txt,LONGULT.txt,LONGUT.txt,MedicineGuidelines.pdf,MEDU.txt,MODUL.txt,PathLabGuidelines.pdf,PLA Release Notes %Y%m%d.docx,RadiologyGuidelines.pdf,SHORTU.txt,SurgeryGuidelines.pdf,Clinician Descriptors/%Y Clinician Descriptors README.docx,Clinician Descriptors/ClinicianDescriptor.txt,Clinician Descriptors/ClinicianDescriptor.xlsx,Consumer Friendly Descriptors/%Y Consumer Friendly Descriptors README.docx,Consumer Friendly Descriptors/ConsumerDescriptor.txt,Consumer Friendly Descriptors/ConsumerDescriptor.xlsx,Proprietary Laboratory Analyses (PLA) Codes/CPT PLA README.docx,Proprietary Laboratory Analyses (PLA) Codes/CPTPLA,Proprietary Laboratory Analyses (PLA) Codes/CPTPLAChanges.txt,Proprietary Laboratory Analyses (PLA) Codes/CPTPLATab.txt'
+
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__GENERATE_LONGU_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__GENERATE_LONGU_FILES__CAHCE_OUTPUT_FILES: 'cpt_standard_bundle.zip'
+
+  # Create Link Bundle
+  CPT_LINK__CREATE_LINK_BUNDLE__CACHE_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__CREATE_LINK_BUNDLE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__CREATE_LINK_BUNDLE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__CREATE_LINK_BUNDLE__CACHE_INPUT_FILES: 'CPT Link Release Notes %Y%m%d.docx,CPT Link/*,html/*,standard/*'
+
+  CPT_LINK__CREATE_LINK_BUNDLE__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__CREATE_LINK_BUNDLE__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__CREATE_LINK_BUNDLE__CAHCE_OUTPUT_FILES: 'cpt_link_bundle.zip'
