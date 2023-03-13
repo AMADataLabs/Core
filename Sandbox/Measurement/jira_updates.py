@@ -4,6 +4,7 @@ import json
 import os
 from dataclasses import dataclass
 import logging
+import pandas as pd
 
 @dataclass
 class JiraProjectParameters:
@@ -127,6 +128,60 @@ class JiraProject:
         )
         return response
 
+    def get_issues(self):
+        url = self.base_url + "search"
+
+        headers = {
+        "Accept": "application/json"
+        }
+
+        query = {
+        'jql': f'project = {self.project_id}'
+        }
+
+        response = requests.request(
+        "GET",
+        url,
+        headers=headers,
+        params=query,
+        auth=self.auth
+        )
+
+        results = response.json()
+
+        return results['issues']
+
+    def get_snapshot(self):
+        issues = self.get_issues()
+        dict_list = []
+        for issue in issues:
+            try:
+                assignee = issue['fields']['assignee']['emailAddress']
+            except TypeError:
+                assignee = 'None'
+            try:
+                epic = issue['fields']['parent']['fields']['summary']
+            except KeyError:
+                epic = 'None'
+            new_dict = {
+                'ID': issue['id'],
+                'KEY': issue['key'],
+                'STATUS_DATE': issue['fields']['statuscategorychangedate'],
+                'ISSUE_TYPE': issue['fields']['issuetype']['name'],
+                'EPIC': epic,
+                'STATUS': issue['fields']['status']['name'],
+                'LABEL': issue['fields']['labels'],
+                'CREATION_DATE': issue['fields']['created'],
+                'UPDATE_DATE': issue['fields']['updated'],
+                'PRIORITY': issue['fields']['priority']['name'],
+                'SUMMARY': issue['fields']['summary'],
+                'CREATOR': issue['fields']['creator']['emailAddress'],
+                'REPORTER': issue['fields']['reporter']['emailAddress'],
+                'ASSIGNEE': assignee
+            }
+            dict_list.append(new_dict)
+        return pd.DataFrame(dict_list)
+    
 
 def create_description(text):
         description = {
@@ -146,3 +201,6 @@ def create_description(text):
         }
 
         return description
+
+
+
