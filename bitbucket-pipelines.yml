@@ -2035,7 +2035,7 @@ pipelines:
 #                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
 #                    --environment prd
 #                    --project CPT/SNOMED/ETL
-#                    --bundle CPT/SNOMED/ETLzip
+#                    --bundle CPT/SNOMED/ETL.zip
         - parallel:
             - step:
                 name: Reload Development Lambda Functions
