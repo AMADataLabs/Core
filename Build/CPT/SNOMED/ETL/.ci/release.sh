@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-cpt-snomed-etl"
-    export RELEASE_DESCRIPTION="CPT SNOMED ETL DAG definition and tasks"
+    export RELEASE_NAME="datalabs-snomed-cpt-etl"
+    export RELEASE_DESCRIPTION="SNOMED-CPT API ETL DAG definition and tasks"
 }
 
 
