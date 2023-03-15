@@ -1,5 +1,5 @@
 ''' DAG definition for SNOMED-CPT API ETL '''
-from   datalabs.etl.dag import dag, DAG, register
+from   datalabs.etl.dag import dag
 
 
 @dag.register(name="SNOMED_CPT")
