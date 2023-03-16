@@ -4,13 +4,20 @@ import hashlib
 import logging
 import re
 
+import numpy as np
 import pandas
+from psycopg2.extensions import register_adapter, AsIs
 
 import datalabs.etl.orm.provider.base
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
+def adapt_numpy_int64(numpy_int64):
+    return AsIs(numpy_int64)
+
+register_adapter(np.int64, adapt_numpy_int64)
 
 
 class ORMLoaderProvider(datalabs.etl.orm.provider.base.ORMLoaderProvider):

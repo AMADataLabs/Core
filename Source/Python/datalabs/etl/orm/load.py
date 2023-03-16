@@ -4,9 +4,7 @@ import io
 import logging
 import math
 
-import numpy as np
 import pandas
-from psycopg2.extensions import register_adapter, AsIs
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
@@ -18,11 +16,6 @@ from   datalabs.task import Task
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-def addapt_numpy_int64(numpy_int64):
-    return AsIs(numpy_int64)
-
-register_adapter(np.int64, addapt_numpy_int64)
 
 
 # pylint: disable=too-many-instance-attributes
