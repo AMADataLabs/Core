@@ -1,1 +1,1 @@
-VeriCre-API-Endpoint
+VeriCre-API

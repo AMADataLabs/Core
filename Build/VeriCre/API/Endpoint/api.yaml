@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Vericre API
-  description: Vericre API Phase 1
+  description: Vericre API
   termsOfService: http://swagger.io/terms/
   contact:
     email: datalabs@ama-assn.org
@@ -30,7 +30,7 @@ paths:
                 items:
                   type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -56,38 +56,38 @@ components:
     ProfileLookUp:
       type: object
       properties:
-        firstName:
+        first_name:
           type: string
           example: Jon
-        lastName:
+        last_name:
           type: string
           example: Doe
-        dateOfBirth:
+        date_of_birth:
           type: string
           example: 04/03/1994
-        stateOfPractice:
+        state_of_practice:
           type: string
           example: AZ
-        npiNumber:
+        npi_number:
           type: string
           example: '1234567890'
     ProfileLookupResponse:
       type: object
       properties:
-        firstName:
+        first_name:
           type: string
-        lastName:
+        last_name:
           type: string
-        dateOfBirth:
+        date_of_birth:
           type: string
-        meNumber:
+        me_number:
           type: string
-        entityId:
+        entity_id:
           type: string
     ProfileData:
       type: object
       properties:
-        meNumber:
+        me_number:
           type: string
         demographics:
           type: array
@@ -97,11 +97,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFields'
-        medicalSchools:
+        medical_schools:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFields'
-        medicalTraining:
+        medical_training:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFields'
@@ -125,11 +125,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFields'
-        providerCDS:
+        provider_cds:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFields'
-        workHistory:
+        work_history:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFields'
@@ -140,15 +140,15 @@ components:
     ProfileFields:
       type: object
       properties:
-        fieldIdentifier:
+        field_identifier:
           type: string
           description: To determine the unique identifier of the field
-        isAuthoritative:
+        is_authoritative:
           type: boolean
           description: >-
             To determine whether the field is authoritative (AMA and non
             editable)
-        isSource:
+        is_source:
           type: boolean
           description: >-
             To determine the if the field is a source(true) or a Physician
@@ -156,13 +156,13 @@ components:
         name:
           type: string
           description: To determine the name of the field
-        readOnly:
+        read_only:
           type: boolean
           description: To determine whether the field is disabled(true) or editable(false)
-        sourceKey:
+        source_key:
           type: string
           description: To determine the source identifier in AMA Masterfile or CAQH Proview
-        sourceTag:
+        source_tag:
           type: string
           description: To determine the source tag of the field
           enum:

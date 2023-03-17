@@ -20,9 +20,6 @@ class ProfilesEndpointParameters:
     path: dict
     query: dict
     authorization: dict
-    # bucket: str
-    # base_path: str
-    # url_duration: str
     unknowns: dict=None
 
 
