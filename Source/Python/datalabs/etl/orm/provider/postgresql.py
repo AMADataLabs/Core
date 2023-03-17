@@ -6,7 +6,7 @@ import re
 
 import numpy as np
 import pandas
-from psycopg2.extensions import register_adapter, AsIs
+from   psycopg2.extensions import register_adapter, AsIs
 
 import datalabs.etl.orm.provider.base
 
