@@ -1,0 +1,191 @@
+openapi: 3.0.2
+info:
+  title: SNOMED CPT API
+  description: SNOMED CPT API
+  version: "1.0.0"
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Maps
+    description: >-
+      A list of SNOMED-CPT maps. If more results than returned are available,
+      a "next" property indicating the URL to fetch the next set of results
+      is included.
+  - name: Map
+    description: >-
+      A SNOMED Concept ID, descriptor, and list of CPT mappings.
+  - name: Mapping
+    description: >-
+      A CPT code and descriptor to which a SNOMED concept maps.
+    externalDocs:
+      url: 'http://swagger.io'
+paths:
+  '/snomed/map/cpt/{concept}':
+    get:
+      tags:
+        - Map
+      summary: CPT codes by SNOMED Concept
+      description: Return all CPT codes and descriptors to which the given SNOMED Concept ID maps. Also return the mapping categories.
+      operationId: getCPTCodeMap
+      parameters:
+        - name: concept
+          in: path
+          description: SNOMED Concept ID
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-SNOMEDAPI/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Map'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No SNOMED map exists for the given Concept ID.
+      security:
+        - gateway_authorizer: []
+  /snomed/maps/cpt:
+    get:
+      tags:
+        - Maps
+      summary: All SNOMED Concepts and their CPT Code maps
+      description: Returns all SNOMED Concepts, descriptors along with the CPT Codes and descriptors to which they map.
+      operationId: getCPTCodeMaps
+      parameters:
+        - name: results
+          in: query
+          description: Maximum number of results to return (default 50)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: keyword
+          in: query
+          description: Filter by keyword across the text of any of the SNOMED descriptors.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: index
+          in: query
+          description: Start index of results (default 0)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-SNOMEDAPI/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Maps'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:
+    Maps:
+      type: object
+      required:
+        - maps
+      properties:
+        maps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Map'
+        next:
+          type: string
+    Map:
+      type: object
+      required:
+        - concept
+        - descriptor
+      properties:
+        concept:
+          type: string
+        descriptor:
+          type: string
+        mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Mapping'
+    Mapping:
+      type: object
+      required:
+        - code
+        - descriptor
+        - category
+      properties:
+        code:
+          type: string
+        descriptor:
+          type: string
+        category:
+          type: string
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/SNOMED-CPT/1.0.0'
