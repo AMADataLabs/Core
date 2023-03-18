@@ -1,0 +1,205 @@
+openapi: 3.0.2
+info:
+  title: Vericre API
+  description: Vericre API
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.6.12
+tags:
+  - name: Profile
+    description: APIs to search Physician Profiles
+paths:
+  /profiles:
+    get:
+      tags:
+        - Profile
+      description: Fetch profiles by ME number
+      operationId: getProfiles
+      parameters:
+        - name: me
+          in: query
+          description: List of ME Numbers
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileData'
+        '400':
+          description: Bad Request. The request should have a limit of 100 ME numbers
+        '500':
+          description: Internal Server Error
+components:
+  schemas:
+    ProfileLookUp:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Jon
+        last_name:
+          type: string
+          example: Doe
+        date_of_birth:
+          type: string
+          example: 04/03/1994
+        state_of_practice:
+          type: string
+          example: AZ
+        npi_number:
+          type: string
+          example: '1234567890'
+    ProfileLookupResponse:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        date_of_birth:
+          type: string
+        me_number:
+          type: string
+        entity_id:
+          type: string
+    ProfileData:
+      type: object
+      properties:
+        me_number:
+          type: string
+        demographics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        ecfmg:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        medical_schools:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        medical_training:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        licenses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        sanctions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        dea:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        abms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        claim:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        provider_cds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        work_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+        insurance:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFields'
+    ProfileFields:
+      type: object
+      properties:
+        field_identifier:
+          type: string
+          description: To determine the unique identifier of the field
+        is_authoritative:
+          type: boolean
+          description: >-
+            To determine whether the field is authoritative (AMA and non
+            editable)
+        is_source:
+          type: boolean
+          description: >-
+            To determine the if the field is a source(true) or a Physician
+            provided(false) field
+        name:
+          type: string
+          description: To determine the name of the field
+        read_only:
+          type: boolean
+          description: To determine whether the field is disabled(true) or editable(false)
+        source_key:
+          type: string
+          description: To determine the source identifier in AMA Masterfile or CAQH Proview
+        source_tag:
+          type: string
+          description: To determine the source tag of the field
+          enum:
+            - AMA
+            - CAQH
+            - Physician Provided
+        type:
+          type: string
+          description: >-
+            To determine the type of the field having value from the below
+            FieldType values
+          enum:
+            - TEXT
+            - TEXTAREA
+            - SELECT
+            - MULTISELECT
+            - RADIO
+            - DATE
+            - SIGN
+            - INITIAL
+            - LABEL
+            - ADD
+            - SECTIONTITLE
+            - HEADER
+            - CHECKBOX
+            - CHECKLABEL
+            - NOTE
+            - SUBHEADER
+            - MULTISELECTLINEAR
+            - MULTISELECTHIERARCHY
+            - FILE
+            - SUBSECTIONTITLE
+            - TEXTMASKED
+            - TEXTCONTENT
+        values:
+          type: array
+          description: To determine the value of the field
+          items:
+            type: object
+            description: To determine the value of the field
