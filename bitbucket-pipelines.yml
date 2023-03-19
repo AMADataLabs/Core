@@ -2323,7 +2323,7 @@ pipelines:
             - step:
                 name: Update sandbox Bundle
                 caches:
-                    - environment-master
+                - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
@@ -2334,7 +2334,7 @@ pipelines:
             - step:
                 name: Update development Bundle
                 caches:
-                    - environment-dev
+                - environment-dev
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -2347,7 +2347,7 @@ pipelines:
             - step:
                 name: Update test Bundle
                 caches:
-                    - environment-test
+                - environment-test
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -2360,7 +2360,7 @@ pipelines:
             - step:
                 name: Update production Bundle
                 caches:
-                    - environment-prod
+                - environment-prod
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
