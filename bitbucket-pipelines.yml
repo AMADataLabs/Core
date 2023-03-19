@@ -735,8 +735,8 @@ pipelines:
                     --environment prd
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
-        - parallel:
-            - step:
+#        - parallel:
+        - step:
                 name: Update Development Lambda Functions
                 script:
                 - >-
@@ -834,8 +834,8 @@ pipelines:
                     --environment prd
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
-        - parallel:
-            - step:
+#        - parallel:
+        - step:
                 name: Update development Lambda Functions
                 script:
                 - >-
@@ -871,8 +871,8 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project CPT/Files/Build
-        - parallel:
-            - step:
+#         - parallel:
+        - step:
                 name: Update Sandbox Bundle
                 caches:
                     - environment-master
@@ -925,8 +925,8 @@ pipelines:
 #                    --environment prd
 #                    --project CPT/Files/Build
 #                    --bundle CPT/Files/Build.zip
-        - parallel:
-            - step:
+#        - parallel:
+        - step:
                 name: Reload Sandbox Lambda Function
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -1033,8 +1033,8 @@ pipelines:
 #                    --environment prd
 #                    --project CPT/Files/Legacy
 #                    --bundle CPT/Files/Legacy.zip
-        - parallel:
-            - step:
+#        - parallel:
+        - step:
                 name: Reload Sandbox Lambda Function
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -1998,8 +1998,8 @@ pipelines:
                 script:
                     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     - bash Deploy/Master/deploy-package --project CPT/SNOMED/ETL
-        - parallel:
-            - step:
+        # - parallel:
+        - step:
                 name: Update Development Lambda Bundle
                 caches:
                     - environment-dev
@@ -2038,8 +2038,8 @@ pipelines:
 #                    --environment prd
 #                    --project CPT/SNOMED/ETL
 #                    --bundle CPT/SNOMED/ETL.zip
-        - parallel:
-            - step:
+
+        - step:
                 name: Reload Development Lambda Functions
                 script:
                 - >-
