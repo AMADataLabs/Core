@@ -1,0 +1,58 @@
+# Render as follows:
+#
+# update-dag-config -e sbx -p CPT -t zip_api -v "database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
+
+    DATABASE_HOST: cpt-api-dev-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'cpt'
+    DATABASE_USERNAME:  cptadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+
+    #######################################################################
+    # Route Variables - ({"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "API"}})
+    #######################################################################
+
+    SNOMED_CPT_API__ROUTE__MAP: '/snomed/map/cpt/*'
+    SNOMED_CPT_API__ROUTE__MAPS: '/snomed/maps/cpt'
+    SNOMED_CPT_API__ROUTE__DEFAULT: '/*'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+
+    # GET /snomed/map/cpt/*
+    SNOMED_CPT_API__MAP__TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapLookupEndpointTask'
+    SNOMED_CPT_API__MAP__DATABASE_NAME:  ${DATABASE_NAME}
+    SNOMED_CPT_API__MAP__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    SNOMED_CPT_API__MAP__DATABASE_HOST: ${DATABASE_HOST}
+    SNOMED_CPT_API__MAP__DATABASE_PORT: ${DATABASE_PORT}
+    SNOMED_CPT_API__MAP__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    SNOMED_CPT_API__MAP__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    # GET /snomed/maps/cpt
+    SNOMED_CPT_API__MAPS__TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapSearchEndpointTask'
+    SNOMED_CPT_API__MAPS__DATABASE_NAME:  ${DATABASE_NAME}
+    SNOMED_CPT_API__MAPS__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    SNOMED_CPT_API__MAPS__DATABASE_HOST: ${DATABASE_HOST}
+    SNOMED_CPT_API__MAPS__DATABASE_PORT: ${DATABASE_PORT}
+    SNOMED_CPT_API__MAPS__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    SNOMED_CPT_API__MAPS__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    # default
+    SNOMED_CPT_API__DEFAULT__TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'
