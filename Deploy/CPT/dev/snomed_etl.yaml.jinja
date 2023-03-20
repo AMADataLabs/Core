@@ -13,7 +13,6 @@ data:
     S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
 
 
-
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     S3_BASE_PATH: 'AMA/SNOMED'
 
@@ -31,7 +30,6 @@ data:
     SNOMED_CPT_ETL__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
     SNOMED_CPT_ETL__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     SNOMED_CPT_ETL__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-
 
 
     ##########################################################################
