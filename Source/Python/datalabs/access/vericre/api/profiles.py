@@ -3,9 +3,9 @@ from   dataclasses import dataclass
 import logging
 
 import boto3
-from   botocore.exceptions import ClientError
+# from   botocore.exceptions import ClientError
 
-from   datalabs.access.api.task import APIEndpointTask, InternalServerError
+from   datalabs.access.api.task import APIEndpointTask
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
