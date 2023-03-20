@@ -38,6 +38,7 @@ data:
     # Task Variables - ({"DAG": {"S": "SNOMED_CPT_ETL"}, "Task": {"S": "<Task ID>"}})
     ##########################################################################
 
+    # Extract snomed file
     SNOMED_CPT_ETL__EXTRACT_SNOMED_FILE__BUCKET: ${S3_STAGED_DATA_BUCKET}
     SNOMED_CPT_ETL__EXTRACT_SNOMED_FILE__BASE_PATH: ${S3_BASE_PATH}
     SNOMED_CPT_ETL__EXTRACT_SNOMED_FILE__FILES: snomed_cpt_map_fsn_descr_20230131.xlsx
