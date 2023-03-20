@@ -35,7 +35,7 @@ data:
 
 
     # GET /snomed/map/cpt/*
-    SNOMED_CPT_API__MAP__TASK_CLASS: 'datalabs.access.cpt.api.bulk.FilesEndpointTask'
+    SNOMED_CPT_API__MAP__TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapLookupEndpointTask'
     SNOMED_CPT_API__MAP__DATABASE_NAME:  ${DATABASE_NAME}
     SNOMED_CPT_API__MAP__DATABASE_BACKEND: ${DATABASE_BACKEND}
     SNOMED_CPT_API__MAP__DATABASE_HOST: ${DATABASE_HOST}
@@ -45,7 +45,7 @@ data:
 
 
     # GET /snomed/maps/cpt
-    SNOMED_CPT_API__MAPS__TASK_CLASS: 'datalabs.access.cpt.api.release.ReleasesEndpointTask'
+    SNOMED_CPT_API__MAPS__TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapSearchEndpointTask'
     SNOMED_CPT_API__MAPS__DATABASE_NAME:  ${DATABASE_NAME}
     SNOMED_CPT_API__MAPS__DATABASE_BACKEND: ${DATABASE_BACKEND}
     SNOMED_CPT_API__MAPS__DATABASE_HOST: ${DATABASE_HOST}
