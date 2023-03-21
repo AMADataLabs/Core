@@ -13,6 +13,10 @@ class AWSClient:
         if os.getenv('AWS_NO_VERIFY_SSL') == "True":
             self._ssl_verification = False
 
+    @property
+    def resource(self):
+        return boto3.resource(self._service)
+
     def __enter__(self):
         assume_role = self._kwargs.pop("assume_role", None)
         profile = self._kwargs.pop("profile", None)
