@@ -58,7 +58,7 @@ class SNOMEDMappingTransformerTask(Task):
         data.loc[data["FSN"] == "nan", "FSN"] = ""
 
         data["CPT Descriptor"] = data["CPT Descriptor"].astype('str')
-        data.loc[data.cpt_descriptor == "nan", "CPT Descriptor"] = ""
+        data.loc[data["CPT Descriptor"] == "nan", "CPT Descriptor"] = ""
 
     @classmethod
     def _rename_columns(cls, data):
@@ -91,7 +91,7 @@ class SNOMEDMappingTransformerTask(Task):
 
     @classmethod
     def _create_keywords(cls, data):
-        data["clean_descriptor"] = data["CPT Descriptor"].apply(
+        data["clean_descriptor"] = data.cpt_descriptor.apply(
             lambda x: re.sub(r'[^\w ]+', '', x)).str.lower().str.split()
 
         keywords = data[["pk", "clean_descriptor"]].rename(columns={"clean_descriptor": "keywords"})
