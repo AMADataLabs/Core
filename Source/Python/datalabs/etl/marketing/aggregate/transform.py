@@ -41,22 +41,19 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     def run(self):
         packed_data = [pickle.loads(pickled_dataset) for pickled_dataset in self._data]
-        try:
-            input_data = self._read_input_data(packed_data[0])
-            input_data = self._clean_input_data(input_data)
 
-            input_data_list = [
-                input_data.adhoc,
-                input_data.aims,
-                input_data.list_of_lists,
-                input_data.flatfile
-            ]
-            return [self._dataframe_to_csv(data) for data in input_data_list]
+        input_data = self._read_input_data(packed_data[0])
 
-        except IndexError:
-            input_data = []
+        input_data = self._clean_input_data(input_data)
 
-        return []
+        input_data_list = [
+            input_data.adhoc,
+            input_data.aims,
+            input_data.list_of_lists,
+            input_data.flatfile
+        ]
+        
+        return [self._dataframe_to_csv(data) for data in input_data_list]
 
     def _parse(self, text, seperator = ','):
         decoded_text = self._decode(text)

@@ -63,7 +63,7 @@ def test_input_data_cleaner_transformer_clean_input_data(pickled_data):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_input_data_cleaner_transformer_output_data(pickled_data):
-    transformer = InputDataCleanerTask({}, pickled_data)
+    transformer = InputDataCleanerTask({},pickled_data)
     output_files = transformer.run()
 
     assert len(output_files) == 4
@@ -72,10 +72,11 @@ def test_input_data_cleaner_transformer_output_data(pickled_data):
 # pylint: disable=redefined-outer-name, protected-access
 def test_empty_input_data_cleaner_transformer(empty_pickled_data):
     transformer = InputDataCleanerTask({}, empty_pickled_data)
-    output_files = transformer.run()
 
-    assert output_files == []
+    with pytest.raises(IndexError) as exception:
+        transformer.run()
 
+    assert exception.value.args[0] == 'list index out of range'
 
 def load_tuple_data(pickled_data):
     named_files_data = pickle.loads(pickled_data[0])
