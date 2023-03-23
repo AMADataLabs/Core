@@ -53,7 +53,7 @@ class ORMLoaderTask(Task):
 
     COLUMN_TYPE_CONVERTERS = {
         'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
-        'INTEGER': lambda x: x.astype(int, copy=False)
+        'INTEGER': lambda x: x.astype(float).astype('Int64')
     }
 
     def run(self):
@@ -356,7 +356,7 @@ class ORMLoaderTask(Task):
     def _replace_nan(cls, value):
         replacement_value = value
 
-        if isinstance(value, float) and math.isnan(value):
+        if (isinstance(value, float) and math.isnan(value)) or pandas.isna(value):
             replacement_value = None
 
         return replacement_value
