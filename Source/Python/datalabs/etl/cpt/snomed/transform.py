@@ -1,9 +1,9 @@
 """SNOMED CPT Transformer"""
 from   collections import defaultdict
-
 import json
 import logging
 import re
+
 import pandas
 
 from   datalabs.task import Task
@@ -17,26 +17,28 @@ LOGGER.setLevel(logging.INFO)
 class SNOMEDMappingTransformerTask(Task):
     def run(self):
         LOGGER.debug(self._data)
-
         parsed_data = pandas.read_excel(self._data[0])
 
-        processed_data = self._process_data(parsed_data)
-        renamed_data = self._rename_columns(processed_data)
+        cleaned_data = self._clean_data(parsed_data)
 
-        json_data = self._csv_to_json(renamed_data)
+        renamed_data = self._rename_columns(cleaned_data)
 
-        return [json_data.encode()]
+        mappings = self._generate_cpt_mappings(renamed_data)
 
-    def _process_data(self, data):
+        mappings = self._generate_keyword_mappings(renamed_data, mappings)
+
+        return [json.dumps(mappings).encode()]
+
+    def _clean_data(self, data):
         self._fill_missing_ids(data)
 
         self._create_sorting_key(data)
 
         self._set_default_descriptor_values(data)
 
-        processed_data = data.drop_duplicates(subset=("Concept Id", "CPT Code"))
+        cleaned_data = data.drop_duplicates(subset=("Concept Id", "CPT Code"))
 
-        return processed_data
+        return cleaned_data
 
     @classmethod
     def _fill_missing_ids(cls, data):
@@ -75,19 +77,27 @@ class SNOMEDMappingTransformerTask(Task):
 
         return renamed_data
 
-    def _csv_to_json(self, data):
+    def _generate_cpt_mappings(self, data):
         mappings = []
+
+        for index in range(len(data)):
+            row = data.iloc[index]
+            mappings.append(row.to_dict())
+
+        return mappings
+
+    def _generate_keyword_mappings(self, data, mappings):
         keyword_map = defaultdict(list)
 
-        data, keywords = self._create_keywords(data)
+        keywords = self._create_keywords(data)
 
-        keywords, keyword_map = self._create_keyword_mappings(keywords, keyword_map)
-        keywords, keyword_map = self._create_reverse_mappings(keywords, keyword_map)
+        keyword_map = self._create_keyword_mappings(keywords, keyword_map)
 
-        mappings = self._generate_mapping_table(mappings, data)
-        mappings = self._generate_keyword_table(mappings, keyword_map)
+        reverse_keyword_map = self._create_reverse_mappings(keyword_map)
 
-        return json.dumps(mappings)
+        self._generate_keyword_items(mappings, reverse_keyword_map)
+
+        return mappings
 
     @classmethod
     def _create_keywords(cls, data):
@@ -95,9 +105,9 @@ class SNOMEDMappingTransformerTask(Task):
             lambda x: re.sub(r'[^\w ]+', '', x)).str.lower().str.split()
 
         keywords = data[["pk", "clean_descriptor"]].rename(columns={"clean_descriptor": "keywords"})
-        data = data.drop(columns=["clean_descriptor", "map_id"])
+        data.drop(columns=["clean_descriptor", "map_id"])
 
-        return data, keywords
+        return keywords
 
     @classmethod
     def _create_keyword_mappings(cls, keywords, keyword_map):
@@ -105,26 +115,14 @@ class SNOMEDMappingTransformerTask(Task):
             for keyword in keywords.iloc[index].keywords:
                 keyword_map[keyword].append(keywords.iloc[index].pk)
 
-        return keywords, keyword_map
+        return keyword_map
 
     @classmethod
-    def _create_reverse_mappings(cls, keywords, keyword_map):
-        keyword_map = {keyword: set(pks) for keyword, pks in keyword_map.items()}
-
-        return keywords, keyword_map
+    def _create_reverse_mappings(cls, keyword_map):
+        return {keyword: set(pks) for keyword, pks in keyword_map.items()}
 
     @classmethod
-    def _generate_mapping_table(cls, mappings, data):
-        for index in range(len(data)):
-            row = data.iloc[index]
-            mappings.append(row.to_dict())
-
-        return mappings
-
-    @classmethod
-    def _generate_keyword_table(cls, mappings, keyword_map):
+    def _generate_keyword_items(cls, mappings, keyword_map):
         for keyword, pks in keyword_map.items():
             for pk in pks:
                 mappings.append(dict(pk=pk, sk=f"KEYWORD:{keyword}"))
-
-        return mappings
