@@ -11,6 +11,7 @@ from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
 from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
+from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -40,32 +41,32 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     def run(self):
         packed_data = [pickle.loads(pickled_dataset) for pickled_dataset in self._data]
+        try:
+            input_data = self._read_input_data(packed_data[0])
+            input_data = self._clean_input_data(input_data)
 
-        if len(packed_data) == 0:
-            return None
-
-        input_files = self._extract_files(packed_data[0])
-
-        input_data = self._read_input_data(input_files)
-
-        input_data = self._clean_input_data(input_data)
-
-        input_data_list = [input_data.adhoc,
+            input_data_list = [
+                input_data.adhoc,
                 input_data.aims,
                 input_data.list_of_lists,
                 input_data.flatfile
-        ]
+            ]
+            return [self._dataframe_to_csv(data) for data in input_data_list]
 
-        return [self._dataframe_to_csv(data) for data in input_data_list]
+        except IndexError:
+            input_data = []
+
+        return []
 
     def _parse(self, text, seperator = ','):
         decoded_text = self._decode(text)
 
-        data = pandas.read_csv(io.StringIO(decoded_text),
-                sep=seperator,
-                on_bad_lines='skip',
-                dtype=object,
-                index_col=None
+        data = pandas.read_csv(
+            io.StringIO(decoded_text),
+            sep=seperator,
+            on_bad_lines='skip',
+            dtype=object,
+            index_col=None
         )
 
         return data
@@ -74,8 +75,9 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         adhoc_files = []
         adhoc_data = input_files[0:-3]
 
-        for data in adhoc_data:
+        for name, data in adhoc_data:
             adhoc_file = self._parse(data, seperator = ',')
+            adhoc_file['File_Name'] = name
             adhoc_files.append(adhoc_file)
 
         return pandas.concat(adhoc_files, axis=0, ignore_index=True)
@@ -84,17 +86,13 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         adhoc = self._merge_adhoc_data(input_files)
 
-        aims = self._parse(input_files[-3], seperator = '|')
+        aims = self._parse(input_files[-3][1], seperator = '|')
 
-        list_of_lists = self._parse(input_files[-2], seperator = ',')
+        list_of_lists = self._parse(input_files[-2][1], seperator = ',')
 
-        flatfile = self._parse(input_files[-1], seperator = '\t')
+        flatfile = self._parse(input_files[-1][1], seperator = '\t')
 
         return  MarketingData(adhoc, aims, list_of_lists, flatfile)
-
-    @classmethod
-    def _extract_files(cls, files):
-        return [data for name, data in files]
 
     def _clean_input_data(self, input_data: MarketingData) -> MarketingData:
         input_data.adhoc = self._clean_adhoc(input_data.adhoc)
@@ -110,43 +108,13 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     @classmethod
     def _clean_adhoc(cls, adhoc):
-        adhoc = adhoc.rename(columns={'EMAIL' : "BEST_EMAIL"})[
-            [
-                'CUSTOMER_ID',
-                'NAME',
-                'BUSTITLE',
-                'BUSNAME',
-                'ADDR1',
-                'ADDR2',
-                'ADDR3',
-                'CITY',
-                'STATE',
-                'ZIP',
-                'COUNTRY',
-                'BEST_EMAIL',
-                'DAY_PHONE',
-                'EVENING_PHONE',
-                'INDUSTRY_DESC'
-                #'File_Name'
-            ]
-        ]
+        adhoc = adhoc.rename(columns=ADHOC_COLUMNS)[ADHOC_COLUMNS.values()]
 
         return adhoc.dropna(subset=["BEST_EMAIL"])
 
     @classmethod
     def _clean_aims(cls, aims):
-        columns = {
-            '#AMA_Membership_Flag': 'MEMBERFLAG',
-            'ME_Nbr': 'ME_Nbr',
-            'Gender' : "GENDER",
-            'Prim_Spec_Cd' : "AIMS_PRIMSPC",
-            'Sec_Spec_Cd' : "AIMS_SECSPC",
-            'Do_no_rent_flag' : "SUP_DNRFLAG",
-            'Do_not_mail/email_flag' : "SUP_DNMFLAG",
-            'Preferred_Email': 'BEST_EMAIL',
-        }
-
-        aims = aims.rename(columns=columns)[columns.values()]
+        aims = aims.rename(columns=AIMS_COLUMNS)[AIMS_COLUMNS.values()]
 
         aims["PHYSICIANFLAG"] = "Y"
 
@@ -154,17 +122,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     @classmethod
     def _clean_list_of_lists(cls, list_of_lists):
-        list_of_lists = list_of_lists.rename(columns= {"LIST SOURCE KEY": "LISTKEY"})[
-            [
-                'LIST NUMBER',
-                'CHANGED STATUS',
-                'STATUS',
-                'LISTKEY',
-                'LIST NAME',
-                'SOURCE'
-            ]
-        ]
-
+        list_of_lists = list_of_lists.rename(columns=LIST_OF_LISTS_COLUMNS)[LIST_OF_LISTS_COLUMNS.values()]
         list_of_lists["LISTKEY"] = list_of_lists["LISTKEY"] + "#"
 
         return list_of_lists
