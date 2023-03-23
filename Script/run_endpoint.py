@@ -14,7 +14,7 @@ import repo
 def main(args):
     repo.configure()  # Setup the repo's PYTHONPATH
 
-    os.environ["DYNAMODB_CONFIG_TABLE"] = "DataLake-configuration-dev"
+    os.environ["DYNAMODB_CONFIG_TABLE"] = "DataLake-configuration-sbx"
     os.environ["API_ID"] = args["api"]
 
     query_parameters = aggregate_query_parameters(args["query_parameter"] or [])
