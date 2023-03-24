@@ -1,0 +1,40 @@
+---
+modspec:
+  - package: datalabs
+    include:
+      - awslambda
+      - feature
+      - parameter
+      - plugin
+      - sqlalchemy
+      - task
+  - package: datalabs.access
+    include:
+      - aws
+      - credentials
+      - database
+      - datastore
+      - environment
+      - orm
+      - sftp
+      - sqlalchemy
+  - package: datalabs.access.parameter
+  - package: datalabs.etl
+  - package: datalabs.etl.archive
+  - package: datalabs.etl.s3
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.execute
+  - package: datalabs.etl.dag.marketing
+    include:
+      - aggregate
+  - package: datalabs.etl.dag.notify
+  - package: datalabs.etl.dag.state
+  - package: datalabs.etl.orm
+  - package: datalabs.etl.sql
+  - package: datalabs.etl.sql.sqlalchemy
+  - package: datalabs.etl.sftp
+  - package: datalabs.etl.smtp
+  - package: datalabs.messaging
+    include:
+      - email_message

@@ -1710,6 +1710,83 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
                     LicenseMovement-Extract=LicenseMovement-Extract.zip
 
+        Marketing-Aggregator:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project Marketing/Aggregator
+        - parallel:
+            - step:
+                name: Update development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project Marketing/Aggregator
+                    --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
+            - step:
+                name: Update test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project Marketing/Aggregator
+                    --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
+            - step:
+                name: Update production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project Marketing/Aggregator
+                    --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
+        - parallel:
+             - step:
+                 name: Update Development Lambda Functions
+                 script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CustomerIntelligence -p CustomerIntelligence
+                    MarketingAggregatorDAG=MarketingAggregatorDAG.zip
+#            - step:
+#                name: Update Test Lambda Function
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CustomerIntelligence -p CustomerIntelligence
+#                    MarketingAggregatorDAG=MarketingAggregatorDAG.zip
+#            - step:
+#                name: Update Production Lambda Function
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CustomerIntelligence -p CustomerIntelligence
+#                    AggregatorDAG=MarketingAggregatorDAG.zip
+
         OneView-API:
         - step:
             name: Create Development Component Package
