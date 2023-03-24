@@ -1,6 +1,3 @@
-# Render as follows:
-#
-# update-dag-config -e sbx -p CPT -t zip_api -v "database_password={{database_password}}"
 ---
 data:
     #######################################################################
@@ -10,8 +7,7 @@ data:
     ENVIRONMENT: dev
     ACCOUNT: '191296302136'
 
-    # DATABASE_TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
-    DATABASE_TABLE: 'CPT-API-snomed-sbx'
+    DATABASE_TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
 
     #######################################################################
     # Route Variables - ({"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "API"}})

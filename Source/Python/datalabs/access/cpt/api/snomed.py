@@ -10,6 +10,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
@@ -20,7 +21,7 @@ class MapLookupEndpointParameters:
     database_table: str
     unknowns: dict=None
 
-# change names first
+
 class MapLookupEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = MapLookupEndpointParameters
 
@@ -47,9 +48,6 @@ class MapLookupEndpointTask(APIEndpointTask):
         return results["Items"]
 
     def _filter_mappings(self, mappings, categories):  
-        print("JFJDJDJJDJDJ")
-        print(mappings)
-        print(categories)
         filtered_mappings = mappings
 
         if categories:
