@@ -1,0 +1,46 @@
+# Render as follows:
+#
+# update-dag-config -e sbx -p VeriCre -t api -v "database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "VERICRE_API"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
+
+    # S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-vericre-us-east-1
+
+    DATABASE_HOST: vericre-sbx-au-aurora-cluster.cluster-c3mn4zysffxi.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'postgres'
+    DATABASE_USERNAME:  vericreadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+
+    #######################################################################
+    # Route Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "API"}})
+    #######################################################################
+
+    VERICRE_API__ROUTE__PROFILES: '/profiles'
+    VERICRE_API__ROUTE__DEFAULT: '/*'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # GET /profiles
+    VERICRE_API__PROFILES__TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
+    VERICRE_API__PROFILES__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILES__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILES__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILES__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILES__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    VERICRE_API__DEFAULT__TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
