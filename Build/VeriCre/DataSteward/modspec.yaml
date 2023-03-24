@@ -6,13 +6,13 @@ modspec:
       - feature
       - parameter
       - plugin
-      - sqlalchemy     
+      - sqlalchemy
       - task
   - package: datalabs.access
     include:
       - aws
       - credentials
-      - database     
+      - database
       - datastore
       - environment
       - sftp
