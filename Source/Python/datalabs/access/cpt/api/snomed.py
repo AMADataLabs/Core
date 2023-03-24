@@ -25,10 +25,13 @@ class MapLookupEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = MapLookupEndpointParameters
 
     def run(self):
-        # LOGGER.debug('Parameters: %s', self._parameters)        
+        LOGGER.debug('Parameters: %s', self._parameters)     
         
-        concept = "306683007" # FIXME - pull in value dynamically?
-        # concept = self._parameters.path["concept"] # FIXME - pull in value dynamically?
+        concept = self._parameters.path["concept"]
+        if(self._parameters.query):
+            passedFilter = self._parameters.query["category"]
+        else:
+            passedFilter = False
 
         with AWSClient("dynamodb") as db:
             results = db.execute_statement(
@@ -36,20 +39,30 @@ class MapLookupEndpointTask(APIEndpointTask):
         )
 
         if(results["Items"] == []):
-            return "No SNOMED concept for the given ID."
+            self._status_code = 404
+            self._response_body = "No SNOMED concept for the given ID."
+        else:
+            mappings = {
+                "concept": results["Items"][0]['pk']['S'].replace("CONCEPT:", ""),
+                "descriptor": results["Items"][0]['snomed_descriptor']['S'],
+                "mappings": []
+            }
 
-        mappings = []
-        for item in results["Items"]:
-            mapping = {key:value['S'] for key, value in item.items()}
-            mapping.pop("pk")
-            mapping["cpt_code"] = mapping.pop("sk").replace("CPT:", "")
-            mappings.append(mapping)
+            for item in results["Items"]:
 
-        # FIXME: Set above to this?
+                mp = { 
+                    "code": item['sk']['S'].replace("CPT:", ""),
+                    "descriptor": item['cpt_descriptor']['S'].replace("CPT:", ""),
+                    "category": item['map_category']['S']
+                }
 
-        print("this 123///")
-        print(mappings)
+                # If there was no filter passed, add mp and we will add all of them
+                if(not passedFilter):
+                    mappings["mappings"].append(mp)
+                # If there is a filter, this will execute and only add mp if in the filter category
+                elif(mp["category"] in passedFilter):
+                    mappings["mappings"].append(mp)
 
-        self._response_body = self._generate_response_body(query.all()) # This line is required
+            self._response_body = []
 
         
