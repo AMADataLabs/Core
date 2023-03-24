@@ -78,6 +78,7 @@ def test_empty_input_data_cleaner_transformer(empty_pickled_data):
 
     assert exception.value.args[0] == 'list index out of range'
 
+
 def load_tuple_data(pickled_data):
     named_files_data = pickle.loads(pickled_data[0])
 
@@ -90,6 +91,7 @@ def read_input_data(pickled_data):
     read_input_files = transformer._read_input_data(named_files_data)
 
     return read_input_files
+
 
 # pylint: disable=line-too-long
 @pytest.fixture

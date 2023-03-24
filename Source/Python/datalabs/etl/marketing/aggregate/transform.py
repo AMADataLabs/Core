@@ -6,12 +6,11 @@ import pickle
 
 import pandas
 
+from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
+from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
-
-from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
-from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -52,7 +51,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
             input_data.list_of_lists,
             input_data.flatfile
         ]
-        
+
         return [self._dataframe_to_csv(data) for data in input_data_list]
 
     def _parse(self, text, seperator = ','):
