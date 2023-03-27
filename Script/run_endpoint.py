@@ -14,18 +14,42 @@ import repo
 def main(args):
     repo.configure()  # Setup the repo's PYTHONPATH
 
-    os.environ["DYNAMODB_CONFIG_TABLE"] = "DataLake-configuration-dev"
+    os.environ["DYNAMODB_CONFIG_TABLE"] = f'DataLake-configuration-{args["environment"]}'
+    print(f'Using DynamoDB Configuration Table {os.environ["DYNAMODB_CONFIG_TABLE"]}')
     os.environ["API_ID"] = args["api"]
+    payload = json.loads(args["payload"])
+
+    path_parameters = extract_path_parameters(args["endpoint"], args["path_parameter"] or [])
 
     query_parameters = aggregate_query_parameters(args["query_parameter"] or [])
-    payload = json.loads(args["payload"])
-    event = generate_api_gateway_event(args["method"], args["endpoint"], query_parameters, args["no_auth"])
 
-    event["payload"] = payload
+    event = generate_api_gateway_event(
+        args["method"],
+        args["endpoint"],
+        path_parameters,
+        query_parameters,
+        args["no_auth"]
+    )
 
-    task_wrapper = APIEndpointTaskWrapper(event)
+    if args["dry_run"]:
+        print(event)
+    else:
+        event["payload"] = payload
 
-    print(task_wrapper.run())
+        task_wrapper = APIEndpointTaskWrapper(event)
+
+        print(task_wrapper.run())
+
+
+def extract_path_parameters(endpoint, path_parameter_nvpairs):
+    endpoint_components = endpoint.split('/')
+    path_parameters = {}
+
+    for nvpair in path_parameter_nvpairs:
+        parameter, index = nvpair.split('=')
+        path_parameters[parameter] = endpoint_components[int(index)+1]
+
+    return path_parameters
 
 
 def aggregate_query_parameters(query_parameter_kvargs):
@@ -38,7 +62,7 @@ def aggregate_query_parameters(query_parameter_kvargs):
 
     return query_parameters
 
-def generate_api_gateway_event(method, endpoint, query_parameters, no_auth):
+def generate_api_gateway_event(method, endpoint, path_parameters, query_parameters, no_auth):
     single_query_parameters = {key:value[0] for key, value in query_parameters.items()}
     authorizer_context = ""
 
@@ -90,7 +114,7 @@ def generate_api_gateway_event(method, endpoint, query_parameters, no_auth):
         }},
         "queryStringParameters": {json.dumps(single_query_parameters)},
         "multiValueQueryStringParameters": {json.dumps(query_parameters)},
-        "pathParameters": null,
+        "pathParameters": {json.dumps(path_parameters)},
         "stageVariables": null,
         "requestContext": {{
             "resourceId": "zs07zi",
@@ -135,9 +159,12 @@ def generate_api_gateway_event(method, endpoint, query_parameters, no_auth):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-a', '--api', help='API ID.')
-    ap.add_argument('-e', '--endpoint', help='Endpoint path.')
-    ap.add_argument('-p', '--query-parameter', action='append', help='Query parameter as name=value.')
+    ap.add_argument('-D', '--dry-run', action='store_true', help="Print out mock Lambda event and quit.")
+    ap.add_argument('-e', '--environment', help='Deployment environment [sbx|dev|tst|itg|prd].')
+    ap.add_argument('-E', '--endpoint', help='Endpoint path.')
     ap.add_argument('-m', '--method', help='Use specified HTTP method.')
+    ap.add_argument('-q', '--query-parameter', action='append', help='Query parameter as name=value.')
+    ap.add_argument('-p', '--path-parameter', action='append', help='Path parameter as name=index.')
     ap.add_argument('-P', '--payload', default='{}', help='JSON paylod.')
     ap.add_argument('-A', '--no-auth', action='store_true', help='Do not add Authorizer context.')
     args = vars(ap.parse_args())

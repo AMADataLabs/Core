@@ -19,6 +19,7 @@ IntelligentPlatform/Licensing
 IntelligentPlatform
 LicenseMovement
 LicenseMovement/Extract
+Marketing/Aggregator
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract
