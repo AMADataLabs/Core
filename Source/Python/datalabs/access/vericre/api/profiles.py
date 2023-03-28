@@ -23,6 +23,12 @@ class ProfilesEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
     unknowns: dict=None
 
 
