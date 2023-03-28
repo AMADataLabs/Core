@@ -139,7 +139,7 @@ class Document(BASE, CommonColumns):
     document_type = sa.Column(sa.String(255))
     document_url = sa.Column(sa.Text)
     document_preview_url = sa.Column(sa.Text)
-    user = sa.Column(UUID(as_uuid=True), sa.ForeignKey("user.id"), nullable=False)
+    user = sa.Column(UUID(as_uuid=True), nullable=False)
 
     
 class Physician(BASE):
@@ -151,4 +151,4 @@ class Physician(BASE):
     caqh_updated_at = sa.Column(sa.BigInteger)
     form = sa.Column(sa.BigInteger)
     onboarding = sa.Column(JSONB)
-    user = sa.Column(UUID(as_uuid=True), sa.ForeignKey("user.id"), nullable=False)
+    user = sa.Column(UUID(as_uuid=True), nullable=False)
