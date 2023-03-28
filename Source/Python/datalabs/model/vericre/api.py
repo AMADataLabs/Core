@@ -149,6 +149,6 @@ class Physician(BASE):
     id = sa.Column(UUID(as_uuid=True), primary_key=True, nullable=False, default=uuid.uuid4)
     caqh_profile_id = sa.Column(sa.String(255))
     caqh_updated_at = sa.Column(sa.BigInteger)
-    form = sa.Column(sa.BigInteger, sa.ForeignKey("form.id"))
+    form = sa.Column(sa.BigInteger)
     onboarding = sa.Column(JSONB)
     user = sa.Column(UUID(as_uuid=True), sa.ForeignKey("user.id"), nullable=False)
