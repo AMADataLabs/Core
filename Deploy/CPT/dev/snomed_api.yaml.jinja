@@ -1,0 +1,38 @@
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    DATABASE_TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
+
+    #######################################################################
+    # Route Variables - ({"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "API"}})
+    #######################################################################
+
+    SNOMED_CPT_API__ROUTE__MAP: '/snomed/map/cpt/*'
+    SNOMED_CPT_API__ROUTE__MAPS: '/snomed/maps/cpt'
+    SNOMED_CPT_API__ROUTE__DEFAULT: '/*'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "SNOMED_CPT_API"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+
+    # GET /snomed/map/cpt/*
+    SNOMED_CPT_API__MAP__TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapLookupEndpointTask'
+    SNOMED_CPT_API__MAP__DATABASE_TABLE:  ${DATABASE_TABLE}
+
+
+    # GET /snomed/maps/cpt
+    SNOMED_CPT_API__MAPS__TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapSearchEndpointTask'
+    SNOMED_CPT_API__MAPS__DATABASE_TABLE:  ${DATABASE_TABLE}
+    SNOMED_CPT_API__MAPS__DATABASE_INDEX:  'SearchIndex'
+
+
+    # default
+    SNOMED_CPT_API__DEFAULT__TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'
