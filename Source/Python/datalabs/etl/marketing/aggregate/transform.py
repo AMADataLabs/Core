@@ -2,12 +2,14 @@
 from   dataclasses import dataclass
 import io
 import logging
+import os
 import pickle
 
 import pandas
 
 from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
-from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS
+# pylint: disable=line-too-long
+from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS,MERGE_LIST_OF_LISTS_COLUMNS,JOIN_LISTKEYS_COLUMNS
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
@@ -73,7 +75,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         for name, data in adhoc_data:
             adhoc_file = self._parse(data, seperator = ',')
-            adhoc_file['File_Name'] = name
+            adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
             adhoc_files.append(adhoc_file)
 
         return pandas.concat(adhoc_files, axis=0, ignore_index=True)
@@ -139,6 +141,65 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
             decoded_text = text.decode('cp1252', errors='backslashreplace')
 
         return decoded_text
+
+
+class InputsMergerTask(InputDataCleanerTask):
+    Parameter_class = InputDataCleanerTaskParameters
+
+    def run(self):
+
+        packed_data =  self._extract_data()
+
+        input_data = self._read_input_data(packed_data)
+
+        merged_inputs = self._merge_input_data(input_data)
+
+        return [self._dataframe_to_csv(merged_inputs)]
+
+    def _extract_data(self):
+        return list(self._data)
+
+    def _read_input_data(self, input_files: []) -> MarketingData:
+        adhoc = self._parse(input_files[0])
+        aims =  self._parse(input_files[1])
+        list_of_lists = self._parse(input_files[2])
+        flatfile = self._parse(input_files[3])
+
+        return MarketingData(adhoc, aims, list_of_lists, flatfile)
+
+    def _merge_input_data(self, input_data: MarketingData) -> pandas.DataFrame:
+        adhoc = input_data.adhoc
+        aims = input_data.aims
+        list_of_lists = input_data.list_of_lists
+
+        merged_inputs = self._merge_aims(adhoc, aims)
+        merged_inputs = self._merge_list_of_lists(merged_inputs, list_of_lists)
+
+        return self._join_listkeys(merged_inputs)
+
+    @classmethod
+    def _merge_aims(cls, data: pandas.DataFrame, aims: pandas.DataFrame) -> pandas.DataFrame:
+        data = data.dropna(subset=["BEST_EMAIL"])
+        aims = aims.dropna(subset=["BEST_EMAIL"])
+
+        return data.merge(aims, left_on='BEST_EMAIL', right_on='BEST_EMAIL', how='left')
+
+    @classmethod
+    def _merge_list_of_lists(cls, data, list_of_lists):
+        data = data.merge(list_of_lists, left_on='File_Name', right_on='LIST NAME', how='left')
+
+        data = data.drop(columns=MERGE_LIST_OF_LISTS_COLUMNS)
+
+        return data.dropna(subset = ["LISTKEY"])
+
+    # pylint: disable= unnecessary-lambda
+    @classmethod
+    def _join_listkeys(cls, data: pandas.DataFrame):
+        joined_listkeys = data.groupby("BEST_EMAIL")['LISTKEY'].apply(lambda x: ''.join(x)).reset_index()
+
+        data = data.merge(joined_listkeys, on="BEST_EMAIL", how='left')
+
+        return data.rename(columns=JOIN_LISTKEYS_COLUMNS)
 
 
 class UniqueEmailsIdentifierTask:
