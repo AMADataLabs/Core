@@ -123,7 +123,7 @@ class FormSubSection(BASE):
     is_hidden = sa.Column(sa.Boolean)
     order = sa.Column(sa.BigInteger)
     title = sa.Column(sa.String(512))
-    form_section = sa.Column(sa.BigInteger, sa.ForeignKey("form_section.id"), nullable=False)
+    form_section = sa.Column(sa.BigInteger, nullable=False)
 
 
 class Document(BASE, CommonColumns):
