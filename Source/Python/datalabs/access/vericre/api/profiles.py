@@ -51,7 +51,7 @@ class ProfilesEndpointTask(APIEndpointTask):
     def _run(self, database):
         self._set_parameter_defaults()
 
-        query = self._query_for_documents(database)
+        query = self._query_for_documents(self, database)
 
         query_result = query.all()
         LOGGER.info(f"_run result count: {len(query_result)}")
@@ -66,7 +66,7 @@ class ProfilesEndpointTask(APIEndpointTask):
         pass
 
     @classmethod
-    def _query_for_documents(cls, database):
+    def _query_for_documents(cls, self, database):
         # Define the subquery to get the required data
         docs_subquery = (
             database.query(
@@ -82,7 +82,7 @@ class ProfilesEndpointTask(APIEndpointTask):
             .join(FormSubSection, FormSubSection.form_section == FormSection.id)
             .join(FormField, FormField.form_sub_section == FormSubSection.id)
             .join(Document, Document.id == func.cast(FormField.values[0], Integer))
-            .filter(User.ama_me_number == '77777')
+            .filter(User.ama_me_number == self._parameters.path.get('meNumber'))
             .filter(FormField.type == 'FILE')
             .filter(Document.is_deleted == False)
             .subquery()
