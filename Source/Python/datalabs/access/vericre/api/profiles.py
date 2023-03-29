@@ -81,7 +81,8 @@ class ProfilesEndpointTask(APIEndpointTask):
             ).join(Form, Form.id == Physician.form
             ).join(FormSection, FormSection.form == Form.id
             ).join(FormSubSection, FormSubSection.form_section == FormSection.id
-            ).join(FormField, FormField.form_sub_section == FormSubSection.id)
+            ).join(FormField, FormField.form_sub_section == FormSubSection.id
+            ).join(Document, Document.id == func.cast(FormField.values[0], Integer))
 
     @classmethod
     def _query_for_documents(cls, database, sub_query):
@@ -107,7 +108,6 @@ class ProfilesEndpointTask(APIEndpointTask):
     
     def _filter(self, query):
         me_number = self._parameters.query.get('meNumber')[0]
-        LOGGER.info(f"me_number: {me_number}, {type(me_number)}")
         query = self._filter_by_me_number(query, me_number)
 
         return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
