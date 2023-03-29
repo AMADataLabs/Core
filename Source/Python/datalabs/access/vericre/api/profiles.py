@@ -106,7 +106,8 @@ class ProfilesEndpointTask(APIEndpointTask):
         return docs_query
     
     def _filter(self, query):
-        me_number = self._parameters.path.get('meNumber')
+        me_number = self._parameters.query.get('meNumber')
+        LOGGER.info(f"me_number: {me_number}, {type(me_number)}")
         query = self._filter_by_me_number(query, me_number)
 
         return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
