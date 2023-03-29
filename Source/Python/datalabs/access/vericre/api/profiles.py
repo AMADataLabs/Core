@@ -51,10 +51,13 @@ class ProfilesEndpointTask(APIEndpointTask):
     def _run(self, database):
         self._set_parameter_defaults()
 
-        query = self._query_for_documents(self, database)
+        sub_query = self._sub_query_for_documents(database)
+
+        sub_query = self._filter(sub_query)
+
+        query = self._query_for_documents(database, sub_query)
 
         query_result = query.all()
-        LOGGER.info(f"_run result count: {len(query_result)}")
 
         response_result = [ row._asdict() for row in query_result]
 
@@ -65,28 +68,25 @@ class ProfilesEndpointTask(APIEndpointTask):
     def _set_parameter_defaults(self):
         pass
 
+
     @classmethod
-    def _query_for_documents(cls, self, database):
-        # Define the subquery to get the required data
-        docs_subquery = (
-            database.query(
+    def _sub_query_for_documents(cls, database):
+        return database.query(
                 User.id.label('user_id'),
                 FormField.name.label('field_name'),
                 User.avatar_image,
                 Document.document_name,
                 Document.document_path
-            )
-            .join(Physician, User.id == Physician.user)
-            .join(Form, Form.id == Physician.form)
-            .join(FormSection, FormSection.form == Form.id)
-            .join(FormSubSection, FormSubSection.form_section == FormSection.id)
-            .join(FormField, FormField.form_sub_section == FormSubSection.id)
-            .join(Document, Document.id == func.cast(FormField.values[0], Integer))
-            .filter(User.ama_me_number == self._parameters.path.get('meNumber'))
-            .filter(FormField.type == 'FILE')
-            .filter(Document.is_deleted == False)
-            .subquery()
-        )
+            ).join(Physician, User.id == Physician.user
+            ).join(Form, Form.id == Physician.form
+            ).join(FormSection, FormSection.form == Form.id
+            ).join(FormSubSection, FormSubSection.form_section == FormSection.id
+            ).join(FormField, FormField.form_sub_section == FormSubSection.id)
+
+    @classmethod
+    def _query_for_documents(cls, database, sub_query):
+        # Define the subquery to get the required data
+        docs_subquery = (sub_query.subquery())
 
         # Define the main query using the subquery
         docs_query = (
@@ -105,6 +105,16 @@ class ProfilesEndpointTask(APIEndpointTask):
         )
         return docs_query
     
+    def _filter(self, query):
+        me_number = self._parameters.path.get('meNumber')
+        query = self._filter_by_me_number(query, me_number)
+
+        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
+
+    @classmethod
+    def _filter_by_me_number(cls, query, me_number):
+        return query.filter(User.ama_me_number == me_number)
+    
     @classmethod
     def _generate_response_body(cls, msg):
-        return f'profile app response{msg}'
+        return msg
