@@ -54,7 +54,7 @@ class ProfilesEndpointTask(APIEndpointTask):
         query = self._query_for_documents(database)
 
         query_result = query.all()
-        LOGGER.info("_run result count:", len(query_result))
+        LOGGER.info(f"_run result count: {len(query_result)}")
 
         response_result = [ row._asdict() for row in query_result]
 
