@@ -61,9 +61,7 @@ class ProfilesEndpointTask(APIEndpointTask):
 
         response_result = [ row._asdict() for row in query_result]
 
-        response_output = {"result": response_result}
-
-        self._response_body = self._generate_response_body(response_output)
+        self._response_body = self._generate_response_body(response_result)
 
     def _set_parameter_defaults(self):
         pass
@@ -117,5 +115,11 @@ class ProfilesEndpointTask(APIEndpointTask):
         return query.filter(User.ama_me_number == me_number)
     
     @classmethod
-    def _generate_response_body(cls, msg):
-        return msg
+    def _generate_response_body(cls, response_result):
+        response_output = {}
+        
+        if len(response_result) == 0:
+            response_output = {"error": "no_record"}
+        else:
+            response_output = {"result": response_result}
+        return response_output
