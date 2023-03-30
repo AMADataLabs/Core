@@ -46,8 +46,6 @@ class ProfilesEndpointTask(APIEndpointTask):
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
-        # self._response_body = self._generate_response_body("body-profile")
-
     def _run(self, database):
         self._set_parameter_defaults()
 
