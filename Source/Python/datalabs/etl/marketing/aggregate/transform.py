@@ -8,8 +8,7 @@ import pickle
 import pandas
 
 from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
-# pylint: disable=line-too-long
-from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS,MERGE_LIST_OF_LISTS_COLUMNS,JOIN_LISTKEYS_COLUMNS
+from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
@@ -106,13 +105,13 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     @classmethod
     def _clean_adhoc(cls, adhoc):
-        adhoc = adhoc.rename(columns=ADHOC_COLUMNS)[ADHOC_COLUMNS.values()]
+        adhoc = adhoc.rename(columns=column.ADHOC_COLUMNS)[column.ADHOC_COLUMNS.values()]
 
         return adhoc.dropna(subset=["BEST_EMAIL"])
 
     @classmethod
     def _clean_aims(cls, aims):
-        aims = aims.rename(columns=AIMS_COLUMNS)[AIMS_COLUMNS.values()]
+        aims = aims.rename(columns=column.AIMS_COLUMNS)[column.AIMS_COLUMNS.values()]
 
         aims["PHYSICIANFLAG"] = "Y"
 
@@ -120,7 +119,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     @classmethod
     def _clean_list_of_lists(cls, list_of_lists):
-        list_of_lists = list_of_lists.rename(columns=LIST_OF_LISTS_COLUMNS)[LIST_OF_LISTS_COLUMNS.values()]
+        list_of_lists = list_of_lists.rename(columns=\
+                column.LIST_OF_LISTS_COLUMNS)[column.LIST_OF_LISTS_COLUMNS.values()]
         list_of_lists["LISTKEY"] = list_of_lists["LISTKEY"] + "#"
 
         return list_of_lists
@@ -188,7 +188,7 @@ class InputsMergerTask(InputDataCleanerTask):
     def _merge_list_of_lists(cls, data, list_of_lists):
         data = data.merge(list_of_lists, left_on='File_Name', right_on='LIST NAME', how='left')
 
-        data = data.drop(columns=MERGE_LIST_OF_LISTS_COLUMNS)
+        data = data.drop(columns=column.MERGE_LIST_OF_LISTS_COLUMNS)
 
         return data.dropna(subset = ["LISTKEY"])
 
@@ -199,7 +199,7 @@ class InputsMergerTask(InputDataCleanerTask):
 
         data = data.merge(joined_listkeys, on="BEST_EMAIL", how='left')
 
-        return data.rename(columns=JOIN_LISTKEYS_COLUMNS)
+        return data.rename(columns=column.JOIN_LISTKEYS_COLUMNS)
 
 
 class UniqueEmailsIdentifierTask:
