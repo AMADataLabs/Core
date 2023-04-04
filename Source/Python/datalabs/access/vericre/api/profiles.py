@@ -6,7 +6,7 @@ import boto3
 # from   botocore.exceptions import ClientError
 from sqlalchemy import func, literal, Integer
 
-from   datalabs.access.api.task import APIEndpointTask
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api import User, FormField, Document, Physician, Form, FormSection, FormSubSection
 from   datalabs.parameter import add_schema
@@ -54,27 +54,28 @@ class ProfilesEndpointTask(APIEndpointTask):
 
         query = self._query_for_documents(database, sub_query)
 
-        query_result = query.all()
+        query_result = [row._asdict() for row in query.all()]
 
-        response_result = [row._asdict() for row in query_result]
-
-        self._response_body = self._generate_response_body(response_result)
+        self._response_body = self._generate_response_body(query_result)
 
 
     @classmethod
     def _sub_query_for_documents(cls, database):
-        return database.query(
+        return (
+            database.query(
                 User.id.label('user_id'),
                 FormField.name.label('field_name'),
                 User.avatar_image,
                 Document.document_name,
                 Document.document_path
-            ).join(Physician, User.id == Physician.user
-            ).join(Form, Form.id == Physician.form
-            ).join(FormSection, FormSection.form == Form.id
-            ).join(FormSubSection, FormSubSection.form_section == FormSection.id
-            ).join(FormField, FormField.form_sub_section == FormSubSection.id
-            ).join(Document, Document.id == func.cast(FormField.values[0], Integer))
+            )
+            .join(Physician, User.id == Physician.user)
+            .join(Form, Form.id == Physician.form)
+            .join(FormSection, FormSection.form == Form.id)
+            .join(FormSubSection, FormSubSection.form_section == FormSection.id)
+            .join(FormField, FormField.form_sub_section == FormSubSection.id)
+            .join(Document, Document.id == func.cast(FormField.values[0], Integer))
+        )
     
 
     def _filter(self, query):
@@ -111,11 +112,7 @@ class ProfilesEndpointTask(APIEndpointTask):
     
     @classmethod
     def _generate_response_body(cls, response_result):
-        response_output = {}
-        
         if len(response_result) == 0:
-            response_output = {"error": "no_record"}
-        else:
-            response_output = {"result": response_result}
-
-        return response_output
+            raise ResourceNotFound('No data exists for the given meNumber')
+        
+        return {"result": response_result}
