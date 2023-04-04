@@ -61,22 +61,25 @@ class ProfilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _sub_query_for_documents(cls, database):
-        return (
-            database.query(
-                User.id.label('user_id'),
-                FormField.name.label('field_name'),
-                User.avatar_image,
-                Document.document_name,
-                Document.document_path
-            )
-            .join(Physician, User.id == Physician.user)
-            .join(Form, Form.id == Physician.form)
-            .join(FormSection, FormSection.form == Form.id)
-            .join(FormSubSection, FormSubSection.form_section == FormSection.id)
-            .join(FormField, FormField.form_sub_section == FormSubSection.id)
-            .join(Document, Document.id == func.cast(FormField.values[0], Integer))
+        return database.query(
+            User.id.label('user_id'),
+            FormField.name.label('field_name'),
+            User.avatar_image,
+            Document.document_name,
+            Document.document_path
+        ).join(
+            Physician, User.id == Physician.user
+        ).join(
+            Form, Form.id == Physician.form
+        ).join(
+            FormSection, FormSection.form == Form.id
+        ).join(
+            FormSubSection, FormSubSection.form_section == FormSection.id
+        ).join(
+            FormField, FormField.form_sub_section == FormSubSection.id
+        ).join(
+            Document, Document.id == func.cast(FormField.values[0], Integer)
         )
-    
 
     def _filter(self, query):
         me_number = self._parameters.query.get('meNumber')[0]
@@ -87,24 +90,23 @@ class ProfilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_documents(cls, database, sub_query):
-        docs_subquery = sub_query.subquery()
+        subquery = sub_query.subquery()
 
-        # Define the main query using the subquery
-        docs_query = (
+        return database.query(
+            subquery.columns.field_name.label('document_identifier'),
+            subquery.columns.document_name,
+            func.concat(
+                subquery.columns.user_id, 
+                '/', 
+                subquery.columns.document_path
+            ).label('document_path')
+        ).union(
             database.query(
-                docs_subquery.columns.field_name.label('document_identifier'),
-                docs_subquery.columns.document_name,
-                func.concat(docs_subquery.columns.user_id, '/', docs_subquery.columns.document_path).label('document_path')
-            )
-            .union(
-                database.query(
-                    literal('Profile Avatar').label('document_identifier'),
-                    docs_subquery.columns.avatar_image,
-                    func.concat(docs_subquery.columns.user_id, '/', 'Avatar').label('document_path')
-                )
+                literal('Profile Avatar').label('document_identifier'),
+                subquery.columns.avatar_image,
+                func.concat(subquery.columns.user_id, '/', 'Avatar').label('document_path')
             )
         )
-        return docs_query
     
     @classmethod
     def _filter_by_me_number(cls, query, me_number):
