@@ -47,7 +47,6 @@ class ProfilesEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        self._set_parameter_defaults()
 
         sub_query = self._sub_query_for_documents(database)
 
@@ -57,12 +56,9 @@ class ProfilesEndpointTask(APIEndpointTask):
 
         query_result = query.all()
 
-        response_result = [ row._asdict() for row in query_result]
+        response_result = [row._asdict() for row in query_result]
 
         self._response_body = self._generate_response_body(response_result)
-
-    def _set_parameter_defaults(self):
-        pass
 
 
     @classmethod
@@ -79,11 +75,18 @@ class ProfilesEndpointTask(APIEndpointTask):
             ).join(FormSubSection, FormSubSection.form_section == FormSection.id
             ).join(FormField, FormField.form_sub_section == FormSubSection.id
             ).join(Document, Document.id == func.cast(FormField.values[0], Integer))
+    
+
+    def _filter(self, query):
+        me_number = self._parameters.query.get('meNumber')[0]
+        query = self._filter_by_me_number(query, me_number)
+
+        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
+    
 
     @classmethod
     def _query_for_documents(cls, database, sub_query):
-        # Define the subquery to get the required data
-        docs_subquery = (sub_query.subquery())
+        docs_subquery = sub_query.subquery()
 
         # Define the main query using the subquery
         docs_query = (
@@ -102,12 +105,6 @@ class ProfilesEndpointTask(APIEndpointTask):
         )
         return docs_query
     
-    def _filter(self, query):
-        me_number = self._parameters.query.get('meNumber')[0]
-        query = self._filter_by_me_number(query, me_number)
-
-        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
-
     @classmethod
     def _filter_by_me_number(cls, query, me_number):
         return query.filter(User.ama_me_number == me_number)
@@ -120,4 +117,5 @@ class ProfilesEndpointTask(APIEndpointTask):
             response_output = {"error": "no_record"}
         else:
             response_output = {"result": response_result}
+
         return response_output
