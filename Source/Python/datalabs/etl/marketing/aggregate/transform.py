@@ -147,17 +147,11 @@ class InputsMergerTask(InputDataCleanerTask):
     Parameter_class = InputDataCleanerTaskParameters
 
     def run(self):
-
-        packed_data =  self._extract_data()
-
-        input_data = self._read_input_data(packed_data)
+        input_data = self._read_input_data(self._data)
 
         merged_inputs = self._merge_input_data(input_data)
 
         return [self._dataframe_to_csv(merged_inputs)]
-
-    def _extract_data(self):
-        return list(self._data)
 
     def _read_input_data(self, input_files: []) -> MarketingData:
         adhoc = self._parse(input_files[0])
