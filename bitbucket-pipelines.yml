@@ -2395,7 +2395,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-package --project VeriCre/API/Endpoint
+            - bash Deploy/Master/deploy-package --project VeriCre/API/Profile
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -2406,8 +2406,8 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project VeriCre/API/Endpoint
-                    --bundle VeriCre/API/Endpoint.zip
+                    --project VeriCre/API/Profile
+                    --bundle VeriCre/API/Profile.zip
             - step:
                 name: Update development Bundle
                 caches:
@@ -2419,8 +2419,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project VeriCre/API/Endpoint
-                    --bundle VeriCre/API/Endpoint.zip
+                    --project VeriCre/API/Profile
+                    --bundle VeriCre/API/Profile.zip
             - step:
                 name: Update test Bundle
                 caches:
@@ -2432,8 +2432,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
-                    --project VeriCre/API/Endpoint
-                    --bundle VeriCre/API/Endpoint.zip
+                    --project VeriCre/API/Profile
+                    --bundle VeriCre/API/Profile.zip
             - step:
                 name: Update production Bundle
                 caches:
@@ -2445,14 +2445,14 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
-                    --project VeriCre/API/Endpoint
-                    --bundle VeriCre/API/Endpoint.zip
-        # - parallel:
-        #     - step:
-        #         name: Update sandbox Lambda Functions
-        #         script:
-        #         - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #         - bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/API VeriCre-API=Endpoint.zip
+                    --project VeriCre/API/Profile
+                    --bundle VeriCre/API/Profile.zip
+        - parallel:
+            - step:
+                name: Update sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/API Profile-API=Profile.zip
 
 
 definitions:

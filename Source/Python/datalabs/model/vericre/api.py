@@ -109,7 +109,7 @@ class FormSection(BASE):
     is_hidden = sa.Column(sa.Boolean)
     order = sa.Column(sa.BigInteger)
     identifier = sa.Column(sa.String(255))
-    form = sa.Column(sa.BigInteger, sa.ForeignKey("form.id"), nullable=False)
+    form = sa.Column(sa.BigInteger, nullable=False)
 
 
 class FormSubSection(BASE):
@@ -123,7 +123,7 @@ class FormSubSection(BASE):
     is_hidden = sa.Column(sa.Boolean)
     order = sa.Column(sa.BigInteger)
     title = sa.Column(sa.String(512))
-    form_section = sa.Column(sa.BigInteger, sa.ForeignKey("form_section.id"), nullable=False)
+    form_section = sa.Column(sa.BigInteger, nullable=False)
 
 
 class Document(BASE, CommonColumns):
@@ -139,7 +139,7 @@ class Document(BASE, CommonColumns):
     document_type = sa.Column(sa.String(255))
     document_url = sa.Column(sa.Text)
     document_preview_url = sa.Column(sa.Text)
-    user = sa.Column(UUID(as_uuid=True), sa.ForeignKey("user.id"), nullable=False)
+    user = sa.Column(UUID(as_uuid=True), nullable=False)
 
     
 class Physician(BASE):
@@ -149,6 +149,6 @@ class Physician(BASE):
     id = sa.Column(UUID(as_uuid=True), primary_key=True, nullable=False, default=uuid.uuid4)
     caqh_profile_id = sa.Column(sa.String(255))
     caqh_updated_at = sa.Column(sa.BigInteger)
-    form = sa.Column(sa.BigInteger, sa.ForeignKey("form.id"))
+    form = sa.Column(sa.BigInteger)
     onboarding = sa.Column(JSONB)
-    user = sa.Column(UUID(as_uuid=True), sa.ForeignKey("user.id"), nullable=False)
+    user = sa.Column(UUID(as_uuid=True), nullable=False)

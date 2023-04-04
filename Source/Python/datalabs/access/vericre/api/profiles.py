@@ -6,7 +6,7 @@ import boto3
 # from   botocore.exceptions import ClientError
 from sqlalchemy import func, literal, Integer
 
-from   datalabs.access.api.task import APIEndpointTask
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api import User, FormField, Document, Physician, Form, FormSection, FormSubSection
 from   datalabs.parameter import add_schema
@@ -23,6 +23,12 @@ class ProfilesEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
     unknowns: dict=None
 
 
@@ -40,64 +46,75 @@ class ProfilesEndpointTask(APIEndpointTask):
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
-        # self._response_body = self._generate_response_body("body-profile")
-
     def _run(self, database):
-        self._set_parameter_defaults()
 
-        query = self._query_for_documents(database)
+        sub_query = self._sub_query_for_documents(database)
 
-        query_result = query.all()
+        sub_query = self._filter(sub_query)
 
-        response_result = [ row._asdict() for row in query_result]
+        query = self._query_for_documents(database, sub_query)
 
-        response_output = {"result": response_result}
+        query_result = [row._asdict() for row in query.all()]
 
-        self._response_body = self._generate_response_body(response_output)
+        self._response_body = self._generate_response_body(query_result)
 
-    def _set_parameter_defaults(self):
-        pass
 
     @classmethod
-    def _query_for_documents(cls, database):
-        # Define the subquery to get the required data
-        docs_subquery = (
-            database.query(
-                User.id.label('user_id'),
-                FormField.name.label('field_name'),
-                User.avatar_image,
-                Document.document_name,
-                Document.document_path
-            )
-            .join(Physician, User.id == Physician.user)
-            .join(Form, Form.id == Physician.form)
-            .join(FormSection, FormSection.form == Form.id)
-            .join(FormSubSection, FormSubSection.form_section == FormSection.id)
-            .join(FormField, FormField.form_sub_section == FormSubSection.id)
-            .join(Document, Document.id == func.cast(FormField.values[0], Integer))
-            .filter(User.ama_me_number == '77777')
-            .filter(FormField.type == 'FILE')
-            .filter(Document.is_deleted == False)
-            .subquery()
+    def _sub_query_for_documents(cls, database):
+        return database.query(
+            User.id.label('user_id'),
+            FormField.name.label('field_name'),
+            User.avatar_image,
+            Document.document_name,
+            Document.document_path
+        ).join(
+            Physician, User.id == Physician.user
+        ).join(
+            Form, Form.id == Physician.form
+        ).join(
+            FormSection, FormSection.form == Form.id
+        ).join(
+            FormSubSection, FormSubSection.form_section == FormSection.id
+        ).join(
+            FormField, FormField.form_sub_section == FormSubSection.id
+        ).join(
+            Document, Document.id == func.cast(FormField.values[0], Integer)
         )
 
-        # Define the main query using the subquery
-        docs_query = (
+    def _filter(self, query):
+        me_number = self._parameters.query.get('meNumber')[0]
+        query = self._filter_by_me_number(query, me_number)
+
+        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
+    
+
+    @classmethod
+    def _query_for_documents(cls, database, sub_query):
+        subquery = sub_query.subquery()
+
+        return database.query(
+            subquery.columns.field_name.label('document_identifier'),
+            subquery.columns.document_name,
+            func.concat(
+                subquery.columns.user_id, 
+                '/', 
+                subquery.columns.document_path
+            ).label('document_path')
+        ).union(
             database.query(
-                docs_subquery.columns.field_name.label('document_identifier'),
-                docs_subquery.columns.document_name,
-                func.concat(docs_subquery.columns.user_id, '/', docs_subquery.columns.document_path).label('document_path')
-            )
-            .union(
-                database.query(
-                    literal('Profile Avatar').label('document_identifier'),
-                    docs_subquery.columns.avatar_image,
-                    func.concat(docs_subquery.columns.user_id, '/', 'Avatar').label('document_path')
-                )
+                literal('Profile Avatar').label('document_identifier'),
+                subquery.columns.avatar_image,
+                func.concat(subquery.columns.user_id, '/', 'Avatar').label('document_path')
             )
         )
-        return docs_query
     
     @classmethod
-    def _generate_response_body(cls, msg):
-        return f'profile app response{msg}'
+    def _filter_by_me_number(cls, query, me_number):
+        return query.filter(User.ama_me_number == me_number)
+    
+    @classmethod
+    def _generate_response_body(cls, response_result):
+        if len(response_result) == 0:
+            raise ResourceNotFound('No data exists for the given meNumber')
+        
+        return {"result": response_result}

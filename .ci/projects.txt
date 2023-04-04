@@ -26,5 +26,5 @@ OneView/ETL/Extract
 OneView/API
 Scheduler
 VeriCre/DataSteward
-VeriCre/API/Endpoint
+VeriCre/API/Profile
 HelloWorld
