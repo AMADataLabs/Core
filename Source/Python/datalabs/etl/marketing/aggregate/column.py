@@ -38,3 +38,19 @@ LIST_OF_LISTS_COLUMNS = {
     'LIST NAME' : 'LIST NAME',
     'SOURCE' : 'SOURCE'
 }
+
+MERGE_LIST_OF_LISTS_COLUMNS = {
+    "CUSTOMER_ID",
+    "ME_Nbr",
+    "LIST NUMBER",
+    "CHANGED STATUS",
+    "STATUS",
+    "LIST NAME",
+    "SOURCE",
+    "File_Name"
+}
+
+JOIN_LISTKEYS_COLUMNS = {
+    "LISTKEY_y" : "LISTKEY_COMBINED",
+    "LISTKEY_x" : "LISTKEY"
+}

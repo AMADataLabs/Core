@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from   datalabs.etl.marketing.aggregate.column import ADHOC_COLUMNS,AIMS_COLUMNS,LIST_OF_LISTS_COLUMNS
-from   datalabs.etl.marketing.aggregate.transform import InputDataCleanerTask
+from   datalabs.etl.marketing.aggregate.transform import InputDataCleanerTask,InputsMergerTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -79,6 +79,60 @@ def test_empty_input_data_cleaner_transformer(empty_pickled_data):
     assert exception.value.args[0] == 'list index out of range'
 
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_input_merger_transformer_extract_data(input_merger_data):
+    packed_data = extract_input_merge_data(input_merger_data)
+
+    assert len(packed_data) == 4
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_input_merger_transformer_read_input_data(input_merger_data):
+    read_input_files = read_input_merger_data(input_merger_data)
+
+    assert isinstance(read_input_files.adhoc, pd.DataFrame)
+    assert isinstance(read_input_files.aims, pd.DataFrame)
+    assert isinstance(read_input_files.list_of_lists, pd.DataFrame)
+    assert isinstance(read_input_files.flatfile, pd.DataFrame)
+
+    assert read_input_files.adhoc.shape[0] == 3
+    assert read_input_files.adhoc.shape[1] == 16
+    assert read_input_files.aims.shape[0] == 1
+    assert read_input_files.aims.shape[1] == 9
+    assert read_input_files.list_of_lists.shape[0] == 1
+    assert read_input_files.list_of_lists.shape[1] == 6
+    assert read_input_files.flatfile.shape[0] == 1
+    assert read_input_files.flatfile.shape[1] == 159
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_input_merger_transformer_merge_input_data(input_merger_data):
+    transformer = InputsMergerTask({}, input_merger_data)
+    input_data = read_input_merger_data(input_merger_data)
+    merged_inputs = transformer._merge_input_data(input_data)
+
+    assert merged_inputs.shape[0] == 3
+    assert merged_inputs.shape[1] == 23
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_input_merger_transformer_output_data(input_merger_data):
+    transformer = InputsMergerTask({}, input_merger_data)
+    output_files = transformer.run()
+
+    assert len(output_files) == 1
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_empty_input_merger_transformer(empty_pickled_data):
+    transformer = InputDataCleanerTask({}, empty_pickled_data)
+
+    with pytest.raises(IndexError) as exception:
+        transformer.run()
+
+    assert exception.value.args[0] == 'list index out of range'
+
+
 def load_tuple_data(pickled_data):
     named_files_data = pickle.loads(pickled_data[0])
 
@@ -93,6 +147,21 @@ def read_input_data(pickled_data):
     return read_input_files
 
 
+def extract_input_merge_data(input_merger_data):
+    transformer = InputsMergerTask({}, input_merger_data)
+    packed_data = transformer._extract_data()
+
+    return packed_data
+
+
+def read_input_merger_data(input_merger_data):
+    transformer = InputsMergerTask({}, input_merger_data)
+    packed_data = extract_input_merge_data(input_merger_data)
+    read_input_files = transformer._read_input_data(packed_data)
+
+    return read_input_files
+
+
 # pylint: disable=line-too-long
 @pytest.fixture
 def pickled_data():
@@ -101,3 +170,9 @@ def pickled_data():
 @pytest.fixture
 def empty_pickled_data():
     return []
+
+
+# pylint: disable=line-too-long
+@pytest.fixture
+def input_merger_data():
+    return [b'CUSTOMER_ID,NAME,BUSTITLE,BUSNAME,ADDR1,ADDR2,ADDR3,CITY,STATE,ZIP,COUNTRY,BEST_EMAIL,DAY_PHONE,EVENING_PHONE,INDUSTRY_DESC,File_Name\r\n,Abby Levy,Managing Partner,Primetime Partners,13310 Rhodine Rd,,,Riverview,FL,33579,United States,abby@primetimepartners.com,,,2023 ViVE Speakers,PBD Customers\r\n97, ,,,,,,,,,,drs26@cornell.edu,,,Health-tech,PBD Customers\r\n,Tathagata Ray,"Manager, Business Intelligence",Sonic Incytes Medical Corp,,,,,,,Canada,tathagata@sonicincytes.com,,,CPT Intl,PBD Customers\r\n', b'MEMBERFLAG,ME_Nbr,GENDER,AIMS_PRIMSPC,AIMS_SECSPC,SUP_DNRFLAG,SUP_DNMFLAG,BEST_EMAIL,PHYSICIANFLAG\r\nY,2701940604,M,IM ,US ,N,N,abby@primetimepartners.com,Y\r\n', b'LIST NUMBER,CHANGED STATUS,STATUS,LISTKEY,LIST NAME,SOURCE\n1,6/5/2021,REUSE,PBD#,PBD Customers,Humach Files/PBD Fulfillment System Daily\n', b'RECSEQ,EMPPID,BUSPID,NAME,BUSTITLE,BUSNAME,ADDR1,ADDR2,ADDR3,CITY,STATE,ZIP,COUNTRY,DPCCODE,DPCCHECK,CARRTE,LISTKEY,GENDER,SUP_DMACHOICE,SUP_DM_REGION,SUP_DNMFLAG,SUP_DNRFLAG,SUP_DNCFLAG,SUP_DNEFLAG,SOURCE_ORD,TITLE_DESC,PREFIX_DESC,DAY_PHONE,EVENING_PHONE,FAX_NUMBER,BEST_EMAIL,EMAIL_MORA,INDUSTRY_DESC,SUP_DM,SUP_TM,SUP_EM,PHYSICIANFLAG,MEMBERFLAG,AIMS_PRIMSPC,AIMS_SECSPC,ALL_CHANTYPE,ALL_LASTODATE,ALL_ORIGODATE,ALL_RECNCYMOS,ALL_RECNCYGR,ALL_OORDMOS,ALL_OORDGR,ALL_FREQNOORD,ALL_FREQORDGR,ALL_DOLTOT,ALL_DOLTOTGR,ALL_DOLAVG,ALL_DOLAVGR,ALL_MAXORDOL,ALL_ORIGODOL,ALL_ORIGODOLG,ALL_ORIGCHAN,ALL_LASTCHAN,GEN_SCORE,GEN_DECILE,TS_SCORE,TS_DECILE,TS_SEGMENT,TS_RECENCY,TS_FREQUENCY,TS_TOTAL_AMT,TS_AVG_ORDER,TS_MAX_ORDER,ALL_LASTODOL,ALL_LASTODOLG,CPTA_FREQ,CPTA_RECENCY,CPTA_ENDDATE,CPTA_LASTSLEN,CPTA_TOTDOL,CPTA_AVGDOL,CPTA_LSKUDESC,CPTA_MAXORDOL,ONLSUB_LNOLIC,ONLSUB_SLDATE,ONLSUB_ELDATE,ONLSUB_LSTREC,ONLSUB_FREQ,ONLSUB_TOTDOL,ONLSUB_AVGDOL,ALL_PROMOFREQ,ALL_MKTDR_BIL,ALL_MKTDR_CD,ALL_MKTDR_DOC,ALL_MKTDR_PRA,ALL_MKTDR_IMP,ALL_MKTDR_TRA,ALL_FTYP_SUB,ALL_FTYP_PRNT,ALL_FTYP_DIG,ALL_FTYP_PRDG,ALL_FTYP_DATA,ALL_FTYP_BNDL,ALL_FTYP_LSUB,ALL_FTYP_LPRT,ALL_FTYP_LDIG,ALL_FTYP_LPRD,ALL_FTYP_LDTA,ALL_FTYP_LBND,ALL_FTYP_FRQ,ALL_BUYR_TYPE,OLSUB_DSPNAME,ALL_LPROD_1,ALL_LPROD_2,ALL_FRQPROD_1,ALL_FRQPROD_2,ALL_TOT_OPEN,ALL_TOT_CLICK,ALL_TOT_BOUNC,ALL_TOT_UNSBS,ALL_TOT_SENDS,ALL_OPEN_RATE,ALL_CLCK_RATE,ALL_EMLSOPR_1,ALL_EMFROPR_1,ALL_EMLSOPR_2,ALL_EMFROPR_2,ALL_MKDR_LSCH,ALL_MKDR_FRCH,ALL_MKDR_LSTA,ALL_MKDR_FRTA,ALL_PRIMO_LST,ALL_PRIMO_FRQ,ALL_DSCAT_LST,ALL_DSCAT_FRQ,ALL_AUDNC_LST,ALL_AUDNC_FRQ,OLSUB_AUTOREN,ALL_MK_DRV_DM,ALL_MK_DRV_CT,ALL_MK_DRV_WB,ALL_MK_DRV_TS,ALL_MK_DRVUSC,ALL_MK_DRV_EM,ALL_MK_DRV_LE,ALL_MK_DRV_FX,ALL_MK_DRV_SC,ALL_RESLLR_PR,ALL_RESLLR_AC,ALL_EVNT_LEAD,ALL_SF_LEAD,ALL_SKU_ORIG,ALL_SKU_LAST,ALL_SKU_FRQ,EM_LASTODATE,EM_ORIGODATE,ALL_PROD1,ALL_PROD2,ALL_ORG_PROD1,ALL_ORG_PROD2,INDUSTRY_DESC.1,EMAIL.1,DAY_PHONE.1,EVENING_PHONE.1\n0000000001,34795,0000034795,,TITLE,,WORK ADDR 1,WORK ADDR 2,,WORK CITY WORK STATE CODE WO,,,,,,,X27#,U,,,Y,Y,,,,,,,,,,,,Y,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,None,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,N,N,N,N,,,,,,,,,,,,,\n']
