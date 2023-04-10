@@ -196,6 +196,112 @@ class InputsMergerTask(InputDataCleanerTask):
         return data.rename(columns=column.JOIN_LISTKEYS_COLUMNS)
 
 
+class FlatfileUpdaterTask(InputsMergerTask):
+    Parameter_class = InputDataCleanerTaskParameters
+
+    def run(self):
+        input_data = self._read_input_data(self._data)
+
+        merged_inputs = self._parse(self._data[4])
+
+        flatfile = self._prune_flatfile_listkeys(input_data.flatfile, input_data.list_of_lists)
+
+        matched_inputs, unmatched_inputs = self._assign_emppids_to_inputs(merged_inputs, flatfile)
+
+        updated_flatfile = self._update_flatfile_listkeys(flatfile, matched_inputs)
+
+        updated_flatfile = self._add_new_records_to_flatfile(updated_flatfile, unmatched_inputs)
+
+        return [self._dataframe_to_csv(updated_flatfile)]
+
+    # pylint: disable= cell-var-from-loop
+    @classmethod
+    def _prune_flatfile_listkeys(cls, flatfile, list_of_lists):
+        listkeys_to_remove = list_of_lists[list_of_lists.STATUS.isin(["REPLACE","REMOVE"])].LISTKEY
+
+        for listkey in listkeys_to_remove:
+            flatfile.LISTKEY = flatfile.LISTKEY.apply(lambda x: x.replace(listkey, ''))
+
+        return flatfile
+
+    def _assign_emppids_to_inputs(self, inputs, flatfile):
+        emails = inputs.BEST_EMAIL.unique()
+
+        new_emails = self._get_new_emails(emails, flatfile)
+
+        matched_inputs = self._assign_emppids_to_known_input(inputs[~inputs.BEST_EMAIL.isin(new_emails)], flatfile)
+
+        unmatched_inputs = self._assign_emppids_to_new_inputs(inputs[inputs.BEST_EMAIL.isin(new_emails)], flatfile)
+
+        return matched_inputs, unmatched_inputs
+
+    @classmethod
+    def _get_new_emails(cls, emails, flatfile):
+        email_data = pandas.DataFrame(data=dict(BEST_EMAIL=emails))
+
+        return email_data[~email_data.BEST_EMAIL.isin(flatfile.BEST_EMAIL)]
+
+    @classmethod
+    def _assign_emppids_to_known_input(cls, inputs: pandas.DataFrame, flatfile) -> pandas.DataFrame:
+        max_emppid_per_email = flatfile.groupby(flatfile.BEST_EMAIL).EMPPID.max().reset_index()
+
+        return pandas.merge(inputs, max_emppid_per_email, on="BEST_EMAIL", how='left' )
+
+    @classmethod
+    def _assign_emppids_to_new_inputs(cls, unmatched_inputs, flatfile):
+        last_emppid = max(flatfile["EMPPID"])
+
+        unmatched_inputs.loc[:, "EMPPID"] = range(int(last_emppid)+1, int(last_emppid)+len(unmatched_inputs)+1)
+
+        return unmatched_inputs
+
+    @classmethod
+    def _update_flatfile_listkeys(cls, flatfile, matched_inputs):
+        concatenated_listkeys = cls._concatenate_listkeys_per_best_email(matched_inputs)
+
+        flatfile_first_matching = cls._get_first_matching_records_by_best_email(flatfile, matched_inputs)
+
+        merged_first_matching = cls._merge_new_listkeys_into_flatfile(
+            flatfile_first_matching,
+            concatenated_listkeys
+        )
+        flatfile.loc[merged_first_matching.index, "LISTKEY"] = merged_first_matching.LISTKEY
+
+        return flatfile
+
+    # pylint: disable= unnecessary-lambda
+    @classmethod
+    def _concatenate_listkeys_per_best_email(cls, matched_inputs):
+        return matched_inputs.groupby("BEST_EMAIL")["LISTKEY"].apply(lambda x: "".join(x))
+
+    @classmethod
+    def _get_first_matching_records_by_best_email(cls, flatfile, matched_inputs):
+        emails = matched_inputs.BEST_EMAIL.unique()
+
+        return flatfile[flatfile.BEST_EMAIL.isin(emails)].drop_duplicates(subset=["BEST_EMAIL"])
+
+    @classmethod
+    def _merge_new_listkeys_into_flatfile(cls, flatfile_first_matching, listkeys):
+        merged_flatfile = flatfile_first_matching.merge(listkeys, left_on="BEST_EMAIL", right_index=True)
+
+        merged_flatfile["LISTKEY"] = merged_flatfile.LISTKEY_x + merged_flatfile.LISTKEY_y
+
+        merged_flatfile = merged_flatfile.drop(columns=["LISTKEY_x", "LISTKEY_y"])
+
+        return merged_flatfile
+
+    def _add_new_records_to_flatfile(self, flatfile, unmatched_inputs):
+        appended_flatfile =  self._add_new_records_to_flatfile(flatfile, unmatched_inputs)
+
+        return appended_flatfile.drop(columns=["LISTKEY_COMBINED"])
+
+    @classmethod
+    def _add_new_records_to_flatfile(cls, flatfile, unmatched_rows):
+        updated_flatfile = pandas.concat((flatfile, unmatched_rows), axis=0, ignore_index=True)
+
+        return updated_flatfile.fillna('')
+
+
 class UniqueEmailsIdentifierTask:
     pass
 
