@@ -1,9 +1,8 @@
 """ Release endpoint classes."""
+from   abc import abstractmethod
 from   dataclasses import dataclass
 import logging
 
-import boto3
-# from   botocore.exceptions import ClientError
 from sqlalchemy import func, literal, Integer
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
@@ -32,20 +31,15 @@ class ProfilesEndpointParameters:
     unknowns: dict=None
 
 
-class ProfilesEndpointTask(APIEndpointTask):
+class BaseProfileEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfilesEndpointParameters
-
-    def __init__(self, parameters: dict, data: "list<bytes>"=None):
-        super().__init__(parameters, data)
-
-        self._s3 = boto3.client('s3')
 
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
-
+    
     def _run(self, database):
 
         sub_query = self._sub_query_for_documents(database)
@@ -57,7 +51,6 @@ class ProfilesEndpointTask(APIEndpointTask):
         query_result = [row._asdict() for row in query.all()]
 
         self._response_body = self._generate_response_body(query_result)
-
 
     @classmethod
     def _sub_query_for_documents(cls, database):
@@ -80,13 +73,10 @@ class ProfilesEndpointTask(APIEndpointTask):
         ).join(
             Document, Document.id == func.cast(FormField.values[0], Integer)
         )
-
-    def _filter(self, query):
-        me_number = self._parameters.query.get('meNumber')[0]
-        query = self._filter_by_me_number(query, me_number)
-
-        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
     
+    @abstractmethod
+    def _filter(self, query):
+        pass
 
     @classmethod
     def _query_for_documents(cls, database, sub_query):
@@ -107,14 +97,26 @@ class ProfilesEndpointTask(APIEndpointTask):
                 func.concat(subquery.columns.user_id, '/', 'Avatar').label('document_path')
             )
         )
-    
-    @classmethod
-    def _filter_by_me_number(cls, query, me_number):
-        return query.filter(User.ama_me_number == me_number)
-    
+
     @classmethod
     def _generate_response_body(cls, response_result):
+        response_output = {}
+        
         if len(response_result) == 0:
             raise ResourceNotFound('No data exists for the given meNumber')
         
         return {"result": response_result}
+
+class GetProfilesEndpointTask(BaseProfileEndpointTask):
+    
+    def _filter(self, query):
+        me_number = self._parameters.query.get('meNumber')[0]
+        query = self._filter_by_me_number(query, me_number)
+
+        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
+
+    @classmethod
+    def _filter_by_me_number(cls, query, me_number):
+        return query.filter(User.ama_me_number == me_number)
+    
+    
