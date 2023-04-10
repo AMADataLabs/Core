@@ -19,7 +19,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class ProfilesEndpointParameters:
+class ProfileDocumentsEndpointParameters:
     path: dict
     query: dict
     authorization: dict
@@ -32,8 +32,8 @@ class ProfilesEndpointParameters:
     unknowns: dict=None
 
 
-class ProfilesEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = ProfilesEndpointParameters
+class ProfileDocumentsEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = ProfileDocumentsEndpointParameters
 
     def __init__(self, parameters: dict, data: "list<bytes>"=None):
         super().__init__(parameters, data)
