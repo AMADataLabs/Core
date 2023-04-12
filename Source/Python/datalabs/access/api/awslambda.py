@@ -91,7 +91,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
         task_id = None
 
         for task_id, pattern in route_parameters.items():
-            pattern = pattern.replace('*', '[^/]+')
+            pattern = f"{pattern.replace('*', '[^/]+')}$"
 
             if re.match(pattern, path):
                 break
