@@ -2336,19 +2336,16 @@ pipelines:
                     --environment prd
                     --project CPT/SNOMED/API
                     --bundle CPT/SNOMED/API.zip
-        # - parallel:
-        #     - step:
-        #         name: Update Development Lambda Functions
-        #         script:
-        #         - >-
-        #             bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-        #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        - parallel:
+            - step:
+                name: Update Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/SNOMED
+                    SNOMED-API=API.zip
         #     - step:
         #         name: Update Test Lambda Functions
         #         script:
@@ -2357,11 +2354,8 @@ pipelines:
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
         #             bash --rcfile assume_role.rc -i
-        #             Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        #             Deploy/Master/update-functions -e tst -s CPT-API -p CPT/SNOMED
+        #             SNOMED-API=API.zip
         #     - step:
         #         name: Update Staging Lambda Functions
         #         script:
@@ -2370,11 +2364,8 @@ pipelines:
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
         #             bash --rcfile assume_role.rc -i
-        #             Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        #             Deploy/Master/update-functions -e itg -s CPT-API -p CPT/SNOMED
+        #             SNOMED-API=API.zip
         #     - step:
         #         name: Update Production Lambda Functions
         #         script:
@@ -2382,11 +2373,9 @@ pipelines:
         #             bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        #             bash --rcfile assume_role.rc -i
+        #             Deploy/Master/update-functions -e prd -s CPT-API -p CPT/SNOMED
+        #             SNOMED-API=API.zip
 
         VeriCre-API:
         - step:
