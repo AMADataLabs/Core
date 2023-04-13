@@ -17,7 +17,7 @@ class AWSClient:
     @property
     def resource(self):
         aws_client = AWSClient(self._service, **self._kwargs)
-        aws_client._client_factory = boto3.resource
+        aws_client._client_factory = boto3.resource  # pylint: disable=protected-access
 
         return aws_client
 

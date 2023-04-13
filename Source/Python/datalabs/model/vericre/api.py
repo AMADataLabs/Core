@@ -1,16 +1,17 @@
 """ SQLAlchemy models for VeriCre """
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
-from datalabs.sqlalchemy import metadata
+import sqlalchemy as sa
+from   sqlalchemy.dialects.postgresql import UUID, JSONB
+from   sqlalchemy.ext.declarative import declarative_base
+
+from   datalabs.sqlalchemy import metadata
 
 BASE = declarative_base(metadata=metadata())
 SCHEMA = 'public'
 
 
-class CommonColumns(object):
+class CommonColumns:
     created_at = sa.Column(sa.BigInteger) # , nullable=True
     created_by = sa.Column(UUID(as_uuid=True))
     is_deleted = sa.Column(sa.Boolean)
@@ -30,7 +31,7 @@ class Institution(BASE):
     abbreviation = sa.Column(sa.String(255))
 
 
-class Institution_Management(BASE, CommonColumns):
+class InstitutionManagement(BASE, CommonColumns):
     __tablename__ = 'institution_management'
     __table_args__ = {"schema": SCHEMA}
 
@@ -103,7 +104,12 @@ class FormSection(BASE):
     __tablename__ = 'form_section'
     __table_args__ = {"schema": SCHEMA}
 
-    id = sa.Column(sa.BigInteger, sa.Sequence('form_section_seq', start=1, increment=1), primary_key=True, nullable=False)
+    id = sa.Column(
+        sa.BigInteger,
+        sa.Sequence('form_section_seq', start=1, increment=1),
+        primary_key=True,
+        nullable=False
+    )
     title = sa.Column(sa.String(512))
     description = sa.Column(sa.String(512))
     is_hidden = sa.Column(sa.Boolean)
@@ -116,7 +122,12 @@ class FormSubSection(BASE):
     __tablename__ = 'form_sub_section'
     __table_args__ = {"schema": SCHEMA}
 
-    id = sa.Column(sa.BigInteger, sa.Sequence('form_sub_section_seq', start=1, increment=1), primary_key=True, nullable=False)
+    id = sa.Column(
+        sa.BigInteger,
+        sa.Sequence('form_sub_section_seq', start=1, increment=1),
+        primary_key=True,
+        nullable=False
+    )
     description = sa.Column(sa.String(512))
     dynamic_field_sections = sa.Column(JSONB)
     identifier = sa.Column(sa.String(255))
@@ -141,7 +152,7 @@ class Document(BASE, CommonColumns):
     document_preview_url = sa.Column(sa.Text)
     user = sa.Column(UUID(as_uuid=True), nullable=False)
 
-    
+
 class Physician(BASE):
     __tablename__ = 'physician'
     __table_args__ = {"schema": SCHEMA}

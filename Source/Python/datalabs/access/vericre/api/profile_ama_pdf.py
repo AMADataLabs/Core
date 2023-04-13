@@ -10,6 +10,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
 class AMAProfilePDFEndpointParameters:
@@ -34,7 +35,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
 
         response_result = f"AMAProfilePDFEndpointTask, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)
-    
+
     @classmethod
     def _generate_response_body(cls, response_result):
         return {"result": response_result}

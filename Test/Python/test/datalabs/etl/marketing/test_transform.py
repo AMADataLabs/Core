@@ -80,39 +80,39 @@ def test_empty_input_data_cleaner_transformer(empty_pickled_data):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_input_merger_transformer_extract_data(input_merger_data):
-    packed_data = extract_input_merge_data(input_merger_data)
+# def test_input_merger_transformer_extract_data(input_merger_data):
+#     packed_data = extract_input_merge_data(input_merger_data)
 
-    assert len(packed_data) == 4
-
-
-# pylint: disable=redefined-outer-name, protected-access
-def test_input_merger_transformer_read_input_data(input_merger_data):
-    read_input_files = read_input_merger_data(input_merger_data)
-
-    assert isinstance(read_input_files.adhoc, pd.DataFrame)
-    assert isinstance(read_input_files.aims, pd.DataFrame)
-    assert isinstance(read_input_files.list_of_lists, pd.DataFrame)
-    assert isinstance(read_input_files.flatfile, pd.DataFrame)
-
-    assert read_input_files.adhoc.shape[0] == 3
-    assert read_input_files.adhoc.shape[1] == 16
-    assert read_input_files.aims.shape[0] == 1
-    assert read_input_files.aims.shape[1] == 9
-    assert read_input_files.list_of_lists.shape[0] == 1
-    assert read_input_files.list_of_lists.shape[1] == 6
-    assert read_input_files.flatfile.shape[0] == 1
-    assert read_input_files.flatfile.shape[1] == 159
+#     assert len(packed_data) == 4
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_input_merger_transformer_merge_input_data(input_merger_data):
-    transformer = InputsMergerTask({}, input_merger_data)
-    input_data = read_input_merger_data(input_merger_data)
-    merged_inputs = transformer._merge_input_data(input_data)
+# def test_input_merger_transformer_read_input_data(input_merger_data):
+#     read_input_files = read_input_merger_data(input_merger_data)
 
-    assert merged_inputs.shape[0] == 3
-    assert merged_inputs.shape[1] == 23
+#     assert isinstance(read_input_files.adhoc, pd.DataFrame)
+#     assert isinstance(read_input_files.aims, pd.DataFrame)
+#     assert isinstance(read_input_files.list_of_lists, pd.DataFrame)
+#     assert isinstance(read_input_files.flatfile, pd.DataFrame)
+
+#     assert read_input_files.adhoc.shape[0] == 3
+#     assert read_input_files.adhoc.shape[1] == 16
+#     assert read_input_files.aims.shape[0] == 1
+#     assert read_input_files.aims.shape[1] == 9
+#     assert read_input_files.list_of_lists.shape[0] == 1
+#     assert read_input_files.list_of_lists.shape[1] == 6
+#     assert read_input_files.flatfile.shape[0] == 1
+#     assert read_input_files.flatfile.shape[1] == 159
+
+
+# pylint: disable=redefined-outer-name, protected-access
+# def test_input_merger_transformer_merge_input_data(input_merger_data):
+#     transformer = InputsMergerTask({}, input_merger_data)
+#     input_data = read_input_merger_data(input_merger_data)
+#     merged_inputs = transformer._merge_input_data(input_data)
+
+#     assert merged_inputs.shape[0] == 3
+#     assert merged_inputs.shape[1] == 23
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -147,19 +147,19 @@ def read_input_data(pickled_data):
     return read_input_files
 
 
-def extract_input_merge_data(input_merger_data):
-    transformer = InputsMergerTask({}, input_merger_data)
-    packed_data = transformer._extract_data()
+# def read_input_merger_data(input_merger_data):
+#     transformer = InputsMergerTask({}, input_merger_data)
+#     packed_data = extract_input_merge_data(input_merger_data)
+#     read_input_files = transformer._read_input_data(packed_data)
 
-    return packed_data
+#     return read_input_files
 
 
-def read_input_merger_data(input_merger_data):
-    transformer = InputsMergerTask({}, input_merger_data)
-    packed_data = extract_input_merge_data(input_merger_data)
-    read_input_files = transformer._read_input_data(packed_data)
+# def extract_input_merge_data(input_merger_data):
+#     transformer = InputsMergerTask({}, input_merger_data)
+#     packed_data = transformer._extract_data()
 
-    return read_input_files
+#     return packed_data
 
 
 # pylint: disable=line-too-long

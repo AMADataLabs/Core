@@ -30,14 +30,11 @@ class ProfilesEndpointParameters:
 class BaseProfileEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfilesEndpointParameters
 
-    def __init__(self, parameters: dict, data: "list<bytes>"=None):
-        super().__init__(parameters, data)
-
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
         self._run()
-    
+
     def _run(self):
         pass
 
@@ -47,17 +44,17 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
 
 class ProfilesEndpointTask(BaseProfileEndpointTask):
-    
+
     def _run(self):
         method = self._parameters.method
 
         response_result = f"ProfilesEndpointTask success, method: {method}"
         self._response_body = self._generate_response_body(response_result)
-    
+
 
 class ProfileEndpointTask(BaseProfileEndpointTask):
     def _run(self):
         entity_id = self._parameters.path.get('entityId')
-        
+
         response_result = f"ProfileEndpointTask, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)
