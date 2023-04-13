@@ -14,6 +14,7 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class PhysiciansSearchEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict

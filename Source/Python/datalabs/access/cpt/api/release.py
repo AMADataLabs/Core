@@ -16,6 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class ReleasesEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict

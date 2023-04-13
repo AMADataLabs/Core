@@ -18,6 +18,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class PhysiciansEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict

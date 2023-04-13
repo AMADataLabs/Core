@@ -17,6 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class MapLookupEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict
@@ -85,6 +86,7 @@ class MapLookupEndpointTask(APIEndpointTask):
 @add_schema(unknowns=True)
 @dataclass
 class MapSearchEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict

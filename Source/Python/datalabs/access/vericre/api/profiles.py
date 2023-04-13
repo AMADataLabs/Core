@@ -14,10 +14,10 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class ProfilesEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict
-    method: str
     database_name: str
     database_backend: str
     database_host: str
