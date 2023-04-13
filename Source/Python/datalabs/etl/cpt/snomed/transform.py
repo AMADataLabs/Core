@@ -77,7 +77,8 @@ class SNOMEDMappingTransformerTask(Task):
 
         return renamed_data
 
-    def _generate_cpt_mappings(self, data):
+    @classmethod
+    def _generate_cpt_mappings(cls, data):
         mappings = []
 
         for index in range(len(data)):
@@ -121,6 +122,7 @@ class SNOMEDMappingTransformerTask(Task):
     def _create_reverse_mappings(cls, keyword_map):
         return {keyword: set(pks) for keyword, pks in keyword_map.items()}
 
+    # pylint: disable=invalid-name
     @classmethod
     def _generate_keyword_items(cls, mappings, keyword_map):
         for keyword, pks in keyword_map.items():
