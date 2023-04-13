@@ -12,7 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @add_schema(unknowns=True)
 @dataclass
-class ProfileCaqhPdfEndpointParameters:
+class CAQHProfilePDFEndpointParameters:
     path: dict
     query: dict
     authorization: dict
@@ -25,17 +25,16 @@ class ProfileCaqhPdfEndpointParameters:
     unknowns: dict=None
 
 
-class ProfileCaqhPdfEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = ProfileCaqhPdfEndpointParameters
+class CAQHProfilePDFEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = CAQHProfilePDFEndpointParameters
 
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
-        entityId = self._parameters.path.get('entityId')
+        entity_id = self._parameters.path.get('entityId')
 
-        response_result = f"ProfileCaqhPdfEndpointTask, request with parameter: entityId={entityId}"
+        response_result = f"CAQHProfilePDFEndpointTask, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)
     
     @classmethod
     def _generate_response_body(cls, response_result):
-        
         return {"result": response_result}

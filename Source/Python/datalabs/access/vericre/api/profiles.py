@@ -17,6 +17,7 @@ class ProfilesEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    method: str
     database_name: str
     database_backend: str
     database_host: str
@@ -29,38 +30,34 @@ class ProfilesEndpointParameters:
 class BaseProfileEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfilesEndpointParameters
 
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
+
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
         self._run()
-
-        
     
     def _run(self):
         pass
 
     @classmethod
     def _generate_response_body(cls, response_result):
-        
         return {"result": response_result}
 
 
-class GetProfilesEndpointTask(BaseProfileEndpointTask):
+class ProfilesEndpointTask(BaseProfileEndpointTask):
     
     def _run(self):
-        response_result = "GetProfilesEndpointTask success"
+        method = self._parameters.method
+
+        response_result = f"ProfilesEndpointTask success, method: {method}"
         self._response_body = self._generate_response_body(response_result)
     
 
-class SingleProfileEndpointTask(BaseProfileEndpointTask):
+class ProfileEndpointTask(BaseProfileEndpointTask):
     def _run(self):
-        entityId = self._parameters.path.get('entityId')
+        entity_id = self._parameters.path.get('entityId')
         
-        response_result = f"SingleProfileEndpointTask, request with parameter: entityId={entityId}"
-        self._response_body = self._generate_response_body(response_result)
-
-
-class PatchProfilesEndpointTask(BaseProfileEndpointTask):
-    def _run(self):
-        response_result = "PatchProfilesEndpointTask success"
+        response_result = f"ProfileEndpointTask, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)

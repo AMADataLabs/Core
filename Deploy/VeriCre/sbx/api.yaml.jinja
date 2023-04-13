@@ -25,13 +25,12 @@ data:
     #######################################################################
 
     VERICRE_API__ROUTE__PHYSICIANS_SEARCH: '/physician/search'
-    VERICRE_API__ROUTE__GET_PROFILES:      '/profiles'
-    VERICRE_API__ROUTE__PATCH_PROFILES:    '/profiles/update'
+    VERICRE_API__ROUTE__PROFILES:          '/profiles'
     VERICRE_API__ROUTE__PROFILE:           '/profile/*'
     VERICRE_API__ROUTE__PROFILE_DOCUMENTS: '/profile/*/documents'
     VERICRE_API__ROUTE__PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
     VERICRE_API__ROUTE__PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
-    VERICRE_API__ROUTE__DEFAULT: '/*'
+    VERICRE_API__ROUTE__DEFAULT:           '/*'
 
 
     ##########################################################################
@@ -54,29 +53,14 @@ data:
     #########################################################################
 
 
-    # GET /profiles
-    VERICRE_API__GET_PROFILES__TASK_CLASS:  'datalabs.access.vericre.api.profiles.GetProfilesEndpointTask'
-    VERICRE_API__GET_PROFILES__DATABASE_NAME:  ${DATABASE_NAME}
-    VERICRE_API__GET_PROFILES__DATABASE_BACKEND: ${DATABASE_BACKEND}
-    VERICRE_API__GET_PROFILES__DATABASE_HOST: ${DATABASE_HOST}
-    VERICRE_API__GET_PROFILES__DATABASE_PORT: ${DATABASE_PORT}
-    VERICRE_API__GET_PROFILES__DATABASE_USERNAME: ${DATABASE_USERNAME}
-    VERICRE_API__GET_PROFILES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
-    #########################################################################
-
-
-    # PATCH /profiles/update
-    VERICRE_API__PATCH_PROFILES__TASK_CLASS:  'datalabs.access.vericre.api.profiles.PatchProfilesEndpointTask'
-    VERICRE_API__PATCH_PROFILES__DATABASE_NAME:  ${DATABASE_NAME}
-    VERICRE_API__PATCH_PROFILES__DATABASE_BACKEND: ${DATABASE_BACKEND}
-    VERICRE_API__PATCH_PROFILES__DATABASE_HOST: ${DATABASE_HOST}
-    VERICRE_API__PATCH_PROFILES__DATABASE_PORT: ${DATABASE_PORT}
-    VERICRE_API__PATCH_PROFILES__DATABASE_USERNAME: ${DATABASE_USERNAME}
-    VERICRE_API__PATCH_PROFILES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    # GET/PATCH /profiles
+    VERICRE_API__PROFILES__TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
+    VERICRE_API__PROFILES__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILES__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILES__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILES__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILES__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
 
     ##########################################################################
@@ -85,7 +69,7 @@ data:
 
 
     # GET /profile/{entityId}
-    VERICRE_API__PROFILE__TASK_CLASS:  'datalabs.access.vericre.api.profiles.SingleProfileEndpointTask'
+    VERICRE_API__PROFILE__TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfileEndpointTask'
     VERICRE_API__PROFILE__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILE__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PROFILE__DATABASE_HOST: ${DATABASE_HOST}
@@ -115,7 +99,7 @@ data:
 
 
     # GET /profile/{entityId}/CAQH/pdf
-    VERICRE_API__PROFILE_CAQH_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile_caqh_pdf.ProfileCaqhPdfEndpointTask'
+    VERICRE_API__PROFILE_CAQH_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile_caqh_pdf.CAQHProfilePDFEndpointTask'
     VERICRE_API__PROFILE_CAQH_PDF__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILE_CAQH_PDF__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PROFILE_CAQH_PDF__DATABASE_HOST: ${DATABASE_HOST}
@@ -130,7 +114,7 @@ data:
 
 
     # GET /profile/{entityId}/AMA/pdf
-    VERICRE_API__PROFILE_AMA_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile_ama_pdf.ProfileAmaPdfEndpointTask'
+    VERICRE_API__PROFILE_AMA_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile_ama_pdf.AMAProfilePDFEndpointTask'
     VERICRE_API__PROFILE_AMA_PDF__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILE_AMA_PDF__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PROFILE_AMA_PDF__DATABASE_HOST: ${DATABASE_HOST}

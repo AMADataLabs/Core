@@ -37,7 +37,8 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
             path=self._parameters.pop("pathParameters") or {},
             query={**query_parameters, **multivalue_query_parameters},
             payload=self._parameters.get("payload"),
-            authorization=self._extract_authorization_parameters(self._parameters)
+            authorization=self._extract_authorization_parameters(self._parameters),
+            method=self._parameters.get("httpMethod"),
         )
 
         return {**standard_parameters, **self._runtime_parameters["task_parameters"]}

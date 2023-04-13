@@ -2,8 +2,6 @@
 from   dataclasses import dataclass
 import logging
 
-import boto3
-
 from   datalabs.access.api.task import APIEndpointTask
 from   datalabs.parameter import add_schema
 
@@ -33,8 +31,6 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     def __init__(self, parameters: dict, data: "list<bytes>"=None):
         super().__init__(parameters, data)
 
-        self._s3 = boto3.client('s3')
-
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
@@ -43,5 +39,4 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     
     @classmethod
     def _generate_response_body(cls, response_result):
-        
         return {"result": response_result}

@@ -12,7 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @add_schema(unknowns=True)
 @dataclass
-class ProfileAmaPdfEndpointParameters:
+class AMAProfilePDFEndpointParameters:
     path: dict
     query: dict
     authorization: dict
@@ -25,17 +25,16 @@ class ProfileAmaPdfEndpointParameters:
     unknowns: dict=None
 
 
-class ProfileAmaPdfEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = ProfileAmaPdfEndpointParameters
+class AMAProfilePDFEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = AMAProfilePDFEndpointParameters
 
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
-        entityId = self._parameters.path.get('entityId')
+        entity_id = self._parameters.path.get('entityId')
 
-        response_result = f"ProfileAmaPdfEndpointTask, request with parameter: entityId={entityId}"
+        response_result = f"AMAProfilePDFEndpointTask, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)
     
     @classmethod
     def _generate_response_body(cls, response_result):
-        
         return {"result": response_result}
