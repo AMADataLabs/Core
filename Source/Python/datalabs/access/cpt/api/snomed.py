@@ -104,7 +104,6 @@ class MapSearchEndpointTask(APIEndpointTask):
         self._response_body = self._generate_response(filtered_maps, index, max_results)
 
     def _get_query_parameters(self, parameters):
-
         max_results = int(parameters.get("results")[0]) if parameters.get("results") else 50
         index = int(parameters.get("index")[0]) if parameters.get("index") else 0
         keywords = parameters.get("keyword")
@@ -132,7 +131,6 @@ class MapSearchEndpointTask(APIEndpointTask):
         return maps
 
     def _filter_maps(self, maps, categories):
-
         if categories:
             for map in maps:
                 map["mappings"] = [m for m in map["mappings"] if m["category"] in categories]
