@@ -15,6 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class ProfileDocumentsEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict

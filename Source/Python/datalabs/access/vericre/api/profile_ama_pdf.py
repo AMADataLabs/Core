@@ -13,6 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class AMAProfilePDFEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict
