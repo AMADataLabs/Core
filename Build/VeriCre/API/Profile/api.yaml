@@ -55,12 +55,12 @@ paths:
     get:
       tags:
         - Profile
-      description: Fetch profiles by Entity Id
+      description: Fetch profiles by Entity ID
       operationId: getProfiles
       parameters:
         - name: entityId
           in: query
-          description: List of Entity Ids
+          description: List of Entity IDs
           required: true
           schema:
             type: array
@@ -85,20 +85,20 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileData'
         '400':
-          description: Bad Request. The request should have a limit of 100 Entity Ids
+          description: Bad Request. The request should have a limit of 100 Entity IDs
         '500':
           description: Internal Server Error
     patch:
       tags:
         - Profile
       description: >-
-        Update profiles referenced by Entity Ids from the associated external
+        Update profiles referenced by Entity IDs from the associated external
         CAQH records
       operationId: refreshProfiles
       parameters:
         - name: entityId
           in: query
-          description: List of Entity Ids
+          description: List of Entity IDs
           required: true
           schema:
             type: array
@@ -123,21 +123,21 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileData'
         '400':
-          description: Bad Request. The request should have a limit of 100 Entity Ids
+          description: Bad Request. The request should have a limit of 100 Entity IDs
         '404':
-          description: The profile was not found for the provided Entity Ids
+          description: The profile was not found for the provided Entity IDs
         '500':
           description: Internal Server Error
   /profile/{entityId}:
     get:
       tags:
         - Profile
-      description: Fetch a single profile by Entity Id
+      description: Fetch a single profile by Entity ID
       operationId: getProfile
       parameters:
         - name: entityId
           in: path
-          description: Physician's Entity Id
+          description: Physician's Entity ID
           required: true
           content:
             application/json:
@@ -162,7 +162,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileData'
         '404':
-          description: The profile was not found for the provided Entity Id
+          description: The profile was not found for the provided Entity ID
         '500':
           description: Internal Server Error
   /profile/{entityId}/documents:
@@ -174,7 +174,7 @@ paths:
       parameters:
         - name: entityId
           in: path
-          description: Physician's Entity Id
+          description: Physician's Entity ID
           required: true
           content:
             application/json:
@@ -207,7 +207,7 @@ paths:
       parameters:
         - name: entityId
           in: path
-          description: Physician's Entity Id
+          description: Physician's Entity ID
           required: true
           content:
             application/json:
@@ -240,7 +240,7 @@ paths:
       parameters:
         - name: entityId
           in: path
-          description: Physician's Entity Id
+          description: Physician's Entity ID
           required: true
           content:
             application/json:
