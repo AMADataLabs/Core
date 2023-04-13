@@ -12,6 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class PhysiciansSearchEndpointParameters:
     method: str
     path: dict
@@ -29,15 +30,12 @@ class PhysiciansSearchEndpointParameters:
 class PhysiciansSearchEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = PhysiciansSearchEndpointParameters
 
-    def __init__(self, parameters: dict, data: "list<bytes>"=None):
-        super().__init__(parameters, data)
-
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
         response_result = "PhysiciansSearchEndpointTask success"
         self._response_body = self._generate_response_body(response_result)
-    
+
     @classmethod
     def _generate_response_body(cls, response_result):
         return {"result": response_result}

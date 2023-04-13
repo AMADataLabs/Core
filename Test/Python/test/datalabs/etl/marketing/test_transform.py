@@ -79,14 +79,14 @@
 #     assert exception.value.args[0] == 'list index out of range'
 
 
-# # pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access
 # def test_input_merger_transformer_extract_data(input_merger_data):
 #     packed_data = extract_input_merge_data(input_merger_data)
 
 #     assert len(packed_data) == 4
 
 
-# # pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access
 # def test_input_merger_transformer_read_input_data(input_merger_data):
 #     read_input_files = read_input_merger_data(input_merger_data)
 
@@ -105,7 +105,7 @@
 #     assert read_input_files.flatfile.shape[1] == 159
 
 
-# # pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access
 # def test_input_merger_transformer_merge_input_data(input_merger_data):
 #     transformer = InputsMergerTask({}, input_merger_data)
 #     input_data = read_input_merger_data(input_merger_data)
@@ -147,19 +147,19 @@
 #     return read_input_files
 
 
-# def extract_input_merge_data(input_merger_data):
-#     transformer = InputsMergerTask({}, input_merger_data)
-#     packed_data = transformer._extract_data()
-
-#     return packed_data
-
-
 # def read_input_merger_data(input_merger_data):
 #     transformer = InputsMergerTask({}, input_merger_data)
 #     packed_data = extract_input_merge_data(input_merger_data)
 #     read_input_files = transformer._read_input_data(packed_data)
 
 #     return read_input_files
+
+
+# def extract_input_merge_data(input_merger_data):
+#     transformer = InputsMergerTask({}, input_merger_data)
+#     packed_data = transformer._extract_data()
+
+#     return packed_data
 
 
 # # pylint: disable=line-too-long
