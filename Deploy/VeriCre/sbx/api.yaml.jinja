@@ -24,7 +24,7 @@ data:
     # Route Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "API"}})
     #######################################################################
 
-    VERICRE_API__ROUTE__PHYSICIANS_SEARCH: '/physician/search'
+    VERICRE_API__ROUTE__PHYSICIANS_SEARCH: '/physicians/search'
     VERICRE_API__ROUTE__PROFILES:          '/profiles'
     VERICRE_API__ROUTE__PROFILE:           '/profile/*'
     VERICRE_API__ROUTE__PROFILE_DOCUMENTS: '/profile/*/documents'
@@ -38,7 +38,7 @@ data:
     #########################################################################
 
 
-    # POST /physician/search
+    # POST /physicians/search
     VERICRE_API__PHYSICIANS_SEARCH__TASK_CLASS:  'datalabs.access.vericre.api.physicians_search.PhysiciansSearchEndpointTask'
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_BACKEND: ${DATABASE_BACKEND}
