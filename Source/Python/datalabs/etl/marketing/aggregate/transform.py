@@ -23,6 +23,32 @@ class EmailValidatorTask:
 
 
 @dataclass
+class InputDataParser:
+    def parse(self, text, seperator = ','):
+        decoded_text = self.decode(text)
+
+        data = pandas.read_csv(
+            io.StringIO(decoded_text),
+            sep=seperator,
+            on_bad_lines='skip',
+            dtype=object,
+            index_col=None
+        )
+        return data
+
+    @classmethod
+    def decode(cls, text):
+        decoded_text = None
+
+        try:
+            decoded_text = text.decode()
+        except UnicodeDecodeError:
+            decoded_text = text.decode('cp1252', errors='backslashreplace')
+
+        return decoded_text
+
+
+@dataclass
 class MarketingData:
     adhoc: pandas.DataFrame
     aims: pandas.DataFrame
@@ -36,7 +62,7 @@ class InputDataCleanerTaskParameters:
     execution_time: str = None
 
 
-class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, InputDataParser):
     PARAMETER_CLASS = InputDataCleanerTaskParameters
 
     def run(self):
@@ -55,25 +81,12 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return [self._dataframe_to_csv(data) for data in input_data_list]
 
-    def _parse(self, text, seperator = ','):
-        decoded_text = self._decode(text)
-
-        data = pandas.read_csv(
-            io.StringIO(decoded_text),
-            sep=seperator,
-            on_bad_lines='skip',
-            dtype=object,
-            index_col=None
-        )
-
-        return data
-
     def _merge_adhoc_data(self, input_files: MarketingData):
         adhoc_files = []
         adhoc_data = input_files[0:-3]
 
         for name, data in adhoc_data:
-            adhoc_file = self._parse(data, seperator = ',')
+            adhoc_file = self.parse(data, seperator = ',')
             adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
             adhoc_files.append(adhoc_file)
 
@@ -83,11 +96,11 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         adhoc = self._merge_adhoc_data(input_files)
 
-        aims = self._parse(input_files[-3][1], seperator = '|')
+        aims = self.parse(input_files[-3][1], seperator = '|')
 
-        list_of_lists = self._parse(input_files[-2][1], seperator = ',')
+        list_of_lists = self.parse(input_files[-2][1], seperator = ',')
 
-        flatfile = self._parse(input_files[-1][1], seperator = '\t')
+        flatfile = self.parse(input_files[-1][1], seperator = '\t')
 
         return  MarketingData(adhoc, aims, list_of_lists, flatfile)
 
@@ -131,19 +144,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return flatfile.fillna('')
 
-    @classmethod
-    def _decode(cls, text):
-        decoded_text = None
 
-        try:
-            decoded_text = text.decode()
-        except UnicodeDecodeError:
-            decoded_text = text.decode('cp1252', errors='backslashreplace')
-
-        return decoded_text
-
-
-class InputsMergerTask(InputDataCleanerTask):
+class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, InputDataParser):
     Parameter_class = InputDataCleanerTaskParameters
 
     def run(self):
@@ -154,10 +156,10 @@ class InputsMergerTask(InputDataCleanerTask):
         return [self._dataframe_to_csv(merged_inputs)]
 
     def _read_input_data(self, input_files: []) -> MarketingData:
-        adhoc = self._parse(input_files[0])
-        aims =  self._parse(input_files[1])
-        list_of_lists = self._parse(input_files[2])
-        flatfile = self._parse(input_files[3])
+        adhoc = self.parse(input_files[0])
+        aims =  self.parse(input_files[1])
+        list_of_lists = self.parse(input_files[2])
+        flatfile = self.parse(input_files[3])
 
         return MarketingData(adhoc, aims, list_of_lists, flatfile)
 
@@ -196,23 +198,26 @@ class InputsMergerTask(InputDataCleanerTask):
         return data.rename(columns=column.JOIN_LISTKEYS_COLUMNS)
 
 
-class FlatfileUpdaterTask(InputsMergerTask):
+# pylint: disable=redefined-outer-name, protected-access, unused-variable
+class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, InputDataParser):
     Parameter_class = InputDataCleanerTaskParameters
 
     def run(self):
-        input_data = self._read_input_data(self._data)
+        contacts, list_of_lists, flatfile, inputs = self._read_input_data(self._data)
 
-        merged_inputs = self._parse(self._data[4])
+        flatfile = self._prune_flatfile_listkeys(flatfile, list_of_lists)
 
-        flatfile = self._prune_flatfile_listkeys(input_data.flatfile, input_data.list_of_lists)
-
-        matched_inputs, unmatched_inputs = self._assign_emppids_to_inputs(merged_inputs, flatfile)
+        matched_inputs, unmatched_inputs = self._assign_emppids_to_inputs(inputs, flatfile)
 
         updated_flatfile = self._update_flatfile_listkeys(flatfile, matched_inputs)
 
         updated_flatfile = self._add_new_records_to_flatfile(updated_flatfile, unmatched_inputs)
 
         return [self._dataframe_to_csv(updated_flatfile)]
+
+
+    def _read_input_data(self, input_files: []):
+        return [self.parse(data) for data in input_files]
 
     # pylint: disable= cell-var-from-loop
     @classmethod
@@ -236,6 +241,31 @@ class FlatfileUpdaterTask(InputsMergerTask):
         return matched_inputs, unmatched_inputs
 
     @classmethod
+    def _update_flatfile_listkeys(cls, flatfile, matched_inputs):
+        concatenated_listkeys = cls._concatenate_listkeys_per_best_email(matched_inputs)
+
+        flatfile_first_matching = cls._get_first_matching_records_by_best_email(flatfile, matched_inputs)
+
+        merged_first_matching = cls._merge_new_listkeys_into_flatfile(
+            flatfile_first_matching,
+            concatenated_listkeys
+        )
+        flatfile.loc[merged_first_matching.index, "LISTKEY"] = merged_first_matching.LISTKEY
+
+        return flatfile
+
+    def _add_new_records_to_flatfile(self, flatfile, unmatched_inputs):
+        appended_flatfile =  self._add_new_records_to_flatfile(flatfile, unmatched_inputs)
+
+        return appended_flatfile.drop(columns=["LISTKEY_COMBINED"])
+
+    @classmethod
+    def _add_new_records_to_flatfile(cls, flatfile, unmatched_rows):
+        updated_flatfile = pandas.concat((flatfile, unmatched_rows), axis=0, ignore_index=True)
+
+        return updated_flatfile.fillna('')
+
+    @classmethod
     def _get_new_emails(cls, emails, flatfile):
         email_data = pandas.DataFrame(data=dict(BEST_EMAIL=emails))
 
@@ -254,20 +284,6 @@ class FlatfileUpdaterTask(InputsMergerTask):
         unmatched_inputs.loc[:, "EMPPID"] = range(int(last_emppid)+1, int(last_emppid)+len(unmatched_inputs)+1)
 
         return unmatched_inputs
-
-    @classmethod
-    def _update_flatfile_listkeys(cls, flatfile, matched_inputs):
-        concatenated_listkeys = cls._concatenate_listkeys_per_best_email(matched_inputs)
-
-        flatfile_first_matching = cls._get_first_matching_records_by_best_email(flatfile, matched_inputs)
-
-        merged_first_matching = cls._merge_new_listkeys_into_flatfile(
-            flatfile_first_matching,
-            concatenated_listkeys
-        )
-        flatfile.loc[merged_first_matching.index, "LISTKEY"] = merged_first_matching.LISTKEY
-
-        return flatfile
 
     # pylint: disable= unnecessary-lambda
     @classmethod
@@ -289,38 +305,3 @@ class FlatfileUpdaterTask(InputsMergerTask):
         merged_flatfile = merged_flatfile.drop(columns=["LISTKEY_x", "LISTKEY_y"])
 
         return merged_flatfile
-
-    def _add_new_records_to_flatfile(self, flatfile, unmatched_inputs):
-        appended_flatfile =  self._add_new_records_to_flatfile(flatfile, unmatched_inputs)
-
-        return appended_flatfile.drop(columns=["LISTKEY_COMBINED"])
-
-    @classmethod
-    def _add_new_records_to_flatfile(cls, flatfile, unmatched_rows):
-        updated_flatfile = pandas.concat((flatfile, unmatched_rows), axis=0, ignore_index=True)
-
-        return updated_flatfile.fillna('')
-
-
-class UniqueEmailsIdentifierTask:
-    pass
-
-
-class NewEmailsIdentifierTask:
-    pass
-
-
-class FlatFileGeneratorTask:
-    pass
-
-
-class ListKeysCompilerTask:
-    pass
-
-
-class SFMCLoaderTask:
-    pass
-
-
-class SFTPLoaderTask:
-    pass
