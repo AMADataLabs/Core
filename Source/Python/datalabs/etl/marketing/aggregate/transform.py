@@ -22,10 +22,10 @@ class EmailValidatorTask:
     pass
 
 
-@dataclass
 class InputDataParser:
-    def parse(self, text, seperator = ','):
-        decoded_text = self.decode(text)
+    @classmethod
+    def parse(cls,text, seperator = ','):
+        decoded_text = cls._decode(text)
 
         data = pandas.read_csv(
             io.StringIO(decoded_text),
@@ -37,7 +37,7 @@ class InputDataParser:
         return data
 
     @classmethod
-    def decode(cls, text):
+    def _decode(cls, text):
         decoded_text = None
 
         try:
@@ -62,7 +62,7 @@ class InputDataCleanerTaskParameters:
     execution_time: str = None
 
 
-class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, InputDataParser):
+class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     PARAMETER_CLASS = InputDataCleanerTaskParameters
 
     def run(self):
@@ -81,12 +81,13 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, 
 
         return [self._dataframe_to_csv(data) for data in input_data_list]
 
-    def _merge_adhoc_data(self, input_files: MarketingData):
+    @classmethod
+    def _merge_adhoc_data(cls, input_files: MarketingData):
         adhoc_files = []
         adhoc_data = input_files[0:-3]
 
         for name, data in adhoc_data:
-            adhoc_file = self.parse(data, seperator = ',')
+            adhoc_file = InputDataParser.parse(data, seperator = ',')
             adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
             adhoc_files.append(adhoc_file)
 
@@ -96,11 +97,11 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, 
 
         adhoc = self._merge_adhoc_data(input_files)
 
-        aims = self.parse(input_files[-3][1], seperator = '|')
+        aims = InputDataParser.parse(input_files[-3][1], seperator = '|')
 
-        list_of_lists = self.parse(input_files[-2][1], seperator = ',')
+        list_of_lists = InputDataParser.parse(input_files[-2][1], seperator = ',')
 
-        flatfile = self.parse(input_files[-1][1], seperator = '\t')
+        flatfile = InputDataParser.parse(input_files[-1][1], seperator = '\t')
 
         return  MarketingData(adhoc, aims, list_of_lists, flatfile)
 
@@ -145,7 +146,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, 
         return flatfile.fillna('')
 
 
-class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, InputDataParser):
+class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     Parameter_class = InputDataCleanerTaskParameters
 
     def run(self):
@@ -155,11 +156,12 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, Inpu
 
         return [self._dataframe_to_csv(merged_inputs)]
 
-    def _read_input_data(self, input_files: []) -> MarketingData:
-        adhoc = self.parse(input_files[0])
-        aims =  self.parse(input_files[1])
-        list_of_lists = self.parse(input_files[2])
-        flatfile = self.parse(input_files[3])
+    @classmethod
+    def _read_input_data(cls, input_files: []) -> MarketingData:
+        adhoc = InputDataParser.parse(input_files[0])
+        aims =  InputDataParser.parse(input_files[1])
+        list_of_lists = InputDataParser.parse(input_files[2])
+        flatfile = InputDataParser.parse(input_files[3])
 
         return MarketingData(adhoc, aims, list_of_lists, flatfile)
 
@@ -199,7 +201,7 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, Inpu
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-variable
-class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, InputDataParser):
+class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     Parameter_class = InputDataCleanerTaskParameters
 
     def run(self):
@@ -216,8 +218,9 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task, I
         return [self._dataframe_to_csv(updated_flatfile)]
 
 
-    def _read_input_data(self, input_files: []):
-        return [self.parse(data) for data in input_files]
+    @classmethod
+    def _read_input_data(cls, input_files: []):
+        return [InputDataParser.parse(data) for data in input_files]
 
     # pylint: disable= cell-var-from-loop
     @classmethod
