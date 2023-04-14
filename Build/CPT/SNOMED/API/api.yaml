@@ -24,7 +24,7 @@ tags:
       a "next" property indicating the URL to fetch the next set of results
       is included.
 paths:
-  '/snomed/map/cpt/{concept}':
+  '/map/cpt/{concept}':
     get:
       tags:
         - Map
@@ -48,7 +48,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-SNOMED-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -69,7 +69,7 @@ paths:
           description: No SNOMED Concept for the given ID.
       security:
         - gateway_authorizer: []
-  /snomed/maps/cpt:
+  /maps/cpt:
     get:
       tags:
         - Maps
@@ -108,7 +108,7 @@ paths:
             type: integer
             minimum: 1
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-SNOMED-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -136,7 +136,7 @@ paths:
           schema:
             type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
         responses:
           default:
             statusCode: 200
