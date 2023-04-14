@@ -632,9 +632,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
                     Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
+                    JSON-API=Endpoint.zip
+                    ZIP-API=Endpoint.zip
             - step:
                 name: Update Test Lambda Functions
                 script:
