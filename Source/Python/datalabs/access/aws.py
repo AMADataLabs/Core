@@ -9,13 +9,17 @@ class AWSClient:
         self._kwargs = kwargs
         self._client = None
         self._ssl_verification = True
+        self._client_factory = boto3.client
 
         if os.getenv('AWS_NO_VERIFY_SSL') == "True":
             self._ssl_verification = False
 
     @property
     def resource(self):
-        return boto3.resource(self._service)
+        aws_client = AWSClient(self._service, **self._kwargs)
+        aws_client._client_factory = boto3.resource  # pylint: disable=protected-access
+
+        return aws_client
 
     def __enter__(self):
         assume_role = self._kwargs.pop("assume_role", None)
@@ -26,7 +30,7 @@ class AWSClient:
 
             self._kwargs.update(self._get_credential_kwargs(role["Credentials"]))
 
-        self._client = boto3.client(self._service, verify=self._ssl_verification, **self._kwargs)
+        self._client = self._client_factory(self._service, verify=self._ssl_verification, **self._kwargs)
 
         return self._client
 

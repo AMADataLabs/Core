@@ -96,6 +96,7 @@ def runtime_parameters(task_parameters):
 @pytest.fixture
 def expected_parameters(task_parameters):
     parameters = dict(
+        method="GET",
         path=dict(foo='bar'),
         query=dict(ping='pong'),
         authorization=dict(

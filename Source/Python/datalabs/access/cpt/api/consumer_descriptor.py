@@ -19,6 +19,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class ConsumerDescriptorEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict
