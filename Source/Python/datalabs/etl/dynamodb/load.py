@@ -95,7 +95,6 @@ class DynamoDBLoaderTask(Task):
         incoming_hashes = pandas.DataFrame(incoming_hashes)
 
         current_hashes = pandas.DataFrame(current_hashes)
-        current_hashes = current_hashes[pandas.isnull(current_hashes['ref'])].drop(['ref'], axis=1).reset_index()
 
         deleted_data = current_hashes[~current_hashes['pk'].isin(incoming_hashes['pk'])]
 
