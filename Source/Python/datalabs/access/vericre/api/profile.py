@@ -1,19 +1,17 @@
 """ Release endpoint classes."""
-from   abc import abstractmethod
 import base64
 from   dataclasses import dataclass
-import logging
 import io
 import json
+import logging
 import os
-import urllib.parse
 import shutil
+import urllib.parse
 
-from amazon.ion.simpleion import dumps
 from amazon.ion.json_encoder import IonToJSONEncoder
 from botocore.exceptions import ClientError
-from sqlalchemy import func, literal, Integer
 from pyqldb.driver.qldb_driver import QldbDriver
+from sqlalchemy import func, literal, Integer
 import zipfile
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound
@@ -25,10 +23,6 @@ from datalabs.parameter import add_schema
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-BUCKET_NAME = 'ama-sbx-vericre-us-east-1'
-LEDGER_NAME = 'vericre-sbx-ledger'
-
 
 @add_schema(unknowns=True)
 @dataclass
@@ -42,10 +36,12 @@ class ProfileDocumentsEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
+    bucket_name: str
+    ledger_name: str
     unknowns: dict=None
 
 
-class ProfileDocumentsEndpointTask(APIEndpointTask):
+class BaseProfileEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfileDocumentsEndpointParameters
 
     def run(self):
@@ -53,7 +49,26 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
-    
+
+    def _run(self):
+        pass
+
+    @classmethod
+    def _generate_response_body(cls, response_data):
+        return {
+            "file_contents": base64.b64encode(response_data).decode('utf-8')
+        }
+
+    @classmethod
+    def _generate_headers(cls, entity_id):
+        return {
+            'Content-Type': 'application/zip',
+            'Content-Disposition': f'attachment; filename={entity_id}_documents.zip'
+        }
+
+
+class ProfileDocumentsEndpointTask(BaseProfileEndpointTask):
+
     def _run(self, database):
         entity_id = self._parameters.path.get('entityId')
         me_number = self._query_for_me_number(entity_id)
@@ -73,9 +88,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         self._response_body = self._generate_response_body(zip_file_in_bytes)
         self._headers = self._generate_headers(entity_id)
 
-
     def _query_for_me_number(self, entity_id):
-        with QldbDriver(ledger_name=LEDGER_NAME) as driver:
+        with QldbDriver(ledger_name=self._parameters.ledger_name) as driver:
             query = f"SELECT meNumber FROM ama_masterfile WHERE entityId = '{entity_id}' and meNumber is not null"
             result = driver.execute_lambda(lambda executor: executor.execute_statement(query))
 
@@ -115,7 +129,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         query = self._filter_by_me_number(query, me_number)
 
         return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
-    
+
     def _filter_by_me_number(self, query, me_number):
         return query.filter(User.ama_me_number == me_number)
 
@@ -150,10 +164,10 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                 document_key = f"{item['document_path']}/{encoded_document_name}"
 
                 self._get_files(s3, entity_id, document_key, item['document_name'])
-    
+
     def _get_files(self, s3, entity_id, key, filename):
         try:
-            s3.download_file(Bucket=BUCKET_NAME, Key=key, Filename=f"{entity_id}/{filename}")
+            s3.download_file(Bucket=self._parameters.bucket_name, Key=key, Filename=f"{entity_id}/{filename}")
             LOGGER.info(f"{entity_id}/{filename} downloaded.")
 
         except ClientError as error:
@@ -174,16 +188,13 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         shutil.rmtree(dir_to_zip)
 
         return zip_file_bytes
-    
-    @classmethod
-    def _generate_response_body(cls, response_data):
-        return {
-            "file_contents": base64.b64encode(response_data).decode('utf-8')
-        }
 
-    @classmethod
-    def _generate_headers(cls, entity_id):
-        return {
-            'Content-Type': 'application/json',
-            'Content-Disposition': f'attachment; filename={entity_id}_documents.zip'
-        }
+
+class AMAProfilePDFEndpointTask(BaseProfileEndpointTask):
+    def _run(self, database):
+        print("TODO")
+
+
+class CAQHProfilePDFEndpointTask(BaseProfileEndpointTask):
+    def _run(self, database):
+        print("TODO")
