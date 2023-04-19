@@ -18,10 +18,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class EmailValidatorTask:
-    pass
-
-
 class InputDataParser:
     @classmethod
     def parse(cls,text, seperator = ','):
@@ -34,6 +30,7 @@ class InputDataParser:
             dtype=object,
             index_col=None
         )
+
         return data
 
     @classmethod
@@ -54,6 +51,10 @@ class MarketingData:
     aims: pandas.DataFrame
     list_of_lists: pandas.DataFrame
     flatfile: pandas.DataFrame
+
+
+class EmailValidatorTask:
+    pass
 
 
 @add_schema
@@ -81,20 +82,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return [self._dataframe_to_csv(data) for data in input_data_list]
 
-    @classmethod
-    def _merge_adhoc_data(cls, input_files: MarketingData):
-        adhoc_files = []
-        adhoc_data = input_files[0:-3]
-
-        for name, data in adhoc_data:
-            adhoc_file = InputDataParser.parse(data, seperator = ',')
-            adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
-            adhoc_files.append(adhoc_file)
-
-        return pandas.concat(adhoc_files, axis=0, ignore_index=True)
-
     def _read_input_data(self, input_files: []) -> MarketingData:
-
         adhoc = self._merge_adhoc_data(input_files)
 
         aims = InputDataParser.parse(input_files[-3][1], seperator = '|')
@@ -116,6 +104,17 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return input_data
 
+    @classmethod
+    def _merge_adhoc_data(cls, input_files: MarketingData):
+        adhoc_files = []
+        adhoc_data = input_files[0:-3]
+
+        for name, data in adhoc_data:
+            adhoc_file = InputDataParser.parse(data, seperator = ',')
+            adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
+            adhoc_files.append(adhoc_file)
+
+        return pandas.concat(adhoc_files, axis=0, ignore_index=True)
 
     @classmethod
     def _clean_adhoc(cls, adhoc):
@@ -257,16 +256,11 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return flatfile
 
-    def _add_new_records_to_flatfile(self, flatfile, unmatched_inputs):
-        appended_flatfile =  self._add_new_records_to_flatfile(flatfile, unmatched_inputs)
-
-        return appended_flatfile.drop(columns=["LISTKEY_COMBINED"])
-
     @classmethod
-    def _add_new_records_to_flatfile(cls, flatfile, unmatched_rows):
-        updated_flatfile = pandas.concat((flatfile, unmatched_rows), axis=0, ignore_index=True)
+    def _add_new_records_to_flatfile(cls, flatfile, unmatched_inputs):
+        updated_flatfile = pandas.concat((flatfile, unmatched_inputs), axis=0, ignore_index=True)
 
-        return updated_flatfile.fillna('')
+        return updated_flatfile.fillna('').drop(columns=["LISTKEY_COMBINED"])
 
     @classmethod
     def _get_new_emails(cls, emails, flatfile):
@@ -308,3 +302,11 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         merged_flatfile = merged_flatfile.drop(columns=["LISTKEY_x", "LISTKEY_y"])
 
         return merged_flatfile
+
+
+class DuplicatePrunerTask:
+    pass
+
+
+class SFMCPrunerTask:
+    pass
