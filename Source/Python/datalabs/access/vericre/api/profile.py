@@ -60,10 +60,10 @@ class BaseProfileEndpointTask(APIEndpointTask):
         }
 
     @classmethod
-    def _generate_headers(cls, entity_id):
+    def _generate_headers(cls, content_type, content_disposition):
         return {
-            'Content-Type': 'application/zip',
-            'Content-Disposition': f'attachment; filename={entity_id}_documents.zip'
+            'Content-Type': content_type,
+            'Content-Disposition': content_disposition
         }
 
 
@@ -86,7 +86,10 @@ class ProfileDocumentsEndpointTask(BaseProfileEndpointTask):
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
         self._response_body = self._generate_response_body(zip_file_in_bytes)
-        self._headers = self._generate_headers(entity_id)
+        self._headers = self._generate_headers(
+            'application/zip', 
+            f'attachment; filename={entity_id}_documents.zip'
+        )
 
     def _query_for_me_number(self, entity_id):
         with QldbDriver(ledger_name=self._parameters.ledger_name) as driver:
