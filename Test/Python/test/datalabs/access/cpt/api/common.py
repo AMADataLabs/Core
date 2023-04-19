@@ -5,6 +5,7 @@ import pytest
 @pytest.fixture
 def event():
     return dict(
+        method="GET",
         path={},
         query={},
         authorization={},

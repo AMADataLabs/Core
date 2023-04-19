@@ -13,7 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class ProfilesEndpointParameters:
+class AMAProfilePDFEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -27,34 +27,16 @@ class ProfilesEndpointParameters:
     unknowns: dict=None
 
 
-class BaseProfileEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = ProfilesEndpointParameters
+class AMAProfilePDFEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = AMAProfilePDFEndpointParameters
 
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
+        entity_id = self._parameters.path.get('entityId')
 
-        self._run()
-
-    def _run(self):
-        pass
+        response_result = f"AMAProfilePDFEndpointTask, request with parameter: entityId={entity_id}"
+        self._response_body = self._generate_response_body(response_result)
 
     @classmethod
     def _generate_response_body(cls, response_result):
         return {"result": response_result}
-
-
-class ProfilesEndpointTask(BaseProfileEndpointTask):
-
-    def _run(self):
-        method = self._parameters.method
-
-        response_result = f"ProfilesEndpointTask success, method: {method}"
-        self._response_body = self._generate_response_body(response_result)
-
-
-class ProfileEndpointTask(BaseProfileEndpointTask):
-    def _run(self):
-        entity_id = self._parameters.path.get('entityId')
-
-        response_result = f"ProfileEndpointTask, request with parameter: entityId={entity_id}"
-        self._response_body = self._generate_response_body(response_result)
