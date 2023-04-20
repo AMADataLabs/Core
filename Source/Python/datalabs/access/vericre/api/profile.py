@@ -36,8 +36,7 @@ class ProfileDocumentsEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    bucket_name: str
-    ledger_name: str
+    document_bucket_name: str
     unknowns: dict=None
 
 
@@ -55,9 +54,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, response_data):
-        return {
-            "file_contents": base64.b64encode(response_data).decode('utf-8')
-        }
+        return response_data
 
     @classmethod
     def _generate_headers(cls, content_type, content_disposition):
@@ -71,11 +68,10 @@ class ProfileDocumentsEndpointTask(BaseProfileEndpointTask):
 
     def _run(self, database):
         entity_id = self._parameters.path.get('entityId')
-        me_number = self._query_for_me_number(entity_id)
 
         sub_query = self._sub_query_for_documents(database)
 
-        sub_query = self._filter(sub_query, me_number)
+        sub_query = self._filter(sub_query, entity_id)
 
         query = self._query_for_documents(database, sub_query)
 
@@ -90,22 +86,6 @@ class ProfileDocumentsEndpointTask(BaseProfileEndpointTask):
             'application/zip', 
             f'attachment; filename={entity_id}_documents.zip'
         )
-
-    def _query_for_me_number(self, entity_id):
-        with QldbDriver(ledger_name=self._parameters.ledger_name) as driver:
-            query = f"SELECT meNumber FROM ama_masterfile WHERE entityId = '{entity_id}' and meNumber is not null"
-            result = driver.execute_lambda(lambda executor: executor.execute_statement(query))
-
-        me_number = None
-        for row in result:
-            jsonObj=json.loads(json.dumps(row, cls=IonToJSONEncoder))
-            me_number = jsonObj['meNumber']
-            break
-
-        if me_number == None:
-            raise ResourceNotFound('No ME number found for the given entity ID')
-
-        return me_number
 
     def _sub_query_for_documents(self, database):
         return database.query(
@@ -128,13 +108,14 @@ class ProfileDocumentsEndpointTask(BaseProfileEndpointTask):
             Document, Document.id == func.cast(FormField.values[0], Integer)
         )
 
-    def _filter(self, query, me_number):
-        query = self._filter_by_me_number(query, me_number)
+    def _filter(self, query, entity_id):
+        query = self._filter_by_entity_id(query, entity_id)
 
         return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
 
-    def _filter_by_me_number(self, query, me_number):
-        return query.filter(User.ama_me_number == me_number)
+    def _filter_by_entity_id(self, query, entity_id):
+        # query me_number temporary and will update to filter by ama_entity_id in next sprint
+        return query.filter(User.ama_me_number == entity_id)
 
     def _query_for_documents(self, database, sub_query):
         subquery = sub_query.subquery()
@@ -170,7 +151,7 @@ class ProfileDocumentsEndpointTask(BaseProfileEndpointTask):
 
     def _get_files(self, s3, entity_id, key, filename):
         try:
-            s3.download_file(Bucket=self._parameters.bucket_name, Key=key, Filename=f"{entity_id}/{filename}")
+            s3.download_file(Bucket=self._parameters.document_bucket_name, Key=key, Filename=f"{entity_id}/{filename}")
             LOGGER.info(f"{entity_id}/{filename} downloaded.")
 
         except ClientError as error:

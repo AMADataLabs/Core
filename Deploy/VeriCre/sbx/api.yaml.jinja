@@ -15,7 +15,7 @@ data:
     DATABASE_HOST: vericre-sbx-au-aurora-cluster.cluster-c3mn4zysffxi.us-east-1.rds.amazonaws.com
     DATABASE_PORT: '5432'
     DATABASE_BACKEND: 'postgresql+psycopg2'
-    DATABASE_NAME: 'postgres'
+    DATABASE_NAME: 'vericre'
     DATABASE_USERNAME:  vericreadmin
     DATABASE_PASSWORD:  '{{database_password}}'
 
@@ -84,13 +84,14 @@ data:
 
 
     # GET /profile/{entityId}/documents
-    VERICRE_API__PROFILE_DOCUMENTS__TASK_CLASS:  'datalabs.access.vericre.api.profile_documents.ProfileDocumentsEndpointTask'
+    VERICRE_API__PROFILE_DOCUMENTS__TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfileDocumentsEndpointTask'
     VERICRE_API__PROFILE_DOCUMENTS__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILE_DOCUMENTS__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PROFILE_DOCUMENTS__DATABASE_HOST: ${DATABASE_HOST}
     VERICRE_API__PROFILE_DOCUMENTS__DATABASE_PORT: ${DATABASE_PORT}
     VERICRE_API__PROFILE_DOCUMENTS__DATABASE_USERNAME: ${DATABASE_USERNAME}
     VERICRE_API__PROFILE_DOCUMENTS__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    VERICRE_API__PROFILE_DOCUMENTS__DOCUMENT_BUCKET_NAME: 'ama-sbx-vericre-us-east-1'
 
 
     ##########################################################################
@@ -99,7 +100,7 @@ data:
 
 
     # GET /profile/{entityId}/CAQH/pdf
-    VERICRE_API__PROFILE_CAQH_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile_caqh_pdf.CAQHProfilePDFEndpointTask'
+    VERICRE_API__PROFILE_CAQH_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
     VERICRE_API__PROFILE_CAQH_PDF__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILE_CAQH_PDF__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PROFILE_CAQH_PDF__DATABASE_HOST: ${DATABASE_HOST}
@@ -114,7 +115,7 @@ data:
 
 
     # GET /profile/{entityId}/AMA/pdf
-    VERICRE_API__PROFILE_AMA_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile_ama_pdf.AMAProfilePDFEndpointTask'
+    VERICRE_API__PROFILE_AMA_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
     VERICRE_API__PROFILE_AMA_PDF__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILE_AMA_PDF__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PROFILE_AMA_PDF__DATABASE_HOST: ${DATABASE_HOST}
