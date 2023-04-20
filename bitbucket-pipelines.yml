@@ -631,9 +631,11 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-                    Authorizer=Endpoint.zip
                     JSON-API=Endpoint.zip
+                    JSON-API-Authorizer=Endpoint.zip
                     ZIP-API=Endpoint.zip
+                    ZIP-API-Authorizer=Endpoint.zip
+                    SNOMED-API-Authorizer=Endpoint.zip
             - step:
                 name: Update Test Lambda Functions
                 script:
