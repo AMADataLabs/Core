@@ -1,9 +1,14 @@
 """Authorize Task"""
 from   dataclasses import dataclass
+import logging
 import json
 import requests
 
 from   datalabs.task import Task, TaskException
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @dataclass
@@ -36,6 +41,8 @@ class AuthorizerTask(Task):
 
         if response.status_code in (200, 401):
             entitlements = json.loads(response.text)
+            LOGGER.info("Entitlements Response: %s", entitlements)
+
             self._authorization = self._authorize(entitlements)
         else:
             raise AuthorizerTaskException(f'Unable to authorize: {response.text}')
