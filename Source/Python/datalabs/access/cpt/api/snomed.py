@@ -145,6 +145,10 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response(cls, filtered_maps, index, max_results):
+        print("XXXXXXXXXXXXXXXXXXXXX")
+        print("What is max results?")
+        print(max_results)
+        print(len(filtered_maps))
         items = dict(
             maps=filtered_maps[index:index + max_results],
             available=len(filtered_maps)
@@ -170,7 +174,8 @@ class MapSearchEndpointTask(APIEndpointTask):
         for search_item in keyword_items:
             mapping = cls._get_mapping_from_reference(search_item['pk']['S'], dynamodb)
 
-            mappings[mapping["pk"]["S"]].append(mapping)
+            if mapping:
+                mappings[mapping["pk"]["S"]].append(mapping)
 
         return mappings
 
@@ -211,6 +216,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     # pylint: disable=invalid-name
     @classmethod
     def _get_mapping_from_reference(cls, pksk, dynamodb):
+        items = []
         pk = pksk.rsplit(':', 2)[0]
         sk = pksk.split(':', 2)[2]
 
@@ -218,7 +224,10 @@ class MapSearchEndpointTask(APIEndpointTask):
             Statement=f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk = '{pk}' AND sk = '{sk}'"
         )
 
-        return results["Items"][0]
+        if results["Items"]:
+            items = results["Items"][0]
+        
+        return items
 
     @classmethod
     def _paginate(cls, dynamodb, statement):
