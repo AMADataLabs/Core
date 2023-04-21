@@ -158,7 +158,10 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     def _get_mapping_references_by_keyword(self, dynamodb, keyword):
         mapping_references = dynamodb.execute_statement(
-            Statement=f"SELECT * FROM \"{self._parameters.database_table}\".\"{self._parameters.database_index}\" WHERE sk = 'KEYWORD:{keyword}'"
+            Statement=f"""
+                SELECT * FROM \"{self._parameters.database_table}\".\"{self._parameters.database_index}\" 
+                WHERE sk = 'KEYWORD:{keyword}'
+            """
         )
 
         return mapping_references
@@ -177,7 +180,15 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _get_all_mappings(self, dynamodb):
         mappings = defaultdict(list)
 
-        for item in self._paginate(dynamodb, "SELECT * FROM \"{self._parameters.database_table}\" WHERE begins_with(\"sk\", 'CPT:')"):
+        items = self._paginate(
+            dynamodb,
+            """
+                SELECT * FROM \"{self._parameters.database_table}\"
+                WHERE begins_with(\"sk\", 'CPT:')")
+            """
+        )
+
+        for item in items:
             mappings[item["pk"]["S"]].append(item)
 
         return mappings
@@ -220,7 +231,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if results["Items"]:
             items = results["Items"][0]
-        
+
         return items
 
     @classmethod
