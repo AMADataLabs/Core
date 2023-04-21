@@ -1,10 +1,10 @@
 """ Release endpoint classes."""
-from   dataclasses import dataclass
+from dataclasses import dataclass
 import logging
 
-from   datalabs.access.api.task import APIEndpointTask
-from   datalabs.access.aws import AWSClient
-from   datalabs.parameter import add_schema
+from datalabs.access.api.task import APIEndpointTask
+from datalabs.access.aws import AWSClient
+from datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class ProfileDocumentsEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    unknowns: dict=None
+    unknowns: dict = None
 
 
 class ProfileDocumentsEndpointTask(APIEndpointTask):
@@ -54,7 +54,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
 
         print(objects)
-        if  '' in objects:
+        if '' in objects:
             objects.remove('')
 
         return objects
