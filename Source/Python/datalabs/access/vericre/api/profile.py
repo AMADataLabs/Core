@@ -63,7 +63,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         query_result = [row._asdict() for row in query.all()]
 
-        self._download_files(query_result, entity_id)
+        self._download_files_for_profile(query_result, entity_id)
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
@@ -123,17 +123,16 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             )
         )
 
-    def _download_files(self, query_result, entity_id):
+    def _download_files_for_profile(self, query_result, entity_id):
         if len(query_result) == 0:
             raise ResourceNotFound('No file found for the given entity ID')
 
         os.mkdir(f'./{entity_id}')
 
         for file in query_result:
-            with AWSClient('s3') as s3:
-                self._get_files(s3, entity_id, file)
+            self._get_files_from_s3(entity_id, file)
 
-    def _get_files(self, s3, entity_id, file):
+    def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
         encoded_document_name = urllib.parse.quote(
             file['document_name'], 
@@ -142,12 +141,14 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         document_key = f"{file['document_path']}/{encoded_document_name}"
 
         try:
-            s3.download_file(
-                Bucket=self._parameters.document_bucket_name,
-                Key=document_key, 
-                Filename=f"{entity_id}/{document_name}"
-            )
-            LOGGER.info(f"{entity_id}/{document_name} downloaded.")
+            with AWSClient('s3') as s3:
+                s3.download_file(
+                    Bucket=self._parameters.document_bucket_name,
+                    Key=document_key, 
+                    Filename=f"{entity_id}/{document_name}"
+                )
+
+                LOGGER.info(f"{entity_id}/{document_name} downloaded.")
         except ClientError as error:
             LOGGER.exception(error.response)
 
@@ -157,15 +158,16 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         with zipfile.ZipFile(zip_file_buffer, 'w') as zip:
             for root, dirs, files in os.walk(dir_to_zip):
-                for file in files:
-                    zip.write(os.path.join(root, file))
-
-        zip_file_bytes = zip_file_buffer.getvalue()
+                self._write_files_in_buffer(zip, root, files)
 
         # Delete downloaded files
         shutil.rmtree(dir_to_zip)
 
-        return zip_file_bytes
+        return zip_file_buffer.getvalue()
+
+    def _write_files_in_buffer(self, zip, root, files):
+        for file in files:
+            zip.write(os.path.join(root, file))
 
     @classmethod
     def _generate_response_body(cls, response_data):
@@ -206,12 +208,12 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         entity_id = self._parameters.path['entityId']
 
-        access_token = self.get_ama_access_token()
+        access_token = self._get_ama_access_token()
         self._parameters.profile_headers['Authorization'] = f'Bearer {access_token}'
 
-        self.check_if_profile_exists(entity_id)
+        self._check_if_profile_exists(entity_id)
 
-        pdf_response = self.get_profile_pdf(entity_id)
+        pdf_response = self._get_profile_pdf(entity_id)
 
         self._response_body = self._generate_response_body(pdf_response)
         self._headers = self._generate_headers(pdf_response)
@@ -232,7 +234,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
-    def get_ama_access_token(self):
+    def _get_ama_access_token(self):
         token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
         token_fields = {
@@ -259,7 +261,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return token_json['access_token']
 
-    def check_if_profile_exists(self, entity_id):
+    def _check_if_profile_exists(self, entity_id):
         profile_response = self.HTTP.request(
             'GET',
             f'https://{self._parameters.client_env}.ama-assn.org/profiles/profile/full/{entity_id}',
@@ -271,7 +273,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
                 f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
             )
 
-    def get_profile_pdf(self, entity_id):
+    def _get_profile_pdf(self, entity_id):
 
         pdf_resoponse = self.HTTP.request(
             'GET',
@@ -320,22 +322,13 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-
         query = self._query_for_provider_id(database)
 
         query = self._filter(query)
 
         query_result = [row._asdict() for row in query.all()]
 
-        if len(query_result) == 0:
-            raise ResourceNotFound(
-                "Provider Id from Entity Id in Vericre not found"
-            )
-
-        elif len(query_result) > 1:
-            raise InternalServerError(
-                "Multiple records found for the given Entity Id in Vericre"
-            )
+        self._verify_query_result(query_result)
 
         provider = query_result[0]['caqh_profile_id']
 
@@ -343,16 +336,9 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         provider_prefix = provider_data[0]
         provider_id = provider_data[1]
 
-        if provider_prefix == 'caqh':
-            caqh_provider_id = provider_id
+        caqh_provider_id = self._get_caqh_provider_id(provider_prefix, provider_id)
 
-        elif provider_prefix == 'npi':
-            caqh_provider_id = self.get_caqh_provider_id_from_npi(provider_id)
-
-        else:
-            caqh_provider_id = None
-
-        pdf_response = self.fetch_caqh_pdf(caqh_provider_id)
+        pdf_response = self._fetch_caqh_pdf(caqh_provider_id)
 
         self._response_body = self._generate_response_body(pdf_response)
         self._headers = self._generate_headers(pdf_response)
@@ -369,22 +355,33 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     @classmethod
     def _filter_by_entity_id(cls, query, entity_id):
-        # TODO change here
+        # temporary entity_id as ama_me_number
         return query.filter(User.ama_me_number == entity_id)
 
     @classmethod
     def _filter_by_active_user(cls, query):
         return query.filter(User.is_deleted == False).filter(User.status == 'ACTIVE')
 
-    def generate_pdf(self, response):
-        path = os.path.join(os.path.expanduser(
-            '~'), 'Documents/CAQH', self._parameters.path['entityId'] + ".pdf")
-        with open(path, "wb") as outfile:
-            outfile.write(response.data)
+    def _verify_query_result(self, query_result):
+        if len(query_result) == 0:
+            raise ResourceNotFound("Provider Id from Entity Id in Vericre not found")
+        elif len(query_result) > 1:
+            raise InternalServerError("Multiple records found for the given Entity Id in Vericre")
+
+    def _get_caqh_provider_id(self, provider_prefix, provider_id):
+        if provider_prefix == 'caqh':
+            caqh_provider_id = provider_id
+        elif provider_prefix == 'npi':
+            caqh_provider_id = self._get_caqh_provider_id_from_npi(provider_id)
+        else:
+            caqh_provider_id = None
+        
+        return caqh_provider_id
 
     def _set_parameter_defaults(self):
         self._parameters.auth_headers = urllib3.make_headers(
-            basic_auth=f'{self._parameters.username}:{self._parameters.password}')
+            basic_auth=f'{self._parameters.username}:{self._parameters.password}'
+        )
 
     def _generate_response_body(self, response):
         return response.data
@@ -395,7 +392,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
-    def fetch_caqh_pdf(self, provider_id):
+    def _fetch_caqh_pdf(self, provider_id):
         parameters = urllib.parse.urlencode(
             {
                 "applicationType": self._parameters.application_type,
@@ -418,7 +415,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return response
 
-    def get_caqh_provider_id_from_npi(self, npi):
+    def _get_caqh_provider_id_from_npi(self, npi):
         parameters = urllib.parse.urlencode(
             {
                 "Product": "PV",
