@@ -67,10 +67,11 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        self._response_body = self._generate_response_body("zip_file_in_bytes")
+        self._response_body = self._generate_response_body(zip_file_in_bytes)
         self._headers = self._generate_headers(entity_id)
 
-    def _sub_query_for_documents(self, database):
+    @classmethod
+    def _sub_query_for_documents(cls, database):
         return database.query(
             User.id.label('user_id'),
             FormField.name.label('field_name'),
@@ -96,11 +97,13 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == 'False')
 
-    def _filter_by_entity_id(self, query, entity_id):
+    @classmethod
+    def _filter_by_entity_id(cls, query, entity_id):
         # query me_number temporary and will update to filter by ama_entity_id in next sprint
         return query.filter(User.ama_me_number == entity_id)
 
-    def _query_for_documents(self, database, sub_query):
+    @classmethod
+    def _query_for_documents(cls, database, sub_query):
         subquery = sub_query.subquery()
 
         return database.query(
@@ -132,7 +135,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         for file in query_result:
             self._get_files_from_s3(entity_id, file)
 
-    def _create_folder_for_downloaded_files(self, entity_id):
+    @classmethod
+    def _create_folder_for_downloaded_files(cls, entity_id):
         os.mkdir(f'./{entity_id}')
 
     def _get_files_from_s3(self, entity_id, file):
@@ -144,8 +148,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         document_key = f"{file['document_path']}/{encoded_document_name}"
 
         try:
-            with AWSClient('s3') as S3:
-                S3.download_file(
+            with AWSClient('s3') as aws_s3:
+                aws_s3.download_file(
                     Bucket=self._parameters.document_bucket_name,
                     Key=document_key,
                     Filename=f"{entity_id}/{document_name}"
@@ -168,11 +172,13 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         return zip_file_buffer.getvalue()
 
-    def _write_files_in_buffer(self, zipper, root, files):
+    @classmethod
+    def _write_files_in_buffer(cls, zipper, root, files):
         for file in files:
             zipper.write(os.path.join(root, file))
 
-    def _delete_folder_for_downloaded_files(self, folder_path):
+    @classmethod
+    def _delete_folder_for_downloaded_files(cls, folder_path):
         shutil.rmtree(folder_path)
 
     @classmethod
@@ -231,10 +237,12 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'X-SourceSystem': "1"
         }
 
-    def _generate_response_body(self, response):
+    @classmethod
+    def _generate_response_body(cls, response):
         return response.data
 
-    def _generate_headers(self, response):
+    @classmethod
+    def _generate_headers(cls, response):
         return {
             'Content-Type': response.headers['Content-Type'],
             'Content-Disposition': response.headers['Content-Disposition']
@@ -360,23 +368,30 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     @classmethod
     def _filter_by_active_user(cls, query):
-        return query.filter(User.is_deleted == False).filter(User.status == 'ACTIVE')
+        return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
 
-    def _verify_query_result(self, query_result):
+    @classmethod
+    def _verify_query_result(cls, query_result):
+        exception = None
         if len(query_result) == 0:
-            raise ResourceNotFound("Provider Id from Entity Id in Vericre not found")
+            exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
         elif len(query_result) > 1:
-            raise InternalServerError("Multiple records found for the given Entity Id in Vericre")
+            exception = InternalServerError("Multiple records found for the given Entity ID in Vericre")
+        
+        if exception:
+            raise exception
 
     def _set_parameter_defaults(self):
         self._parameters.auth_headers = urllib3.make_headers(
             basic_auth=f'{self._parameters.username}:{self._parameters.password}'
         )
 
-    def _generate_response_body(self, response):
+    @classmethod
+    def _generate_response_body(cls, response):
         return response.data
 
-    def _generate_headers(self, response):
+    @classmethod
+    def _generate_headers(cls, response):
         return {
             'Content-Type': response.headers['Content-Type'],
             'Content-Disposition': response.headers['Content-Disposition']
@@ -445,7 +460,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         if provider_data['provider_found_flag'] != "Y":
             raise ResourceNotFound(
-                'CAQH Provider Id from NPI Id in CAQH ProView not found'
+                'CAQH Provider ID from NPI ID in CAQH ProView not found'
             )
 
         return provider_data['caqh_provider_id']
