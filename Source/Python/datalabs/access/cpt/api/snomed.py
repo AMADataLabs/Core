@@ -181,9 +181,9 @@ class MapSearchEndpointTask(APIEndpointTask):
         mappings = defaultdict(list)
 
         items = self._paginate(
-            dynamodb, 
+            dynamodb,
             """
-                SELECT * FROM \"{self._parameters.database_table}\" 
+                SELECT * FROM \"{self._parameters.database_table}\"
                 WHERE begins_with(\"sk\", 'CPT:')")
             """
         )
@@ -231,7 +231,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if results["Items"]:
             items = results["Items"][0]
-            
+
         return items
 
     @classmethod
