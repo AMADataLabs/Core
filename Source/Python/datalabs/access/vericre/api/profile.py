@@ -94,7 +94,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     def _filter(self, query, entity_id):
         query = self._filter_by_entity_id(query, entity_id)
 
-        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted is False)
+        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == 'False')
 
     def _filter_by_entity_id(self, query, entity_id):
         # query me_number temporary and will update to filter by ama_entity_id in next sprint
