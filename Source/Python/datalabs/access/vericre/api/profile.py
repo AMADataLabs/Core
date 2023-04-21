@@ -113,8 +113,11 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             database.query(
                 literal('Profile Avatar').label('document_identifier'),
                 subquery.columns.avatar_image,
-                func.concat(subquery.columns.user_id, '/',
-                            'Avatar').label('document_path')
+                func.concat(
+                    subquery.columns.user_id,
+                    '/',
+                    'Avatar'
+                ).label('document_path')
             )
         )
 
@@ -127,7 +130,10 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         for item in query_result:
             with AWSClient('s3') as s3:
                 encoded_document_name = urllib.parse.quote(
-                    item['document_name'], safe=' ').replace(" ", "+")
+                    item['document_name'],
+                    safe=' '
+                ).replace(" ", "+")
+
                 document_key = f"{item['document_path']}/{encoded_document_name}"
 
                 self._get_files(s3, entity_id, document_key,
@@ -135,8 +141,11 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     def _get_files(self, s3, entity_id, key, filename):
         try:
-            s3.download_file(Bucket=self._parameters.document_bucket_name,
-                             Key=key, Filename=f"{entity_id}/{filename}")
+            s3.download_file(
+                Bucket=self._parameters.document_bucket_name,
+                Key=key,
+                Filename=f"{entity_id}/{filename}"
+            )
             LOGGER.info(f"{entity_id}/{filename} downloaded.")
 
         except ClientError as error:
@@ -144,14 +153,14 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     def _zip_downloaded_files(self, entity_id):
         dir_to_zip = f'./{entity_id}'
-        buffer = io.BytesIO()
+        zip_file_buffer = io.BytesIO()
 
-        with zipfile.ZipFile(buffer, 'w') as zip:
+        with zipfile.ZipFile(zip_file_buffer, 'w') as zip:
             for root, dirs, files in os.walk(dir_to_zip):
                 for file in files:
                     zip.write(os.path.join(root, file))
 
-        zip_file_bytes = buffer.getvalue()
+        zip_file_bytes = zip_file_buffer.getvalue()
 
         # Delete downloaded files
         shutil.rmtree(dir_to_zip)
@@ -196,7 +205,6 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
         LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s',
                      self._parameters)
 
-        self.validate_input_parameters()
         entity_id = self._parameters.path['entityId']
 
         access_token = self.get_ama_access_token()
@@ -205,6 +213,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
         self.check_if_profile_exists(entity_id)
 
         pdf_response = self.get_profile_pdf(entity_id)
+
         self._response_body = self._generate_response_body(pdf_response)
         self._headers = self._generate_headers(pdf_response)
 
@@ -223,10 +232,6 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
             'Content-Type': response.headers['Content-Type'],
             'Content-Disposition': response.headers['Content-Disposition']
         }
-
-    def validate_input_parameters(self):
-        if 'entityId' not in self._parameters.path:
-            raise InvalidRequest('Entity Id is required')
 
     def get_ama_access_token(self):
         token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -248,9 +253,11 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
 
         if token_response.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {token_response.data}, status: {token_response.status}')
+                f'Internal Server error caused by: {token_response.data}, status: {token_response.status}'
+            )
 
         token_json = json.loads(token_response.data.decode("utf-8"))
+
         return token_json['access_token']
 
     def check_if_profile_exists(self, entity_id):
@@ -262,7 +269,8 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
 
         if profile_response.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}')
+                f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
+            )
 
     def get_profile_pdf(self, entity_id):
 
@@ -274,7 +282,8 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
 
         if pdf_resoponse.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {pdf_resoponse.reason}, status: {pdf_resoponse.status}')
+                f'Internal Server error caused by: {pdf_resoponse.reason}, status: {pdf_resoponse.status}'
+            )
 
         return pdf_resoponse
 
@@ -308,8 +317,6 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        self.validate_input_parameters()
-
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
@@ -323,10 +330,13 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
 
         if len(query_result) == 0:
             raise ResourceNotFound(
-                "Provider Id from Entity Id in Vericre not found")
+                "Provider Id from Entity Id in Vericre not found"
+            )
+
         elif len(query_result) > 1:
             raise InternalServerError(
-                "Multiple records found for the given Entity Id in Vericre")
+                "Multiple records found for the given Entity Id in Vericre"
+            )
 
         provider = query_result[0]['caqh_profile_id']
 
@@ -336,8 +346,10 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
 
         if provider_prefix == 'caqh':
             caqh_provider_id = provider_id
+
         elif provider_prefix == 'npi':
             caqh_provider_id = self.get_caqh_provider_id_from_npi(provider_id)
+
         else:
             caqh_provider_id = None
 
@@ -384,10 +396,6 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
-    def validate_input_parameters(self):
-        if 'entityId' not in self._parameters.path:
-            raise InvalidRequest('Entity Id is required')
-
     def fetch_caqh_pdf(self, provider_id):
         parameters = urllib.parse.urlencode(
             {
@@ -397,14 +405,17 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
                 "caqhProviderId": provider_id,
             }
         )
+
         response = HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
             headers=self._parameters.auth_headers
         )
+
         if response.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {response.data}, status: {response.status}')
+                f'Internal Server error caused by: {response.data}, status: {response.status}'
+            )
 
         return response
 
@@ -416,18 +427,23 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
                 "NPI_Provider_Id": npi,
             }
         )
+
         response = HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
             headers=self._parameters.auth_headers
         )
+
         if response.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {response.data}, status: {response.status}')
+                f'Internal Server error caused by: {response.data}, status: {response.status}'
+            )
 
         provider_data = json.loads(response.data)
+
         if provider_data['provider_found_flag'] != "Y":
             raise ResourceNotFound(
-                'CAQH Provider Id from NPI Id in CAQH ProView not found')
+                'CAQH Provider Id from NPI Id in CAQH ProView not found'
+            )
 
         return provider_data['caqh_provider_id']
