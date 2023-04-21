@@ -91,6 +91,7 @@ class MapSearchEndpointParameters:
     query: dict
     authorization: dict
     database_table: str
+    database_index: str
     unknowns: dict=None
 
 
@@ -145,10 +146,6 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response(cls, filtered_maps, index, max_results):
-        print("XXXXXXXXXXXXXXXXXXXXX")
-        print("What is max results?")
-        print(max_results)
-        print(len(filtered_maps))
         items = dict(
             maps=filtered_maps[index:index + max_results],
             available=len(filtered_maps)
@@ -159,20 +156,18 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         return items
 
-    @classmethod
-    def _get_mapping_references_by_keyword(cls, dynamodb, keyword):
+    def _get_mapping_references_by_keyword(self, dynamodb, keyword):
         mapping_references = dynamodb.execute_statement(
-            Statement=f"SELECT * FROM \"CPT-API-snomed-sbx\".\"SearchIndex\" WHERE sk = 'KEYWORD:{keyword}'"
+            Statement=f"SELECT * FROM \"{self._parameters.database_table}\".\"{self._parameters.database_index}\" WHERE sk = 'KEYWORD:{keyword}'"
         )
 
         return mapping_references
 
-    @classmethod
-    def _get_mappings_from_references(cls, keyword_items, dynamodb):
+    def _get_mappings_from_references(self, keyword_items, dynamodb):
         mappings = defaultdict(list)
 
         for search_item in keyword_items:
-            mapping = cls._get_mapping_from_reference(search_item['pk']['S'], dynamodb)
+            mapping = self._get_mapping_from_reference(search_item['pk']['S'], dynamodb)
 
             if mapping:
                 mappings[mapping["pk"]["S"]].append(mapping)
@@ -182,7 +177,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _get_all_mappings(self, dynamodb):
         mappings = defaultdict(list)
 
-        for item in self._paginate(dynamodb, "SELECT * FROM \"CPT-API-snomed-sbx\" WHERE begins_with(\"sk\", 'CPT:')"):
+        for item in self._paginate(dynamodb, "SELECT * FROM \"{self._parameters.database_table}\" WHERE begins_with(\"sk\", 'CPT:')"):
             mappings[item["pk"]["S"]].append(item)
 
         return mappings
@@ -214,14 +209,13 @@ class MapSearchEndpointTask(APIEndpointTask):
         )
 
     # pylint: disable=invalid-name
-    @classmethod
-    def _get_mapping_from_reference(cls, pksk, dynamodb):
+    def _get_mapping_from_reference(self, pksk, dynamodb):
         items = []
         pk = pksk.rsplit(':', 2)[0]
         sk = pksk.split(':', 2)[2]
 
         results = dynamodb.execute_statement(
-            Statement=f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk = '{pk}' AND sk = '{sk}'"
+            Statement=f"SELECT * FROM \"{self._parameters.database_table}\" WHERE pk = '{pk}' AND sk = '{sk}'"
         )
 
         if results["Items"]:
