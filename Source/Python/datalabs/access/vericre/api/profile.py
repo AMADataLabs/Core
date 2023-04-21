@@ -336,9 +336,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         provider = query_result[0]['caqh_profile_id']
 
-        caqh_provider_id = self._get_caqh_provider_id(provider)
-
-        pdf_response = self._fetch_caqh_pdf(caqh_provider_id)
+        pdf_response = self._fetch_caqh_pdf(provider)
 
         self._response_body = self._generate_response_body(pdf_response)
         self._headers = self._generate_headers(pdf_response)
@@ -369,20 +367,6 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         elif len(query_result) > 1:
             raise InternalServerError("Multiple records found for the given Entity Id in Vericre")
 
-    def _get_caqh_provider_id(self, provider):
-        provider_data = provider.split("-")
-        provider_prefix = provider_data[0]
-        provider_id = provider_data[1]
-
-        caqh_provider_id = None
-
-        if provider_prefix == 'caqh':
-            caqh_provider_id = provider_id
-        elif provider_prefix == 'npi':
-            caqh_provider_id = self._get_caqh_provider_id_from_npi(provider_id)
-        
-        return caqh_provider_id
-
     def _set_parameter_defaults(self):
         self._parameters.auth_headers = urllib3.make_headers(
             basic_auth=f'{self._parameters.username}:{self._parameters.password}'
@@ -397,7 +381,9 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
-    def _fetch_caqh_pdf(self, provider_id):
+    def _fetch_caqh_pdf(self, provider):
+        provider_id = self._get_caqh_provider_id(provider)
+
         parameters = urllib.parse.urlencode(
             {
                 "applicationType": self._parameters.application_type,
@@ -419,6 +405,20 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
         return response
+
+    def _get_caqh_provider_id(self, provider):
+        provider_data = provider.split("-")
+        provider_prefix = provider_data[0]
+        provider_id = provider_data[1]
+
+        caqh_provider_id = None
+
+        if provider_prefix == 'caqh':
+            caqh_provider_id = provider_id
+        elif provider_prefix == 'npi':
+            caqh_provider_id = self._get_caqh_provider_id_from_npi(provider_id)
+        
+        return caqh_provider_id
 
     def _get_caqh_provider_id_from_npi(self, npi):
         parameters = urllib.parse.urlencode(
