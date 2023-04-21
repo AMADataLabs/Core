@@ -631,10 +631,11 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-                    Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
+                    JSON-API=Endpoint.zip
+                    JSON-API-Authorizer=Endpoint.zip
+                    ZIP-API=Endpoint.zip
+                    ZIP-API-Authorizer=Endpoint.zip
+                    SNOMED-API-Authorizer=Endpoint.zip
             - step:
                 name: Update Test Lambda Functions
                 script:
@@ -2067,82 +2068,6 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
                     Extract=Extract.zip
 
-        SNOMED-CPT-ETL:
-        - step:
-                name: Create Development Component Package
-                caches:
-                    - environment-master
-                script:
-                    - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    - bash Deploy/Master/deploy-package --project CPT/SNOMED/ETL
-        - parallel:
-            - step:
-                name: Update Development Lambda Bundle
-                caches:
-                    - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project CPT/SNOMED/ETL
-                    --bundle CPT/SNOMED/ETL.zip
-#            - step:
-#                name: Update Test Lambda Bundle
-#                caches:
-#                    - environment-test
-#                script:
-#                - >-
-#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-#                    --environment tst
-#                    --project CPT/SNOMED/ETL
-#                    --bundle CPT/SNOMED/ETL.zip
-#            - step:
-#                name: Update Production Lambda Bundle
-#                caches:
-#                    - environment-prod
-#                script:
-#                - >-
-#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-#                    --environment prd
-#                    --project CPT/SNOMED/ETL
-#                    --bundle CPT/SNOMED/ETL.zip
-        - parallel:
-            - step:
-                name: Reload Development Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/SNOMED
-                    SNOMED-DAG=ETL.zip
-#            - step:
-#                name: Reload Test Lambda Functions
-#                script:
-#                - >-
-#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/SNOMED
-#                    SNOMED-DAG=ETL.zip
-#            - step:
-#                name: Reload Production Lambda Functions
-#                script:
-#                - >-
-#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd --s CPT-API -p CPT/SNOMED
-#                    SNOMED-DAG=ETL.zip
         Scheduler:
         - step:
             name: Create Development Component Package
@@ -2285,6 +2210,17 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/SNOMED/API
         - parallel:
             - step:
+                name: Update Sandbox Lambda Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/SNOMED/API
+                    --bundle CPT/SNOMED/API.zip
+            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -2336,19 +2272,23 @@ pipelines:
                     --environment prd
                     --project CPT/SNOMED/API
                     --bundle CPT/SNOMED/API.zip
-        # - parallel:
-        #     - step:
-        #         name: Update Development Lambda Functions
-        #         script:
-        #         - >-
-        #             bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-        #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        - parallel:
+            # - step:
+            #     name: Reload Sandbox Lambda Functions
+            #     script:
+            #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #     - >-
+            #         bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/SNOMED
+            #         SNOMED-API=API.zip
+            - step:
+                name: Update Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/SNOMED
+                    SNOMED-API=API.zip
         #     - step:
         #         name: Update Test Lambda Functions
         #         script:
@@ -2357,11 +2297,8 @@ pipelines:
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
         #             bash --rcfile assume_role.rc -i
-        #             Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        #             Deploy/Master/update-functions -e tst -s CPT-API -p CPT/SNOMED
+        #             SNOMED-API=API.zip
         #     - step:
         #         name: Update Staging Lambda Functions
         #         script:
@@ -2370,11 +2307,8 @@ pipelines:
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
         #             bash --rcfile assume_role.rc -i
-        #             Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        #             Deploy/Master/update-functions -e itg -s CPT-API -p CPT/SNOMED
+        #             SNOMED-API=API.zip
         #     - step:
         #         name: Update Production Lambda Functions
         #         script:
@@ -2382,11 +2316,104 @@ pipelines:
         #             bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
-        #             Authorizer=Endpoint.zip
-        #             Endpoint=Endpoint.zip
-        #             BulkAuthorizer=Endpoint.zip
-        #             BulkEndpoint=Endpoint.zip
+        #             bash --rcfile assume_role.rc -i
+        #             Deploy/Master/update-functions -e prd -s CPT-API -p CPT/SNOMED
+        #             SNOMED-API=API.zip
+
+        SNOMED-CPT-ETL:
+        - step:
+                name: Create Development Component Package
+                caches:
+                    - environment-master
+                script:
+                    - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    - bash Deploy/Master/deploy-package --project CPT/SNOMED/ETL
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/SNOMED/ETL
+                    --bundle CPT/SNOMED/ETL.zip
+            - step:
+                name: Update Development Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/SNOMED/ETL
+                    --bundle CPT/SNOMED/ETL.zip
+#            - step:
+#                name: Update Test Lambda Bundle
+#                caches:
+#                    - environment-test
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment tst
+#                    --project CPT/SNOMED/ETL
+#                    --bundle CPT/SNOMED/ETL.zip
+#            - step:
+#                name: Update Production Lambda Bundle
+#                caches:
+#                    - environment-prod
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment prd
+#                    --project CPT/SNOMED/ETL
+#                    --bundle CPT/SNOMED/ETL.zip
+        - parallel:
+            # - step:
+            #     name: Reload Sandbox Lambda Functions
+            #     script:
+            #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #     - >-
+            #         bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/SNOMED
+            #         SNOMED-DAG=ETL.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/SNOMED
+                    SNOMED-DAG=ETL.zip
+#            - step:
+#                name: Reload Test Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/SNOMED
+#                    SNOMED-DAG=ETL.zip
+#            - step:
+#                name: Reload Production Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd --s CPT-API -p CPT/SNOMED
+#                    SNOMED-DAG=ETL.zip
 
         VeriCre-API:
         - step:

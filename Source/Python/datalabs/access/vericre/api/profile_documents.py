@@ -15,6 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class ProfileDocumentsEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict
@@ -30,13 +31,11 @@ class ProfileDocumentsEndpointParameters:
 class ProfileDocumentsEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfileDocumentsEndpointParameters
 
-    def __init__(self, parameters: dict, data: "list<bytes>" = None):
-        super().__init__(parameters, data)
-
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
         entity_id = self._parameters.path.get('entityId')
 
+        # pylint: disable=invalid-name
         with AWSClient('s3') as s3:
             files_info = self._get_files(s3)
 
@@ -45,9 +44,13 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         response_result = f"ProfileDocumentsEndpoint, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)
 
-    def _get_files(self, s3):
+    # pylint: disable=invalid-name
+    @classmethod
+    def _get_files(cls, s3):
         response = s3.list_objects_v2(
-            Bucket='ama-sbx-vericre-us-east-1', Prefix='15d2a16c-753d-4e82-b5b7-1659b074b3ed/Avatar')
+            Bucket='ama-sbx-vericre-us-east-1',
+            Prefix='15d2a16c-753d-4e82-b5b7-1659b074b3ed/Avatar'
+        )
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
 
         print(objects)
