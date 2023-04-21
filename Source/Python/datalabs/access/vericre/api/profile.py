@@ -18,10 +18,13 @@ from datalabs.access.orm import Database
 from datalabs.model.vericre.api import User, FormField, Document, Physician, Form, FormSection, FormSubSection
 from datalabs.parameter import add_schema
 
-HTTP = urllib3.PoolManager()
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
+
+class HttpClient:
+    HTTP = urllib3.PoolManager()
 
 
 @add_schema(unknowns=True)
@@ -44,8 +47,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfileDocumentsEndpointParameters
 
     def run(self):
-        LOGGER.debug(
-            'Parameters in ProfileDocumentsEndpointTask: %s', self._parameters)
+        LOGGER.debug('Parameters in ProfileDocumentsEndpointTask: %s', self._parameters)
 
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
@@ -114,7 +116,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                 literal('Profile Avatar').label('document_identifier'),
                 subquery.columns.avatar_image,
                 func.concat(
-                    subquery.columns.user_id,
+                    subquery.columns.user_id, 
                     '/',
                     'Avatar'
                 ).label('document_path')
@@ -127,29 +129,27 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         os.mkdir(f'./{entity_id}')
 
-        for item in query_result:
+        for file in query_result:
             with AWSClient('s3') as s3:
-                encoded_document_name = urllib.parse.quote(
-                    item['document_name'],
-                    safe=' '
-                ).replace(" ", "+")
+                self._get_files(s3, entity_id, file)
 
-                document_key = f"{item['document_path']}/{encoded_document_name}"
+    def _get_files(self, s3, entity_id, file):
+        document_name = file['document_name']
+        encoded_document_name = urllib.parse.quote(
+            file['document_name'], 
+            safe=' '
+        ).replace(" ", "+")
+        document_key = f"{file['document_path']}/{encoded_document_name}"
 
-                self._get_files(s3, entity_id, document_key,
-                                item['document_name'])
-
-    def _get_files(self, s3, entity_id, key, filename):
         try:
             s3.download_file(
                 Bucket=self._parameters.document_bucket_name,
-                Key=key,
-                Filename=f"{entity_id}/{filename}"
+                Key=document_key, 
+                Filename=f"{entity_id}/{document_name}"
             )
-            LOGGER.info(f"{entity_id}/{filename} downloaded.")
-
+            LOGGER.info(f"{entity_id}/{document_name} downloaded.")
         except ClientError as error:
-            LOGGER.error(error.response)
+            LOGGER.exception(error.response)
 
     def _zip_downloaded_files(self, entity_id):
         dir_to_zip = f'./{entity_id}'
@@ -197,13 +197,12 @@ class AMAProfilePDFEndpointParameters:
     unknowns: dict = None
 
 
-class AMAProfilePDFEndpointTask(APIEndpointTask):
+class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     PARAMETER_CLASS = AMAProfilePDFEndpointParameters
 
     def run(self):
         self._set_parameter_defaults()
-        LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s',
-                     self._parameters)
+        LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s', self._parameters)
 
         entity_id = self._parameters.path['entityId']
 
@@ -244,7 +243,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
 
         token_body = urllib.parse.urlencode(token_fields)
 
-        token_response = HTTP.request(
+        token_response = self.HTTP.request(
             'POST',
             f'https://{self._parameters.client_env}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token',
             headers=token_headers,
@@ -261,7 +260,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
         return token_json['access_token']
 
     def check_if_profile_exists(self, entity_id):
-        profile_response = HTTP.request(
+        profile_response = self.HTTP.request(
             'GET',
             f'https://{self._parameters.client_env}.ama-assn.org/profiles/profile/full/{entity_id}',
             headers=self._parameters.profile_headers
@@ -274,7 +273,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask):
 
     def get_profile_pdf(self, entity_id):
 
-        pdf_resoponse = HTTP.request(
+        pdf_resoponse = self.HTTP.request(
             'GET',
             f'https://{self._parameters.client_env}.ama-assn.org/profiles/pdf/full/{entity_id}',
             headers=self._parameters.profile_headers
@@ -310,7 +309,7 @@ class CAQHProfilePDFEndpointParameters:
     unknowns: dict = None
 
 
-class CAQHProfilePDFEndpointTask(APIEndpointTask):
+class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     PARAMETER_CLASS = CAQHProfilePDFEndpointParameters
 
     def run(self):
@@ -406,7 +405,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
             }
         )
 
-        response = HTTP.request(
+        response = self.HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
             headers=self._parameters.auth_headers
@@ -428,7 +427,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
             }
         )
 
-        response = HTTP.request(
+        response = self.HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
             headers=self._parameters.auth_headers
