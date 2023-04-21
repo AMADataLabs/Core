@@ -46,7 +46,6 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _handle_success(self) -> (int, dict):
         if type(self.task.response_body) == bytes:
             body = self.task.response_body
-        
         else:
             body = json.dumps(self.task.response_body)
 
