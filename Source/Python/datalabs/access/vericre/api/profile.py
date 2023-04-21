@@ -5,14 +5,14 @@ import json
 import logging
 import os
 import shutil
-import urllib3
 import urllib.parse
+import zipfile
+import urllib3
 
 from botocore.exceptions import ClientError
 from sqlalchemy import func, literal, Integer
-import zipfile
 
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError, InvalidRequest
+from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from datalabs.access.aws import AWSClient
 from datalabs.access.orm import Database
 from datalabs.model.vericre.api import User, FormField, Document, Physician, Form, FormSection, FormSubSection
@@ -67,7 +67,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        self._response_body = self._generate_response_body(zip_file_in_bytes)
+        self._response_body = self._generate_response_body("zip_file_in_bytes")
         self._headers = self._generate_headers(entity_id)
 
     def _sub_query_for_documents(self, database):
@@ -94,7 +94,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     def _filter(self, query, entity_id):
         query = self._filter_by_entity_id(query, entity_id)
 
-        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == False)
+        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted is False)
 
     def _filter_by_entity_id(self, query, entity_id):
         # query me_number temporary and will update to filter by ama_entity_id in next sprint
@@ -116,7 +116,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                 literal('Profile Avatar').label('document_identifier'),
                 subquery.columns.avatar_image,
                 func.concat(
-                    subquery.columns.user_id, 
+                    subquery.columns.user_id,
                     '/',
                     'Avatar'
                 ).label('document_path')
@@ -138,20 +138,20 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
         encoded_document_name = urllib.parse.quote(
-            file['document_name'], 
+            file['document_name'],
             safe=' '
         ).replace(" ", "+")
         document_key = f"{file['document_path']}/{encoded_document_name}"
 
         try:
-            with AWSClient('s3') as s3:
-                s3.download_file(
+            with AWSClient('s3') as S3:
+                S3.download_file(
                     Bucket=self._parameters.document_bucket_name,
-                    Key=document_key, 
+                    Key=document_key,
                     Filename=f"{entity_id}/{document_name}"
                 )
 
-                LOGGER.info(f"{entity_id}/{document_name} downloaded.")
+                LOGGER.info("%s/%s downloaded.", entity_id, document_name)
         except ClientError as error:
             LOGGER.exception(error.response)
 
@@ -159,17 +159,18 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         folder_to_zip = f'./{entity_id}'
         zip_file_buffer = io.BytesIO()
 
-        with zipfile.ZipFile(zip_file_buffer, 'w') as zip:
+        with zipfile.ZipFile(zip_file_buffer, 'w') as zipper:
             for root, dirs, files in os.walk(folder_to_zip):
-                self._write_files_in_buffer(zip, root, files)
+                LOGGER.info(root, dirs, files)
+                self._write_files_in_buffer(zipper, root, files)
 
         self._delete_folder_for_downloaded_files(folder_to_zip)
 
         return zip_file_buffer.getvalue()
 
-    def _write_files_in_buffer(self, zip, root, files):
+    def _write_files_in_buffer(self, zipper, root, files):
         for file in files:
-            zip.write(os.path.join(root, file))
+            zipper.write(os.path.join(root, file))
 
     def _delete_folder_for_downloaded_files(self, folder_path):
         shutil.rmtree(folder_path)
@@ -417,7 +418,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             caqh_provider_id = provider_id
         elif provider_prefix == 'npi':
             caqh_provider_id = self._get_caqh_provider_id_from_npi(provider_id)
-        
+
         return caqh_provider_id
 
     def _get_caqh_provider_id_from_npi(self, npi):
