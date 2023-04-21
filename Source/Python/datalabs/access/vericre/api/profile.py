@@ -274,7 +274,6 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
     def _get_profile_pdf(self, entity_id):
-
         pdf_resoponse = self.HTTP.request(
             'GET',
             f'https://{self._parameters.client_env}.ama-assn.org/profiles/pdf/full/{entity_id}',
@@ -332,11 +331,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         provider = query_result[0]['caqh_profile_id']
 
-        provider_data = provider.split("-")
-        provider_prefix = provider_data[0]
-        provider_id = provider_data[1]
-
-        caqh_provider_id = self._get_caqh_provider_id(provider_prefix, provider_id)
+        caqh_provider_id = self._get_caqh_provider_id(provider)
 
         pdf_response = self._fetch_caqh_pdf(caqh_provider_id)
 
@@ -351,6 +346,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         entity_id = self._parameters.path['entityId']
         query = self._filter_by_entity_id(query, entity_id)
         query = self._filter_by_active_user(query)
+
         return query
 
     @classmethod
@@ -368,13 +364,17 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         elif len(query_result) > 1:
             raise InternalServerError("Multiple records found for the given Entity Id in Vericre")
 
-    def _get_caqh_provider_id(self, provider_prefix, provider_id):
+    def _get_caqh_provider_id(self, provider):
+        provider_data = provider.split("-")
+        provider_prefix = provider_data[0]
+        provider_id = provider_data[1]
+
+        caqh_provider_id = None
+
         if provider_prefix == 'caqh':
             caqh_provider_id = provider_id
         elif provider_prefix == 'npi':
             caqh_provider_id = self._get_caqh_provider_id_from_npi(provider_id)
-        else:
-            caqh_provider_id = None
         
         return caqh_provider_id
 
