@@ -44,7 +44,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         response_result = f"ProfileDocumentsEndpoint, request with parameter: entityId={entity_id}"
         self._response_body = self._generate_response_body(response_result)
-
+    
     def _get_files(self, s3):
         response = s3.list_objects_v2(Bucket='ama-sbx-vericre-us-east-1', Prefix='15d2a16c-753d-4e82-b5b7-1659b074b3ed/Avatar')
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
