@@ -16,6 +16,8 @@ LOGGER.setLevel(logging.DEBUG)
 class ProfilesEndpointParameters:
     path: dict
     query: dict
+    authorization: dict
+    method: str
     database_name: str
     database_backend: str
     database_host: str
