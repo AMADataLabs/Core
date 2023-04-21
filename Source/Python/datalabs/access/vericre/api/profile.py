@@ -127,10 +127,13 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         if len(query_result) == 0:
             raise ResourceNotFound('No file found for the given entity ID')
 
-        os.mkdir(f'./{entity_id}')
+        self._create_folder_for_downloaded_files(entity_id)
 
         for file in query_result:
             self._get_files_from_s3(entity_id, file)
+
+    def _create_folder_for_downloaded_files(self, entity_id):
+        os.mkdir(f'./{entity_id}')
 
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
@@ -153,21 +156,23 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             LOGGER.exception(error.response)
 
     def _zip_downloaded_files(self, entity_id):
-        dir_to_zip = f'./{entity_id}'
+        folder_to_zip = f'./{entity_id}'
         zip_file_buffer = io.BytesIO()
 
         with zipfile.ZipFile(zip_file_buffer, 'w') as zip:
-            for root, dirs, files in os.walk(dir_to_zip):
+            for root, dirs, files in os.walk(folder_to_zip):
                 self._write_files_in_buffer(zip, root, files)
 
-        # Delete downloaded files
-        shutil.rmtree(dir_to_zip)
+        self._delete_folder_for_downloaded_files(folder_to_zip)
 
         return zip_file_buffer.getvalue()
 
     def _write_files_in_buffer(self, zip, root, files):
         for file in files:
             zip.write(os.path.join(root, file))
+
+    def _delete_folder_for_downloaded_files(self, folder_path):
+        shutil.rmtree(folder_path)
 
     @classmethod
     def _generate_response_body(cls, response_data):
