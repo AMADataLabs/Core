@@ -29,6 +29,7 @@ class HttpClient:
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class ProfileDocumentsEndpointParameters:
     path: dict
     query: dict
@@ -195,6 +196,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class AMAProfilePDFEndpointParameters:
     path: dict
     query: dict
@@ -304,6 +306,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class CAQHProfilePDFEndpointParameters:
     path: dict
     query: dict
