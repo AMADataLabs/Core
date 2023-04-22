@@ -29,6 +29,7 @@ class HttpClient:
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class ProfileDocumentsEndpointParameters:
     path: dict
     query: dict
@@ -195,6 +196,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class AMAProfilePDFEndpointParameters:
     path: dict
     query: dict
@@ -304,6 +306,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
 @add_schema(unknowns=True)
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class CAQHProfilePDFEndpointParameters:
     path: dict
     query: dict
@@ -377,7 +380,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
         elif len(query_result) > 1:
             exception = InternalServerError("Multiple records found for the given Entity ID in Vericre")
-        
+
         if exception:
             raise exception
 
