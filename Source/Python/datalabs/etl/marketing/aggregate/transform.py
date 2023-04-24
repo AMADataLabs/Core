@@ -7,6 +7,7 @@ import pickle
 
 import pandas
 
+from   datalabs.access.atdata import AtDataAPI
 from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
 from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
@@ -51,10 +52,6 @@ class MarketingData:
     aims: pandas.DataFrame
     list_of_lists: pandas.DataFrame
     flatfile: pandas.DataFrame
-
-
-class EmailValidatorTask:
-    pass
 
 
 @add_schema
@@ -302,6 +299,30 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         merged_flatfile = merged_flatfile.drop(columns=["LISTKEY_x", "LISTKEY_y"])
 
         return merged_flatfile
+
+
+# pylint: disable=consider-using-with, line-too-long
+class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+    Parameter_class = InputDataCleanerTaskParameters
+
+    def run(self):
+        flatfile = InputDataParser.parse(self._data[0])
+
+        existing_emails = InputDataParser.parse(self._data[1])
+
+        data = flatfile.merge(existing_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL')
+
+        email_data = data[['ID', 'BEST_EMAIL']]
+
+        api_endpoint = "https://portal.freshaddress.com/REST/SendFile?account=AB254_16345&apikey=D02502F2-382A-4F8D-983E-3B3B82ABFD5B"
+
+        email_data.to_csv('./existing_emails.txt', index=None, sep='\t', mode='a')
+
+        files = {'file': open('./existing_emails.txt', 'rb')}
+
+        at_data = AtDataAPI(files,api_endpoint)
+
+        return [self._dataframe_to_csv(at_data.run())]
 
 
 class DuplicatePrunerTask:
