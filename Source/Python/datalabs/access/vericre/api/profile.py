@@ -168,7 +168,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask, TaskParameters):
 
         with zipfile.ZipFile(zip_file_buffer, 'w') as zipper:
             for root, dirs, files in os.walk(folder_to_zip):
-                LOGGER.info(root, len(dirs), len(files))
+                LOGGER.info("root: %s, dir length: %s, files size: %s", root, len(dirs), len(files))
                 self._write_files_in_buffer(zipper, root, files)
 
         self._delete_folder_for_downloaded_files(folder_to_zip)
