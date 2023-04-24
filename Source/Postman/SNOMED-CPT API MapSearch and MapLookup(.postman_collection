@@ -1,0 +1,1477 @@
+{
+	"info": {
+		"_postman_id": "6b52b4f5-3e99-4893-acd7-f9c852dcb0b9",
+		"name": "SNOMED",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23863499"
+	},
+	"item": [
+		{
+			"name": "Initialize",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Save access token\", function () {\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"clientId\": \"{{PASSPORT_CONSUMER_ID}}\",\r\n    \"clientSecret\": \"{{PASSPORT_CONSUMER_SECRET}}\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/provider/token",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"provider",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Map Lookup Endpoint",
+			"item": [
+				{
+					"name": "concept = 3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Token: \" + pm.globals.get('token'))\r",
+									"console.log(\"Authorization Header: \" + pm.request.headers.get('Authorization'))\r",
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"console.log(\"Request URL Path: \" + pm.request.url.getPath())\r",
+									"\r",
+									"pm.test(\"Response mappings is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.mappings)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(\"concept\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"descriptor\" in jsonData).to.eql(true)\r",
+									"\r",
+									"    jsonData.mappings.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"category\" in record).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/map/cpt/306683007?concept=3",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"map",
+								"cpt",
+								"306683007"
+							],
+							"query": [
+								{
+									"key": "concept",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "concept = 3, category=\"Unlisted\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Token: \" + pm.globals.get('token'))\r",
+									"console.log(\"Authorization Header: \" + pm.request.headers.get('Authorization'))\r",
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"console.log(\"Request URL Path: \" + pm.request.url.getPath())\r",
+									"\r",
+									"pm.test(\"Response mappings is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.mappings)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(\"concept\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"descriptor\" in jsonData).to.eql(true)\r",
+									"\r",
+									"    jsonData.mappings.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"category\" in record).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/map/cpt/306683007?concept=3&category=Unlisted",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"map",
+								"cpt",
+								"306683007"
+							],
+							"query": [
+								{
+									"key": "concept",
+									"value": "3"
+								},
+								{
+									"key": "category",
+									"value": "Unlisted"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "concept = 3, category=\"E&M addl info req\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Token: \" + pm.globals.get('token'))\r",
+									"console.log(\"Authorization Header: \" + pm.request.headers.get('Authorization'))\r",
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"console.log(\"Request URL Path: \" + pm.request.url.getPath())\r",
+									"\r",
+									"pm.test(\"Response mappings is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.mappings)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(\"concept\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"descriptor\" in jsonData).to.eql(true)\r",
+									"\r",
+									"    jsonData.mappings.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"category\" in record).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/map/cpt/306683007?concept=3&category=E%26M addl info req",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"map",
+								"cpt",
+								"306683007"
+							],
+							"query": [
+								{
+									"key": "concept",
+									"value": "3"
+								},
+								{
+									"key": "category",
+									"value": "E&M addl info req"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "concept = 3, 2 categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Token: \" + pm.globals.get('token'))\r",
+									"console.log(\"Authorization Header: \" + pm.request.headers.get('Authorization'))\r",
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"console.log(\"Request URL Path: \" + pm.request.url.getPath())\r",
+									"\r",
+									"pm.test(\"Response mappings is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.mappings)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(\"concept\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"descriptor\" in jsonData).to.eql(true)\r",
+									"\r",
+									"    jsonData.mappings.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"category\" in record).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/map/cpt/306683007?concept=3&category=E%26M addl info req&category=Unlisted",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"map",
+								"cpt",
+								"306683007"
+							],
+							"query": [
+								{
+									"key": "concept",
+									"value": "3"
+								},
+								{
+									"key": "category",
+									"value": "E%26M addl info req"
+								},
+								{
+									"key": "category",
+									"value": "Unlisted"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Map Search Endpoint",
+			"item": [
+				{
+					"name": "keyword = \"discharge\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 30 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does not contain a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(false)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "cpt-api-sbx.cptapi.local",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", results = 15",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 15 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(15)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does contain a 'next' field with correct value\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.next).to.eql(\"/snomed/maps/cpt?index=15&results=15\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&results=15",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "results",
+									"value": "15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", results = 15, index = 15",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 15 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(15)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does contain a 'next' field with correct value\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(false)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&results=15&index=15",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "results",
+									"value": "15"
+								},
+								{
+									"key": "index",
+									"value": "15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", result = 1, index = 15",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 1 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(1)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.next).to.eql(\"/snomed/maps/cpt?index=16&results=1\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&results=1&index=15",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "results",
+									"value": "1"
+								},
+								{
+									"key": "index",
+									"value": "15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", result = 20, index = 15",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 10 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(15)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does not contain a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(false)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&results=20&index=15",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "results",
+									"value": "20"
+								},
+								{
+									"key": "index",
+									"value": "15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", result = 14, index = 15",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 14 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(14)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.next).to.eql(\"/snomed/maps/cpt?index=29&results=14\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&results=14&index=15",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "results",
+									"value": "14"
+								},
+								{
+									"key": "index",
+									"value": "15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keywords = \"discharge\", \"x\", \"y\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 50 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(50)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(60)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.next).to.eql(\"/snomed/maps/cpt?index=50&results=50\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&keyword=x&keyword=y",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "keyword",
+									"value": "x"
+								},
+								{
+									"key": "keyword",
+									"value": "y"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all keywords",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 50 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(50)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(44403)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.next).to.eql(\"/snomed/maps/cpt?index=50&results=50\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"keyword-does-not-exist-abc\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 0 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(0)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(0)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does not contain a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(false)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=keyword-does-not-exist-abc",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "keyword-does-not-exist-abc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", category = \"E&M addl info req\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 30 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does not contain a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(false)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&category=E%26M addl info req",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "category",
+									"value": "E%26M addl info req"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", category = \"E&M addl info req\" and \"Unlisted\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 30 maps.\", function () { \r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.maps.length).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.maps.forEach(function(record) {\r",
+									"        pm.expect(\"concept\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"mappings\" in record).to.eql(true)\r",
+									"\r",
+									"        record.mappings.forEach(function(mapping) {\r",
+									"            pm.expect(\"code\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"descriptor\" in mapping).to.eql(true)\r",
+									"            pm.expect(\"category\" in mapping).to.eql(true)\r",
+									"        });\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains 'available' field and it containsn correct value.\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"available\" in jsonData).to.eql(true)\r",
+									"    pm.expect(jsonData.available).to.eql(30)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response does not contain a 'next' field\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"next\" in jsonData).to.eql(false)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&category=E%26M addl info req&category=Unlisted",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "category",
+									"value": "E%26M addl info req"
+								},
+								{
+									"key": "category",
+									"value": "Unlisted"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", index = -4",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is not an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(false);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates 400\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains the message indicating index must be 0 or greater\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.eql(\"Index must be 0 or greater.\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&index=-4",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "index",
+									"value": "-4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keyword = \"discharge\", results = -3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response is not an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData.maps)).to.eql(false);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response code indicates 400\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains the message indicating index must be 0 or greater\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.eql(\"Results must be greater 0.\")\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/snomed/maps/cpt?keyword=discharge&results=-3",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"snomed",
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "discharge"
+								},
+								{
+									"key": "results",
+									"value": "-3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "PORTAL_CONSUMER_KEY",
+			"value": "MscxMkxqUvpkO2xf0LfxUwKkgvAa",
+			"type": "string"
+		},
+		{
+			"key": "PORTAL_CONSUMER_SECRET",
+			"value": "XXCjSjNYtzXI4gL4fQOgiBtxHlQa",
+			"type": "string"
+		},
+		{
+			"key": "PASSPORT_HOST",
+			"value": "amapassport-staging.ama-assn.org",
+			"type": "string"
+		},
+		{
+			"key": "PASSPORT_CONSUMER_ID",
+			"value": "6dc7e9d0-9b51-4253-a2f2-44b2ae79e5b8",
+			"type": "string"
+		},
+		{
+			"key": "PASSPORT_CONSUMER_SECRET",
+			"value": "7dac19a5-8f2b-4f28-b7d4-2ae84f41f8a6",
+			"type": "string"
+		},
+		{
+			"key": "API_GATEWAY_URL",
+			"value": "https://internal-cpt-api-sbx-apigw-alb-1466494166.us-east-1.elb.amazonaws.com",
+			"type": "string"
+		},
+		{
+			"key": "ETCD_URL",
+			"value": "https://etcd-675853090.us-east-1.elb.amazonaws.com",
+			"type": "string"
+		},
+		{
+			"key": "ETCD_ROOT_PASSWORD",
+			"value": "atw9mgRMdb30f5fs8Kry",
+			"type": "string"
+		},
+		{
+			"key": "ETCD_CONTACTID_PASSWORD",
+			"value": "x5iexSg=80^tvgt?U7ex",
+			"type": "string"
+		},
+		{
+			"key": "ETCD_ONEVIEW_PASSWORD",
+			"value": "NS59tc)gNJuL8BBa9dxF",
+			"type": "string"
+		},
+		{
+			"key": "ONEVIEW_API_URL",
+			"value": "https://oneview-api-sbx.amaaws.org",
+			"type": "string"
+		},
+		{
+			"key": "CPT_API_BULK_URL",
+			"value": "https://yfvkvs2uxc.execute-api.us-east-1.amazonaws.com/bulk_zip/test",
+			"type": "string"
+		},
+		{
+			"key": "PORTAL_CPT_API_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "PORTAL_CPT_API_BULK_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "VERICRE_API_URL",
+			"value": "https://localhost:4443",
+			"type": "string"
+		}
+	]
+}
