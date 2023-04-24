@@ -178,13 +178,13 @@ class MapSearchEndpointTask(APIEndpointTask):
         return mappings
 
     def _get_all_mappings(self, dynamodb):
-        mappings = defaultdict(list)
 
+        mappings = defaultdict(list)
         items = self._paginate(
             dynamodb,
-            """
+            f"""
                 SELECT * FROM \"{self._parameters.database_table}\"
-                WHERE begins_with(\"sk\", 'CPT:')")
+                WHERE begins_with(\"sk\", 'CPT:')
             """
         )
 
