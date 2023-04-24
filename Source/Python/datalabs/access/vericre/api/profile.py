@@ -26,6 +26,9 @@ LOGGER.setLevel(logging.DEBUG)
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
+class TaskParameters:
+    DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
+
 
 @add_schema(unknowns=True)
 @dataclass
@@ -44,7 +47,7 @@ class ProfileDocumentsEndpointParameters:
     unknowns: dict = None
 
 
-class ProfileDocumentsEndpointTask(APIEndpointTask):
+class ProfileDocumentsEndpointTask(APIEndpointTask, TaskParameters):
     PARAMETER_CLASS = ProfileDocumentsEndpointParameters
 
     def run(self):
@@ -136,9 +139,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         for file in query_result:
             self._get_files_from_s3(entity_id, file)
 
-    @classmethod
-    def _create_folder_for_downloaded_files(cls, entity_id):
-        os.mkdir(f'./{entity_id}')
+    def _create_folder_for_downloaded_files(self, entity_id):
+        os.makedirs(f'{self.DOCUMENT_TEMP_DIRECTORY}/{entity_id}')
 
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
@@ -153,7 +155,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                 aws_s3.download_file(
                     Bucket=self._parameters.document_bucket_name,
                     Key=document_key,
-                    Filename=f"{entity_id}/{document_name}"
+                    Filename=f"{self.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{document_name}"
                 )
 
                 LOGGER.info("%s/%s downloaded.", entity_id, document_name)
@@ -161,7 +163,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             LOGGER.exception(error.response)
 
     def _zip_downloaded_files(self, entity_id):
-        folder_to_zip = f'./{entity_id}'
+        folder_to_zip = f'{self.DOCUMENT_TEMP_DIRECTORY}/{entity_id}'
         zip_file_buffer = io.BytesIO()
 
         with zipfile.ZipFile(zip_file_buffer, 'w') as zipper:
