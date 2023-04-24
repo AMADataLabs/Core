@@ -1,6 +1,5 @@
 """ Release endpoint classes."""
 from dataclasses import dataclass
-import base64
 import io
 import json
 import logging
@@ -187,7 +186,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask, TaskParameters):
 
     @classmethod
     def _generate_response_body(cls, response_data):
-        return base64.b64decode(response_data)
+        return response_data
 
     @classmethod
     def _generate_headers(cls, entity_id):
