@@ -46,7 +46,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _handle_success(self) -> (int, dict):
         body = self.task.response_body
         is_base64_encoded = True
-        
+
         response = {
             "statusCode": self.task.status_code,
             "headers": self.task.headers,
