@@ -178,7 +178,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask, TaskParameters):
     @classmethod
     def _write_files_in_buffer(cls, zipper, root, files):
         for file in files:
-            zipper.write(os.path.join(root, file))
+            zipper.write(os.path.join(root, file), arcname=file)
 
     @classmethod
     def _delete_folder_for_downloaded_files(cls, folder_path):
