@@ -71,8 +71,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask, TaskParameters):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        self._response_body = self._generate_response_body(zip_file_in_bytes)
-        self._headers = self._generate_headers(entity_id)
+        self._generate_response(zip_file_in_bytes, entity_id)
 
     @classmethod
     def _sub_query_for_documents(cls, database):
@@ -184,6 +183,10 @@ class ProfileDocumentsEndpointTask(APIEndpointTask, TaskParameters):
     def _delete_folder_for_downloaded_files(cls, folder_path):
         shutil.rmtree(folder_path)
 
+    def _generate_response(self, zip_file_in_bytes, entity_id):
+        self._response_body = self._generate_response_body(zip_file_in_bytes)
+        self._headers = self._generate_headers(entity_id)
+
     @classmethod
     def _generate_response_body(cls, response_data):
         return response_data
@@ -231,8 +234,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_response = self._get_profile_pdf(entity_id)
 
-        self._response_body = self._generate_response_body(pdf_response)
-        self._headers = self._generate_headers(pdf_response)
+        self._generate_response(pdf_response)
 
     def _set_parameter_defaults(self):
         self._parameters.profile_headers = {
@@ -240,6 +242,10 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'X-CredentialProviderUserId': "1",
             'X-SourceSystem': "1"
         }
+
+    def _generate_response(self, response):
+        self._response_body = self._generate_response_body(response)
+        self._headers = self._generate_headers(response)
 
     @classmethod
     def _generate_response_body(cls, response):
@@ -352,8 +358,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_response = self._fetch_caqh_pdf(provider)
 
-        self._response_body = self._generate_response_body(pdf_response)
-        self._headers = self._generate_headers(pdf_response)
+        self._generate_response(pdf_response)
 
     @classmethod
     def _query_for_provider_id(cls, database):
@@ -390,6 +395,10 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         self._parameters.auth_headers = urllib3.make_headers(
             basic_auth=f'{self._parameters.username}:{self._parameters.password}'
         )
+
+    def _generate_response(self, response):
+        self._response_body = self._generate_response_body(response)
+        self._headers = self._generate_headers(response)
 
     @classmethod
     def _generate_response_body(cls, response):
