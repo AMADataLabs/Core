@@ -2,6 +2,7 @@
 import hashlib
 import json
 import logging
+from collections import defaultdict
 
 import boto3
 import pandas
@@ -17,20 +18,19 @@ LOGGER.setLevel(logging.DEBUG)
 class DynamoDBLoaderTask(Task):
     def run(self):
         # LOGGER.debug('Input data: \n%s', self._data)
-
         incoming_hashes = self._create_hash_entries(eval(self._data[0].decode('utf-8')))
 
-        with AWSClient("dynamodb") as client:
-            current_hashes = self._get_current_hashes(client)
+        with AWSClient("dynamodb") as dynamodb:
+            current_hashes = self._get_current_hashes(dynamodb)
 
-        with AWSClient("dynamodb").resource as resource:
-            table = resource.Table("CPT-API-snomed-sbx")
+            with AWSClient("dynamodb").resource as resource:
+                table = resource.Table("CPT-API-snomed-sbx")
 
-            self._delete_data(incoming_hashes, current_hashes, table)
+                self._delete_data(incoming_hashes, current_hashes, table, dynamodb)
 
-            self._add_data(incoming_hashes, current_hashes, table, self._data[0].decode('utf-8'))
+                self._add_data(incoming_hashes, current_hashes, table, eval(self._data[0].decode('utf-8')))
 
-            self._update_data(incoming_hashes, current_hashes)
+                self._update_data(incoming_hashes, current_hashes, table, eval(self._data[0].decode('utf-8')), dynamodb)
 
     @classmethod
     def _create_hash_entries(cls, data):
@@ -39,89 +39,95 @@ class DynamoDBLoaderTask(Task):
         for item in data:
             if item["sk"].startswith("UNMAPPABLE:") or item["sk"].startswith("CPT:"):
                 md5 = hashlib.md5(json.dumps(item, sort_keys=True).encode('utf-8')).hexdigest()
-                incoming_hashes.append({'pk': {'S': f'{item["pk"]}:{item["sk"]}'}, 'sk': {'S': f"MD5:{md5}"}})
+                incoming_hashes.append(dict(pk=f'{item["pk"]}:{item["sk"]}', sk=f"MD5:{md5}"))
 
-        return incoming_hashes
+        return pandas.DataFrame(incoming_hashes)
 
-    def _get_current_hashes(self, database):
-        items = self._query_table(database, self._parameters.get('TABLE'))
+    def _get_current_hashes(self, dynamodb):
+        current_hashes_columns = defaultdict(list)
 
-        return items
+        results = self._paginate(dynamodb, "SELECT * FROM \"CPT-API-snomed-sbx\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')")
+        results = list(results)
 
-    def _query_table(self, database, table):
-        items = []
+        for result in results:
+            for key, value in result.items():
+                current_hashes_columns[key].append(value["S"])
 
-        results = database.execute_statement(
-            Statement=f"SELECT * FROM \"{table}\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')",
-        )
-        items.extend(results['Items'])
+        current_hashes = pandas.DataFrame(current_hashes_columns)
 
-        if self._check_for_token(results):
-            items = self._query_table_with_token(database, items, results['NextToken'], table)
-
-        return items
+        return current_hashes
 
     @classmethod
-    def _check_for_token(cls, results):
-        if 'NextToken' in results:
-            token_exists = True
-        else:
-            token_exists = False
+    def _paginate(cls, dynamodb, statement):
+        results = dynamodb.execute_statement(Statement=statement)
 
-        return token_exists
+        for item in results["Items"]:
+            yield item
 
-    @classmethod
-    def _query_table_with_token(cls, database, items, token, table):
-        results = database.execute_statement(
-            Statement=f"SELECT * FROM \"{table}\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')",
-            NextToken=token
-        )
-        items.extend(results['Items'])
+        while "NextToken" in results:
+            results = dynamodb.execute_statement(Statement=statement, NextToken=results["NextToken"])
 
-        if cls._check_for_token(results):
-            cls._query_table_with_token(database, items, results['NextToken'], table)
+            for item in results["Items"]:
+                yield item
 
-        return items
-
-    def _delete_data(self, incoming_hashes, current_hashes, table):
+    def _delete_data(self, incoming_hashes, current_hashes, table, dynamodb):
         deleted_data = self._select_deleted_data(incoming_hashes, current_hashes)
 
-        self._delete_data_from_table(deleted_data, table)
+        self._delete_data_from_table(deleted_data, table, dynamodb)
 
     @classmethod
     def _select_deleted_data(cls, incoming_hashes, current_hashes):
-        import pdb
-        pdb.set_trace()
-        incoming_hashes = pandas.DataFrame(incoming_hashes)
+        deleted_hashes = current_hashes[~current_hashes.pk.isin(incoming_hashes.pk)].reset_index(drop=True)
 
-        current_hashes = pandas.DataFrame(current_hashes)
+        LOGGER.debug('Deleted Data: %s', deleted_hashes)
 
-        deleted_data = current_hashes[~current_hashes['pk'].isin(incoming_hashes['pk'])]
+        return deleted_hashes.to_dict(orient='records')
 
-        LOGGER.debug('Deleted Data: %s', deleted_data)
-
-        return deleted_data.to_dict(orient='records')
-
-    def _delete_data_from_table(self, deleted_data, table):
+    def _delete_data_from_table(self, deleted_data, table, dynamodb):
         if len(deleted_data) > 0:
+            self._delete_mappings_from_table(deleted_data, table, dynamodb)
+
             self._delete_hashes_from_table(deleted_data, table)
 
-            self._delete_mappings_from_table(deleted_data, table)
+    def _delete_mappings_from_table(self, deleted_data, database, dynamodb):
+        self._delete_keyword_mappings(deleted_data, database, dynamodb)
+
+        self._delete_cpt_mappings(deleted_data, database)
 
     @classmethod
     def _delete_hashes_from_table(cls, deleted_data, table):
         with table.batch_writer() as batch:
             for item in deleted_data:
-                LOGGER.debug("Item %s", item)
-                batch.delete_item(Key={'pk': item["pk"],
-                                       'sk': item["sk"]})
+                batch.delete_item(Key={
+                    'sk': item['sk'],
+                    'pk': item['pk']
+                })
+                LOGGER.debug('Deleted Hash: %s', item)
 
     @classmethod
-    def _delete_mappings_from_table(cls, deleted_data, database):
+    def _delete_cpt_mappings(cls, deleted_hashes, database):
         with database.batch_writer() as batch:
-            for item in deleted_data:
-                batch.delete_item(Key={'pk': item['pk']['S'].rsplit(":", 2)[0],
-                                       'sk': item['pk']['S'].split(":", 2)[2]})
+            for item in deleted_hashes:
+                batch.delete_item(Key={
+                    'pk': item['pk'].rsplit(':', 2)[0],
+                    'sk': item['pk'].split(':', 2)[2]
+                })
+                LOGGER.debug('Deleted Mapping: %s', item)
+
+    def _delete_keyword_mappings(self, deleted_hashes, database, dynamodb):
+        keyword_data = []
+
+        for item in deleted_hashes:
+            results = self._paginate(dynamodb, f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'KEYWORD:')")
+            keyword_data.extend(list(results))
+
+        with database.batch_writer() as batch:
+            for item in keyword_data:
+                batch.delete_item(Key={
+                    'pk': item['pk']['S'],
+                    'sk': item['sk']['S']
+                })
+                LOGGER.debug('Deleted Keyword: %s,%s', item['pk']['S'], item['sk']['S'])
 
     def _add_data(self, incoming_hashes, current_hashes, database, incoming_data):
         new_data = self._select_new_data(incoming_hashes, current_hashes)
@@ -130,46 +136,134 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _select_new_data(cls, incoming_hashes, current_hashes):
-        incoming_hashes = pandas.DataFrame(incoming_hashes, columns=['pk', 'sk'])
+        new_or_updated_hashes = incoming_hashes[~incoming_hashes.sk.isin(current_hashes.sk)].reset_index(drop=True)
 
-        current_hashes = pandas.DataFrame(current_hashes, columns=['pk', 'sk'])
-        current_hashes = current_hashes[pandas.isnull(current_hashes['ref'])].drop(['ref'], axis=1).reset_index()
+        new_hashes = new_or_updated_hashes[~new_or_updated_hashes.pk.isin(current_hashes.pk)].reset_index(drop=True)
 
-        new_data = incoming_hashes[~incoming_hashes['pk'].isin(current_hashes['pk'])]
+        LOGGER.debug('Added Data: %s', new_hashes)
 
-        LOGGER.debug('Added Data: %s', new_data)
-
-        return new_data.to_dict(orient='records')
+        return new_hashes.to_dict(orient='records')
 
     def _add_data_to_table(self, new_data, database, incoming_data):
         if len(new_data) > 0:
-            self._add_hashes_to_table(new_data, database)
-
             self._add_mappings_to_table(new_data, database, incoming_data)
 
-    def _add_hashes_to_table(self, new_data, database):
+            self._add_hashes_to_table(new_data, database)
+
+    @classmethod
+    def _add_hashes_to_table(cls, new_data, database):
         with database.batch_writer() as batch:
             for item in new_data:
-                batch.put_item(TableName=self._parameters.get('TABLE'),
-                               Item=item)
+                batch.put_item(Item={
+                    'sk': item['sk'],
+                    'pk': item['pk']
+                })
+                LOGGER.debug('Added Hash: %s', item)
 
     def _add_mappings_to_table(self, new_data, database, incoming_data):
-        self._add_cpt_mapping(new_data, database, incoming_data)
+        self._add_keyword_mappings(new_data, database, incoming_data)
+        self._add_cpt_mappings(new_data, database, incoming_data)
 
-        self._add_keyword_mapping(new_data, database, incoming_data)
-
-    def _add_cpt_mapping(self, new_data, database, incoming_data):
+    @classmethod
+    def _add_cpt_mappings(cls, new_data, database, incoming_data):
         with database.batch_writer() as batch:
-            for items in new_data:
-                for item in incoming_data:
-                    if item["pk"] == items['pk']['S'].rsplit(":", 2)[0] and item["sk"] == item['pk']['S'].split(":", 2)[2]:
-                        batch.put_item(TableName=self._parameters.get('TABLE'),
-                                       Item=item)
+            for item in new_data:
+                for data in incoming_data:
+                    if data['pk'] == item['pk'].rsplit(':', 2)[0] and data['sk'] == item['pk'].split(':', 2)[2]:
+                        batch.put_item(Item=data)
+                        LOGGER.debug('Added Mappings: %s', data)
 
-    def _add_keyword_mapping(self, new_data, database, incoming_data):
+    @classmethod
+    def _add_keyword_mappings(cls, new_data, database, incoming_data):
         with database.batch_writer() as batch:
-            for items in new_data:
-                for item in incoming_data:
-                    if item["pk"] == items['pk']['S']:
-                        batch.put_item(TableName=self._parameters.get('TABLE'),
-                                       Item=item)
+            for item in new_data:
+                for data in incoming_data:
+                    if item["pk"] == data['pk']:
+                        batch.put_item(Item=data)
+                        LOGGER.debug('Added Keyword: %s', data)
+
+    def _update_data(self, incoming_hashes, current_hashes, table, incoming_data, dynamodb):
+        updated_data = self._select_updated_data(incoming_hashes, current_hashes)
+
+        self._update_data_in_table(updated_data, table, dynamodb, incoming_data)
+
+    @classmethod
+    def _select_updated_data(cls, incoming_hashes, current_hashes):
+        new_or_updated_hashes = incoming_hashes[~incoming_hashes.sk.isin(current_hashes.sk)]
+
+        updated_hashes = new_or_updated_hashes[new_or_updated_hashes.pk.isin(current_hashes.pk)]
+
+        LOGGER.debug('Updated Data: %s', updated_hashes)
+        import pdb
+        pdb.set_trace()
+
+        return updated_hashes.to_dict(orient='records')
+
+    def _update_data_in_table(self, updated_data, database, dynamodb, incoming_data):
+        if len(updated_data) > 0:
+            self._update_hashes_in_table(updated_data, dynamodb, database)
+
+            self._update_mappings_in_table(updated_data, database, dynamodb, incoming_data)
+
+    def _update_hashes_in_table(self, new_data, dynamodb, database):
+        import pdb
+        pdb.set_trace()
+        with database.batch_writer() as batch:
+            for item in new_data:
+                results = self._paginate(dynamodb, "SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'MD5:')")
+                batch.update_item(
+                    Item={
+                        'pk': item['pk'],
+                        'sk': list(results)[0]['sk']['S']
+                    },
+                    UpdateExpression='SET sk = :sk',
+                    ExpressionAttributeValues={
+                        ':sk': item['sk']
+                    }
+                )
+
+    def _update_mappings_in_table(self, new_data, database, dynamodb, incoming_data):
+        self._update_cpt_mappings(new_data, database, incoming_data)
+
+        self._update_keyword_mappings(new_data, database, dynamodb, incoming_data)
+
+    @classmethod
+    def _update_cpt_mappings(cls, new_data, database, incoming_data):
+        with database.batch_writer() as batch:
+            for item in new_data:
+                for data in incoming_data:
+                    if data["pk"] == item['pk'].rsplit(':', 2)[0] and item['sk'] == item['pk'].split(':', 2)[2]:
+                        batch.update_item(
+                            Item={
+                                'pk': data['pk'],
+                                'sk': data['sk']
+                            },
+                            UpdateExpression='SET snomed_descriptor=:s, map_category=:m, cpt_descriptor=:c',
+                            ExpressionAttributeValues={
+                                ':s': data['snomed_descriptor'],
+                                ':m': data['map_category'],
+                                ':c': data['cpt_descriptor']
+                            }
+                        )
+
+    def _update_keyword_mappings(self, updated_data, database, dynamodb, incoming_data):
+        keyword_data = []
+
+        for item in updated_data:
+            results = self._paginate(dynamodb, f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'KEYWORD:')")
+            keyword_data.extend(list(results))
+
+        with database.batch_writer() as batch:
+            for keyword in keyword_data:
+                for data in incoming_data:
+                    if keyword["pk"] == data['pk']:
+                        batch.update_item(
+                            Item={
+                                'pk': keyword['pk'],
+                                'sk': keyword['sk']
+                            },
+                            UpdateExpression='SET sk = :sk',
+                            ExpressionAttributeValues={
+                                ':sk': data['sk']
+                            }
+                        )
