@@ -24,11 +24,13 @@ class SNOMEDMappingTransformerTask(Task):
 
         renamed_data = self._rename_columns(cleaned_data)
 
-        mappings, mapped_data = self._generate_cpt_mappings(renamed_data)
+        cpt_mappings = self._generate_cpt_mappings(renamed_data)
 
-        mappings = self._generate_keyword_mappings(mapped_data, mappings)
+        keyword_mappings = self._generate_keyword_mappings(cpt_mappings)
 
-        return [json.dumps(mappings).encode()]
+        table_items = self._generate_table_items(cpt_mappings, keyword_mappings)
+
+        return [json.dumps(table_items).encode()]
 
     def _clean_data(self, data):
         self._fill_missing_ids(data)
@@ -65,12 +67,9 @@ class SNOMEDMappingTransformerTask(Task):
         return renamed_data
 
     def _generate_cpt_mappings(self, data):
-        mappings = []
         cpt_mappings = self._create_cpt_mappings(data)
 
-        self._generate_cpt_items(mappings, cpt_mappings)
-
-        return mappings, cpt_mappings
+        return cpt_mappings
 
     @classmethod
     def _create_cpt_mappings(cls, data):
@@ -85,33 +84,39 @@ class SNOMEDMappingTransformerTask(Task):
 
         return mapped_data
 
-    @classmethod
-    def _generate_cpt_items(cls, mappings, cpt_mappings):
-
-        for index in range(len(cpt_mappings)):
-            row = cpt_mappings.iloc[index]
-            mappings.append(row.to_dict())
-
-    def _generate_keyword_mappings(self, data, mappings):
+    def _generate_keyword_mappings(self, data):
         keywords_mapping = self._create_keyword_mappings(data)
 
-        self._generate_keyword_items(mappings, keywords_mapping)
-
-        return mappings
+        return keywords_mapping
 
     @classmethod
-    def _create_keyword_mappings(cls, data):
-        data["keyword"] = data.snomed_descriptor.apply(lambda x: re.sub(r'[^\w ]+', '', x)).str.lower().str.split()
+    def _create_keyword_mappings(cls, keyword_map):
+        keyword_map["keyword"] = keyword_map.snomed_descriptor.apply(lambda x: re.sub(r'[^\w ]+', '', x)).str.lower().str.split()
 
-        keyword_mappings = data.loc[:, ["pk", "sk", "keyword"]].explode("keyword").reset_index(drop=True).drop_duplicates()
-        data.drop(columns="keyword")
+        keyword_mappings = keyword_map.loc[:, ["pk", "sk", "keyword"]].explode("keyword").reset_index(drop=True).drop_duplicates()
+        keyword_map.drop(columns="keyword")
 
         return keyword_mappings
 
+    def _generate_table_items(self, cpt_mappings, keyword_mappings):
+        table_items = []
+
+        self._generate_cpt_items(table_items, cpt_mappings)
+
+        self._generate_keyword_items(table_items, keyword_mappings)
+
+        return table_items
+
+    @classmethod
+    def _generate_cpt_items(cls, table_items, cpt_mappings):
+        for index in range(len(cpt_mappings)):
+            row = cpt_mappings.iloc[index]
+            table_items.append(row.to_dict())
+
     # pylint: disable=invalid-name
     @classmethod
-    def _generate_keyword_items(cls, mappings, keywords_mapping):
-        mappings += [
+    def _generate_keyword_items(cls, table_items, keywords_mapping):
+        table_items += [
             dict(pk=f"{row.pk}:{row.sk}", sk=f"KEYWORD:{row.keyword}")
             for index, row in keywords_mapping.iterrows() if row.sk.startswith("CPT:")
         ]

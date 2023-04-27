@@ -194,8 +194,6 @@ class DynamoDBLoaderTask(Task):
         updated_hashes = new_or_updated_hashes[new_or_updated_hashes.pk.isin(current_hashes.pk)]
 
         LOGGER.debug('Updated Data: %s', updated_hashes)
-        import pdb
-        pdb.set_trace()
 
         return updated_hashes.to_dict(orient='records')
 
@@ -206,21 +204,17 @@ class DynamoDBLoaderTask(Task):
             self._update_mappings_in_table(updated_data, database, dynamodb, incoming_data)
 
     def _update_hashes_in_table(self, new_data, dynamodb, database):
-        import pdb
-        pdb.set_trace()
         with database.batch_writer() as batch:
             for item in new_data:
-                results = self._paginate(dynamodb, "SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'MD5:')")
-                batch.update_item(
-                    Item={
+                results = self._paginate(dynamodb, f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'MD5:')")
+                old_hash = list(results)
+                batch.delete_item(
+                    Key={
                         'pk': item['pk'],
-                        'sk': list(results)[0]['sk']['S']
-                    },
-                    UpdateExpression='SET sk = :sk',
-                    ExpressionAttributeValues={
-                        ':sk': item['sk']
-                    }
-                )
+                        'sk': old_hash[0]['sk']['S']
+                    })
+                batch.put_item(Item=item)
+                LOGGER.debug('Updated Hash: %s', item)
 
     def _update_mappings_in_table(self, new_data, database, dynamodb, incoming_data):
         self._update_cpt_mappings(new_data, database, incoming_data)
@@ -229,22 +223,22 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _update_cpt_mappings(cls, new_data, database, incoming_data):
-        with database.batch_writer() as batch:
-            for item in new_data:
-                for data in incoming_data:
-                    if data["pk"] == item['pk'].rsplit(':', 2)[0] and item['sk'] == item['pk'].split(':', 2)[2]:
-                        batch.update_item(
-                            Item={
-                                'pk': data['pk'],
-                                'sk': data['sk']
-                            },
-                            UpdateExpression='SET snomed_descriptor=:s, map_category=:m, cpt_descriptor=:c',
-                            ExpressionAttributeValues={
-                                ':s': data['snomed_descriptor'],
-                                ':m': data['map_category'],
-                                ':c': data['cpt_descriptor']
-                            }
-                        )
+        for item in new_data:
+            for data in incoming_data:
+                if data["pk"] == item['pk'].rsplit(':', 2)[0] and data['sk'] == item['pk'].split(':', 2)[2]:
+                    database.update_item(
+                        Key={
+                            'pk': data['pk'],
+                            'sk': data['sk']
+                        },
+                        UpdateExpression='SET snomed_descriptor=:s, map_category=:m, cpt_descriptor=:c',
+                        ExpressionAttributeValues={
+                            ':s': data['snomed_descriptor'],
+                            ':m': data['map_category'],
+                            ':c': data['cpt_descriptor']
+                        }
+                    )
+                    LOGGER.debug('Updated Mapping: %s', item['pk'])
 
     def _update_keyword_mappings(self, updated_data, database, dynamodb, incoming_data):
         keyword_data = []
@@ -256,14 +250,11 @@ class DynamoDBLoaderTask(Task):
         with database.batch_writer() as batch:
             for keyword in keyword_data:
                 for data in incoming_data:
-                    if keyword["pk"] == data['pk']:
-                        batch.update_item(
-                            Item={
-                                'pk': keyword['pk'],
-                                'sk': keyword['sk']
-                            },
-                            UpdateExpression='SET sk = :sk',
-                            ExpressionAttributeValues={
-                                ':sk': data['sk']
-                            }
-                        )
+                    if keyword["pk"]['S'] == data['pk']:
+                        batch.delete_item(
+                            Key={
+                                'pk': keyword['pk']['S'],
+                                'sk': keyword['sk']['S']
+                            })
+                        database.put_item(Item=data)
+                        LOGGER.debug('Updated Keyword: %s', keyword["pk"]['S'])
