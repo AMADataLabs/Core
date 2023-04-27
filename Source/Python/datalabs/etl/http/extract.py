@@ -65,6 +65,5 @@ class HTTPFileListExtractorTask(HTTPFileExtractorTask):
 
     @classmethod
     def _parse_url_lists(cls, data):
-        print("chris the data is x", data)
         for url_list in data:
             yield [url.decode().strip() for url in url_list.split(b'\n')]
