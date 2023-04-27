@@ -1,4 +1,5 @@
 """ API endpoint-specific Lambda function Task wrapper. """
+import base64
 import json
 import logging
 import os
@@ -45,15 +46,17 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
 
     def _handle_success(self) -> (int, dict):
         if isinstance(self.task.response_body, bytes):
-            body = self.task.response_body
+            body = base64.b64encode(self.task.response_body)
+            is_base64_encoded = True
         else:
             body = json.dumps(self.task.response_body)
+            is_base64_encoded = False
 
         response = {
             "statusCode": self.task.status_code,
             "headers": self.task.headers,
             "body": body,
-            "isBase64Encoded": False,
+            "isBase64Encoded": is_base64_encoded,
         }
 
         LOGGER.debug("API endpoint response: %s", response)

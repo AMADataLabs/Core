@@ -26,6 +26,9 @@ LOGGER.setLevel(logging.DEBUG)
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
+class TaskData:
+    DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
+
 
 @add_schema(unknowns=True)
 @dataclass
@@ -68,8 +71,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        self._response_body = self._generate_response_body(zip_file_in_bytes)
-        self._headers = self._generate_headers(entity_id)
+        self._generate_response(zip_file_in_bytes, entity_id)
 
     @classmethod
     def _sub_query_for_documents(cls, database):
@@ -138,7 +140,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _create_folder_for_downloaded_files(cls, entity_id):
-        os.mkdir(f'./{entity_id}')
+        os.makedirs(f'{TaskData.DOCUMENT_TEMP_DIRECTORY}/{entity_id}')
 
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
@@ -153,7 +155,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                 aws_s3.download_file(
                     Bucket=self._parameters.document_bucket_name,
                     Key=document_key,
-                    Filename=f"{entity_id}/{document_name}"
+                    Filename=f"{TaskData.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{document_name}"
                 )
 
                 LOGGER.info("%s/%s downloaded.", entity_id, document_name)
@@ -161,12 +163,12 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             LOGGER.exception(error.response)
 
     def _zip_downloaded_files(self, entity_id):
-        folder_to_zip = f'./{entity_id}'
+        folder_to_zip = f'{TaskData.DOCUMENT_TEMP_DIRECTORY}/{entity_id}'
         zip_file_buffer = io.BytesIO()
 
         with zipfile.ZipFile(zip_file_buffer, 'w') as zipper:
             for root, dirs, files in os.walk(folder_to_zip):
-                LOGGER.info(root, dirs, files)
+                LOGGER.info("root: %s, dir length: %s, files size: %s", root, len(dirs), len(files))
                 self._write_files_in_buffer(zipper, root, files)
 
         self._delete_folder_for_downloaded_files(folder_to_zip)
@@ -176,11 +178,15 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     @classmethod
     def _write_files_in_buffer(cls, zipper, root, files):
         for file in files:
-            zipper.write(os.path.join(root, file))
+            zipper.write(os.path.join(root, file), arcname=file)
 
     @classmethod
     def _delete_folder_for_downloaded_files(cls, folder_path):
         shutil.rmtree(folder_path)
+
+    def _generate_response(self, zip_file_in_bytes, entity_id):
+        self._response_body = self._generate_response_body(zip_file_in_bytes)
+        self._headers = self._generate_headers(entity_id)
 
     @classmethod
     def _generate_response_body(cls, response_data):
@@ -229,8 +235,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_response = self._get_profile_pdf(entity_id)
 
-        self._response_body = self._generate_response_body(pdf_response)
-        self._headers = self._generate_headers(pdf_response)
+        self._generate_response(pdf_response)
 
     def _set_parameter_defaults(self):
         self._parameters.profile_headers = {
@@ -238,6 +243,10 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'X-CredentialProviderUserId': "1",
             'X-SourceSystem': "1"
         }
+
+    def _generate_response(self, response):
+        self._response_body = self._generate_response_body(response)
+        self._headers = self._generate_headers(response)
 
     @classmethod
     def _generate_response_body(cls, response):
@@ -350,8 +359,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_response = self._fetch_caqh_pdf(provider)
 
-        self._response_body = self._generate_response_body(pdf_response)
-        self._headers = self._generate_headers(pdf_response)
+        self._generate_response(pdf_response)
 
     @classmethod
     def _query_for_provider_id(cls, database):
@@ -388,6 +396,10 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         self._parameters.auth_headers = urllib3.make_headers(
             basic_auth=f'{self._parameters.username}:{self._parameters.password}'
         )
+
+    def _generate_response(self, response):
+        self._response_body = self._generate_response_body(response)
+        self._headers = self._generate_headers(response)
 
     @classmethod
     def _generate_response_body(cls, response):
