@@ -25,8 +25,10 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
 
     def _get_client(self):
         client = requests.Session()
+
         if self._parameters.username and self._parameters.password:
             client.auth = (self._parameters.username, self._parameters.password)
+
         return client
 
     def _resolve_wildcard(self, file):
@@ -59,8 +61,10 @@ class HTTPFileListExtractorTask(HTTPFileExtractorTask):
 
     def _get_client(self):
         client = super()._get_client()
+
         if self._parameters.username and self._parameters.password:
             client.auth = (self._parameters.username, self._parameters.password)
+            
         return client
 
     @classmethod
