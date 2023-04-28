@@ -1,13 +1,11 @@
 """ source: datalabs.access.vericre.api.profile """
 from   collections import namedtuple
-from   datetime import date
 import logging
 
 import mock
 import pytest
 
 from   datalabs.access.vericre.api.profile import ProfileDocumentsEndpointTask
-import datalabs.model.vericre.api as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
