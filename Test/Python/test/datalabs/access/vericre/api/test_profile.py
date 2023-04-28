@@ -21,9 +21,14 @@ def test_query_for_documents(event, query_results):
 
     with mock.patch('datalabs.access.vericre.api.profile.Database'):
         session = mock.MagicMock()
+
         session.query.return_value.join.return_value.filter.return_value = query_results
+
         task = ProfileDocumentsEndpointTask(event)
-        results = task._query_for_documents(session)
+
+        sub_query = task._sub_query_for_documents(session)
+
+        results = task._query_for_documents(session, sub_query)
 
     assert all(hasattr(results, attr) for attr in ['document_identifier', 'document_name', 'document_path'])
 
