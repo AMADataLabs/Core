@@ -5,7 +5,6 @@ import pytest
 @pytest.fixture
 def event():
     return dict(
-        method="GET",
         path={},
         query={},
         authorization={},
@@ -15,4 +14,5 @@ def event():
         database_name='',
         database_username='',
         database_password='',
+        document_bucket_name=''
     )
