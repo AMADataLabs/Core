@@ -7,7 +7,7 @@ import pickle
 
 import pandas
 
-from   datalabs.access.atdata import AtDataAPI
+from   datalabs.access.atdata import AtData
 from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
 from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
@@ -143,7 +143,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
 
 class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    Parameter_class = InputDataCleanerTaskParameters
+    PARAMETER_CLASS = InputDataCleanerTaskParameters
 
     def run(self):
         input_data = self._read_input_data(self._data)
@@ -198,7 +198,7 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-variable
 class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    Parameter_class = InputDataCleanerTaskParameters
+    PARAMETER_CLASS = InputDataCleanerTaskParameters
 
     def run(self):
         contacts, list_of_lists, flatfile, inputs = self._read_input_data(self._data)
@@ -301,9 +301,19 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return merged_flatfile
 
 
+
+@add_schema
+@dataclass
+class EmailValidatorTaskParameters:
+    host: str = None
+    account: str = None
+    api_key: str = None
+    execution_time: str = None
+
+
 # pylint: disable=consider-using-with, line-too-long
 class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    Parameter_class = InputDataCleanerTaskParameters
+    PARAMETER_CLASS = EmailValidatorTaskParameters
 
     def run(self):
         flatfile = InputDataParser.parse(self._data[0])
@@ -314,15 +324,17 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         email_data = data[['ID', 'BEST_EMAIL']]
 
-        api_endpoint = "https://portal.freshaddress.com/REST/SendFile?account=AB254_16345&apikey=D02502F2-382A-4F8D-983E-3B3B82ABFD5B"
+        email_data_list = list(email_data.BEST_EMAIL)
 
-        email_data.to_csv('./existing_emails.txt', index=None, sep='\t', mode='a')
+        email_data_list = list(set(email_data_list))
 
-        files = {'file': open('./existing_emails.txt', 'rb')}
+        at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
 
-        at_data = AtDataAPI(files,api_endpoint)
+        validated_emails = at_data.validate_emails(email_data_list).drop('ID', axis=1)
 
-        return [self._dataframe_to_csv(at_data.run())]
+        validated_flatfile =  data.merge(validated_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL',how='left')
+
+        return [self._dataframe_to_csv(validated_flatfile)]
 
 
 class DuplicatePrunerTask:

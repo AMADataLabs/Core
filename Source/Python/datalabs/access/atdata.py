@@ -1,54 +1,57 @@
 """ Generic interface to the API."""
-from   abc import ABC, abstractmethod
-
 import io
 import pandas as pd
 import requests
 
 
-class AtData(ABC):
-    @abstractmethod
-    def __init__(self):
-        pass
+# pylint: disable=consider-using-with, line-too-long
+class AtData:
+    def __init__(self, host, account, api_key):
+        self._host = host
+        self._account = account
+        self._api_key = api_key
 
-    @abstractmethod
-    def _check_processing(self, project_no: str):
-        pass
+    def validate_emails(self, emails: list) -> dict:
+        endpoint = 'SendFile'
 
+        _api_endpoint = self._generate_endpoint_url(endpoint)
+        ids = list(range(0, len(emails)))
+        emails_dict = {'ID':ids,'BEST_EMAIL': emails}
+        email_data = pd.DataFrame.from_dict(emails_dict)
 
-class AtDataAPI(AtData):
-    def __init__(self, files, api_endpoint):
-        super().__init__()
-        self._files = files
-        self._api_endpoint = api_endpoint
+        email_data.to_csv('./existing_emails.txt', index=None, sep='\t', mode='a')
 
-    def run(self):
-        content = requests.post(self._api_endpoint, files=self._files)
+        _files = {'file': open('./existing_emails.txt', 'rb')}
 
-        data = self._check_processing(content.json()['project'])
+        content = requests.post(_api_endpoint, files=_files)
 
-        return data
+        validation = self._check_processing(content.json()['project'])
+
+        return validation
 
     # pylint: disable=consider-using-f-string, no-self-use, line-too-long
-    def _check_processing(self, project_no):
+    def _check_processing(self, project):
         status ='Processing'
+        endpoint = 'ProjectStatus'
+        url = self._generate_endpoint_url(endpoint) + f"&project={project}"
 
         while status == 'Processing':
-            url = "https://portal.freshaddress.com/REST/ProjectStatus?account=AB254_16345&apikey=D02502F2-382A-4F8D-983E-3B3B82ABFD5B&project={}".format(project_no)
-
-            result_url =requests.get(url)
-            result_url.json()
+            result_url = requests.get(url)
             status = result_url.json()['status']
 
             if status == 'Returned':
                 file_name = result_url.json()['files'][0]
-                output = self._get_output(project_no, file_name)
+                output = self._get_output(project, file_name)
 
                 return output
 
     # pylint: disable=consider-using-f-string, no-self-use, line-too-long
-    def _get_output(self, project_no, file):
-        result_url = "https://portal.freshaddress.com/REST/GetFile?account=AB254_16345&apikey=D02502F2-382A-4F8D-983E-3B3B82ABFD5B&project={}&file={}".format(project_no,file)
-        result =requests.get(result_url)
+    def _get_output(self, project, file):
+        endpoint = 'GetFile'
+        result_url = self._generate_endpoint_url(endpoint) + f"&project={project}&file={file}"
+        result = requests.get(result_url)
 
         return pd.read_csv(io.StringIO(result.text), sep = '\t')
+
+    def _generate_endpoint_url(self, endpoint):
+        return f"https://{self._host}/REST/{endpoint}?account={self._account}&apikey={self._api_key}"
