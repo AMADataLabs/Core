@@ -1,5 +1,4 @@
 """SNOMED CPT Transformer"""
-from   collections import defaultdict
 import json
 import logging
 import re
@@ -28,7 +27,7 @@ class SNOMEDMappingTransformerTask(Task):
 
         keyword_mappings = self._generate_keyword_mappings(cpt_mappings)
 
-        table_items = self._generate_table_items(cpt_mappings, keyword_mappings)
+        table_items = self._generate_table_items(cpt_mappings.drop(columns="keyword"), keyword_mappings)
 
         return [json.dumps(table_items).encode()]
 
@@ -94,7 +93,6 @@ class SNOMEDMappingTransformerTask(Task):
         keyword_map["keyword"] = keyword_map.snomed_descriptor.apply(lambda x: re.sub(r'[^\w ]+', '', x)).str.lower().str.split()
 
         keyword_mappings = keyword_map.loc[:, ["pk", "sk", "keyword"]].explode("keyword").reset_index(drop=True).drop_duplicates()
-        keyword_map.drop(columns="keyword")
 
         return keyword_mappings
 
