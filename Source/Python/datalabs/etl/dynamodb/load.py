@@ -70,24 +70,24 @@ class DynamoDBLoaderTask(Task):
                 yield item
 
     def _delete_data(self, incoming_hashes, current_hashes, table, dynamodb):
-        deleted_hashes = self._select_deleted_data(incoming_hashes, current_hashes)
+        deleted_hashes = self._select_deleted_hashes(incoming_hashes, current_hashes)
 
         if len(deleted_hashes) > 0:
-            self._delete_mappings_from_table(deleted_hashes, table)
+            self._delete_cpt_mappings_from_table(deleted_hashes, table)
 
             self._delete_hashes_from_table(deleted_hashes, table)
 
-            self._delete_keyword_mappings(deleted_hashes, table, dynamodb)
+            self._delete_keywords_from_table(deleted_hashes, table, dynamodb)
 
     @classmethod
-    def _select_deleted_data(cls, incoming_hashes, current_hashes):
+    def _select_deleted_hashes(cls, incoming_hashes, current_hashes):
         deleted_hashes = current_hashes[~current_hashes.pk.isin(incoming_hashes.pk)].reset_index(drop=True)
 
         LOGGER.debug('Deleted Data: %s', deleted_hashes)
 
         return deleted_hashes.to_dict(orient='records')
 
-    def _delete_mappings_from_table(self, deleted_hashes, table):
+    def _delete_cpt_mappings_from_table(self, deleted_hashes, table):
         deleted_mappings = []
         for item in deleted_hashes:
             deleted_mappings.append({
@@ -100,7 +100,7 @@ class DynamoDBLoaderTask(Task):
     def _delete_hashes_from_table(self, deleted_data, table):
         self._delete_from_table(deleted_data, table)
 
-    def _delete_keyword_mappings(self, deleted_hashes, table, dynamodb):
+    def _delete_keywords_from_table(self, deleted_hashes, table, dynamodb):
         keyword_data = []
 
         for item in deleted_hashes:
@@ -119,18 +119,18 @@ class DynamoDBLoaderTask(Task):
                 })
                 LOGGER.debug('Deleted Item: %s', item['pk'])
 
-    def _add_data(self, incoming_hashes, current_hashes, database, incoming_data):
-        new_data = self._select_new_data(incoming_hashes, current_hashes)
+    def _add_data(self, incoming_hashes, current_hashes, table, incoming_data):
+        new_data = self._select_new_hashes(incoming_hashes, current_hashes)
 
         if len(new_data) > 0:
-            self._add_keyword_mappings(new_data, database, incoming_data)
+            self._add_keywords_to_table(new_data, table, incoming_data)
 
-            self._add_cpt_mappings(new_data, database, incoming_data)
+            self._add_cpt_mappings(new_data, table, incoming_data)
 
-            self._add_hashes_to_table(new_data, database)
+            self._add_hashes_to_table(new_data, table)
 
     @classmethod
-    def _select_new_data(cls, incoming_hashes, current_hashes):
+    def _select_new_hashes(cls, incoming_hashes, current_hashes):
         new_or_updated_hashes = incoming_hashes[~incoming_hashes.sk.isin(current_hashes.sk)].reset_index(drop=True)
 
         new_hashes = new_or_updated_hashes[~new_or_updated_hashes.pk.isin(current_hashes.pk)].reset_index(drop=True)
@@ -152,7 +152,7 @@ class DynamoDBLoaderTask(Task):
 
         self._add_to_table(mappings, table)
 
-    def _add_keyword_mappings(self, new_data, table, incoming_data):
+    def _add_keywords_to_table(self, new_data, table, incoming_data):
         keywords = []
         for item in new_data:
             for data in incoming_data:
@@ -169,17 +169,17 @@ class DynamoDBLoaderTask(Task):
                 LOGGER.debug('Added Item: %s', item['pk'])
 
     def _update_data(self, incoming_hashes, current_hashes, table, incoming_data, dynamodb):
-        updated_data = self._select_updated_data(incoming_hashes, current_hashes)
+        updated_hashes = self._select_updated_hashes(incoming_hashes, current_hashes)
 
-        if len(updated_data) > 0:
-            self._update_cpt_mappings(updated_data, table, incoming_data)
+        if len(updated_hashes) > 0:
+            self._update_cpt_mappings_in_table(updated_hashes, table, incoming_data)
 
-            self._update_keyword_mappings(updated_data, table, dynamodb, incoming_data)
+            self._update_keywords_in_table(updated_hashes, table, dynamodb, incoming_data)
 
-            self._update_hashes_in_table(updated_data, dynamodb, table)
+            self._update_hashes_in_table(updated_hashes, table, current_hashes)
 
     @classmethod
-    def _select_updated_data(cls, incoming_hashes, current_hashes):
+    def _select_updated_hashes(cls, incoming_hashes, current_hashes):
         new_or_updated_hashes = incoming_hashes[~incoming_hashes.sk.isin(current_hashes.sk)]
 
         updated_hashes = new_or_updated_hashes[new_or_updated_hashes.pk.isin(current_hashes.pk)]
@@ -188,22 +188,22 @@ class DynamoDBLoaderTask(Task):
 
         return updated_hashes.to_dict(orient='records')
 
-    def _update_hashes_in_table(self, updated_data, dynamodb, table):
-        for item in updated_data:
-            results = self._paginate(dynamodb, f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'MD5:')")
-            old_hash = list(results)
-            old_hashes = [dict(pk=item['pk']['S'], sk=item['sk']['S']) for item in old_hash]
+    def _update_hashes_in_table(self, updated_data, table, current_hashes):
+        old_hashes = []
+        for data in updated_data:
+            for item in current_hashes:
+                if item['pk'] == data['pk']:
+                    old_hashes.append(item)
 
             self._delete_from_table(old_hashes, table)
             self._add_to_table(updated_data, table)
 
-    def _update_cpt_mappings(self, updated_data, table, incoming_data):
+    def _update_cpt_mappings_in_table(self, updated_data, table, incoming_data):
         for item in updated_data:
             for data in incoming_data:
-                if data["pk"] == item['pk'].rsplit(':', 2)[0] and data['sk'] == item['pk'].split(':', 2)[2]:
-                    self._update_data_in_table(data, table)
+                self._update_data_in_table(data, item, table)
 
-    def _update_keyword_mappings(self, updated_data, table, dynamodb, incoming_data):
+    def _update_keywords_in_table(self, updated_data, table, dynamodb, incoming_data):
         keyword_data = []
         old_keywords = []
 
@@ -220,17 +220,18 @@ class DynamoDBLoaderTask(Task):
         self._add_to_table(updated_data, table)
 
     @classmethod
-    def _update_data_in_table(cls, data, table):
-        table.update_item(
-            Key={
-                'pk': data['pk'],
-                'sk': data['sk']
-            },
-            UpdateExpression='SET snomed_descriptor=:s, map_category=:m, cpt_descriptor=:c',
-            ExpressionAttributeValues={
-                ':s': data['snomed_descriptor'],
-                ':m': data['map_category'],
-                ':c': data['cpt_descriptor']
-            }
-        )
-        LOGGER.debug('Updated Mapping: %s', data['pk'])
+    def _update_data_in_table(cls, data, item, table):
+        if data["pk"] == item['pk'].rsplit(':', 2)[0] and data['sk'] == item['pk'].split(':', 2)[2]:
+            table.update_item(
+                Key={
+                    'pk': data['pk'],
+                    'sk': data['sk']
+                },
+                UpdateExpression='SET snomed_descriptor=:s, map_category=:m, cpt_descriptor=:c',
+                ExpressionAttributeValues={
+                    ':s': data['snomed_descriptor'],
+                    ':m': data['map_category'],
+                    ':c': data['cpt_descriptor']
+                }
+            )
+            LOGGER.debug('Updated Mapping: %s', data['pk'])
