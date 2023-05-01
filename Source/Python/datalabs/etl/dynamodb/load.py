@@ -4,7 +4,6 @@ import json
 import logging
 from collections import defaultdict
 
-import boto3
 import pandas
 
 from   datalabs.access.aws import AWSClient
