@@ -48,6 +48,7 @@ class DynamoDBLoaderTask(Task):
         for item in data:
             if item["sk"].startswith("UNMAPPABLE:") or item["sk"].startswith("CPT:"):
                 md5 = hashlib.md5(json.dumps(item, sort_keys=True).encode('utf-8')).hexdigest()
+
                 incoming_hashes.append(dict(pk=f'{item["pk"]}:{item["sk"]}', sk=f"MD5:{md5}"))
 
         return pandas.DataFrame(incoming_hashes)
