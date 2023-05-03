@@ -74,8 +74,15 @@ class SNOMEDMappingTransformerTask(Task):
     def _create_cpt_mappings(cls, data):
         data.loc[:, "pk"] = "CONCEPT:" + data["Concept Id"]
 
-        data.loc[data["map_category"] == "Unmappable", "sk"] = "UNMAPPABLE:" + data.loc[data["map_category"] == "Unmappable", "map_id"].astype('str')
-        data.loc[~(data["map_category"] == "Unmappable"), "sk"] = "CPT:" + data.loc[~(data["map_category"] == "CPT"), "CPT Code"].astype(str)
+        data.loc[
+            data["map_category"] == "Unmappable", "sk"] = "UNMAPPABLE:" + data.loc[data["map_category"] == "Unmappable",
+            "map_id"
+        ].astype('str')
+
+        data.loc[
+            ~(data["map_category"] == "Unmappable"), "sk"] = "CPT:" + data.loc[~(data["map_category"] == "CPT"),
+            "CPT Code"
+        ].astype(str)
 
         data = data.drop_duplicates(subset=("pk", "sk"))
 
@@ -90,9 +97,13 @@ class SNOMEDMappingTransformerTask(Task):
 
     @classmethod
     def _create_keyword_mappings(cls, keyword_map):
-        keyword_map["keyword"] = keyword_map.snomed_descriptor.apply(lambda x: re.sub(r'[^\w ]+', '', x)).str.lower().str.split()
+        keyword_map["keyword"] = keyword_map.snomed_descriptor.apply(lambda x: re.sub(r'[^\w ]+', '', x))
 
-        keyword_mappings = keyword_map.loc[:, ["pk", "sk", "keyword"]].explode("keyword").reset_index(drop=True).drop_duplicates()
+        keyword_map["keyword"] = keyword_map["keyword"].str.lower().str.split()
+
+        keyword_mappings = keyword_map.loc[:, ["pk", "sk", "keyword"]].explode("keyword")
+
+        keyword_mappings = keyword_mappings.reset_index(drop=True).drop_duplicates()
 
         return keyword_mappings
 
