@@ -163,14 +163,9 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _get_new_mappings(cls, new_hashes, incoming_mappings):
-        mappings = []
+        incoming_mappings_lookup_table = {''.join((m["pk"], m["sk"])):m for m in incoming_mappings}
 
-        for item in new_hashes:
-            for data in incoming_mappings:
-                if data['pk'] == item['pk'].rsplit(':', 2)[0] and data['sk'] == item['pk'].split(':', 2)[2]:
-                    mappings.append(data)
-
-        return mappings
+        return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in new_hashes]
 
     @classmethod
     def _get_new_keywords(cls, new_hashes, incoming_mappings):
