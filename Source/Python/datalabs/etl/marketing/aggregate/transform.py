@@ -1,10 +1,12 @@
 """Transformer task for running marketing aggregator"""
 from   dataclasses import dataclass
+from   datetime import datetime
 import io
 import logging
 import os
 import pickle
 
+from   dateutil.relativedelta import relativedelta
 import pandas
 
 from   datalabs.access.atdata import AtData
@@ -316,25 +318,58 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     PARAMETER_CLASS = EmailValidatorTaskParameters
 
     def run(self):
-        flatfile = InputDataParser.parse(self._data[0])
+        contacts, flatfile = [InputDataParser.parse(x) for x in self._data]
 
-        existing_emails = InputDataParser.parse(self._data[1])
+        data = flatfile.merge(contacts, left_on='EMPPID', right_on='id',how='left')
 
-        data = flatfile.merge(existing_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL')
+        email_data_list = self._update_last_validated_date(data)
 
-        email_data = data[['ID', 'BEST_EMAIL']]
+        validated_emails = self._create_validate_emails(email_data_list)
 
-        email_data_list = list(email_data.BEST_EMAIL)
+        validated_flatfile = data.merge(validated_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL',how='left')
 
-        email_data_list = list(set(email_data_list))
-
-        at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
-
-        validated_emails = at_data.validate_emails(email_data_list).drop('ID', axis=1)
-
-        validated_flatfile =  data.merge(validated_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL',how='left')
+        validated_flatfile = self._remove_invalid_emails(validated_flatfile)
 
         return [self._dataframe_to_csv(validated_flatfile)]
+
+    def _update_last_validated_date(self, data):
+        if 'last_validated_date' not in data.columns:
+            data['last_validated_date'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S')
+
+            return self._generate_unique_email(data)
+
+        difference = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date() - relativedelta(months=6)
+
+        data['last_validated_date'] = pandas.to_datetime(data['last_validated_date'],format='%m/%d/%Y')
+
+        data['flag'] = data['last_validated_date'].apply(lambda x: 1 if difference > x else 0 )
+
+        mask = (data['flag']==1) & (data['BEST_EMAIL'] != 'nan')
+        data['last_validated_date'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S')
+
+        return self._generate_unique_email(data[data['flag']==1])
+
+    @classmethod
+    def _generate_unique_email(cls, data):
+        email_data_list = data.BEST_EMAIL.values.tolist()
+        cleaned_email_data_list = [x for x in  email_data_list if str(x) != 'nan']
+
+        return list(set(cleaned_email_data_list))
+
+    def _create_validate_emails(self, email_data_list):
+        at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
+
+        if len(email_data_list) > 0:
+            validated_emails = at_data.validate_emails(email_data_list).drop('ID', axis=1)
+
+        return validated_emails
+
+    @classmethod
+    def _remove_invalid_emails(cls, validated_flatfile):
+        validated_flatfile = validated_flatfile[validated_flatfile.FINDING != 'W']
+        validated_flatfile = validated_flatfile.drop(columns=column.INVALID_EMAILS_COLUMNS)
+
+        return validated_flatfile
 
 
 class DuplicatePrunerTask:
