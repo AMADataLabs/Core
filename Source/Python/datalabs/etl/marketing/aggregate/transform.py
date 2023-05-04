@@ -55,30 +55,6 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return [self._dataframe_to_csv(data) for data in input_data_list]
 
-    def _parse(self, text, seperator = ','):
-        decoded_text = self._decode(text)
-
-        data = pandas.read_csv(
-            io.StringIO(decoded_text),
-            sep=seperator,
-            on_bad_lines='skip',
-            dtype=object,
-            index_col=None
-        )
-
-        return data
-
-    def _merge_adhoc_data(self, input_files: MarketingData):
-        adhoc_files = []
-        adhoc_data = input_files[0:-3]
-
-        for name, data in adhoc_data:
-            adhoc_file = self._parse(data, seperator = ',')
-            adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
-            adhoc_files.append(adhoc_file)
-
-        return pandas.concat(adhoc_files, axis=0, ignore_index=True)
-
     def _read_input_data(self, input_files: []) -> MarketingData:
 
         adhoc = self._merge_adhoc_data(input_files)
@@ -102,10 +78,35 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return input_data
 
+    def _merge_adhoc_data(self, input_files: MarketingData):
+        adhoc_files = []
+        adhoc_data = input_files[0:-3]
+
+        for name, data in adhoc_data:
+            adhoc_file = self._parse(data, seperator = ',')
+            adhoc_file['File_Name'] = os.path.basename(os.path.normpath(name))
+            adhoc_files.append(adhoc_file)
+
+        return pandas.concat(adhoc_files, axis=0, ignore_index=True)
+
+    def _parse(self, text, seperator = ','):
+        decoded_text = self._decode(text)
+
+        data = pandas.read_csv(
+            io.StringIO(decoded_text),
+            sep=seperator,
+            on_bad_lines='skip',
+            dtype=object,
+            index_col=None
+        )
+
+        return data
 
     @classmethod
     def _clean_adhoc(cls, adhoc):
         adhoc = adhoc.rename(columns=column.ADHOC_COLUMNS)[column.ADHOC_COLUMNS.values()]
+
+        adhoc.BEST_EMAIL = adhoc.BEST_EMAIL.str.lower()
 
         return adhoc.dropna(subset=["BEST_EMAIL"])
 
@@ -114,6 +115,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         aims = aims.rename(columns=column.AIMS_COLUMNS)[column.AIMS_COLUMNS.values()]
 
         aims["PHYSICIANFLAG"] = "Y"
+
+        aims.BEST_EMAIL = aims.BEST_EMAIL.str.lower()
 
         return aims.dropna(subset=["BEST_EMAIL"])
 
@@ -128,6 +131,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     @classmethod
     def _clean_flatfile(cls, flatfile):
         flatfile["EMPPID"] = flatfile["EMPPID"].astype(int)
+
+        flatfile.BEST_EMAIL = flatfile.BEST_EMAIL.str.lower()
 
         return flatfile.fillna('')
 
