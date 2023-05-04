@@ -99,7 +99,7 @@ class DynamoDBLoaderTask(Task):
         updated_mappings = self._get_updated_mappings(updated_hashes, incoming_mappings)
         updated_keywords = self._get_updated_keywords(updated_hashes, incoming_mappings)
         old_keywords = self._get_old_keywords(updated_hashes)
-        old_hashes = self._get_old_hashes(updated_hashes, current_hashes.to_dict(orient='records'))
+        old_hashes = self._get_old_hashes(updated_hashes, current_hashes)
 
         if len(updated_hashes) > 0:
             self._update_mappings_in_table(updated_mappings)
@@ -224,6 +224,7 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _get_old_hashes(cls, updated_hashes, current_hashes):
+        current_hashes = current_hashes.to_dict(orient='records')
         old_hashes = []
 
         for updated_hash in updated_hashes:
