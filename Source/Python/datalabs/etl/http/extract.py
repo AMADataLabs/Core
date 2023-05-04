@@ -64,7 +64,7 @@ class HTTPFileListExtractorTask(HTTPFileExtractorTask):
 
         if self._parameters.username and self._parameters.password:
             client.auth = (self._parameters.username, self._parameters.password)
-            
+
         return client
 
     @classmethod
