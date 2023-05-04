@@ -28,6 +28,11 @@ class HttpClient:
 
 class TaskData:
     DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
+    PROFILE_HEADERS = {
+        'X-Location': 'Sample Vericre',
+        'X-CredentialProviderUserId': "1",
+        'X-SourceSystem': "1"
+    }
 
 
 @add_schema(unknowns=True)
@@ -223,26 +228,18 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     PARAMETER_CLASS = AMAProfilePDFEndpointParameters
 
     def run(self):
-        self._set_parameter_defaults()
         LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s', self._parameters)
 
         entity_id = self._parameters.path['entityId']
 
         access_token = self._get_ama_access_token()
-        self._parameters.profile_headers['Authorization'] = f'Bearer {access_token}'
+        TaskData.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
 
         self._check_if_profile_exists(entity_id)
 
         pdf_response = self._get_profile_pdf(entity_id)
 
         self._generate_response(pdf_response)
-
-    def _set_parameter_defaults(self):
-        self._parameters.profile_headers = {
-            'X-Location': 'Sample Vericre',
-            'X-CredentialProviderUserId': "1",
-            'X-SourceSystem': "1"
-        }
 
     def _generate_response(self, response):
         self._response_body = self._generate_response_body(response)
@@ -270,12 +267,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         token_body = urllib.parse.urlencode(token_fields)
 
-        token_response = self.HTTP.request(
-            'POST',
-            f'https://{self._parameters.client_env}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token',
-            headers=token_headers,
-            body=token_body
-        )
+        token_response = self._fetch_ama_token(token_headers, token_body)
 
         if token_response.status != 200:
             raise InternalServerError(
@@ -286,24 +278,31 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return token_json['access_token']
 
-    def _check_if_profile_exists(self, entity_id):
-        profile_response = self.HTTP.request(
-            'GET',
-            f'https://{self._parameters.client_env}.ama-assn.org/profiles/profile/full/{entity_id}',
-            headers=self._parameters.profile_headers
+    def _fetch_ama_token(self, token_headers, token_body):
+        return self.HTTP.request(
+            'POST',
+            f'https://{self._parameters.client_env}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token',
+            headers=token_headers,
+            body=token_body
         )
+
+    def _check_if_profile_exists(self, entity_id):
+        profile_response = self._fetch_ama_profile(self, entity_id)
 
         if profile_response.status != 200:
             raise InternalServerError(
                 f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
             )
+    
+    def _fetch_ama_profile(self, entity_id):
+        return self.HTTP.request(
+            'GET',
+            f'https://{self._parameters.client_env}.ama-assn.org/profiles/profile/full/{entity_id}',
+            headers=TaskData.PROFILE_HEADERS
+        )
 
     def _get_profile_pdf(self, entity_id):
-        pdf_resoponse = self.HTTP.request(
-            'GET',
-            f'https://{self._parameters.client_env}.ama-assn.org/profiles/pdf/full/{entity_id}',
-            headers=self._parameters.profile_headers
-        )
+        pdf_resoponse = self._fetch_ama_profile_pdf(entity_id)
 
         if pdf_resoponse.status != 200:
             raise InternalServerError(
@@ -311,6 +310,13 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
         return pdf_resoponse
+    
+    def _fetch_ama_profile_pdf(self, entity_id):
+        return self.HTTP.request(
+            'GET',
+            f'https://{self._parameters.client_env}.ama-assn.org/profiles/pdf/full/{entity_id}',
+            headers=TaskData.PROFILE_HEADERS
+        )
 
 
 @add_schema(unknowns=True)
@@ -393,7 +399,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             raise exception
 
     def _set_parameter_defaults(self):
-        self._parameters.auth_headers = urllib3.make_headers(
+        self._parameters.authorization['auth_headers'] = urllib3.make_headers(
             basic_auth=f'{self._parameters.username}:{self._parameters.password}'
         )
 
@@ -424,11 +430,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             }
         )
 
-        response = self.HTTP.request(
-            'GET',
-            f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
-            headers=self._parameters.auth_headers
-        )
+        response = self._fetch_caqh_pdf_request(parameters)
 
         if response.status != 200:
             raise InternalServerError(
@@ -436,6 +438,13 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
         return response
+    
+    def _fetch_caqh_pdf_request(self, parameters):
+        return self.HTTP.request(
+            'GET',
+            f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
+            headers=self._parameters.authorization.get('auth_headers')
+        )
 
     def _get_caqh_provider_id(self, provider):
         provider_data = provider.split("-")
@@ -460,11 +469,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             }
         )
 
-        response = self.HTTP.request(
-            'GET',
-            f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
-            headers=self._parameters.auth_headers
-        )
+        response = self._fetch_caqh_provider_id_from_npi(parameters)
 
         if response.status != 200:
             raise InternalServerError(
@@ -479,3 +484,10 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
         return provider_data['caqh_provider_id']
+
+    def _fetch_caqh_provider_id_from_npi(self, parameters):
+        return self.HTTP.request(
+            'GET',
+            f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
+            headers=self._parameters.authorization.get('auth_headers')
+        )
