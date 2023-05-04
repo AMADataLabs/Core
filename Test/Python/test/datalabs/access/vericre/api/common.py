@@ -29,9 +29,9 @@ def ama_profile_pdf_event():
         database_name='',
         database_username='',
         database_password='',
-        client_id='428b5f8e-c591-4630-a565-de2b407a5db8',
-        client_secret='287e077a-a447-49b1-9c15-d49c9bb92f61',
-        client_env='wsextstage'
+        client_id='',
+        client_secret='',
+        client_env=''
     )
 
 @pytest.fixture
