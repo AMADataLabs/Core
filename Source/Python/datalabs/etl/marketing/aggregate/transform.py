@@ -120,6 +120,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _clean_adhoc(cls, adhoc):
         adhoc = adhoc.rename(columns=column.ADHOC_COLUMNS)[column.ADHOC_COLUMNS.values()]
 
+        adhoc.BEST_EMAIL = adhoc.BEST_EMAIL.str.lower()
+
         return adhoc.dropna(subset=["BEST_EMAIL"])
 
     @classmethod
@@ -127,6 +129,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         aims = aims.rename(columns=column.AIMS_COLUMNS)[column.AIMS_COLUMNS.values()]
 
         aims["PHYSICIANFLAG"] = "Y"
+
+        aims.BEST_EMAIL = aims.BEST_EMAIL.str.lower()
 
         return aims.dropna(subset=["BEST_EMAIL"])
 
@@ -141,6 +145,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     @classmethod
     def _clean_flatfile(cls, flatfile):
         flatfile["EMPPID"] = flatfile["EMPPID"].astype(int)
+
+        flatfile.BEST_EMAIL = flatfile.BEST_EMAIL.str.lower()
 
         return flatfile.fillna('')
 
