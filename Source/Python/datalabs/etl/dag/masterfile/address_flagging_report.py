@@ -6,7 +6,7 @@ from   datalabs.etl.dag import dag, JavaTask
 class DAG(dag.DAG):
     EXTRACT_AMC: JavaTask("datalabs.etl.sql.SqlExtractorTask")
     FLAG_ADDRESSES: "datalabs.analysis.amc.transform.AMCAddressFlaggingTransformerTask"
-    EMAIL_ADDRESS_REPORT: "AMCReportSMTPLoaderTask.AMCReportSMTPLoaderTask"
+    EMAIL_ADDRESS_REPORT: "datalabs.analysis.amc.load.AMCReportSMTPLoaderTask"
 
 
 # pylint: disable=pointless-statement

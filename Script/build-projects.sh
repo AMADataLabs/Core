@@ -38,7 +38,7 @@ for PROJECT in $@; do
     TARGET=$(cat ${DIR}/../Build/${PROJECT}/.ci/target.txt)
     echo "Triggering build target '$TARGET' for project '$PROJECT'"
     BUILD_NUM=$(${CI_PLUGIN} build $TARGET)
-    if [[ -z ${BUILD_NUM} || ${BUILD_NUM} -eq "null" ]]; then
+    if [[ -z ${BUILD_NUM} || "${BUILD_NUM}" == "null" ]]; then
         echo "WARN: No build triggered for target '$TARGET'. Please check if the target is defined in bitbucket-pipelines.yml."
     else
         echo "Build target '$TARGET' triggered for project '$PROJECT' with number '$BUILD_NUM'"
@@ -81,7 +81,7 @@ for (( BUILD_SECONDS=0; BUILD_SECONDS<=${BUILD_MAX_SECONDS}; BUILD_SECONDS+=$BUI
                 SUCCESSFUL_COUNT=$((SUCCESSFUL_COUNT+1))
                 ;;
             *)
-                BUILDS_RUNNING="$BUILDS_RUNNING $PROJECT($BUILD_NUM)"
+                BUILDS_RUNNING="$BUILDS_RUNNING $BUILD_NUM"
                 ;;
         esac
     done
