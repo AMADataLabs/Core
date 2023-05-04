@@ -28,7 +28,7 @@ class DynamoDBLoaderTask(Task):
     PARAMETER_CLASS = DynamoDBLoaderParameters
 
     def run(self):
-        # LOGGER.debug('Input data: \n%s', self._data)
+        LOGGER.debug('Input data: \n%s', self._data)
         incoming_mappings = json.loads(self._data[0])
 
         incoming_hashes = self._create_hash_entries(incoming_mappings)
@@ -99,7 +99,7 @@ class DynamoDBLoaderTask(Task):
         updated_mappings = self._get_updated_mappings(updated_hashes, incoming_mappings)
         updated_keywords = self._get_updated_keywords(updated_hashes, incoming_mappings)
         old_keywords = self._get_old_keywords(updated_hashes)
-        old_hashes = self._get_old_hashes(updated_hashes, current_hashes)
+        old_hashes = self._get_old_hashes(updated_hashes, current_hashes.to_dict(orient='records'))
 
         if len(updated_hashes) > 0:
             self._update_mappings_in_table(updated_mappings)
@@ -163,7 +163,7 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _get_new_mappings(cls, new_hashes, incoming_mappings):
-        incoming_mappings_lookup_table = {''.join((m["pk"], m["sk"])):m for m in incoming_mappings}
+        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
 
         return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in new_hashes]
 
@@ -174,7 +174,7 @@ class DynamoDBLoaderTask(Task):
         for item in new_hashes:
             for data in incoming_mappings:
                 if item["pk"] == data['pk']:
-                    keywords.append([data])
+                    keywords.append(data)
 
         return keywords
 
@@ -196,7 +196,7 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _get_updated_mappings(cls, updated_hashes, incoming_mappings):
-        incoming_mappings_lookup_table = {''.join((m["pk"], m["sk"])):m for m in incoming_mappings}
+        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
 
         return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in updated_hashes]
 
@@ -217,7 +217,7 @@ class DynamoDBLoaderTask(Task):
         with AWSClient("dynamodb") as dynamodb:
             for item in updated_hashes:
                 results = self._paginate(dynamodb, f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' "
-                                                f"and begins_with(\"sk\", 'KEYWORD:')")
+                                                   f"and begins_with(\"sk\", 'KEYWORD:')")
                 updated_old_keywords.extend(list(results))
 
         return updated_old_keywords
@@ -264,7 +264,6 @@ class DynamoDBLoaderTask(Task):
             table = resource.Table(self._parameters.table)
 
         return table
-
 
     @classmethod
     def _paginate(cls, dynamodb, statement):
