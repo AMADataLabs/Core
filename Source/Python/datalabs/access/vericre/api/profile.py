@@ -287,7 +287,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         )
 
     def _check_if_profile_exists(self, entity_id):
-        profile_response = self._fetch_ama_profile(self, entity_id)
+        profile_response = self._fetch_ama_profile(entity_id)
 
         if profile_response.status != 200:
             raise InternalServerError(
