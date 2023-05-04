@@ -2,7 +2,7 @@
 import mock
 import pytest
 
-from   datalabs.etl.dynamodb.load import DynamoDBLoaderTask
+from   datalabs.etl.cpt.snomed.load import DynamoDBLoaderTask
 
 
 @pytest.mark.skip(reason="Need data from database")
