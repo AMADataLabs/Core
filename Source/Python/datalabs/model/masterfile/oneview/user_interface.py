@@ -584,7 +584,7 @@ BUSINESS_MATERIALIZED_VIEW = PGMaterializedView(
     schema=SCHEMA,
     signature='business_view',
     with_data=True,
-    definition=f'''
+    definition='''
 SELECT
     business.id,
     business.name,
