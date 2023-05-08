@@ -6,7 +6,6 @@ import logging
 import os
 import pickle
 
-from   dateutil.relativedelta import relativedelta
 import pandas
 
 from   datalabs.access.atdata import AtData
@@ -303,7 +302,6 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return merged_flatfile
 
 
-
 @add_schema
 @dataclass
 class EmailValidatorTaskParameters:
@@ -311,6 +309,7 @@ class EmailValidatorTaskParameters:
     account: str = None
     api_key: str = None
     execution_time: str = None
+    max_months: int = 0
 
 
 # pylint: disable=consider-using-with, line-too-long
@@ -320,54 +319,57 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def run(self):
         contacts, flatfile = [InputDataParser.parse(x) for x in self._data]
 
+        dated_flatfile = self._add_last_validated_dates_to_flatfile(flatfile, contacts)
+
+        dated_flatfile['months_since_validated'] = self._calculate_months_since_last_validated(dated_flatfile.last_validated_date)
+
+        validated_flatfile = self._validate_expired_records(dated_flatfile, self._parameters.max_months)
+
+        pruned_flatfile = self._remove_invalid_records(validated_flatfile)
+
+        return [self._dataframe_to_csv(pruned_flatfile)]
+
+    def _add_last_validated_dates_to_flatfile(self, flatfile, contacts):
         data = flatfile.merge(contacts, left_on='EMPPID', right_on='id',how='left')
 
-        email_data_list = self._update_last_validated_date(data)
+        if 'last_validated_date' not in data.columns and data is not None:
+            data['last_validated_date'] = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
 
-        validated_emails = self._create_validate_emails(email_data_list)
+        return data
 
-        validated_flatfile = data.merge(validated_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL',how='left')
+    def _calculate_months_since_last_validated(self, column):
+        column = pandas.to_datetime(column,format='%m/%d/%Y')
+        execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
 
-        validated_flatfile = self._remove_invalid_emails(validated_flatfile)
+        months_since_last_validated = (execution_time - column).astype('timedelta64[M]')
 
-        return [self._dataframe_to_csv(validated_flatfile)]
+        return months_since_last_validated
 
-    def _update_last_validated_date(self, data):
-        if 'last_validated_date' not in data.columns:
-            data['last_validated_date'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S')
+    # pylint: disable=no-member
+    def _validate_expired_records(self, dated_flatfile, max_months):
+        mask = (dated_flatfile['months_since_validated'] != 'nan') & (dated_flatfile['months_since_validated'] > float(max_months)) & (dated_flatfile['BEST_EMAIL'] != 'nan')
 
-            return self._generate_unique_email(data)
+        dated_flatfile['last_validated_date'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S')
 
-        difference = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date() - relativedelta(months=6)
+        expired_dated_flatfile = dated_flatfile[mask]
+        email_data_list = list(set(expired_dated_flatfile.BEST_EMAIL.values))
 
-        data['last_validated_date'] = pandas.to_datetime(data['last_validated_date'],format='%m/%d/%Y')
-
-        data['flag'] = data['last_validated_date'].apply(lambda x: 1 if difference > x else 0 )
-
-        mask = (data['flag']==1) & (data['BEST_EMAIL'] != 'nan')
-        data['last_validated_date'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S')
-
-        return self._generate_unique_email(data[data['flag']==1])
-
-    @classmethod
-    def _generate_unique_email(cls, data):
-        email_data_list = data.BEST_EMAIL.values.tolist()
-        cleaned_email_data_list = [x for x in  email_data_list if str(x) != 'nan']
-
-        return list(set(cleaned_email_data_list))
-
-    def _create_validate_emails(self, email_data_list):
         at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
 
         if len(email_data_list) > 0:
-            validated_emails = at_data.validate_emails(email_data_list).drop('ID', axis=1)
+            validated_emails = at_data.validate_emails(email_data_list)
 
-        return validated_emails
+        if validated_emails is not None:
+            validated_emails = validated_emails.drop('ID', axis=1)
+            dated_flatfile = dated_flatfile.merge(validated_emails, left_on='BEST_EMAIL', right_on='BEST_EMAIL',how='left')
+
+        return dated_flatfile
 
     @classmethod
-    def _remove_invalid_emails(cls, validated_flatfile):
-        validated_flatfile = validated_flatfile[validated_flatfile.FINDING != 'W']
-        validated_flatfile = validated_flatfile.drop(columns=column.INVALID_EMAILS_COLUMNS)
+    def _remove_invalid_records(cls, validated_flatfile):
+        if validated_flatfile is not None:
+            validated_flatfile = validated_flatfile[validated_flatfile.FINDING != 'W']
+            validated_flatfile = validated_flatfile.drop(columns=column.INVALID_EMAILS_COLUMNS)
 
         return validated_flatfile
 

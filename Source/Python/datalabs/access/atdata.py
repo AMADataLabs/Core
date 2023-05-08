@@ -13,14 +13,14 @@ class AtData:
         self._api_key = api_key
 
     def validate_emails(self, emails: list) -> dict:
-        api_endpoint = self._generate_endpoint_url("SendFile", parameters=dict(project=None, file=None))
+        api_endpoint = self._generate_endpoint_url("SendFile", parameters={})
 
         ids = list(range(0, len(emails)))
         emails_dict = {'ID':ids,'BEST_EMAIL': emails}
         email_data = pd.DataFrame.from_dict(emails_dict)
 
         emails_file = BytesIO()
-        emails_file.name = "emails7.txt"
+        emails_file.name = "emails.txt"
         email_data.to_csv(emails_file, index=None, sep='\t', mode='a')
         emails_file.seek(0)
         content = requests.post(api_endpoint, files={'file':emails_file})
@@ -28,10 +28,9 @@ class AtData:
 
         return validation
 
-    # pylint: disable=consider-using-f-string, no-self-use, line-too-long
     def _check_processing(self, project):
         status ='Processing'
-        url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=project, file=None))
+        url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=project))
         output = None
 
         while status == 'Processing':
@@ -44,7 +43,6 @@ class AtData:
 
         return output
 
-    # pylint: disable=consider-using-f-string, no-self-use, line-too-long
     def _get_output(self, project, file):
         result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=project, file=file))
         result = requests.get(result_url)
@@ -52,12 +50,8 @@ class AtData:
         return pd.read_csv(io.StringIO(result.text), sep = '\t')
 
     def _generate_endpoint_url(self, endpoint, parameters:dict=None):
-        project, file = parameters["project"], parameters["file"]
         url = f"https://{self._host}/REST/{endpoint}?account={self._account}&apikey={self._api_key}"
 
-        if project is not None and file is not None:
-            url = url + f"&project={project}&file={file}"
-        elif project is not None and file is None:
-            url = url + f"&project={project}"
+        url = url + ("".join(f"&{key}={value}" for key, value in parameters.items()))
 
         return url

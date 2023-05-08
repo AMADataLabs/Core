@@ -60,6 +60,5 @@ INVALID_EMAILS_COLUMNS = {
     'COMMENT',
     'COMMENT_CODE',
     'SUGG_EMAIL',
-    'SUGG_COMMENT',
-    'flag'
+    'SUGG_COMMENT'
 }
