@@ -633,3 +633,15 @@ SELECT
 FROM oneview.business;
 '''
 )
+
+
+# Defined in Migration Scripts
+# Index(f'{SCHEMA}.mat_phy_aff_zipcode_index', f'{SCHEMA}.mat_phy_view.aff_physician_zipcode_5digits')
+# Index(f'{SCHEMA}.mat_phy_phy_zipcode_index', f'{SCHEMA}.mat_phy_view.phy_zipcode')
+# Index(f'{SCHEMA}.mat_phy_phy_polo_zipcode_index', f'{SCHEMA}.mat_phy_view.phy_polo_zipcode')
+
+# Index(f'{SCHEMA}.mat_phy_pro_aff_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.aff_physician_zipcode_5digits')
+# Index(f'{SCHEMA}.mat_phy_pro_phy_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.phy_zipcode')
+# Index(f'{SCHEMA}.mat_phy_pro_phy_polo_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.phy_polo_zipcode')
+
+# Index(f'{SCHEMA}.physical_zipcode5', f'{SCHEMA}.business_view.physical_zipcode5')
