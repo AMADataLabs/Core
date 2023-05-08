@@ -333,15 +333,15 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         data = flatfile.merge(contacts, left_on='EMPPID', right_on='id',how='left')
 
         if 'last_validated_date' not in data.columns and data is not None:
-            data['last_validated_date'] = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
+            data['last_validated_date'] = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S').strftime('%m/%d/%Y')
 
         return data
 
-    def _calculate_months_since_last_validated(self, column):
-        column = pandas.to_datetime(column,format='%m/%d/%Y')
+    def _calculate_months_since_last_validated(self, last_validated_date):
+        last_validated_date = pandas.to_datetime(last_validated_date, format='%m/%d/%Y')
         execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
 
-        months_since_last_validated = (execution_time - column).astype('timedelta64[M]')
+        months_since_last_validated = (execution_time - last_validated_date).astype('timedelta64[M]')
 
         return months_since_last_validated
 
@@ -349,12 +349,13 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _validate_expired_records(self, dated_flatfile, max_months):
         mask = (dated_flatfile['months_since_validated'] != 'nan') & (dated_flatfile['months_since_validated'] > float(max_months)) & (dated_flatfile['BEST_EMAIL'] != 'nan')
 
-        dated_flatfile['last_validated_date'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S')
+        dated_flatfile['last_validated_date'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
 
         expired_dated_flatfile = dated_flatfile[mask]
         email_data_list = list(set(expired_dated_flatfile.BEST_EMAIL.values))
 
         at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
+        validated_emails = None
 
         if len(email_data_list) > 0:
             validated_emails = at_data.validate_emails(email_data_list)
@@ -367,7 +368,7 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     @classmethod
     def _remove_invalid_records(cls, validated_flatfile):
-        if validated_flatfile is not None:
+        if (validated_flatfile is not None) and ('FINDING' in validated_flatfile.columns):
             validated_flatfile = validated_flatfile[validated_flatfile.FINDING != 'W']
             validated_flatfile = validated_flatfile.drop(columns=column.INVALID_EMAILS_COLUMNS)
 
