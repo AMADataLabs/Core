@@ -68,7 +68,7 @@ class ORMLoaderTask(CSVReaderMixin, CSVWriterMixin, Task):
 
                 comitted_data = self._update(database, table_parameters)
 
-        return [self._dataframe_to_csv(x) for x in comitted_data]
+        return [self._dataframe_to_csv(x) for x in comitted_data if x is not None]
 
     def _get_database(self):
         return Database.from_parameters(self._parameters)
