@@ -1,8 +1,8 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
-import fnmatch
 from   dataclasses import dataclass
 from   bs4 import BeautifulSoup
 
+import fnmatch
 import requests
 
 from   datalabs.parameter import add_schema
