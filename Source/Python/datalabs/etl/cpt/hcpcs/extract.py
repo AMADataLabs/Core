@@ -1,4 +1,5 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
+import fnmatch
 from   dataclasses import dataclass
 from   bs4 import BeautifulSoup
 
@@ -6,7 +7,9 @@ import requests
 
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
-from dateutil.parser import isoparse
+from  datalabs.etl.archive.transform import UnzipTransformerTask
+
+from   dateutil.parser import isoparse
 
 
 @add_schema
@@ -77,3 +80,20 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(Task):
         latest_reports = list(dict(sorted(report_dict.items(), reverse=True)).values())
 
         return latest_reports[0]
+
+
+# pylint: disable=too-many-ancestors
+class HCPCSUnzipTransformerTask(UnzipTransformerTask):
+    @property
+    def include_names(self):
+        return False
+
+    def _get_files(self):
+        xlsx_files = fnmatch.filter(self._client.files, "*.xlsx")
+        largest_file = xlsx_files[0]
+
+        for file in xlsx_files:
+            if self._client.get_info(file) > self._client.get_info(largest_file):
+                largest_file = file
+
+        return [largest_file]

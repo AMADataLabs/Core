@@ -93,6 +93,11 @@ class ZipFiles:
 
         return zip_file.read(file)
 
+    def get_info(self, file):
+        zip_file = self._zip_files[self._file_zip_map[file]]
+
+        return zip_file.getinfo(file).file_size
+
     def __enter__(self):
         self._zip_files = [ZipFile(BytesIO(zip_file)) for zip_file in self._zip_file_data]
 
