@@ -1,12 +1,12 @@
-# update-dag-config -e dev -p CPT -t snomed_etl"
+# update-dag-config -e sbx -p CPT -t snomed_etl"
 ---
 data:
     #######################################################################
     # Global Variables - {"DAG": {"S": "SNOMED_CPT_ETL"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
 
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
