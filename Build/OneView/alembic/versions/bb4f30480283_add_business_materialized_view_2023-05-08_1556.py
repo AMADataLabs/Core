@@ -42,5 +42,3 @@ def downgrade():
             )
 
     op.drop_entity(oneview_business_view)
-
-    op.drop_index('physical_zipcode5_index', 'business_view', schema='oneview')
