@@ -1,4 +1,6 @@
 # Import setup_virtual_environment
+. /etc/os-release
+
 . ${SCRIPT_BASE_PATH}/../Source/Bash/environment/python/setup.sh
 
 
