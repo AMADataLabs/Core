@@ -2,6 +2,37 @@
 . ${SCRIPT_BASE_PATH}/../Source/Bash/environment/python/setup.sh
 
 
+assert_root_user() {
+    user=$(whoami)
+
+    if [[ $user != 'root' ]]; then
+        echo This script must be run as the root user
+        exit 1
+    fi
+}
+
+
+assert_ubuntu() {
+    versions=$*
+
+    echo Running $PRETTY_NAME
+
+    if [[ $NAME != 'Ubuntu' ]]; then
+        echo Unsupported OS $NAME
+        exit 2
+    else
+        for version in "${versions[@]}"; do
+            if [[ $VERSION_ID == $version ]]; then
+                echo Unsupported OS version $VERSION_ID
+                exit 2
+            fi
+        done
+    fi
+
+
+}
+
+
 install_msodbcsql17_driver() {
     curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
     curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
