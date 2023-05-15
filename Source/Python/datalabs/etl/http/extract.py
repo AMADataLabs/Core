@@ -13,6 +13,8 @@ from   datalabs.parameter import add_schema
 class HTTPFileExtractorParameters:
     urls: str
     execution_time: str = None
+    username: str = None
+    password: str = None
 
 
 class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
@@ -22,7 +24,12 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
         return self._parameters.urls.split(',')
 
     def _get_client(self):
-        return requests.Session()
+        client = requests.Session()
+
+        if self._parameters.username and self._parameters.password:
+            client.auth = (self._parameters.username, self._parameters.password)
+
+        return client
 
     def _resolve_wildcard(self, file):
         if '*' in file:
@@ -42,6 +49,8 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
 # pylint: disable=too-many-instance-attributes
 class HTTPFileListExtractorParameters:
     execution_time: str = None
+    username: str = None
+    password: str = None
 
 
 class HTTPFileListExtractorTask(HTTPFileExtractorTask):

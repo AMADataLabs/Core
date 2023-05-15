@@ -9,7 +9,8 @@ PHYSICIAN_MATERIALIZED_VIEW = PGMaterializedView(
     signature='mat_phy_view',
     with_data=True,
     definition=f'''
-SELECT phy.medical_education_number AS phy_medical_education_number,
+SELECT
+    phy.medical_education_number AS phy_medical_education_number,
     phy.address_type AS phy_address_type,
     phy.mailing_name AS phy_mailing_name,
     phy.last_name AS phy_last_name,
@@ -156,7 +157,8 @@ PHYSICIAN_PROVIDER_MATERIALIZED_VIEW = PGMaterializedView(
     signature='mat_phy_pro_view',
     with_data=True,
     definition=f'''
-SELECT phy.medical_education_number AS phy_medical_education_number,
+SELECT
+    phy.medical_education_number AS phy_medical_education_number,
     phy.address_type AS phy_address_type,
     phy.mailing_name AS phy_mailing_name,
     phy.last_name AS phy_last_name,
@@ -312,7 +314,8 @@ FLATTENED_PROVIDER_MATERIALIZED_VIEW = PGMaterializedView(
     signature='provider_flat',
     with_data=True,
     definition=f'''
- SELECT phy.medical_education_number AS phy_medical_education_number,
+SELECT
+    phy.medical_education_number AS phy_medical_education_number,
     phy.address_type AS phy_address_type,
     phy.mailing_name AS phy_mailing_name,
     phy.last_name AS phy_last_name,
@@ -422,23 +425,26 @@ FLATTENED_PROVIDER_MATERIALIZED_VIEW = PGMaterializedView(
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
     msa.consolidated_metropolitan_statistical_area
-   FROM {SCHEMA}.physician phy
-     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
-     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
-     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON phy.major_professional_activity::text = mpa.id::text
-     LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
-     LEFT JOIN {SCHEMA}.provider pr ON phy.medical_education_number::text = pr.medical_education_number::text
-     LEFT JOIN {SCHEMA}.specialty spe ON phy.primary_specialty::text = spe.id::text
-     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON phy.core_based_statistical_area::text = cbsa.id::text
-     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON phy.medical_education_number::text = rpp.medical_education_number::text
-     LEFT JOIN ( SELECT DISTINCT zip_code.zip_code,
+FROM {SCHEMA}.physician phy
+    LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
+    LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
+    LEFT JOIN {SCHEMA}.major_professional_activity mpa ON phy.major_professional_activity::text = mpa.id::text
+    LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
+    LEFT JOIN {SCHEMA}.provider pr ON phy.medical_education_number::text = pr.medical_education_number::text
+    LEFT JOIN {SCHEMA}.specialty spe ON phy.primary_specialty::text = spe.id::text
+    LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON phy.core_based_statistical_area::text = cbsa.id::text
+    LEFT JOIN {SCHEMA}.residency_program_physician rpp ON phy.medical_education_number::text = rpp.medical_education_number::text
+    LEFT JOIN (
+        SELECT DISTINCT
+            zip_code.zip_code,
             zip_code.metropolitan_statistical_area,
             zip_code.primary_metropolitan_statistical_area,
             zip_code.county_federal_information_processing,
             zip_code.state
-           FROM {SCHEMA}.zip_code) zc ON phy.zipcode::text = zc.zip_code::text
-     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
-  ORDER BY phy.medical_education_number;
+        FROM {SCHEMA}.zip_code
+    ) zc ON phy.zipcode::text = zc.zip_code::text
+    LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
+ORDER BY phy.medical_education_number;
 '''
 )
 
@@ -448,7 +454,8 @@ FLATTENED_PHYSICIAN_MATERIALIZED_VIEW = PGMaterializedView(
     signature='physician_flat',
     with_data=True,
     definition=f'''
- SELECT phy.medical_education_number AS phy_medical_education_number,
+SELECT
+    phy.medical_education_number AS phy_medical_education_number,
     phy.address_type AS phy_address_type,
     phy.mailing_name AS phy_mailing_name,
     phy.last_name AS phy_last_name,
@@ -550,21 +557,91 @@ FLATTENED_PHYSICIAN_MATERIALIZED_VIEW = PGMaterializedView(
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
     msa.consolidated_metropolitan_statistical_area
-   FROM {SCHEMA}.physician phy
-     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
-     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
-     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON phy.major_professional_activity::text = mpa.id::text
-     LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
-     LEFT JOIN {SCHEMA}.specialty spe ON phy.primary_specialty::text = spe.id::text
-     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON phy.core_based_statistical_area::text = cbsa.id::text
-     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON phy.medical_education_number::text = rpp.medical_education_number::text
-     LEFT JOIN ( SELECT DISTINCT zip_code.zip_code,
+FROM {SCHEMA}.physician phy
+    LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
+    LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
+    LEFT JOIN {SCHEMA}.major_professional_activity mpa ON phy.major_professional_activity::text = mpa.id::text
+    LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
+    LEFT JOIN {SCHEMA}.specialty spe ON phy.primary_specialty::text = spe.id::text
+    LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON phy.core_based_statistical_area::text = cbsa.id::text
+    LEFT JOIN {SCHEMA}.residency_program_physician rpp ON phy.medical_education_number::text = rpp.medical_education_number::text
+    LEFT JOIN (
+        SELECT DISTINCT
+            zip_code.zip_code,
             zip_code.metropolitan_statistical_area,
             zip_code.primary_metropolitan_statistical_area,
             zip_code.county_federal_information_processing,
             zip_code.state
-           FROM {SCHEMA}.zip_code) zc ON phy.zipcode::text = zc.zip_code::text
-     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
-  ORDER BY phy.medical_education_number;
+        FROM {SCHEMA}.zip_code
+    ) zc ON phy.zipcode::text = zc.zip_code::text
+    LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
+ORDER BY phy.medical_education_number;
 '''
 )
+
+
+BUSINESS_MATERIALIZED_VIEW = PGMaterializedView(
+    schema=SCHEMA,
+    signature='business_view',
+    with_data=True,
+    definition='''
+SELECT
+    business.id,
+    business.name,
+    business.doing_business_as,
+    business.iqvia_address_id,
+    business.physical_address_1,
+    business.physical_address_2,
+    business.physical_city,
+    business.physical_state,
+    substr(business.physical_zipcode::text, 1, 5) AS physical_zipcode5,
+    business.postal_address_1,
+    business.postal_address_2,
+    business.postal_city,
+    business.postal_state,
+    business.postal_zipcode,
+    business.phone,
+    business.fax,
+    business.website,
+    business.latitude,
+    business.longitude,
+    business.owner_status,
+    business.profit_status,
+    business.primary_class_of_trade,
+    business.class_of_trade_classification,
+    business.class_of_trade_classification_description,
+    business.class_of_trade_facility_type,
+    business.class_of_trade_facility_type_description,
+    business.class_of_trade_specialty,
+    business.class_of_trade_specialty_description,
+    business.record_type,
+    business.total_licensed_beds,
+    business.total_census_beds,
+    business.total_staffed_beds,
+    business.teaching_hospital,
+    business.hospital_care,
+    business.metropolitan_statistical_area,
+    business.federal_information_processing_standard_state,
+    business.federal_information_processing_standard_county,
+    business.number_of_providers,
+    business.electronic_medical_record,
+    business.electronically_prescribe,
+    business.pay_for_performance,
+    business.deactivation_reason,
+    business.replacement_business,
+    business.status_indicator
+FROM oneview.business;
+'''
+)
+
+
+# Defined in Migration Scripts
+# Index(f'{SCHEMA}.mat_phy_aff_zipcode_index', f'{SCHEMA}.mat_phy_view.aff_physician_zipcode_5digits')
+# Index(f'{SCHEMA}.mat_phy_phy_zipcode_index', f'{SCHEMA}.mat_phy_view.phy_zipcode')
+# Index(f'{SCHEMA}.mat_phy_phy_polo_zipcode_index', f'{SCHEMA}.mat_phy_view.phy_polo_zipcode')
+
+# Index(f'{SCHEMA}.mat_phy_pro_aff_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.aff_physician_zipcode_5digits')
+# Index(f'{SCHEMA}.mat_phy_pro_phy_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.phy_zipcode')
+# Index(f'{SCHEMA}.mat_phy_pro_phy_polo_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.phy_polo_zipcode')
+
+# Index(f'{SCHEMA}.physical_zipcode5', f'{SCHEMA}.business_view.physical_zipcode5')

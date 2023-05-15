@@ -50,7 +50,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=6166&NPI_Provider_Id=",
+					"raw": "https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=6166&NPI_Provider_Id=1356425755",
 					"protocol": "https",
 					"host": [
 						"proview-demo",
@@ -74,7 +74,7 @@
 						},
 						{
 							"key": "NPI_Provider_Id",
-							"value": ""
+							"value": "1356425755"
 						}
 					]
 				}
@@ -87,7 +87,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatusbynpi",
+					"raw": "https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatus?Product=PV&Organization_Id=6166&Caqh_Provider_Id=16038675",
 					"protocol": "https",
 					"host": [
 						"proview-demo",
@@ -98,7 +98,21 @@
 					"path": [
 						"RosterAPI",
 						"api",
-						"providerstatusbynpi"
+						"providerstatus"
+					],
+					"query": [
+						{
+							"key": "Product",
+							"value": "PV"
+						},
+						{
+							"key": "Organization_Id",
+							"value": "6166"
+						},
+						{
+							"key": "Caqh_Provider_Id",
+							"value": "16038675"
+						}
 					]
 				}
 			},

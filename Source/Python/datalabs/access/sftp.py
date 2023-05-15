@@ -92,7 +92,7 @@ class SFTP(Datastore):
     def get(self, path: str, file):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
-        LOGGER.debug('Getting file %s', '/'.join((base_path, filename)))
+        LOGGER.debug('Getting file %s', path)
 
         with self._connection.cd(base_path):
             self._connection.getfo(filename, file, callback=self._status_callback)
