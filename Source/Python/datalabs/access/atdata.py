@@ -1,10 +1,13 @@
 """ Generic interface to the API."""
+from datetime import datetime
 import time
 
 import io
 from io import BytesIO
 import pandas as pd
 import requests
+
+from   datalabs.etl.marketing.aggregate import column
 
 
 # pylint: disable=consider-using-with, line-too-long
@@ -44,7 +47,9 @@ class AtData:
     def _create_payload_file(cls, email_data):
         emails_file = BytesIO()
 
-        emails_file.name = "emails25.txt"
+        date_time = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+        emails_file.name = f"emails_{date_time}.txt"
 
         email_data.to_csv(emails_file, index=None, sep='\t', mode='a')
 
@@ -58,17 +63,17 @@ class AtData:
 
     def _wait_for_validation(self, project):
         status ='Processing'
+        results, output = None, None
 
         url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=project))
-        output = None
 
         while status == 'Processing':
             time.sleep(60)
 
             status, results = self._get_validation_status(url)
 
-            if status == 'Returned':
-                output = self._get_output(project, results.json()['files'][0])
+        if status == 'Returned':
+            output = self._get_output(project, results.json()['files'][0])
 
         return output
 
@@ -76,7 +81,11 @@ class AtData:
         result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=project, file=file))
         result = requests.get(result_url)
 
-        return pd.read_csv(io.StringIO(result.text), sep = '\t').drop('ID', axis=1)
+        data = pd.read_csv(io.StringIO(result.text), sep = '\t')
+
+        valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
+
+        return list(valid_emails.EMAIL.values)
 
     @classmethod
     def _get_validation_status(cls, url):

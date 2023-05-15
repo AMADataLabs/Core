@@ -317,26 +317,23 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     PARAMETER_CLASS = EmailValidatorTaskParameters
 
     def run(self):
-        contacts, flatfile = [InputDataParser.parse(x) for x in self._data]
+        dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
 
-        dated_flatfile = self._validate_file(flatfile, contacts)
+        dated_flatfile = self._validate_file(dataset_with_emails, dataset_with_validation_dates)
 
         dated_flatfile['months_since_validated'] = self._calculate_months_since_last_validated(dated_flatfile.email_last_validated)
 
-        validated_flatfile = self._validate_expired_records(dated_flatfile, self._parameters.max_months)
+        invalid_emails, dated_flatfile = self._validate_expired_records(dated_flatfile, self._parameters.max_months)
 
-        pruned_flatfile = self._remove_invalid_records(validated_flatfile)
+        pruned_flatfile = self._remove_invalid_records(invalid_emails, dated_flatfile)
 
         return [self._dataframe_to_csv(pruned_flatfile)]
 
     @classmethod
-    def _validate_file(cls, flatfile, contacts):
-        data = None
+    def _validate_file(cls, dataset_with_emails, dataset_with_validation_dates):
+        data = dataset_with_emails.merge(dataset_with_validation_dates, left_on='EMPPID', right_on='id',how='left')
 
-        try:
-            data = flatfile.merge(contacts, left_on='EMPPID', right_on='id',how='left')
-        except IndexError:
-            data = flatfile if not flatfile.empty else contacts
+        data['email_last_validated'] = data.groupby(['BEST_EMAIL'], sort=False)['email_last_validated'].apply(lambda x: x.ffill())
 
         return data
 
@@ -354,23 +351,21 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         validated_emails = self._validate_emails(email_data_list)
 
-        dated_flatfile = self._set_emails_last_validated_date(validated_emails, dated_flatfile)
+        dated_flatfile = self._set_emails_last_validated_date(dated_flatfile)
+
+        invalid_emails = [email for email in email_data_list if email not in validated_emails]
+
+        return invalid_emails, dated_flatfile
+
+    @classmethod
+    def _remove_invalid_records(cls, invalid_emails, dated_flatfile):
+        dated_flatfile = dated_flatfile[~dated_flatfile['BEST_EMAIL'].isin(invalid_emails)]
 
         return dated_flatfile
 
     @classmethod
-    def _remove_invalid_records(cls, validated_flatfile):
-        if (validated_flatfile is not None) and ('FINDING' in validated_flatfile.columns):
-            validated_flatfile = validated_flatfile[validated_flatfile.FINDING != 'W']
-
-            validated_flatfile = validated_flatfile.drop(columns=column.INVALID_EMAILS_COLUMNS)
-
-        return validated_flatfile
-
-    def _get_expired_emails(self, dated_flatfile, max_months):
+    def _get_expired_emails(cls, dated_flatfile, max_months):
         mask = dated_flatfile['months_since_validated'] > float(max_months)
-
-        dated_flatfile['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
 
         expired_dated_flatfile = dated_flatfile[mask]
 
@@ -380,23 +375,15 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     def _validate_emails(self, email_data_list):
         at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
-        validated_emails = None
 
-        try:
-            validated_emails = at_data.validate_emails(email_data_list)
-        except IndexError:
-            pass
+        validated_emails = at_data.validate_emails(email_data_list)
 
         return validated_emails
 
-    def _set_emails_last_validated_date(self, validated_emails, dated_flatfile):
-        try:
-            mask = dated_flatfile['months_since_validated'] > float(self._parameters.max_months)
-            dated_flatfile['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
+    def _set_emails_last_validated_date(self, dated_flatfile):
+        mask = dated_flatfile['months_since_validated'] > float(self._parameters.max_months)
 
-            dated_flatfile = dated_flatfile.merge(validated_emails, left_on='BEST_EMAIL', right_on='EMAIL',how='left').drop('EMAIL', axis=1)
-        except IndexError:
-            pass
+        dated_flatfile['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
 
         return dated_flatfile
 
