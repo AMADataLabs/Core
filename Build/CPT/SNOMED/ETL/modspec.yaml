@@ -24,3 +24,4 @@ modspec:
   - package: datalabs.etl.smtp
   - package: datalabs.etl.sns
   - package: datalabs.messaging
+  - package: datalabs.task
