@@ -77,6 +77,13 @@ class AtData:
 
         return output
 
+    @classmethod
+    def _get_validation_status(cls, url):
+        results = requests.get(url)
+        status = results.json()['status']
+
+        return (status, results)
+
     def _get_output(self, project, file):
         result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=project, file=file))
         result = requests.get(result_url)
@@ -86,10 +93,3 @@ class AtData:
         valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
 
         return list(valid_emails.EMAIL.values)
-
-    @classmethod
-    def _get_validation_status(cls, url):
-        results = requests.get(url)
-        status = results.json()['status']
-
-        return (status, results)

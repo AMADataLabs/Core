@@ -319,18 +319,18 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def run(self):
         dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
 
-        dated_flatfile = self._validate_file(dataset_with_emails, dataset_with_validation_dates)
+        dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
 
-        dated_flatfile['months_since_validated'] = self._calculate_months_since_last_validated(dated_flatfile.email_last_validated)
+        dated_dataset_with_emails['months_since_validated'] = self._calculate_months_since_last_validated(dated_dataset_with_emails.email_last_validated)
 
-        invalid_emails, dated_flatfile = self._validate_expired_records(dated_flatfile, self._parameters.max_months)
+        invalid_emails, dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails, self._parameters.max_months)
 
-        pruned_flatfile = self._remove_invalid_records(invalid_emails, dated_flatfile)
+        pruned_flatfile = self._remove_invalid_records(invalid_emails, dated_dataset_with_emails)
 
         return [self._dataframe_to_csv(pruned_flatfile)]
 
     @classmethod
-    def _validate_file(cls, dataset_with_emails, dataset_with_validation_dates):
+    def _add_existing_validation_dates_to_emails(cls, dataset_with_emails, dataset_with_validation_dates):
         data = dataset_with_emails.merge(dataset_with_validation_dates, left_on='EMPPID', right_on='id',how='left')
 
         data['email_last_validated'] = data.groupby(['BEST_EMAIL'], sort=False)['email_last_validated'].apply(lambda x: x.ffill())
@@ -346,30 +346,30 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return months_since_last_validated
 
     # pylint: disable=no-member
-    def _validate_expired_records(self, dated_flatfile, max_months):
-        email_data_list = self._get_expired_emails(dated_flatfile, max_months)
+    def _validate_expired_records(self, dated_dataset_with_emails, max_months):
+        email_data_list = self._get_expired_emails(dated_dataset_with_emails, max_months)
 
         validated_emails = self._validate_emails(email_data_list)
 
-        dated_flatfile = self._set_emails_last_validated_date(dated_flatfile)
+        dated_dataset_with_emails = self._set_emails_last_validated_date(dated_dataset_with_emails)
 
         invalid_emails = [email for email in email_data_list if email not in validated_emails]
 
-        return invalid_emails, dated_flatfile
+        return invalid_emails, dated_dataset_with_emails
 
     @classmethod
-    def _remove_invalid_records(cls, invalid_emails, dated_flatfile):
-        dated_flatfile = dated_flatfile[~dated_flatfile['BEST_EMAIL'].isin(invalid_emails)]
+    def _remove_invalid_records(cls, invalid_emails, dated_dataset_with_emails):
+        dated_dataset_with_emails = dated_dataset_with_emails[~dated_dataset_with_emails['BEST_EMAIL'].isin(invalid_emails)]
 
-        return dated_flatfile
+        return dated_dataset_with_emails
 
     @classmethod
-    def _get_expired_emails(cls, dated_flatfile, max_months):
-        mask = dated_flatfile['months_since_validated'] > float(max_months)
+    def _get_expired_emails(cls, dated_dataset_with_emails, max_months):
+        mask = dated_dataset_with_emails['months_since_validated'] > float(max_months)
 
-        expired_dated_flatfile = dated_flatfile[mask]
+        expired_dated_dataset_with_emails = dated_dataset_with_emails[mask]
 
-        expired_emails = list(set(expired_dated_flatfile.BEST_EMAIL.values))
+        expired_emails = list(set(expired_dated_dataset_with_emails.BEST_EMAIL.values))
 
         return expired_emails
 
@@ -380,12 +380,12 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return validated_emails
 
-    def _set_emails_last_validated_date(self, dated_flatfile):
-        mask = dated_flatfile['months_since_validated'] > float(self._parameters.max_months)
+    def _set_emails_last_validated_date(self, dated_dataset_with_emails):
+        mask = dated_dataset_with_emails['months_since_validated'] > float(self._parameters.max_months)
 
-        dated_flatfile['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
+        dated_dataset_with_emails['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
 
-        return dated_flatfile
+        return dated_dataset_with_emails
 
 
 class DuplicatePrunerTask:
