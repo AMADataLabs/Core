@@ -59,14 +59,6 @@ class HTTPFileListExtractorTask(HTTPFileExtractorTask):
     def _get_files(self):
         return list(itertools.chain.from_iterable(self._parse_url_lists(self._data)))
 
-    def _get_client(self):
-        client = super()._get_client()
-
-        if self._parameters.username and self._parameters.password:
-            client.auth = (self._parameters.username, self._parameters.password)
-
-        return client
-
     @classmethod
     def _parse_url_lists(cls, data):
         for url_list in data:
