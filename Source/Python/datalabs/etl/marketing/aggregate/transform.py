@@ -325,7 +325,7 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def run(self):
         dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
 
-        dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
+        dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates, 'EMPPID', 'id')
 
         dated_dataset_with_emails['months_since_validated'] = self._calculate_months_since_last_validated(dated_dataset_with_emails.email_last_validated)
 
@@ -336,8 +336,8 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return [self._dataframe_to_csv(pruned_flatfile)]
 
     @classmethod
-    def _add_existing_validation_dates_to_emails(cls, dataset_with_emails, dataset_with_validation_dates):
-        data = dataset_with_emails.merge(dataset_with_validation_dates, left_on='EMPPID', right_on='id',how='left')
+    def _add_existing_validation_dates_to_emails(cls, dataset_with_emails, dataset_with_validation_dates, left_key, right_key):
+        data = dataset_with_emails.merge(dataset_with_validation_dates, left_on=left_key, right_on=right_key, how='left')
 
         data['email_last_validated'] = data.groupby(['BEST_EMAIL'], sort=False)['email_last_validated'].apply(lambda x: x.ffill())
 
@@ -388,6 +388,55 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     def _set_emails_last_validated_date(self, dated_dataset_with_emails):
         mask = dated_dataset_with_emails['months_since_validated'] > float(self._parameters.max_months)
+
+        dated_dataset_with_emails['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
+
+        return dated_dataset_with_emails
+
+
+# pylint: disable=consider-using-with, line-too-long
+class NewEmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+    PARAMETER_CLASS = EmailValidatorTaskParameters
+
+    def run(self):
+        dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
+
+        new_emails = self._find_new_emails(dataset_with_emails, dataset_with_validation_dates)
+
+        unique_dataset_with_validation_dates = self._remove_duplicate_dataset_with_validation_dates(dataset_with_validation_dates)
+
+        dated_dataset_with_emails = EmailValidatorTask._add_existing_validation_dates_to_emails(dataset_with_emails, unique_dataset_with_validation_dates, 'BEST_EMAIL', 'BEST_EMAIL')
+
+        invalid_emails, dated_dataset_with_emails = self._validate_new_records(new_emails, dated_dataset_with_emails)
+
+        pruned_flatfile = EmailValidatorTask._remove_invalid_records(invalid_emails, dated_dataset_with_emails)
+
+        return [self._dataframe_to_csv(pruned_flatfile)]
+
+    @classmethod
+    def _find_new_emails(cls, dataset_with_emails, dataset_with_validation_dates):
+        emails = dataset_with_emails.BEST_EMAIL.unique()
+
+        new_emails = FlatfileUpdaterTask._get_new_emails(emails, dataset_with_validation_dates)
+
+        return list(new_emails.BEST_EMAIL.values)
+
+    @classmethod
+    def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
+        return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
+
+    # pylint: disable=no-member
+    def _validate_new_records(self, new_emails, dated_dataset_with_emails):
+        validated_emails = EmailValidatorTask._validate_emails(self, new_emails)
+
+        dated_dataset_with_emails = self._set_emails_last_validated_date(validated_emails, dated_dataset_with_emails)
+
+        invalid_emails = [email for email in new_emails if email not in validated_emails]
+
+        return invalid_emails, dated_dataset_with_emails
+
+    def _set_emails_last_validated_date(self, validated_emails, dated_dataset_with_emails):
+        mask = dated_dataset_with_emails['BEST_EMAIL'].isin(validated_emails)
 
         dated_dataset_with_emails['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
 
