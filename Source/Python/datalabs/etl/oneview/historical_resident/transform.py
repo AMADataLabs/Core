@@ -41,4 +41,4 @@ class HistoricalResidentPruningTransformerTask(TransformerTask):
         return [historical_residents]
 
     def _get_columns(self):
-        return {value:value for value in column.HISTORICAL_RESIDENCY.values()}
+        return [{value:value for value in column.HISTORICAL_RESIDENCY.values()}]
