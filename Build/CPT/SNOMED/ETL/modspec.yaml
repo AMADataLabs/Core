@@ -16,6 +16,7 @@ modspec:
       - datastore
       - environment
       - orm
+      - sftp
       - sqlalchemy
   - package: datalabs.access.api
   - package: datalabs.access.parameter
