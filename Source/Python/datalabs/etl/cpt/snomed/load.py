@@ -29,7 +29,7 @@ class DynamoDBLoaderTask(Task):
 
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
-        incoming_mappings = json.loads(self._data[0])
+        incoming_mappings = json.loads(self._data[0].decode('latin-1'))
 
         incoming_hashes = self._create_hash_entries(incoming_mappings)
 
