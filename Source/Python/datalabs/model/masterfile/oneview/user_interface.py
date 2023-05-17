@@ -580,61 +580,6 @@ ORDER BY phy.medical_education_number;
 )
 
 
-BUSINESS_MATERIALIZED_VIEW = PGMaterializedView(
-    schema=SCHEMA,
-    signature='business_view',
-    with_data=True,
-    definition='''
-SELECT
-    business.id,
-    business.name,
-    business.doing_business_as,
-    business.iqvia_address_id,
-    business.physical_address_1,
-    business.physical_address_2,
-    business.physical_city,
-    business.physical_state,
-    substr(business.physical_zipcode::text, 1, 5) AS physical_zipcode5,
-    business.postal_address_1,
-    business.postal_address_2,
-    business.postal_city,
-    business.postal_state,
-    business.postal_zipcode,
-    business.phone,
-    business.fax,
-    business.website,
-    business.latitude,
-    business.longitude,
-    business.owner_status,
-    business.profit_status,
-    business.primary_class_of_trade,
-    business.class_of_trade_classification,
-    business.class_of_trade_classification_description,
-    business.class_of_trade_facility_type,
-    business.class_of_trade_facility_type_description,
-    business.class_of_trade_specialty,
-    business.class_of_trade_specialty_description,
-    business.record_type,
-    business.total_licensed_beds,
-    business.total_census_beds,
-    business.total_staffed_beds,
-    business.teaching_hospital,
-    business.hospital_care,
-    business.metropolitan_statistical_area,
-    business.federal_information_processing_standard_state,
-    business.federal_information_processing_standard_county,
-    business.number_of_providers,
-    business.electronic_medical_record,
-    business.electronically_prescribe,
-    business.pay_for_performance,
-    business.deactivation_reason,
-    business.replacement_business,
-    business.status_indicator
-FROM oneview.business;
-'''
-)
-
-
 # Defined in Migration Scripts
 # Index(f'{SCHEMA}.mat_phy_aff_zipcode_index', f'{SCHEMA}.mat_phy_view.aff_physician_zipcode_5digits')
 # Index(f'{SCHEMA}.mat_phy_phy_zipcode_index', f'{SCHEMA}.mat_phy_view.phy_zipcode')
@@ -644,4 +589,4 @@ FROM oneview.business;
 # Index(f'{SCHEMA}.mat_phy_pro_phy_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.phy_zipcode')
 # Index(f'{SCHEMA}.mat_phy_pro_phy_polo_zipcode_index', f'{SCHEMA}.mat_phy_pro_view.phy_polo_zipcode')
 
-# Index(f'{SCHEMA}.physical_zipcode5', f'{SCHEMA}.business_view.physical_zipcode5')
+# Index(f'{SCHEMA}.physical_zipcode5', f'{SCHEMA}.business.physical_zipcode5')

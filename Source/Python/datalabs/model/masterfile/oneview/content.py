@@ -208,6 +208,7 @@ class Business(BASE):
     physical_city = sa.Column(sa.String, nullable=False)
     physical_state = sa.Column(sa.String, nullable=False)
     physical_zipcode = sa.Column(sa.String, nullable=False)
+    physical_zipcode5 = sa.Column(sa.String, nullable=True, index=True)
     postal_address_1 = sa.Column(sa.String, nullable=False)
     postal_address_2 = sa.Column(sa.String)
     postal_city = sa.Column(sa.String, nullable=False)
