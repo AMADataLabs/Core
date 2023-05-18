@@ -33,6 +33,8 @@ class HttpClient:
 
 class TaskData:
     DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
+    USER_PHYSICIAN = 'physician'
+    REQUEST_TYPE = {"Documents": "Documents", "AMA": "ama_profile_pdf", "CAQH": "caqh_profile_pdf"}
     PROFILE_HEADERS = {
         'X-Location': 'Sample Vericre',
         'X-CredentialProviderUserId': "1",
@@ -55,7 +57,7 @@ class CommonEndpointTask:
             file_path,
             request_ip,
             request_type,
-            "physician"
+            TaskData.USER_PHYSICIAN
         )
 
     @classmethod
@@ -167,7 +169,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         CommonEndpointTask._save_audit_log(
             database,
             entity_id,
-            "Documents",
+            TaskData.REQUEST_TYPE["Documents"],
             self._parameters.authorization,
             self._parameters.document_bucket_name,
             f'downloaded_documents/Documents/{entity_id}_documents_{current_date_time}.zip',
@@ -350,7 +352,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         CommonEndpointTask._save_audit_log(
             database,
             entity_id,
-            "ama_profile_pdf",
+            TaskData.REQUEST_TYPE["AMA"],
             self._parameters.authorization,
             self._parameters.document_bucket_name,
             f'downloaded_documents/AMA_Profile_PDF/{pdf_filename}',
@@ -496,7 +498,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         CommonEndpointTask._save_audit_log(
             database,
             entity_id,
-            "caqh_profile_pdf",
+            TaskData.REQUEST_TYPE["CAQH"],
             self._parameters.authorization,
             self._parameters.document_bucket_name,
             f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
