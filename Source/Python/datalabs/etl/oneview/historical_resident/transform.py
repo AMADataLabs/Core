@@ -14,14 +14,14 @@ class HistoricalResidentTransformerTask(TransformerTask):
     def _csv_to_dataframe(cls, data, **kwargs):
         return super()._csv_to_dataframe(data, sep='|')
 
-    def _postprocess(self, dataset):
+    def _preprocess(self, dataset):
         historical_resident = dataset[0]
 
         historical_resident['id'] = \
-            historical_resident.medical_education_number.astype(str) +'-' \
-            + historical_resident.specialty.astype(str) + '-' \
-            + historical_resident.institution_code.astype(str) + '-' \
-            + historical_resident.start_year.astype(str)
+            historical_resident.ME_Number.astype(str) +'-' \
+            + historical_resident.Specialty.astype(str) + '-' \
+            + historical_resident.Institution_Code.astype(str) + '-' \
+            + historical_resident.From_Year.astype(str)
 
         return [historical_resident]
 
@@ -41,8 +41,4 @@ class HistoricalResidentPruningTransformerTask(TransformerTask):
         return [historical_residents]
 
     def _get_columns(self):
-        columns = {value:value for value in column.HISTORICAL_RESIDENCY.values()}
-
-        columns['id'] = 'id'
-
-        return [columns]
+        return [{value:value for value in column.HISTORICAL_RESIDENCY.values()}]

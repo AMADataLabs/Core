@@ -121,7 +121,7 @@ class OneViewDAG(DAG):
     CREATE_HISTORICAL_RESIDENT_TABLE: \
         "datalabs.etl.oneview.historical_resident.transform.HistoricalResidentTransformerTask"
     REMOVE_UNKNOWN_HISTORICAL_RESIDENTS: \
-        "datalabs.etl.oneview.historical_resident.transform.HistoricalResidentTransformerTask"
+        "datalabs.etl.oneview.historical_resident.transform.HistoricalResidentPruningTransformerTask"
     SPLIT_HISTORICAL_RESIDENT_TABLE: "datalabs.etl.manipulate.transform.SplitTransformerTask"
     LOAD_HISTORICAL_RESIDENT_TABLE: Repeat("datalabs.etl.orm.load.ORMLoaderTask", 6)
 
