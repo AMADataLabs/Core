@@ -1,10 +1,15 @@
 """ Release endpoint classes."""
+import base64
+import cgi
 from dataclasses import dataclass
+from datetime import datetime
+import hashlib
 import io
 import json
 import logging
 import os
 import shutil
+import time
 import urllib.parse
 import zipfile
 import urllib3
@@ -15,7 +20,7 @@ from sqlalchemy import func, literal, Integer
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from datalabs.access.aws import AWSClient
 from datalabs.access.orm import Database
-from datalabs.model.vericre.api import User, FormField, Document, Physician, Form, FormSection, FormSubSection
+from datalabs.model.vericre.api import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
 from datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -34,6 +39,85 @@ class TaskData:
         'X-SourceSystem': "1"
     }
 
+class CommonEndpointTask:
+    @classmethod
+    def _save_audit_log(cls, database, entity_id, request_type, authorization, document_bucket_name, document_key, document_data, request_ip):
+        customer_id, customer_name = cls._get_client_info_from_authorization(authorization)
+
+        file_path, document_version_id = cls._upload_document_onto_s3(document_bucket_name, document_key, document_data)
+
+        cls._add_audit_log_record_in_db(
+            database,
+            customer_id,
+            customer_name,
+            document_version_id,
+            entity_id,
+            file_path,
+            request_ip,
+            request_type,
+            "physician"
+        )
+
+    @classmethod
+    def _get_client_info_from_authorization(cls, authorization):
+        customer_id = authorization['user_id']
+        customer_name = authorization['user_name']
+
+        return customer_id, customer_name
+
+    @classmethod
+    def _upload_document_onto_s3(cls, document_bucket_name, document_key, data):
+        try:
+            md5_hash = base64.b64encode(hashlib.md5(data).digest())
+            
+            with AWSClient('s3') as aws_s3:
+                put_object_result = aws_s3.put_object(
+                    Bucket=document_bucket_name,
+                    Key=document_key,
+                    Body=data,
+                    ContentMD5=md5_hash.decode()
+                )
+
+                version_id = cls._process_put_object_result(put_object_result)
+            
+                return document_key, version_id
+
+        except ClientError as error:
+            LOGGER.exception(error.response)
+            raise InternalServerError("Error occurred in saving file in S3")
+        
+    @classmethod
+    def _process_put_object_result(cls, put_object_result):
+        if(put_object_result["ResponseMetadata"]["HTTPStatusCode"] != 200):
+            raise InternalServerError("Error occurred in saving file in S3")
+
+        return put_object_result["VersionId"]
+
+    @classmethod
+    def _add_audit_log_record_in_db(cls, database, customer_id, customer_name, document_version_id, entity_id, file_path, request_ip, request_type, user_type = "physician"):
+        new_record = APILedger(
+            created_at = int(time.time()),
+            customer_id = customer_id,
+            customer_name = customer_name,
+            document_version_id = document_version_id,
+            entity_id = entity_id,
+            file_path = file_path,
+            request_date = str(int(time.time())),
+            request_ip = request_ip,
+            request_type = request_type,
+            user_type = user_type
+        )
+
+        database.add(new_record)
+        database.commit()
+
+    @classmethod
+    def _get_current_datetime(cls):
+        current_date_time = datetime.now()
+        current_date_time_str = current_date_time.strftime("%Y%m%d%H%M%S")
+
+        return current_date_time_str
+
 
 @add_schema(unknowns=True)
 @dataclass
@@ -42,6 +126,7 @@ class ProfileDocumentsEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    identity: dict
     database_name: str
     database_backend: str
     database_host: str
@@ -62,7 +147,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path.get('entityId')
+        entity_id = self._parameters.path['entityId']
+        source_ip = self._parameters.identity['sourceIp']
 
         sub_query = self._sub_query_for_documents(database)
 
@@ -76,7 +162,20 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        self._generate_response(zip_file_in_bytes, entity_id)
+        current_date_time = CommonEndpointTask._get_current_datetime()
+
+        CommonEndpointTask._save_audit_log(
+            database,
+            entity_id,
+            "Documents",
+            self._parameters.authorization,
+            self._parameters.document_bucket_name,
+            f'downloaded_documents/Documents/{entity_id}_documents_{current_date_time}.zip',
+            zip_file_in_bytes,
+            source_ip
+        )
+
+        self._generate_response(zip_file_in_bytes, entity_id, current_date_time)
 
     @classmethod
     def _sub_query_for_documents(cls, database):
@@ -189,19 +288,19 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     def _delete_folder_for_downloaded_files(cls, folder_path):
         shutil.rmtree(folder_path)
 
-    def _generate_response(self, zip_file_in_bytes, entity_id):
+    def _generate_response(self, zip_file_in_bytes, entity_id, current_date_time):
         self._response_body = self._generate_response_body(zip_file_in_bytes)
-        self._headers = self._generate_headers(entity_id)
+        self._headers = self._generate_headers(entity_id, current_date_time)
 
     @classmethod
     def _generate_response_body(cls, response_data):
         return response_data
 
     @classmethod
-    def _generate_headers(cls, entity_id):
+    def _generate_headers(cls, entity_id, current_date_time):
         return {
             'Content-Type': 'application/zip',
-            'Content-Disposition': f'attachment; filename={entity_id}_documents.zip'
+            'Content-Disposition': f'attachment; filename={entity_id}_documents_{current_date_time}.zip'
         }
 
 
@@ -212,12 +311,14 @@ class AMAProfilePDFEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    identity: dict
     database_name: str
     database_backend: str
     database_host: str
     database_port: str
     database_username: str
     database_password: str
+    document_bucket_name: str
     client_id: str
     client_secret: str
     client_env: str
@@ -230,7 +331,12 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def run(self):
         LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s', self._parameters)
 
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
+    def _run(self, database):
         entity_id = self._parameters.path['entityId']
+        source_ip = self._parameters.identity['sourceIp']
 
         access_token = self._get_ama_access_token()
         TaskData.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
@@ -238,6 +344,19 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         self._check_if_profile_exists(entity_id)
 
         pdf_response = self._get_profile_pdf(entity_id)
+
+        pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
+
+        CommonEndpointTask._save_audit_log(
+            database,
+            entity_id,
+            "ama_profile_pdf",
+            self._parameters.authorization,
+            self._parameters.document_bucket_name,
+            f'downloaded_documents/AMA_Profile_PDF/{pdf_filename}',
+            pdf_response.data,
+            source_ip
+        )
 
         self._generate_response(pdf_response)
 
@@ -293,7 +412,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             raise InternalServerError(
                 f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
             )
-    
+
     def _fetch_ama_profile(self, entity_id):
         return self.HTTP.request(
             'GET',
@@ -310,7 +429,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
         return pdf_resoponse
-    
+
     def _fetch_ama_profile_pdf(self, entity_id):
         return self.HTTP.request(
             'GET',
@@ -326,12 +445,14 @@ class CAQHProfilePDFEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    identity: dict
     database_name: str
     database_backend: str
     database_host: str
     database_port: str
     database_username: str
     database_password: str
+    document_bucket_name: str
     username: str
     password: str
     org_id: str
@@ -353,6 +474,9 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
+        entity_id = self._parameters.path['entityId']
+        source_ip = self._parameters.identity['sourceIp']
+
         query = self._query_for_provider_id(database)
 
         query = self._filter(query)
@@ -365,7 +489,22 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_response = self._fetch_caqh_pdf(provider)
 
-        self._generate_response(pdf_response)
+        pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
+
+        current_date_time = CommonEndpointTask._get_current_datetime()
+
+        CommonEndpointTask._save_audit_log(
+            database,
+            entity_id,
+            "caqh_profile_pdf",
+            self._parameters.authorization,
+            self._parameters.document_bucket_name,
+            f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
+            pdf_response.data,
+            source_ip
+        )
+
+        self._generate_response(pdf_response, current_date_time)
 
     @classmethod
     def _query_for_provider_id(cls, database):
@@ -403,19 +542,20 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             basic_auth=f'{self._parameters.username}:{self._parameters.password}'
         )
 
-    def _generate_response(self, response):
+    def _generate_response(self, response, current_date_time):
         self._response_body = self._generate_response_body(response)
-        self._headers = self._generate_headers(response)
+        self._headers = self._generate_headers(response, current_date_time)
 
     @classmethod
     def _generate_response_body(cls, response):
         return response.data
 
     @classmethod
-    def _generate_headers(cls, response):
+    def _generate_headers(cls, response, current_date_time):
+        LOGGER.info("header type: %s", type(response.headers['Content-Disposition']))
         return {
             'Content-Type': response.headers['Content-Type'],
-            'Content-Disposition': response.headers['Content-Disposition']
+            'Content-Disposition': response.headers['Content-Disposition'].replace(".pdf", f"_{current_date_time}.pdf")
         }
 
     def _fetch_caqh_pdf(self, provider):
@@ -443,7 +583,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         return self.HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
-            headers=self._parameters.authorization.get('auth_headers')
+            headers=self._parameters.authorization['auth_headers']
         )
 
     def _get_caqh_provider_id(self, provider):
@@ -489,5 +629,5 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         return self.HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
-            headers=self._parameters.authorization.get('auth_headers')
+            headers=self._parameters.authorization['auth_headers']
         )
