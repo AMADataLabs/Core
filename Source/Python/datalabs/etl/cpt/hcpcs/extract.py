@@ -6,7 +6,8 @@ import requests
 
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
-from dateutil.parser import isoparse
+
+from   dateutil.parser import isoparse
 
 
 @add_schema
