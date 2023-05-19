@@ -5,8 +5,8 @@ import logging
 import mock
 import pytest
 
-from datalabs.access.api.task import ResourceNotFound, InternalServerError
-from datalabs.access.vericre.api.profile import ProfileDocumentsEndpointTask, AMAProfilePDFEndpointTask, CAQHProfilePDFEndpointTask
+from   datalabs.access.api.task import ResourceNotFound, InternalServerError
+from   datalabs.access.vericre.api.profile import ProfileDocumentsEndpointTask, AMAProfilePDFEndpointTask, CAQHProfilePDFEndpointTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -47,44 +47,6 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
     assert str(except_info.value) == 'No file found for the given entity ID'
 
 
-@pytest.fixture
-def document_query_results():
-    Result = namedtuple('Result', 'document_identifier document_name document_path')
-    return [
-        Result(
-            document_identifier = 'Copy of current professional liability insurance face sheet',
-            document_name = 'face sheet.pdf',
-            document_path = '12345678/General_Documents'
-        ),
-        Result(
-            document_identifier = 'Curriculum Vitae (CV)',
-            document_name = 'Curriculum Vitae.pdf',
-            document_path = '12345678/General_Documents'
-        ),
-        Result(
-            document_identifier = 'Profile Avatar',
-            document_name = 'Avatar.png',
-            document_path = '12345678/Avatar'
-        )
-    ]
-
-
-@pytest.fixture
-def empty_document_query_result():
-    return []
-
-
-@pytest.fixture
-def http_request_status_404():
-    response_data = "error data"
-    response_reason = "error reason"
-    mock_response = mock.Mock()
-    mock_response.status = 404
-    mock_response.data = response_data
-    mock_response.reason = response_reason
-    return mock_response
-
-
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.usefixtures("ama_profile_pdf_event")
 def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
@@ -92,7 +54,7 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._fetch_ama_token', 
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token', 
             return_value = http_request_status_404
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
@@ -105,17 +67,17 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
 
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.usefixtures("ama_profile_pdf_event")
-def test_check_if_profile_exists_error(ama_profile_pdf_event, http_request_status_404):
+def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._fetch_ama_profile', 
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile', 
             return_value = http_request_status_404
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
-        task._check_if_profile_exists(task._parameters.path.get('entityId'))
+        task._assert_profile_exists(task._parameters.path.get('entityId'))
 
     assert except_info.type == InternalServerError
     assert str(except_info.value) == f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
@@ -128,7 +90,7 @@ def test_get_profile_pdf_error(ama_profile_pdf_event, http_request_status_404):
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._fetch_ama_profile_pdf', 
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile_pdf', 
             return_value = http_request_status_404
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
@@ -192,7 +154,7 @@ def test_fetch_caqh_pdf(caqh_profile_pdf_event, http_request_status_404):
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._fetch_caqh_pdf_request', 
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_pdf', 
             return_value = http_request_status_404
         ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
@@ -210,7 +172,7 @@ def test_get_caqh_provider_id_from_npi(caqh_profile_pdf_event, http_request_stat
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._fetch_caqh_provider_id_from_npi', 
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi', 
             return_value = http_request_status_404
         ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
@@ -228,7 +190,7 @@ def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_even
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._fetch_caqh_provider_id_from_npi', 
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi', 
             return_value = http_request_provider_found_flag_N
         ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
@@ -240,8 +202,45 @@ def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_even
 
 
 @pytest.fixture
+def document_query_results():
+    Result = namedtuple('Result', 'document_identifier document_name document_path')
+    return [
+        Result(
+            document_identifier = 'Copy of current professional liability insurance face sheet',
+            document_name = 'face sheet.pdf',
+            document_path = '12345678/General_Documents'
+        ),
+        Result(
+            document_identifier = 'Curriculum Vitae (CV)',
+            document_name = 'Curriculum Vitae.pdf',
+            document_path = '12345678/General_Documents'
+        ),
+        Result(
+            document_identifier = 'Profile Avatar',
+            document_name = 'Avatar.png',
+            document_path = '12345678/Avatar'
+        )
+    ]
+
+@pytest.fixture
+def empty_document_query_result():
+    return []
+
+@pytest.fixture
+def http_request_status_404():
+    response_data = "error data"
+    response_reason = "error reason"
+    mock_response = mock.Mock()
+    mock_response.status = 404
+    mock_response.data = response_data
+    mock_response.reason = response_reason
+    
+    return mock_response
+
+@pytest.fixture
 def provider_id_query_results():
     Result = namedtuple('Result', 'caqh_profile_id')
+
     return [
         Result(
             caqh_profile_id = 'npi-11223344'
@@ -255,6 +254,7 @@ def provider_id_query_result_empty():
 @pytest.fixture
 def provider_id_query_result_multi():
     Result = namedtuple('Result', 'caqh_profile_id')
+
     return [
         Result(
             caqh_profile_id = 'npi-11223344'
@@ -270,4 +270,5 @@ def http_request_provider_found_flag_N():
     mock_response = mock.Mock()
     mock_response.status = 200
     mock_response.data = response_data
+    
     return mock_response

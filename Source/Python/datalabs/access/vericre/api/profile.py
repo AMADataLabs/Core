@@ -1,8 +1,8 @@
 """ Release endpoint classes."""
 import base64
 import cgi
-from dataclasses import dataclass
-from datetime import datetime
+from   dataclasses import dataclass
+from   datetime import datetime
 import hashlib
 import io
 import json
@@ -12,16 +12,16 @@ import shutil
 import time
 import urllib.parse
 import zipfile
+
+from   botocore.exceptions import ClientError
+from   sqlalchemy import func, literal, Integer
 import urllib3
 
-from botocore.exceptions import ClientError
-from sqlalchemy import func, literal, Integer
-
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
-from datalabs.access.aws import AWSClient
-from datalabs.access.orm import Database
-from datalabs.model.vericre.api import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
-from datalabs.parameter import add_schema
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from   datalabs.access.aws import AWSClient
+from   datalabs.access.orm import Database
+from   datalabs.model.vericre.api import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ LOGGER.setLevel(logging.DEBUG)
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
-class TaskData:
+class StaticTaskParameters:
     DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
     USER_PHYSICIAN = 'physician'
     REQUEST_TYPE = {"Documents": "Documents", "AMA": "ama_profile_pdf", "CAQH": "caqh_profile_pdf"}
@@ -41,12 +41,30 @@ class TaskData:
         'X-SourceSystem': "1"
     }
 
+
+@dataclass
+class AuditLogParameters:
+    entity_id: str
+    request_type: str
+    authorization: dict
+    document_bucket_name: str
+    document_key: str
+    request_ip: str
+
+
 class CommonEndpointTask:
     @classmethod
-    def _save_audit_log(cls, database, entity_id, request_type, authorization, document_bucket_name, document_key, document_data, request_ip):
+    def save_audit_log(cls, database, document_data, audit_log_parameters):
+        entity_id = audit_log_parameters.entity_id
+        request_type = audit_log_parameters.request_type
+        authorization = audit_log_parameters.authorization
+        document_bucket_name = audit_log_parameters.document_bucket_name
+        document_key = audit_log_parameters.document_key
+        request_ip = audit_log_parameters.request_ip
+
         customer_id, customer_name = cls._get_client_info_from_authorization(authorization)
 
-        file_path, document_version_id = cls._upload_document_onto_s3(document_bucket_name, document_key, document_data)
+        document_version_id = cls._upload_document_onto_s3(document_bucket_name, document_key, document_data)
 
         cls._add_audit_log_record_in_db(
             database,
@@ -54,10 +72,10 @@ class CommonEndpointTask:
             customer_name,
             document_version_id,
             entity_id,
-            file_path,
+            document_key,
             request_ip,
             request_type,
-            TaskData.USER_PHYSICIAN
+            StaticTaskParameters.USER_PHYSICIAN
         )
 
     @classmethod
@@ -69,6 +87,8 @@ class CommonEndpointTask:
 
     @classmethod
     def _upload_document_onto_s3(cls, document_bucket_name, document_key, data):
+        version_id = ''
+
         try:
             md5_hash = base64.b64encode(hashlib.md5(data).digest())
             
@@ -81,12 +101,11 @@ class CommonEndpointTask:
                 )
 
                 version_id = cls._process_put_object_result(put_object_result)
-            
-                return document_key, version_id
-
         except ClientError as error:
             LOGGER.exception(error.response)
             raise InternalServerError("Error occurred in saving file in S3")
+        
+        return version_id
         
     @classmethod
     def _process_put_object_result(cls, put_object_result):
@@ -114,7 +133,7 @@ class CommonEndpointTask:
         database.commit()
 
     @classmethod
-    def _get_current_datetime(cls):
+    def get_current_datetime(cls):
         current_date_time = datetime.now()
         current_date_time_str = current_date_time.strftime("%Y%m%d%H%M%S")
 
@@ -164,18 +183,18 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        current_date_time = CommonEndpointTask._get_current_datetime()
+        current_date_time = CommonEndpointTask.get_current_datetime()
 
-        CommonEndpointTask._save_audit_log(
-            database,
-            entity_id,
-            TaskData.REQUEST_TYPE["Documents"],
-            self._parameters.authorization,
-            self._parameters.document_bucket_name,
-            f'downloaded_documents/Documents/{entity_id}_documents_{current_date_time}.zip',
-            zip_file_in_bytes,
-            source_ip
+        audit_parameters = AuditLogParameters(
+            entity_id=entity_id, 
+            request_type=StaticTaskParameters.REQUEST_TYPE["Documents"],
+            authorization=self._parameters.authorization,
+            document_bucket_name=self._parameters.document_bucket_name,
+            document_key=f'downloaded_documents/Documents/{entity_id}_documents_{current_date_time}.zip',
+            request_ip=source_ip
         )
+
+        CommonEndpointTask.save_audit_log(database, zip_file_in_bytes, audit_parameters)
 
         self._generate_response(zip_file_in_bytes, entity_id, current_date_time)
 
@@ -246,7 +265,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _create_folder_for_downloaded_files(cls, entity_id):
-        os.makedirs(f'{TaskData.DOCUMENT_TEMP_DIRECTORY}/{entity_id}')
+        os.makedirs(f'{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}')
 
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
@@ -261,7 +280,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                 aws_s3.download_file(
                     Bucket=self._parameters.document_bucket_name,
                     Key=document_key,
-                    Filename=f"{TaskData.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{document_name}"
+                    Filename=f"{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{document_name}"
                 )
 
                 LOGGER.info("%s/%s downloaded.", entity_id, document_name)
@@ -269,7 +288,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             LOGGER.exception(error.response)
 
     def _zip_downloaded_files(self, entity_id):
-        folder_to_zip = f'{TaskData.DOCUMENT_TEMP_DIRECTORY}/{entity_id}'
+        folder_to_zip = f'{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}'
         zip_file_buffer = io.BytesIO()
 
         with zipfile.ZipFile(zip_file_buffer, 'w') as zipper:
@@ -341,24 +360,24 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         source_ip = self._parameters.identity['sourceIp']
 
         access_token = self._get_ama_access_token()
-        TaskData.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
+        StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
 
-        self._check_if_profile_exists(entity_id)
+        self._assert_profile_exists(entity_id)
 
         pdf_response = self._get_profile_pdf(entity_id)
 
         pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
 
-        CommonEndpointTask._save_audit_log(
-            database,
-            entity_id,
-            TaskData.REQUEST_TYPE["AMA"],
-            self._parameters.authorization,
-            self._parameters.document_bucket_name,
-            f'downloaded_documents/AMA_Profile_PDF/{pdf_filename}',
-            pdf_response.data,
-            source_ip
+        audit_parameters = AuditLogParameters(
+            entity_id=entity_id, 
+            request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
+            authorization=self._parameters.authorization,
+            document_bucket_name=self._parameters.document_bucket_name,
+            document_key=f'downloaded_documents/AMA_Profile_PDF/{pdf_filename}',
+            request_ip=source_ip
         )
+
+        CommonEndpointTask.save_audit_log(database, pdf_response.data, audit_parameters)
 
         self._generate_response(pdf_response)
 
@@ -388,7 +407,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         token_body = urllib.parse.urlencode(token_fields)
 
-        token_response = self._fetch_ama_token(token_headers, token_body)
+        token_response = self._request_ama_token(token_headers, token_body)
 
         if token_response.status != 200:
             raise InternalServerError(
@@ -399,7 +418,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return token_json['access_token']
 
-    def _fetch_ama_token(self, token_headers, token_body):
+    def _request_ama_token(self, token_headers, token_body):
         return self.HTTP.request(
             'POST',
             f'https://{self._parameters.client_env}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token',
@@ -407,23 +426,23 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             body=token_body
         )
 
-    def _check_if_profile_exists(self, entity_id):
-        profile_response = self._fetch_ama_profile(entity_id)
+    def _assert_profile_exists(self, entity_id):
+        profile_response = self._request_ama_profile(entity_id)
 
         if profile_response.status != 200:
             raise InternalServerError(
                 f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
             )
 
-    def _fetch_ama_profile(self, entity_id):
+    def _request_ama_profile(self, entity_id):
         return self.HTTP.request(
             'GET',
             f'https://{self._parameters.client_env}.ama-assn.org/profiles/profile/full/{entity_id}',
-            headers=TaskData.PROFILE_HEADERS
+            headers=StaticTaskParameters.PROFILE_HEADERS
         )
 
     def _get_profile_pdf(self, entity_id):
-        pdf_resoponse = self._fetch_ama_profile_pdf(entity_id)
+        pdf_resoponse = self._request_ama_profile_pdf(entity_id)
 
         if pdf_resoponse.status != 200:
             raise InternalServerError(
@@ -432,11 +451,11 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return pdf_resoponse
 
-    def _fetch_ama_profile_pdf(self, entity_id):
+    def _request_ama_profile_pdf(self, entity_id):
         return self.HTTP.request(
             'GET',
             f'https://{self._parameters.client_env}.ama-assn.org/profiles/pdf/full/{entity_id}',
-            headers=TaskData.PROFILE_HEADERS
+            headers=StaticTaskParameters.PROFILE_HEADERS
         )
 
 
@@ -493,18 +512,18 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
 
-        current_date_time = CommonEndpointTask._get_current_datetime()
+        current_date_time = CommonEndpointTask.get_current_datetime()
 
-        CommonEndpointTask._save_audit_log(
-            database,
-            entity_id,
-            TaskData.REQUEST_TYPE["CAQH"],
-            self._parameters.authorization,
-            self._parameters.document_bucket_name,
-            f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
-            pdf_response.data,
-            source_ip
+        audit_parameters = AuditLogParameters(
+            entity_id=entity_id, 
+            request_type=StaticTaskParameters.REQUEST_TYPE["CAQH"],
+            authorization=self._parameters.authorization,
+            document_bucket_name=self._parameters.document_bucket_name,
+            document_key=f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
+            request_ip=source_ip
         )
+
+        CommonEndpointTask.save_audit_log(database, pdf_response.data, audit_parameters)
 
         self._generate_response(pdf_response, current_date_time)
 
@@ -572,7 +591,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             }
         )
 
-        response = self._fetch_caqh_pdf_request(parameters)
+        response = self._request_caqh_pdf(parameters)
 
         if response.status != 200:
             raise InternalServerError(
@@ -581,7 +600,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return response
     
-    def _fetch_caqh_pdf_request(self, parameters):
+    def _request_caqh_pdf(self, parameters):
         return self.HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
@@ -611,7 +630,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             }
         )
 
-        response = self._fetch_caqh_provider_id_from_npi(parameters)
+        response = self._request_caqh_provider_id_from_npi(parameters)
 
         if response.status != 200:
             raise InternalServerError(
@@ -627,7 +646,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return provider_data['caqh_provider_id']
 
-    def _fetch_caqh_provider_id_from_npi(self, parameters):
+    def _request_caqh_provider_id_from_npi(self, parameters):
         return self.HTTP.request(
             'GET',
             f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
