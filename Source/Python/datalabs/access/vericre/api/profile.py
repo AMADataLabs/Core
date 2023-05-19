@@ -20,7 +20,8 @@ import urllib3
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
-from   datalabs.model.vericre.api import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
+from   datalabs.model.vericre.api \
+    import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -58,8 +59,12 @@ class CommonEndpointUtilities:
     def save_audit_log(cls, database, document_data, audit_log_parameters):
         document_bucket_name = audit_log_parameters.document_bucket_name
         document_key = audit_log_parameters.document_key
-        
-        audit_log_parameters.document_version_id = cls._upload_document_onto_s3(document_bucket_name, document_key, document_data)
+
+        audit_log_parameters.document_version_id = cls._upload_document_onto_s3(
+            document_bucket_name,
+            document_key,
+            document_data
+        )
 
         cls._add_audit_log_record_in_db(database, audit_log_parameters, StaticTaskParameters.USER_PHYSICIAN)
 
@@ -76,7 +81,7 @@ class CommonEndpointUtilities:
 
         try:
             md5_hash = base64.b64encode(hashlib.md5(data).digest())
-            
+
             with AWSClient('s3') as aws_s3:
                 put_object_result = aws_s3.put_object(
                     Bucket=document_bucket_name,
@@ -88,13 +93,13 @@ class CommonEndpointUtilities:
                 version_id = cls._process_put_object_result(put_object_result)
         except ClientError as error:
             LOGGER.exception(error.response)
-            raise InternalServerError("Error occurred in saving file in S3")
-        
+            raise InternalServerError("Error occurred in saving file in S3") from error
+
         return version_id
-        
+
     @classmethod
     def _process_put_object_result(cls, put_object_result):
-        if(put_object_result["ResponseMetadata"]["HTTPStatusCode"] != 200):
+        if put_object_result["ResponseMetadata"]["HTTPStatusCode"] != 200:
             raise InternalServerError("Error occurred in saving file in S3")
 
         return put_object_result["VersionId"]
@@ -109,7 +114,7 @@ class CommonEndpointUtilities:
         request_ip = audit_log_parameters.request_ip
 
         customer_id, customer_name = cls._get_client_info_from_authorization(authorization)
-        
+
         new_record = APILedger(
             created_at = int(time.time()),
             customer_id = customer_id,
@@ -180,7 +185,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         current_date_time = CommonEndpointUtilities.get_current_datetime()
 
         audit_parameters = AuditLogParameters(
-            entity_id=entity_id, 
+            entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["Documents"],
             authorization=self._parameters.authorization,
             document_bucket_name=self._parameters.document_bucket_name,
@@ -363,7 +368,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
 
         audit_parameters = AuditLogParameters(
-            entity_id=entity_id, 
+            entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
             authorization=self._parameters.authorization,
             document_bucket_name=self._parameters.document_bucket_name,
@@ -509,11 +514,12 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         current_date_time = CommonEndpointUtilities.get_current_datetime()
 
         audit_parameters = AuditLogParameters(
-            entity_id=entity_id, 
+            entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["CAQH"],
             authorization=self._parameters.authorization,
             document_bucket_name=self._parameters.document_bucket_name,
-            document_key=f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
+            document_key= \
+                f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
             request_ip=source_ip
         )
 
@@ -593,7 +599,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             )
 
         return response
-    
+
     def _request_caqh_pdf(self, parameters):
         return self.HTTP.request(
             'GET',
@@ -646,3 +652,4 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
             headers=self._parameters.authorization['auth_headers']
         )
+    

@@ -6,7 +6,8 @@ import mock
 import pytest
 
 from   datalabs.access.api.task import ResourceNotFound, InternalServerError
-from   datalabs.access.vericre.api.profile import ProfileDocumentsEndpointTask, AMAProfilePDFEndpointTask, CAQHProfilePDFEndpointTask
+from   datalabs.access.vericre.api.profile \
+    import ProfileDocumentsEndpointTask, AMAProfilePDFEndpointTask, CAQHProfilePDFEndpointTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ def test_query_for_documents(profile_documents_event, document_query_results):
         session = mock.MagicMock()
 
         session.query.return_value.union.return_value = document_query_results
-        
+
         task = ProfileDocumentsEndpointTask(profile_documents_event)
 
         sub_query = task._sub_query_for_documents(session)
@@ -54,7 +55,7 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token', 
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token',
             return_value = http_request_status_404
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
@@ -62,7 +63,8 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
         task._get_ama_access_token()
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+    assert str(except_info.value) == \
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -72,7 +74,7 @@ def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile', 
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile',
             return_value = http_request_status_404
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
@@ -80,7 +82,8 @@ def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_
         task._assert_profile_exists(task._parameters.path.get('entityId'))
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
+    assert str(except_info.value) == \
+        f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -90,7 +93,7 @@ def test_get_profile_pdf_error(ama_profile_pdf_event, http_request_status_404):
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile_pdf', 
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile_pdf',
             return_value = http_request_status_404
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
@@ -98,7 +101,8 @@ def test_get_profile_pdf_error(ama_profile_pdf_event, http_request_status_404):
         task._get_profile_pdf(task._parameters.path.get('entityId'))
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
+    assert str(except_info.value) == \
+        f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -110,7 +114,7 @@ def test_query_for_provider_id(caqh_profile_pdf_event, provider_id_query_results
         session = mock.MagicMock()
 
         session.query.return_value.join.return_value = provider_id_query_results
-        
+
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
         results = task._query_for_provider_id(session)
@@ -127,10 +131,10 @@ def test_verify_query_result_zero(caqh_profile_pdf_event, provider_id_query_resu
     with pytest.raises(Exception) as except_info:
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
-        results = task._verify_query_result(provider_id_query_result_empty)
+        task._verify_query_result(provider_id_query_result_empty)
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == f'Provider ID from Entity ID in Vericre not found'
+    assert str(except_info.value) == 'Provider ID from Entity ID in Vericre not found'
 
 
 ### query_result > 1
@@ -142,10 +146,10 @@ def test_verify_query_result_multi(caqh_profile_pdf_event, provider_id_query_res
     with pytest.raises(Exception) as except_info:
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
-        results = task._verify_query_result(provider_id_query_result_multi)
+        task._verify_query_result(provider_id_query_result_multi)
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == f'Multiple records found for the given Entity ID in Vericre'
+    assert str(except_info.value) == 'Multiple records found for the given Entity ID in Vericre'
 
 
 @pytest.mark.usefixtures("caqh_profile_pdf_event")
@@ -154,7 +158,7 @@ def test_fetch_caqh_pdf(caqh_profile_pdf_event, http_request_status_404):
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_pdf', 
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_pdf',
             return_value = http_request_status_404
         ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
@@ -162,7 +166,8 @@ def test_fetch_caqh_pdf(caqh_profile_pdf_event, http_request_status_404):
         task._fetch_caqh_pdf('caqh-11223344')
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+    assert str(except_info.value) == \
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
 ### response.status != 200
@@ -172,7 +177,7 @@ def test_get_caqh_provider_id_from_npi(caqh_profile_pdf_event, http_request_stat
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi', 
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi',
             return_value = http_request_status_404
         ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
@@ -180,25 +185,26 @@ def test_get_caqh_provider_id_from_npi(caqh_profile_pdf_event, http_request_stat
         task._get_caqh_provider_id_from_npi('npi-11223344')
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+    assert str(except_info.value) == \
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
 ### provider_data['provider_found_flag'] != "Y"
 @pytest.mark.usefixtures("caqh_profile_pdf_event")
-def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_event, http_request_provider_found_flag_N):
+def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_event, http_request_provider_found_flag_n):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
         mock.patch(
-            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi', 
-            return_value = http_request_provider_found_flag_N
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi',
+            return_value = http_request_provider_found_flag_n
         ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
         task._get_caqh_provider_id_from_npi('npi-11223344')
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == f'CAQH Provider ID from NPI ID in CAQH ProView not found'
+    assert str(except_info.value) == 'CAQH Provider ID from NPI ID in CAQH ProView not found'
 
 
 @pytest.fixture
@@ -234,7 +240,7 @@ def http_request_status_404():
     mock_response.status = 404
     mock_response.data = response_data
     mock_response.reason = response_reason
-    
+
     return mock_response
 
 @pytest.fixture
@@ -265,10 +271,10 @@ def provider_id_query_result_multi():
     ]
 
 @pytest.fixture
-def http_request_provider_found_flag_N():
+def http_request_provider_found_flag_n():
     response_data = '{"provider_found_flag": "N"}'
     mock_response = mock.Mock()
     mock_response.status = 200
     mock_response.data = response_data
-    
+
     return mock_response
