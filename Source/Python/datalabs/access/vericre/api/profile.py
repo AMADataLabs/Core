@@ -50,33 +50,18 @@ class AuditLogParameters:
     document_bucket_name: str
     document_key: str
     request_ip: str
+    document_version_id: str = ''
 
 
-class CommonEndpointTask:
+class CommonEndpointUtilities:
     @classmethod
     def save_audit_log(cls, database, document_data, audit_log_parameters):
-        entity_id = audit_log_parameters.entity_id
-        request_type = audit_log_parameters.request_type
-        authorization = audit_log_parameters.authorization
         document_bucket_name = audit_log_parameters.document_bucket_name
         document_key = audit_log_parameters.document_key
-        request_ip = audit_log_parameters.request_ip
+        
+        audit_log_parameters.document_version_id = cls._upload_document_onto_s3(document_bucket_name, document_key, document_data)
 
-        customer_id, customer_name = cls._get_client_info_from_authorization(authorization)
-
-        document_version_id = cls._upload_document_onto_s3(document_bucket_name, document_key, document_data)
-
-        cls._add_audit_log_record_in_db(
-            database,
-            customer_id,
-            customer_name,
-            document_version_id,
-            entity_id,
-            document_key,
-            request_ip,
-            request_type,
-            StaticTaskParameters.USER_PHYSICIAN
-        )
+        cls._add_audit_log_record_in_db(database, audit_log_parameters, StaticTaskParameters.USER_PHYSICIAN)
 
     @classmethod
     def _get_client_info_from_authorization(cls, authorization):
@@ -115,7 +100,16 @@ class CommonEndpointTask:
         return put_object_result["VersionId"]
 
     @classmethod
-    def _add_audit_log_record_in_db(cls, database, customer_id, customer_name, document_version_id, entity_id, file_path, request_ip, request_type, user_type = "physician"):
+    def _add_audit_log_record_in_db(cls, database, audit_log_parameters, user_type):
+        entity_id = audit_log_parameters.entity_id
+        request_type = audit_log_parameters.request_type
+        authorization = audit_log_parameters.authorization
+        file_path = audit_log_parameters.document_key
+        document_version_id = audit_log_parameters.document_version_id
+        request_ip = audit_log_parameters.request_ip
+
+        customer_id, customer_name = cls._get_client_info_from_authorization(authorization)
+        
         new_record = APILedger(
             created_at = int(time.time()),
             customer_id = customer_id,
@@ -183,7 +177,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         zip_file_in_bytes = self._zip_downloaded_files(entity_id)
 
-        current_date_time = CommonEndpointTask.get_current_datetime()
+        current_date_time = CommonEndpointUtilities.get_current_datetime()
 
         audit_parameters = AuditLogParameters(
             entity_id=entity_id, 
@@ -194,7 +188,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             request_ip=source_ip
         )
 
-        CommonEndpointTask.save_audit_log(database, zip_file_in_bytes, audit_parameters)
+        CommonEndpointUtilities.save_audit_log(database, zip_file_in_bytes, audit_parameters)
 
         self._generate_response(zip_file_in_bytes, entity_id, current_date_time)
 
@@ -377,7 +371,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             request_ip=source_ip
         )
 
-        CommonEndpointTask.save_audit_log(database, pdf_response.data, audit_parameters)
+        CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
 
         self._generate_response(pdf_response)
 
@@ -512,7 +506,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
 
-        current_date_time = CommonEndpointTask.get_current_datetime()
+        current_date_time = CommonEndpointUtilities.get_current_datetime()
 
         audit_parameters = AuditLogParameters(
             entity_id=entity_id, 
@@ -523,7 +517,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             request_ip=source_ip
         )
 
-        CommonEndpointTask.save_audit_log(database, pdf_response.data, audit_parameters)
+        CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
 
         self._generate_response(pdf_response, current_date_time)
 
