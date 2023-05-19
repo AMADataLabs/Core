@@ -106,6 +106,22 @@ def expected_parameters(task_parameters):
                 CPTAPI="2048-10-06-05:00"
             )
         ),
+        identity=dict(
+            cognitoIdentityPoolId=None,
+            cognitoIdentityId=None,
+            vpceId="vpce-0bc731de06c089ce1",
+            principalOrgId=None,
+            cognitoAuthenticationType=None,
+            userArn=None,
+            userAgent="PostmanRuntime/7.29.0",
+            accountId=None,
+            caller=None,
+            sourceIp="172.31.10.211",
+            accessKey=None,
+            vpcId="vpc-0f54b51b973b709d2",
+            cognitoAuthenticationProvider=None,
+            user=None
+        ),
         payload=None
     )
 
