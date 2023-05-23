@@ -5,9 +5,7 @@ import io
 import logging
 import os
 import pickle
-from dateutil.relativedelta import relativedelta
 
-import numpy
 import pandas
 
 from   datalabs.access.atdata import AtData
@@ -328,15 +326,15 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def run(self):
         dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
 
-        dated_dataset_with_emails, new_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
+        dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
 
-        dated_dataset_with_emails['months_since_validated'], dated_dataset_with_emails['email_last_validated'] = self._calculate_months_since_last_validated(dated_dataset_with_emails, new_emails)
+        dated_dataset_with_emails = self._calculate_months_since_last_validated(dated_dataset_with_emails)
 
-        invalid_emails, dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails, new_emails)
+        dated_dataset_with_emails = self._add_update_to_emails(dated_dataset_with_emails)
 
-        pruned_flatfile = self._remove_invalid_records(invalid_emails, dated_dataset_with_emails)
+        dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails)
 
-        return [self._dataframe_to_csv(pruned_flatfile)]
+        return [self._dataframe_to_csv(dated_dataset_with_emails)]
 
     def _add_existing_validation_dates_to_emails(self, dataset_with_emails, dataset_with_validation_dates):
         if not dataset_with_validation_dates[self._parameters.right_merge_key].is_unique:
@@ -346,55 +344,30 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         data['email_last_validated'] = data.groupby(['BEST_EMAIL'], sort=False)['email_last_validated'].apply(lambda x: x.ffill())
 
-        new_emails = self._create_new_emails(data)
+        return data
 
-        return data, new_emails
-
-    def _calculate_months_since_last_validated(self, dated_dataset_with_emails, new_emails):
-        email_last_validated = dated_dataset_with_emails.email_last_validated
-
+    def _calculate_months_since_last_validated(self, dated_dataset_with_emails):
         execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
 
-        if (email_last_validated.isnull().values.any()) and (len(new_emails) > 0):
-            email_last_validated = pandas.to_datetime(email_last_validated, format='%Y-%m-%d')
+        dated_dataset_with_emails["months_since_validated"] = (execution_time - pandas.to_datetime(dated_dataset_with_emails.email_last_validated[~dated_dataset_with_emails.email_last_validated.isnull()])).astype('timedelta64[M]')
 
-            new_email_last_validated = (execution_time - relativedelta(months = 6)).date().strftime('%m/%d/%Y')
+        dated_dataset_with_emails.months_since_validated[dated_dataset_with_emails.email_last_validated.isnull()] = 6
 
-            months_since_last_validated = (execution_time - email_last_validated).astype('timedelta64[M]')
+        return dated_dataset_with_emails
 
-            email_last_validated = email_last_validated.dt.strftime('%m/%d/%Y')
+    # pylint: disable=no-member, no-value-for-parameter
+    def _validate_expired_records(self, dated_dataset_with_emails):
+        dated_dataset_with_emails = self._add_update_to_emails(dated_dataset_with_emails)
 
-            email_last_validated = numpy.where(email_last_validated.isna(), new_email_last_validated,  email_last_validated)
-
-            months_since_last_validated = numpy.where(months_since_last_validated.isna(), 6.0, months_since_last_validated)
-
-        elif len(new_emails) == 0:
-            email_last_validated = pandas.to_datetime(email_last_validated, format='%m/%d/%Y')
-            months_since_last_validated = (execution_time - email_last_validated).astype('timedelta64[M]')
-
-        return months_since_last_validated, email_last_validated
-
-    # pylint: disable=no-member
-    def _validate_expired_records(self, dated_dataset_with_emails, new_emails):
-        invalid_emails = None
-
-        if len(new_emails) == 0:
-            email_data_list = self._get_expired_emails(dated_dataset_with_emails, self._parameters.max_months)
-        else:
-            email_data_list = new_emails
+        email_data_list = self._get_expired_emails(dated_dataset_with_emails)
 
         validated_emails = self._validate_emails(email_data_list)
 
-        dated_dataset_with_emails = self._set_emails_last_validated_date(dated_dataset_with_emails, new_emails)
+        dated_dataset_with_emails = self._set_update_to_valid_emails(dated_dataset_with_emails, validated_emails)
 
-        if validated_emails is not None:
-            invalid_emails = [email for email in email_data_list if email not in validated_emails]
+        dated_dataset_with_emails = self._remove_invalid_records(dated_dataset_with_emails)
 
-        return invalid_emails, dated_dataset_with_emails
-
-    @classmethod
-    def _remove_invalid_records(cls, invalid_emails, dated_dataset_with_emails):
-        dated_dataset_with_emails = dated_dataset_with_emails[~dated_dataset_with_emails['BEST_EMAIL'].isin(invalid_emails)]
+        dated_dataset_with_emails = self._set_emails_last_validated_date(dated_dataset_with_emails)
 
         return dated_dataset_with_emails
 
@@ -402,20 +375,20 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
         return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
 
+    def _add_update_to_emails(self, dated_dataset_with_emails):
+
+        mask =  dated_dataset_with_emails.months_since_validated < int(self._parameters.max_months)
+
+        dated_dataset_with_emails.loc[mask, 'update'] = False
+
+        dated_dataset_with_emails.loc[(~mask & ~dated_dataset_with_emails.BEST_EMAIL.isnull()), 'update'] = True
+
+        return dated_dataset_with_emails
+
+    # pylint: disable=singleton-comparison
     @classmethod
-    def _create_new_emails(cls, data):
-        new_emails = data.loc[data['email_last_validated'].isnull(), 'BEST_EMAIL']
-        new_emails = [email for email in new_emails if str(email) != 'nan']
-
-        return list(set(new_emails))
-
-    @classmethod
-    def _get_expired_emails(cls, dated_dataset_with_emails, max_months):
-        mask = dated_dataset_with_emails['months_since_validated'] > float(max_months)
-
-        expired_dated_dataset_with_emails = dated_dataset_with_emails[mask]
-
-        expired_emails = list(set(expired_dated_dataset_with_emails.BEST_EMAIL.values))
+    def _get_expired_emails(cls, dated_dataset_with_emails):
+        expired_emails = list(set(dated_dataset_with_emails[dated_dataset_with_emails['update'] == True].BEST_EMAIL.values))
 
         return expired_emails
 
@@ -426,11 +399,20 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return validated_emails
 
-    def _set_emails_last_validated_date(self, dated_dataset_with_emails, new_emails):
-        if len(new_emails) == 0:
-            mask = dated_dataset_with_emails['months_since_validated'] > float(self._parameters.max_months)
+    @classmethod
+    def _set_update_to_valid_emails(cls, dated_dataset_with_emails, validated_emails):
+        dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
 
-            dated_dataset_with_emails['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').strftime("%m/%d/%Y")
+        return dated_dataset_with_emails
+
+    @classmethod
+    def _remove_invalid_records(cls, dated_dataset_with_emails):
+
+        return dated_dataset_with_emails[~dated_dataset_with_emails['update'].isnull()]
+
+    # pylint: disable=singleton-comparison
+    def _set_emails_last_validated_date(self, dated_dataset_with_emails):
+        dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').strftime("%m/%d/%Y")
 
         return dated_dataset_with_emails
 
