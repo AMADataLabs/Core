@@ -1,19 +1,9 @@
 import json
-from dataclasses import asdict
+import pytest
 from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
-from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerParameters
 
-
-def test_caqh_status_url_list_transformer_task():
-    with open('ama_masterfile.json', 'r') as file:
-        input_data = json.load(file)
-
-    encoded_data = [json.dumps(data).encode() for data in input_data]
-
-    parameters = CAQHStatusURLListTransformerParameters(host='example.org', organization='123')
-    parameters_dict = asdict(parameters)
-    task = CAQHStatusURLListTransformerTask(parameters_dict)
-    task._data = encoded_data
+def test_caqh_status_url_list_transformer_task(input_data):
+    task = CAQHStatusURLListTransformerTask(dict(host='example.org', organization='123'), data=input_data)
 
     result = task.run()
 
@@ -24,3 +14,25 @@ def test_caqh_status_url_list_transformer_task():
     ]
 
     assert result == expected_urls
+
+@pytest.fixture
+def input_data():
+    data = [
+      {
+          "npi": {
+            "npiCode": "123456009"
+          }
+      },
+      {
+          "npi": {
+            "npiCode": "123456008"
+          }
+        },
+      {
+          "npi": {
+            "npiCode": "123456007"
+          }
+        }
+    ]
+
+    return [json.dumps(data).encode()]

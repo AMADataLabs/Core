@@ -1,10 +1,11 @@
 import json
-from typing import List
 from dataclasses import dataclass
-from datalabs.parameter import add_schema
-from datalabs.task import Task
+from typing import List
+
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
+from datalabs.parameter import add_schema
+from datalabs.task import Task
 
 class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def __init__(self, *args, **kwargs):
@@ -27,37 +28,36 @@ class CAQHStatusURLListTransformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
 
     def run(self) -> List[str]:
-        urls = self._get_caqh_profile_status_url()
+        profiles = json.loads(self._data[0].decode())
 
+        host = self._parameters.host
+        organization_id = self._parameters.organization
+        urls = self._get_caqh_profile_status_urls(profiles, host, organization_id)
         encoded_urls = '\n'.join(urls).encode()
 
         return [encoded_urls]
 
-    def _get_caqh_profile_status_url(self):
-        urls = []
+    # @classmethod
+    # def _get_caqh_profile_status_urls(cls, profiles, host, organization_id):
+    #     def generate_url(profile):
+    #         npi_code = profile.get('npi').get('npiCode')
 
-        for dict_bytes_object in self._data:
-            dict_data_list = json.loads(dict_bytes_object.decode())
+    #         return f"https://{host}/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id={organization_id}&NPI_Provider_Id={npi_code}"
 
-            if isinstance(dict_data_list, dict):
-                npi_code = dict_data_list.get('npi', {}).get('npiCode')
+    #     urls = [generate_url(profile) for profile in profiles]
 
-                host = self._parameters.host
-                organization_id = self._parameters.organization
-                url_template = f"https://{host}/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id={organization_id}&NPI_Provider_Id={npi_code}"
-                urls.append(url_template)
+    #     return urls
+    @classmethod
+    def _get_caqh_profile_status_urls(cls, profiles, host, organization_id):
+        def generate_url(profile):
+            npi_code = profile.get('npi').get('npiCode')
+            return f"https://{host}/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id={organization_id}&NPI_Provider_Id={npi_code}"
 
-            if isinstance(dict_data_list, list):
-                for data in dict_data_list:
-                    if isinstance(data, dict):
-                        npi_code = data.get('npi', {}).get('npiCode')
-
-                        host = self._parameters.host
-                        organization_id = self._parameters.organization
-                        url_template = f"https://{host}/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id={organization_id}&NPI_Provider_Id={npi_code}"
-                        urls.append(url_template)
-
+        urls = list(map(generate_url, profiles))
         return urls
+
+
+
 
 
 
