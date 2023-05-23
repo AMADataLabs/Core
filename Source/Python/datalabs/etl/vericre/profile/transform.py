@@ -3,6 +3,19 @@ from typing import List
 from dataclasses import dataclass
 from datalabs.parameter import add_schema
 from datalabs.task import Task
+from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
+
+class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def run(self):
+        ama_profiles = self._csv_to_dataframe(self._data[0], encoding="latin")
+
+        ama_metadata = ama_profiles[list(AMA_PROFILE_COLUMNS.keys())].rename(columns=AMA_PROFILE_COLUMNS)
+
+        return [self._dataframe_to_csv(ama_metadata)]
 
 @add_schema
 @dataclass
@@ -11,9 +24,6 @@ class CAQHStatusURLListTransformerParameters:
     organization: str = None
 
 class CAQHStatusURLListTransformerTask(Task):
-    """
-    Task to transform CAQH status URL list.
-    """
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
 
     def run(self) -> List[str]:
@@ -48,5 +58,6 @@ class CAQHStatusURLListTransformerTask(Task):
                         urls.append(url_template)
 
         return urls
+
 
 
