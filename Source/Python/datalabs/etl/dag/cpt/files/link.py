@@ -4,18 +4,22 @@ from   datalabs.etl.dag.dag import DAG, register, JavaTask
 
 @register(name="CPT_LINK")
 class CPTLinkDAG(DAG):
-    FIND_INPUT_FILES: "datalabs.etl.cpt.files.core.extract.InputFilesListExtractorTask"
-    EXTRACT_STATIC_INPUT_FILES: "datalabs.etl.s3.extract.S3FileExtractorTask"
-    EXTRACT_STAGED_INPUT_FILES: "datalabs.etl.s3.extract.S3FileExtractorTask"
-    SCRAPE_HCPCS_REPORTS: "datalabs.etl.cpt.hcpcs.extract.HCPCSQuarterlyUpdateReportURLExtractorTask"
-    EXTRACT_HCPCS_REPORT: "datalabs.etl.http.extract.HTTPFileListExtractorTask"
-    UNZIP_HCPCS_REPORTS: "datalabs.etl.archive.transform.UnzipTransformerTask"
     BUILD_LINK: JavaTask("datalabs.etl.cpt.build.LinkBuilderTask")
+    UNZIP_BUILDER_OUTPUT: "datalabs.etl.archive.transform.UnzipTransformerTask"
+    GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES: "datalabs.etl.cpt.files.link.transform.TabDelimitedToFixedWidthDescriptorTransformerTask"
+    GENERATE_UPPER_CASE_DESCRIPTOR_FILES: "datalabs.etl.cpt.files.link.transform.UpperCaseDescriptorTransformerTask"
+    CREATE_STANDARD_BUNDLE: "datalabs.etl.archive.transform.ZipTransformerTask"
+    CREATE_LINK_BUNDLE: "datalabs.etl.archive.transform.ZipTransformerTask"
 
 
 # pylint: disable=pointless-statement
-CPTLinkDAG.FIND_INPUT_FILES >> CPTLinkDAG.BUILD_LINK
-CPTLinkDAG.EXTRACT_STATIC_INPUT_FILES >> CPTLinkDAG.BUILD_LINK
-CPTLinkDAG.EXTRACT_STAGED_INPUT_FILES >> CPTLinkDAG.BUILD_LINK
-CPTLinkDAG.SCRAPE_HCPCS_REPORTS >> CPTLinkDAG.EXTRACT_HCPCS_REPORT >> CPTLinkDAG.UNZIP_HCPCS_REPORTS \
-    >> CPTLinkDAG.BUILD_LINK
+CPTLinkDAG.BUILD_LINK \
+    >> CPTLinkDAG.UNZIP_BUILDER_OUTPUT \
+    >> CPTLinkDAG.GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES \
+    >> CPTLinkDAG.GENERATE_UPPER_CASE_DESCRIPTOR_FILES
+
+CPTLinkDAG.UNZIP_BUILDER_OUTPUT >> CPTLinkDAG.CREATE_STANDARD_BUNDLE
+CPTLinkDAG.GENERATE_UPPER_CASE_DESCRIPTOR_FILES >> CPTLinkDAG.CREATE_STANDARD_BUNDLE
+
+CPTLinkDAG.UNZIP_BUILDER_OUTPUT >> CPTLinkDAG.CREATE_LINK_BUNDLE
+CPTLinkDAG.GENERATE_UPPER_CASE_DESCRIPTOR_FILES >> CPTLinkDAG.CREATE_LINK_BUNDLE
