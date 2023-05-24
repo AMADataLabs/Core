@@ -1,3 +1,4 @@
+"Define AMA PROFILE COLUMNS"
 AMA_PROFILE_COLUMNS = { "ENTITY_ID": "tempProfileId",
                         "FIRST_NAME": "firstName",
                         "LAST_NAME": "lastName",
