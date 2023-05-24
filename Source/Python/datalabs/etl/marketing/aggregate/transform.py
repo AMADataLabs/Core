@@ -311,13 +311,13 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 @add_schema
 @dataclass
 class EmailValidatorTaskParameters:
-    host: str = None
-    account: str = None
-    api_key: str = None
-    execution_time: str = None
-    max_months: int = 0
-    left_merge_key: str = None
-    right_merge_key: str = None
+    host: str
+    account: str
+    api_key: str
+    execution_time: str
+    max_months: int
+    left_merge_key: str
+    right_merge_key: str
 
 # pylint: disable=consider-using-with, line-too-long
 class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
@@ -329,8 +329,6 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
 
         dated_dataset_with_emails = self._calculate_months_since_last_validated(dated_dataset_with_emails)
-
-        dated_dataset_with_emails = self._add_update_to_emails(dated_dataset_with_emails)
 
         dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails)
 
@@ -357,17 +355,17 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
     # pylint: disable=no-member, no-value-for-parameter
     def _validate_expired_records(self, dated_dataset_with_emails):
-        dated_dataset_with_emails = self._add_update_to_emails(dated_dataset_with_emails)
+        dated_dataset_with_emails = self._unset_update_flag_for_unexpired_emails(dated_dataset_with_emails)
 
         email_data_list = self._get_expired_emails(dated_dataset_with_emails)
 
         validated_emails = self._validate_emails(email_data_list)
 
-        dated_dataset_with_emails = self._set_update_to_valid_emails(dated_dataset_with_emails, validated_emails)
+        dated_dataset_with_emails = self._set_update_flag_for_valid_emails(dated_dataset_with_emails, validated_emails)
 
         dated_dataset_with_emails = self._remove_invalid_records(dated_dataset_with_emails)
 
-        dated_dataset_with_emails = self._set_emails_last_validated_date(dated_dataset_with_emails)
+        dated_dataset_with_emails = self._update_email_last_validated(dated_dataset_with_emails)
 
         return dated_dataset_with_emails
 
@@ -375,8 +373,7 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
         return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
 
-    def _add_update_to_emails(self, dated_dataset_with_emails):
-
+    def _unset_update_flag_for_unexpired_emails(self, dated_dataset_with_emails):
         mask =  dated_dataset_with_emails.months_since_validated < int(self._parameters.max_months)
 
         dated_dataset_with_emails.loc[mask, 'update'] = False
@@ -400,18 +397,17 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return validated_emails
 
     @classmethod
-    def _set_update_to_valid_emails(cls, dated_dataset_with_emails, validated_emails):
+    def _set_update_flag_for_valid_emails(cls, dated_dataset_with_emails, validated_emails):
         dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
 
         return dated_dataset_with_emails
 
     @classmethod
     def _remove_invalid_records(cls, dated_dataset_with_emails):
-
         return dated_dataset_with_emails[~dated_dataset_with_emails['update'].isnull()]
 
     # pylint: disable=singleton-comparison
-    def _set_emails_last_validated_date(self, dated_dataset_with_emails):
+    def _update_email_last_validated(self, dated_dataset_with_emails):
         dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').strftime("%m/%d/%Y")
 
         return dated_dataset_with_emails
