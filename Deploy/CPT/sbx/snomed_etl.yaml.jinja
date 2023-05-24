@@ -1,19 +1,19 @@
-# update-dag-config -e dev -p CPT -t snomed_etl"
+# update-dag-config -e sbx -p CPT -t snomed_etl"
 ---
 data:
     #######################################################################
     # Global Variables - {"DAG": {"S": "SNOMED_CPT_ETL"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
 
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
     S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
 
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_CACHE_PYTHON_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     S3_BASE_PATH: 'AMA/SNOMED'
 
 
@@ -61,5 +61,5 @@ data:
 
     SNOMED_CPT_ETL__LOAD_SNOMED_MAPPINGS__CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
     SNOMED_CPT_ETL__LOAD_SNOMED_MAPPINGS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    SNOMED_CPT_ETL__LOAD_SNOMED_MAPPINGS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    SNOMED_CPT_ETL__LOAD_SNOMED_MAPPINGS__CACHE_INPUT_FILES: 'snomed_mapping.xlsx'
+    SNOMED_CPT_ETL__LOAD_SNOMED_MAPPINGS__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    SNOMED_CPT_ETL__LOAD_SNOMED_MAPPINGS__CACHE_INPUT_FILES: 'snomed_mapping.json'

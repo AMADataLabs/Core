@@ -46,6 +46,13 @@ class IQVIABusinessTransformerTask(TransformerTask):
 
         return business
 
+    def _postprocess(self, dataset):
+        business = dataset[0]
+
+        business["physical_zipcode5"] = business.physical_zipcode.str[:5]
+
+        return [business]
+
     def _get_columns(self):
         return [column.BUSINESS_COLUMNS]
 

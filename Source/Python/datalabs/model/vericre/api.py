@@ -163,3 +163,20 @@ class Physician(BASE):
     form = sa.Column(sa.BigInteger)
     onboarding = sa.Column(JSONB)
     user = sa.Column(UUID(as_uuid=True), nullable=False)
+
+
+class APILedger(BASE):
+    __tablename__ = 'api_ledger'
+    __table_args__ = {"schema": SCHEMA}
+
+    id = sa.Column(sa.BigInteger, sa.Sequence('api_ledger_seq', start=1, increment=1), primary_key=True, nullable=False)
+    created_at = sa.Column(sa.BigInteger)
+    customer_id = sa.Column(sa.String(255))
+    customer_name = sa.Column(sa.String(255))
+    document_version_id = sa.Column(sa.String(255))
+    entity_id = sa.Column(sa.String(255))
+    file_path = sa.Column(sa.String(255))
+    request_date = sa.Column(sa.String(255))
+    request_ip = sa.Column(sa.String(255))
+    request_type = sa.Column(sa.String(255))
+    user_type = sa.Column(sa.String(255))
