@@ -412,10 +412,16 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return dated_dataset_with_emails
 
+class SFMCPrunerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+    Parameter_class = InputDataCleanerTaskParameters
+
+    def run(self):
+        input_data = [InputDataParser.parse(x) for x in self._data][0]
+
+        updated_contacts = input_data[['id', 'hs_contact_id', 'email_last_validated']][~input_data.id.isnull()]
+
+        return [self._dataframe_to_csv(updated_contacts)]
+
 
 class DuplicatePrunerTask:
-    pass
-
-
-class SFMCPrunerTask:
     pass
