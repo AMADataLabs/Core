@@ -559,7 +559,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
         elif len(query_result) > 1:
             exception = InternalServerError("Multiple records found for the given Entity ID in Vericre")
-        elif isinstance(query_result[0]['caqh_profile_id'], None) or query_result[0]['caqh_profile_id'] == '':
+        elif isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
             exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
 
         if exception:

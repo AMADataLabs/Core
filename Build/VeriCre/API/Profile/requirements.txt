@@ -12,3 +12,4 @@ PyYAML==6.0
 requests==2.26.0
 SQLAlchemy==1.4.31
 urllib3==1.26.5
+zeep==4.0.0
