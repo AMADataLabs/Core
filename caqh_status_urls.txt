@@ -1,0 +1,3 @@
+https:///RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=&NPI_Provider_Id=123456009
+https:///RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=&NPI_Provider_Id=123456008
+https:///RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=&NPI_Provider_Id=123456007

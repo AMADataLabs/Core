@@ -1,6 +1,7 @@
 """Oneview Historical Residency Table Columns"""
 
 HISTORICAL_RESIDENCY = {
+    'id': 'id',
     'ME_Number': 'medical_education_number',
     'Institution_Code': 'institution_code',
     'Specialty': 'specialty',

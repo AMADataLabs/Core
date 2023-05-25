@@ -2273,13 +2273,13 @@ pipelines:
                     --project CPT/SNOMED/API
                     --bundle CPT/SNOMED/API.zip
         - parallel:
-            # - step:
-            #     name: Reload Sandbox Lambda Functions
-            #     script:
-            #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #     - >-
-            #         bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/SNOMED
-            #         SNOMED-API=API.zip
+#             - step:
+#                 name: Reload Sandbox Lambda Functions
+#                 script:
+#                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                 - >-
+#                     bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/SNOMED
+#                     SNOMED-API=API.zip
             - step:
                 name: Update Development Lambda Functions
                 script:
@@ -2380,22 +2380,22 @@ pipelines:
 #                    --project CPT/SNOMED/ETL
 #                    --bundle CPT/SNOMED/ETL.zip
         - parallel:
-            # - step:
-            #     name: Reload Sandbox Lambda Functions
-            #     script:
-            #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #     - >-
-            #         bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/SNOMED
-            #         SNOMED-DAG=ETL.zip
-            - step:
-                name: Reload Development Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/SNOMED
-                    SNOMED-DAG=ETL.zip
+             - step:
+                 name: Reload Sandbox Lambda Functions
+                 script:
+                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                 - >-
+                     bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/SNOMED
+                     SNOMED-DAG=ETL.zip
+             - step:
+                   name: Reload Development Lambda Functions
+                   script:
+                       - >-
+                           bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                           -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                       - >-
+                           bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/SNOMED
+                           SNOMED-DAG=ETL.zip
 #            - step:
 #                name: Reload Test Lambda Functions
 #                script:

@@ -20,10 +20,12 @@ Environment/*
 *.pyc
 .ecrtoken_*
 .s3token_*
+.apigw_token*
+.ecr_token*
+.ecs_token*
 Bundle/*
 target/*
 Scratch/*
-.apigw_token*
 
 
 .idea

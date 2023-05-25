@@ -3,6 +3,7 @@ import os
 
 import boto3
 
+
 class AWSClient:
     def __init__(self, service: str, **kwargs):
         self._service = service
@@ -13,13 +14,6 @@ class AWSClient:
 
         if os.getenv('AWS_NO_VERIFY_SSL') == "True":
             self._ssl_verification = False
-
-    @property
-    def resource(self):
-        aws_client = AWSClient(self._service, **self._kwargs)
-        aws_client._client_factory = boto3.resource  # pylint: disable=protected-access
-
-        return aws_client
 
     def __enter__(self):
         assume_role = self._kwargs.pop("assume_role", None)
@@ -53,3 +47,10 @@ class AWSClient:
             aws_secret_access_key=credentials["SecretAccessKey"],
             aws_access_key_id=credentials["AccessKeyId"]
         )
+
+
+class AWSResource(AWSClient):
+    def __init__(self, service: str, **kwargs):
+        super().__init__(service, **kwargs)
+
+        self._client_factory = boto3.resource
