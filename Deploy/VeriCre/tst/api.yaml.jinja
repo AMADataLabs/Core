@@ -1,0 +1,138 @@
+# Render as follows:
+#
+# update-dag-config -e sbx -p VeriCre -t api -v "database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "VERICRE_API"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: tst
+    ACCOUNT: '194221139997'
+
+    DATABASE_HOST: vericre-tst-au-aurora-cluster.cluster-cvo5zwdixjdr.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'vericre'
+    DATABASE_USERNAME:  vericreadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+
+    #######################################################################
+    # Route Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "API"}})
+    #######################################################################
+
+    VERICRE_API__ROUTE__PHYSICIANS_SEARCH: '/physicians/search'
+    VERICRE_API__ROUTE__PROFILES:          '/profiles'
+    VERICRE_API__ROUTE__PROFILE:           '/profile/*'
+    VERICRE_API__ROUTE__PROFILE_DOCUMENTS: '/profile/*/documents'
+    VERICRE_API__ROUTE__PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
+    VERICRE_API__ROUTE__PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
+    VERICRE_API__ROUTE__DEFAULT:           '/*'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # POST /physicians/search
+    VERICRE_API__PHYSICIANS_SEARCH__TASK_CLASS:  'datalabs.access.vericre.api.physicians_search.PhysiciansSearchEndpointTask'
+    VERICRE_API__PHYSICIANS_SEARCH__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PHYSICIANS_SEARCH__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PHYSICIANS_SEARCH__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PHYSICIANS_SEARCH__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PHYSICIANS_SEARCH__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PHYSICIANS_SEARCH__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # GET/PATCH /profiles
+    VERICRE_API__PROFILES__TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
+    VERICRE_API__PROFILES__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILES__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILES__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILES__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILES__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # GET /profile/{entityId}
+    VERICRE_API__PROFILE__TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfileEndpointTask'
+    VERICRE_API__PROFILE__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILE__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILE__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILE__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILE__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # GET /profile/{entityId}/documents
+    VERICRE_API__PROFILE_DOCUMENTS__TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfileDocumentsEndpointTask'
+    VERICRE_API__PROFILE_DOCUMENTS__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILE_DOCUMENTS__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILE_DOCUMENTS__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILE_DOCUMENTS__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILE_DOCUMENTS__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILE_DOCUMENTS__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    VERICRE_API__PROFILE_DOCUMENTS__DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # GET /profile/{entityId}/CAQH/pdf
+    VERICRE_API__PROFILE_CAQH_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
+    VERICRE_API__PROFILE_CAQH_PDF__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILE_CAQH_PDF__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILE_CAQH_PDF__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILE_CAQH_PDF__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILE_CAQH_PDF__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILE_CAQH_PDF__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    VERICRE_API__PROFILE_CAQH_PDF__DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
+    VERICRE_API__PROFILE_CAQH_PDF__USERNAME: 'DeepakA123'
+    VERICRE_API__PROFILE_CAQH_PDF__PASSWORD: '{{caqh_pdf_password}}'
+    VERICRE_API__PROFILE_CAQH_PDF__ORG_ID: '6166'
+    VERICRE_API__PROFILE_CAQH_PDF__APPLICATION_TYPE: '100000001'
+    VERICRE_API__PROFILE_CAQH_PDF__DOMAIN: 'https://proview-demo.nonprod.caqh.org'
+    VERICRE_API__PROFILE_CAQH_PDF__PROVIDER_API: 'DocumentAPI/api/providerdocs/download'
+    VERICRE_API__PROFILE_CAQH_PDF__STATUS_CHECK_API: 'RosterAPI/api/providerstatusbynpi'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # GET /profile/{entityId}/AMA/pdf
+    VERICRE_API__PROFILE_AMA_PDF__TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
+    VERICRE_API__PROFILE_AMA_PDF__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILE_AMA_PDF__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILE_AMA_PDF__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILE_AMA_PDF__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILE_AMA_PDF__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILE_AMA_PDF__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    VERICRE_API__PROFILE_AMA_PDF__DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
+    VERICRE_API__PROFILE_AMA_PDF__CLIENT_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
+    VERICRE_API__PROFILE_AMA_PDF__CLIENT_SECRET: '{{client_secret}}'
+    VERICRE_API__PROFILE_AMA_PDF__CLIENT_ENV: 'wsextstage'
+
+
+    VERICRE_API__DEFAULT__TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
+ 
