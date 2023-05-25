@@ -1,8 +1,7 @@
-""" Transformer base class and CAQHStatusURLList implementation. """
+""" Tranformer Task for AMAMetadata, CAQHStatusURLList. """
 import json
 from dataclasses import dataclass
 from typing import List
-
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
 from datalabs.parameter import add_schema

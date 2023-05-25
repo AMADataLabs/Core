@@ -61,7 +61,7 @@ class ZipTransformerParameters:
 
 
 class ZipTransformerTask(Task):
-    PARAMETER_CLASS = UnzipTransformerParameters
+    PARAMETER_CLASS = ZipTransformerParameters
 
     def run(self) -> 'Transformed Data':
         return [self._zip_files(pickle.loads(pickled_dataset)) for pickled_dataset in self._data]
