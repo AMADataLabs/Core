@@ -100,11 +100,14 @@ class LocalDAGExecutorTask(Task):
             self._status = Status.FAILED
         elif (task_status_counts[Status.FAILED]) == 0:
             self._status = Status.RUNNING
+
         LOGGER.info('Set status of DAG to "%s"', self._status)
 
     def _get_task_status(self, task):
         status = self._parameters.task_statuses.get(task.id, Status.UNKNOWN)
+
         task.set_status(status)
+
         LOGGER.info('State of task "%s": %s', task.id, status)
 
         return status
