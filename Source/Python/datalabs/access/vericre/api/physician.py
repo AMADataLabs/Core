@@ -1,16 +1,15 @@
 """ Release endpoint classes."""
-from dataclasses import dataclass
-from zeep import Client
-from datetime import datetime
-
+from   dataclasses import dataclass
+from   datetime import datetime
 import logging
-import os
 
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError, InvalidRequest
-from datalabs.access.orm import Database
-from datalabs.model.vericre.api import User
-from datalabs.parameter import add_schema
-from datalabs.access.vericre.api.wsdl import ENTERPRISE_SEARCH_WSDL
+from   zeep import Client
+
+from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
+from   datalabs.access.orm import Database
+from   datalabs.access.vericre.api.wsdl import ENTERPRISE_SEARCH_WSDL
+from   datalabs.model.vericre.api import User
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,12 +47,11 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         return self._generate_response(physicians)
 
-    def _search_physicians(self, payload):
+    def _search_physicians(self):
         url = f'https://{self._parameters.domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
         search_request = self._generate_search_request()
-        physicians = []
 
-        request_response = self._submit_search_request(search_request, url)
+        return self._submit_search_request(search_request, url)
 
     @classmethod
     def _get_matching_physicians(cls, database, request_response):
@@ -67,7 +65,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         self._headers = self._generate_headers()
 
     def _generate_search_request(self):
-        search_request = self._generate_request_for_single_param(search_request)
+        search_request = self._generate_request_for_single_param()
 
         if not search_request:
             search_request = self._generate_request_for_composite_param(search_request)
@@ -123,7 +121,9 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         return physician
 
-    def _generate_request_for_single_param(self, payload, search_request):
+    @classmethod
+    def _generate_request_for_single_param(cls, payload):
+        search_request = {}
         continue_flag = True
 
         single_param_to_key = {
@@ -143,7 +143,8 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         return search_request
 
-    def _generate_request_for_composite_param(self, payload, search_request):
+    @classmethod
+    def _generate_request_for_composite_param(cls, payload, search_request):
         first_name = payload.get("first_name")
         last_name = payload.get("last_name")
         date_of_birth = payload.get("date_of_birth")
