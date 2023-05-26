@@ -36,6 +36,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
         multivalue_query_parameters = self._parameters.pop("multiValueQueryStringParameters") or {}
         standard_parameters = dict(
             method=self._parameters.get("httpMethod"),
+            identity=self._parameters.get("requestContext")["identity"],
             path=self._parameters.pop("pathParameters") or {},
             query={**query_parameters, **multivalue_query_parameters},
             payload=self._parameters.get("payload"),
