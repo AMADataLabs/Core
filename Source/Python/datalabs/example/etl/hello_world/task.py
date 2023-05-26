@@ -2,7 +2,7 @@
 from   dataclasses import dataclass
 
 import logging
-from datalabs.task import Task
+from   datalabs.task import Task
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -20,6 +20,6 @@ class HelloWorldParameters:
 class HelloWorldTask(Task):
     ''' Hello world printing task class. '''
     PARAMETER_CLASS = HelloWorldParameters
-    
+
     def run(self):
-        LOGGER.info(f'First name: {self._parameters.first_name}; Last name: {self._parameters.last_name}')
+        LOGGER.info(f'Hello, {self._parameters.first_name} {self._parameters.last_name}!')

@@ -49,13 +49,13 @@ class CeleryProcessorNotifierMixin:
         notifier = CeleryTaskNotifier()
         notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
+
 class DAGTaskWrapper(
     FileTaskParameterGetterMixin,
     CeleryProcessorNotifierMixin,
     ParameterValidatorMixin,
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
-
     def _get_runtime_parameters(self, parameters):
         return self._supplement_runtime_parameters(parameters)
 
@@ -111,7 +111,7 @@ class DAGTaskWrapper(
         else:
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
-            
+
         LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
         dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
         dynamic_loader.load(environment=dag_task_parameters)
@@ -233,7 +233,7 @@ class DAGTaskWrapper(
     def _invoke_triggered_tasks(self, dag):
         for task in dag.triggered_tasks:
             self._notify_task_processor(task)
-        
+
 
     def _send_email_notification(self, status):
         raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")

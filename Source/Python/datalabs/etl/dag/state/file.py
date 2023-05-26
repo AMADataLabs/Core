@@ -37,7 +37,7 @@ class DAGState(State):
             match = re.search('^(?![0-9]{4}-[0-9]{2}-[0-9]{2})', directory)
             if match is not None:
                 statuses[directory] = self.get_task_status(dag, directory, execution_time)
-        
+
         statuses[dag] = self.get_dag_status(dag, execution_time)
         return statuses
 
@@ -60,6 +60,7 @@ class DAGState(State):
     def _get_status(self, dag: str, task: str, execution_time: str):
         state_path = self._generate_state_path(dag, task, execution_time)
         status = Status.UNKNOWN
+
         try:
             with open(state_path, encoding='utf-8') as file:
                 status = Status(file.read())

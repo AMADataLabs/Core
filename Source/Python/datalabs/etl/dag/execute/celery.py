@@ -35,7 +35,7 @@ class CeleryDAGExecutorTask(Task):
             execution_time=self._parameters.execution_time,
             config_file=self._parameters.parameters.pop("config_file")
         )
-        
+
         if self._parameters.parameters:
             parameters["parameters"] = self._parameters.parameters
 
@@ -43,7 +43,7 @@ class CeleryDAGExecutorTask(Task):
         task_wrapper = DAGTaskWrapper(parameters)
 
         os.environ["TASK_RESOLVER_CLASS"] = "datalabs.etl.dag.resolve.TaskResolver"
-    
+
         task_wrapper.run()
 
 
@@ -68,7 +68,7 @@ class CeleryPythonTaskExecutorTask(Task):
             execution_time=self._parameters.execution_time,
             config_file=self._parameters.parameters.pop("config_file")
         )
-        
+
         if self._parameters.parameters:
             parameters["parameters"] = self._parameters.parameters
 
@@ -77,10 +77,8 @@ class CeleryPythonTaskExecutorTask(Task):
         task_wrapper = DAGTaskWrapper(parameters)
 
         os.environ["TASK_RESOLVER_CLASS"] = "datalabs.etl.dag.resolve.TaskResolver"
-    
+
         task_wrapper.run()
-
-
 
 
 @add_schema(unknowns=True)

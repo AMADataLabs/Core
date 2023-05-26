@@ -29,7 +29,7 @@ class LocalDAGExecutorTask(Task):
     """
     PARAMETER_CLASS = LocalDAGExecutorParameters
 
-    def __init__(self, parameters, data):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
         super().__init__(parameters, data)
 
         self._triggered_tasks = []
@@ -100,12 +100,13 @@ class LocalDAGExecutorTask(Task):
             self._status = Status.FAILED
         elif (task_status_counts[Status.FAILED]) == 0:
             self._status = Status.RUNNING
-        LOGGER.info('Set status of DAG to "%s"', self._status)    
+        LOGGER.info('Set status of DAG to "%s"', self._status)
 
     def _get_task_status(self, task):
         status = self._parameters.task_statuses.get(task.id, Status.UNKNOWN)
         task.set_status(status)
         LOGGER.info('State of task "%s": %s', task.id, status)
+
         return status
 
     def _trigger_task(self, task):

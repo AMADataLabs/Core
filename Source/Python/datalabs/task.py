@@ -103,7 +103,6 @@ class TaskWrapper(ABC):
             self._inputs = self._get_task_data()
 
             self.task_class = self._get_task_class()
-            print(self.task_class)
 
             self.task = self.task_class(self._task_parameters, self._inputs)
 

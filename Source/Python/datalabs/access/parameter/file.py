@@ -7,12 +7,13 @@ class ParameterExtractionMixin:
     def _extract_variables_from_config(cls, filename):
         config = {}
 
-        with open(filename, encoding='utf-8') as file: 
+        with open(filename, encoding='utf-8') as file:
             config.update(yaml.safe_load(file.read())['data'])
 
         for key, value in config.items():
             if not key.endswith('@MACRO_COUNT@') and not isinstance(value, str):
                 raise ValueError(f'The value for parameter {key} is not a string, but is {type(value)}: {value}.')
+
         return config
 
     def _parse_variables(self, variables):
@@ -106,7 +107,7 @@ class FileEnvironmentLoader(ParameterExtractionMixin):
     def load(self):
         variables = self._extract_variables_from_config(self._parameters['path'])
         dag, parameters = self._parse_variables(variables)
-        
+
         if dag != self._parameters["dag"]:
             raise ValueError("Requested DAG " + self._parameters.dag + " does not match the config file DAG " + dag)
 
