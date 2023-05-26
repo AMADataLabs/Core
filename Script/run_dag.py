@@ -23,16 +23,15 @@ ACCOUNTS = dict(
 
 def main(args):
     if args["environment"] == 'local':
-        if args["config_file"][0] is not None:
+        if args["config_file"] is not None:
             run_local_dag(args)
         else:
-            print("You need to pass in a config-file path")
+            raise ValueError("The --config option is requred when the environment is \"local\".")
     else:
         run_remote_dag(args)
 
-
 def run_local_dag(args):
-    args["config_file"] = args["config_file"][0]
+    args["config_file"] = args["config_file"]
     run_dag_processor(args["dag"], args["time"], args["config_file"], args["parameters"])
 
 def run_remote_dag(args):
@@ -53,6 +52,7 @@ def run_remote_dag(args):
             Message=json.dumps(message)
         )
 
+
 if __name__ == '__main__':
     return_code = 0
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ap.add_argument('-D', '--date', required=True, help='Execution date of the form YYYY-MM-DD')
     ap.add_argument('-T', '--time', required=True, help='Execution time of the form HH:MM:SS')
     ap.add_argument('-p', '--parameters', action='append', required=False, help='Dynamic global DAG plugin variables')
-    ap.add_argument('-f', '--config-file', action='append', required=False, help='Config file for local DAG run')
+    ap.add_argument('-f', '--config-file', required=False, help='Config file for local DAG run')
     args = vars(ap.parse_args())
 
     try:
