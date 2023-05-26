@@ -60,6 +60,7 @@ class User(BASE, CommonColumns):
     ama_user_name = sa.Column(sa.String(255))
     preferences = sa.Column(JSONB)
     is_consented = sa.Column(sa.Boolean)
+    ama_entity_id = sa.Column(sa.String(255))
 
 
 class Form(BASE):

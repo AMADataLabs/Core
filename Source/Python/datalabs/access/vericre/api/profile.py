@@ -221,6 +221,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     def _filter(self, query, entity_id):
         query = self._filter_by_entity_id(query, entity_id)
+        query = self._filter_by_active_user(query)
 
         return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == 'False')
 
@@ -228,6 +229,10 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     def _filter_by_entity_id(cls, query, entity_id):
         # query me_number temporary and will update to filter by ama_entity_id in next sprint
         return query.filter(User.ama_me_number == entity_id)
+
+    @classmethod
+    def _filter_by_active_user(cls, query):
+        return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
 
     @classmethod
     def _query_for_documents(cls, database, sub_query):
@@ -554,6 +559,8 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
         elif len(query_result) > 1:
             exception = InternalServerError("Multiple records found for the given Entity ID in Vericre")
+        elif isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
+            exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
 
         if exception:
             raise exception

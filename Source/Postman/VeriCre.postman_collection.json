@@ -223,7 +223,50 @@
 					"response": []
 				},
 				{
-					"name": "Profiles",
+					"name": "Physician Search",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Host",
+								"value": "vericre-api-dev.ama-assn.org",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Peter\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://internal-vericre-dev-profile-apigw-alb-1557872266.us-east-1.elb.amazonaws.com/physicians/search",
+							"protocol": "https",
+							"host": [
+								"internal-vericre-dev-profile-apigw-alb-1557872266",
+								"us-east-1",
+								"elb",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"physicians",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AMA Profile PDF",
 					"protocolProfileBehavior": {
 						"disabledSystemHeaders": {
 							"host": true
@@ -234,20 +277,25 @@
 						"header": [
 							{
 								"key": "Host",
-								"value": "9ap3volmqd.execute-api.us-east-1.amazonaws.com",
+								"value": "vericre-api-dev.ama-assn.org",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "https://localhost:5555/sbx/profiles",
+							"raw": "https://internal-vericre-dev-profile-apigw-alb-1557872266.us-east-1.elb.amazonaws.com/profile/123456/AMA/pdf",
 							"protocol": "https",
 							"host": [
-								"localhost"
+								"internal-vericre-dev-profile-apigw-alb-1557872266",
+								"us-east-1",
+								"elb",
+								"amazonaws",
+								"com"
 							],
-							"port": "5555",
 							"path": [
-								"sbx",
-								"profiles"
+								"profile",
+								"123456",
+								"AMA",
+								"pdf"
 							]
 						}
 					},
