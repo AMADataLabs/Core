@@ -2,6 +2,7 @@
 from   datalabs.etl.dag.dag import DAG, register, JavaTask
 
 
+# pylint: disable=line-too-long
 @register(name="CPT_LINK")
 class CPTLinkDAG(DAG):
     BUILD_LINK: JavaTask("datalabs.etl.cpt.build.LinkBuilderTask")
