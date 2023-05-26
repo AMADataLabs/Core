@@ -33,12 +33,14 @@ class DAGState(State):
         state_path = Path(self._parameters.base_path, dag)
         dir_list = os.listdir(state_path)
         statuses = {}
+
         for directory in dir_list:
             match = re.search('^(?![0-9]{4}-[0-9]{2}-[0-9]{2})', directory)
             if match is not None:
                 statuses[directory] = self.get_task_status(dag, directory, execution_time)
 
         statuses[dag] = self.get_dag_status(dag, execution_time)
+
         return statuses
 
     def get_dag_status(self, dag: str, execution_time: str):

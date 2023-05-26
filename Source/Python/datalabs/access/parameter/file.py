@@ -2,6 +2,7 @@ import yaml
 
 from   datalabs.access.environment import VariableTree
 
+
 class ParameterExtractionMixin:
     @classmethod
     def _extract_variables_from_config(cls, filename):
@@ -93,10 +94,12 @@ class ParameterExtractionMixin:
 
         return global_variables
 
+
 class FileEnvironmentParameters:
     dag: str
     task: str
     path: str
+
 
 class FileEnvironmentLoader(ParameterExtractionMixin):
     PARAMETER_CLASS = FileEnvironmentParameters

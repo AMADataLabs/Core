@@ -16,10 +16,10 @@ class CeleryDAGNotifier:
         del parameters['config_file']
         run_dag_processor(dag, execution_time, config_file, parameters)
 
+
 class CeleryTaskNotifier:
     def __init__(self):
         pass
 
     def notify(self, dag, task, execution_time, parameters: dict):
         run_task_processor(dag, task, execution_time, parameters)
-        
