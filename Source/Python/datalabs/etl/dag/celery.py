@@ -32,21 +32,25 @@ class FileTaskParameterGetterMixin:
 
 class CeleryProcessorNotifierMixin:
     def _notify_dag_processor(self):
+        notifier = CeleryDAGNotifier()
         dynamic_parameters = dict(
             config_file=self._runtime_parameters["config_file"]
         )
+
         if "parameters" in self._runtime_parameters:
             dynamic_parameters.update(self.runtime_parameters["parameters"])
-        notifier = CeleryDAGNotifier()
+
         notifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
 
     def _notify_task_processor(self, task):
+        notifier = CeleryTaskNotifier()
         dynamic_parameters = dict(
             config_file=self._runtime_parameters["config_file"]
         )
+
         if "parameters" in self._runtime_parameters:
             dynamic_parameters.update(self._runtime_parameters["parameters"])
-        notifier = CeleryTaskNotifier()
+
         notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
 
@@ -99,15 +103,15 @@ class DAGTaskWrapper(
         task = self._get_task_id()
         execution_time = self._get_execution_time()
         config_file_path = self._parameters["config_file"]
-        dag_task_parameters = self._get_dag_task_parameters_from_file(dag_name, task, config_file_path)
-        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
         dynamic_parameters = self._runtime_parameters.get("parameters", {})
         LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
+
+        dag_task_parameters = self._get_dag_task_parameters_from_file(dag_name, task, config_file_path)
+        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'LOCAL':
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
             dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
-
         else:
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)

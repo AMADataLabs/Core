@@ -31,8 +31,7 @@ def main(args):
         run_remote_dag(args)
 
 def run_local_dag(args):
-    args["config_file"] = args["config_file"]
-    run_dag_processor(args["dag"], args["time"], args["config_file"], args["parameters"])
+    run_dag_processor(args["dag"], f'{args["date"]}T{args["time"]}', args["config_file"], args["parameters"])
 
 def run_remote_dag(args):
     topic_arn = f'arn:aws:sns:us-east-1:{ACCOUNTS[args["environment"]]}:DataLake-{args["environment"]}-DAGProcessor'

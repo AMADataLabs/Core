@@ -25,11 +25,11 @@ def run_dag_processor(dag, execution_time, config_file, parameters=None):
     )
     if parameters is not None:
         runtime_parameters['parameters'] = parameters
-    os.environ['TASK_CLASS'] = "datalabs.etl.dag.process.task.DAGProcessorTask"
-    os.environ["PYTHONPATH"] = "/Users/magizhshankar/Documents/hs-datalabs/Source/Python/"
 
     os.environ['TASK_RESOLVER_CLASS'] = "datalabs.task.EnvironmentTaskResolver"
+    os.environ['TASK_CLASS'] = "datalabs.etl.dag.process.task.DAGProcessorTask"
     task_wrapper = DAGProcessorTaskWrapper(runtime_parameters)
+
     return task_wrapper.run()
 
 
@@ -42,15 +42,15 @@ def run_task_processor(dag, task, execution_time, parameters=None):
     )
     if parameters is not None:
         runtime_parameters['parameters'] = parameters
-    # runtime_parameters has two copies of config_file
-    os.environ['TASK_CLASS'] = "datalabs.etl.dag.process.task.TaskProcessorTask"
+
     os.environ['TASK_RESOLVER_CLASS'] = "datalabs.task.EnvironmentTaskResolver"
+    os.environ['TASK_CLASS'] = "datalabs.etl.dag.process.task.TaskProcessorTask"
     task_wrapper = TaskProcessorTaskWrapper(runtime_parameters)
+
     return task_wrapper.run()
 
 class FileTaskParameterGetterMixin:
     # pylint: disable=redefined-outer-name
-    # If no key for task name return empty dictionary
     @classmethod
     def _get_dag_task_parameters_from_file(cls, dag: str, task: str, config_file):
         file_loader = FileEnvironmentLoader(dict(
@@ -76,17 +76,14 @@ class DAGProcessorTaskWrapper(
         dag = self._get_dag_id()
         dag_name = self._get_dag_name()
         config_file_path = self._parameters["config_file"]
-        dag_parameters = dict(
-            dag=dag,
-            execution_time=self._get_execution_time()
-        )
+        dag_parameters = dict(dag=dag, execution_time=self._get_execution_time())
+        dynamic_parameters = dict(config_file=config_file_path)
+
         dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "LOCAL", config_file_path))
-        dynamic_parameters = dict(
-            config_file=config_file_path
-        )
+
         if "parameters" in self._runtime_parameters:
             dynamic_parameters.update(self._runtime_parameters["parameters"])
-            
+
         dag_parameters["parameters"] = dynamic_parameters
 
         return dag_parameters
@@ -107,29 +104,29 @@ class TaskProcessorTaskWrapper(
         dag_name = self._get_dag_name()
         task = self._get_task_id()
         config_file_path = self._parameters["parameters"]["config_file"]
-        dag_parameters = dict(
-            dag=dag,
-            task=task,
-            execution_time=self._get_execution_time()  
-        )
+        dag_parameters = dict(dag=dag, task=task, execution_time=self._get_execution_time())
+        dynamic_parameters = dict(config_file=config_file_path)
+
         dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "LOCAL", config_file_path))
+
         task_parameters = self._get_dag_task_parameters_from_file(dag_name, task, config_file_path)
+
         dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
-        dynamic_parameters = dict(
-            config_file=config_file_path
-        )
-
-        if "parameters" in self._runtime_parameters:
-            dynamic_parameters.update(self._runtime_parameters["parameters"])
-            dag_parameters["parameters"] = dynamic_parameters
+        dag_parameters = self._add_dynamic_dag_parameters(dag_parameters, self._runtime_parameters["parameters"])
 
         return dag_parameters
 
     @classmethod
     def _override_dag_parameters(cls, dag_parameters, task_parameters):
-        for key, _ in task_parameters.items():
-            if key in dag_parameters:
-                dag_parameters[key] = task_parameters[key]
+        dag_parameters.update({key:value for key, value in task_parameters.items() if key in dag_parameters})
+
+        return dag_parameters
+
+    def _add_dynamic_dag_parameters(self, dag_parameters, dynamic_parameters):
+        if "parameters" in self._runtime_parameters:
+            dynamic_parameters.update(self._runtime_parameters["parameters"])
+
+            dag_parameters["parameters"] = dynamic_parameters
 
         return dag_parameters

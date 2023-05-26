@@ -83,6 +83,6 @@ class DAGState(State):
     def _generate_state_path(self, dag: str, task: str, execution_time: str):
         execution_time = isoparse(execution_time).astimezone(pytz.timezone("UTC"))
         datestamp = execution_time.strftime('%Y-%m-%d')
-        timestamp = execution_time.strftime('%H%M%S')
+        timestamp = execution_time.strftime('%H:%M:%S')
 
         return Path(self._parameters.base_path, dag, task, datestamp, f'state_{timestamp}')
