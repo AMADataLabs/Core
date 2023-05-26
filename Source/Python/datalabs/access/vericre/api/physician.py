@@ -47,9 +47,9 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         return self._generate_response(physicians)
 
-    def _search_physicians(self):
+    def _search_physicians(self, payload):
         url = f'https://{self._parameters.domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
-        search_request = self._generate_search_request()
+        search_request = self._generate_search_request(payload)
 
         return self._submit_search_request(search_request, url)
 
@@ -64,11 +64,11 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         self._headers = self._generate_headers()
 
-    def _generate_search_request(self):
-        search_request = self._generate_request_for_single_param()
+    def _generate_search_request(self, payload):
+        search_request = self._generate_number_search_request(payload)
 
         if not search_request:
-            search_request = self._generate_request_for_composite_param(search_request)
+            search_request = self._generate_name_search_request(payload)
 
         if not search_request:
             raise InvalidRequest(
@@ -122,40 +122,29 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return physician
 
     @classmethod
-    def _generate_request_for_single_param(cls, payload):
-        search_request = {}
-        continue_flag = True
-
-        single_param_to_key = {
+    def _generate_number_search_request(cls, payload):
+        search_request = {
             "meNumber": payload.get("me_number"),
             "npiNumber": payload.get("npi_number"),
             "ecfmgNumber": payload.get("ecfmg_number")
         }
 
-        while continue_flag:
-            for key, value in single_param_to_key.items():
-                continue_flag = False
-
-                if value:
-                    search_request[key] = value
-                    continue_flag = False
-                    break
-
-        return search_request
+        return {key:value for key, value in search_request.items() if value}
 
     @classmethod
-    def _generate_request_for_composite_param(cls, payload, search_request):
+    def _generate_name_search_request(cls, payload):
         first_name = payload.get("first_name")
         last_name = payload.get("last_name")
         date_of_birth = payload.get("date_of_birth")
         state_of_practice = payload.get("state_of_practice")
+        search_request = {}
 
         if first_name and last_name:
             search_request["fullName"] = f"{first_name}  {last_name}"
             search_request["birthDate"] = date_of_birth
 
-        if state_of_practice:
-            search_request["stateCd"] = state_of_practice
+            if state_of_practice:
+                search_request["stateCd"] = state_of_practice
 
         return search_request
 
