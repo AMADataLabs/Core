@@ -77,7 +77,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             )
 
         search_request["applicationId"] = "vericre"
-        LOGGER.debug('Request: %s', search_request)
+        LOGGER.debug('Search Request: %s', search_request)
 
         return search_request
 
