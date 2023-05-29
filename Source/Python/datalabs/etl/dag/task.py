@@ -86,62 +86,33 @@ class DAGTaskWrapper(TaskWrapper):
         return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
 
     def _handle_dag_success(self, dag):
-        dag_id = self._get_dag_id()
-        execution_time = self._get_execution_time()
-        state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
-        current_status = state.get_dag_status(dag_id, execution_time)
-        LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, dag.status)
+        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
 
-        if current_status != dag.status:
-            success = state.set_dag_status(dag_id, execution_time, dag.status)
-            LOGGER.info( 'Setting status of DAG "%s" (%s) to %s', dag_id, execution_time, dag.status)
+        if dag_state_class:
+            self._update_dag_status_on_success(dag, dag_state_class)
 
-            if not success:
-                LOGGER.error('Unable to set status of DAG %s to Finished', dag_id)
-
-            if dag.status in [Status.FINISHED, Status.FAILED]:
-                self._send_dag_status_notification(dag.status)
-
-        self._invoke_triggered_tasks(dag)
+        for task in dag.triggered_tasks:
+            self._notify_task(task)
 
     def _handle_task_success(self, task):
-        dag = self._get_dag_id()
-        task = self._get_task_id()
-        execution_time = self._get_execution_time()
-        state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
+        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
 
-        success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
-
-        if not success:
-            LOGGER.error('Unable to set status of task %s of dag %s to Finished', task, dag)
+        if dag_state_class:
+            self._update_task_status_on_success(task, dag_state_class)
 
         self._notify_dag()
 
     def _handle_dag_exception(self, dag):
-        dag_id = self._get_dag_id()
-        execution_time = self._get_execution_time()
-        state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
-        current_status = state.get_dag_status(dag_id, execution_time)
+        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
 
-        if current_status not in [Status.FINISHED, Status.FAILED]:
-            success = state.set_dag_status(dag_id, execution_time, Status.FAILED)
-            LOGGER.info( 'Setting status of dag "%s" (%s) to %s', dag_id, execution_time, Status.FAILED)
-
-            if not success:
-                LOGGER.error('Unable to set status of of dag %s to Failed', dag)
-
-            self._send_dag_status_notification(Status.FAILED)
+        if dag_state_class:
+            self._update_dag_status_on_exception(dag, dag_state_class)
 
     def _handle_task_exception(self, task):
-        dag = self._get_dag_id()
-        task = self._get_task_id()
-        execution_time = self._get_execution_time()
-        state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
+        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
 
-        success = state.set_task_status(dag, task, execution_time, Status.FAILED)
-
-        if not success:
-            LOGGER.error('Unable to set status of task %s of dag %s to Failed', task, dag)
+        if dag_state_class:
+            self._update_task_status_on_exception(task, dag_state_class)
 
         self._notify_dag()
 
@@ -211,20 +182,70 @@ class DAGTaskWrapper(TaskWrapper):
 
         return {key:value for key, value in candidate_parameters.items() if value is not None}
 
-    def _send_dag_status_notification(self, status):
-        self._send_email_notification(status)
+    def _update_dag_status_on_success(self, dag, dag_state_class):
+        dag_id = self._get_dag_id()
+        execution_time = self._get_execution_time()
+        state = import_plugin(dag_state_class)(self._runtime_parameters)
+        current_status = state.get_dag_status(dag_id, execution_time)
+        LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, dag.status)
 
-        self._send_webhook_notification(status)
+        if current_status != dag.status:
+            success = state.set_dag_status(dag_id, execution_time, dag.status)
+            LOGGER.info( 'Setting status of DAG "%s" (%s) to %s', dag_id, execution_time, dag.status)
 
-    def _invoke_triggered_tasks(self, dag):
-        for task in dag.triggered_tasks:
-            self._notify_task(task)
+            if not success:
+                LOGGER.error('Unable to set status of DAG %s to Finished', dag_id)
+
+            if dag.status in [Status.FINISHED, Status.FAILED]:
+                self._send_dag_status_notification(dag.status)
+
+    def _update_dag_status_on_exception(self, dag, dag_state_class):
+        dag_id = self._get_dag_id()
+        execution_time = self._get_execution_time()
+        state = import_plugin(dag_state_class)(self._runtime_parameters)
+        current_status = state.get_dag_status(dag_id, execution_time)
+
+        if current_status not in [Status.FINISHED, Status.FAILED]:
+            success = state.set_dag_status(dag_id, execution_time, Status.FAILED)
+            LOGGER.info( 'Setting status of dag "%s" (%s) to %s', dag_id, execution_time, Status.FAILED)
+
+            if not success:
+                LOGGER.error('Unable to set status of of dag %s to Failed', dag)
+
+            self._send_dag_status_notification(Status.FAILED)
+
+    def _update_task_status_on_exception(self, task, dag_state_class):
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
+        state = import_plugin(dag_state_class)(self._runtime_parameters)
+
+        success = state.set_task_status(dag, task, execution_time, Status.FAILED)
+
+        if not success:
+            LOGGER.error('Unable to set status of task %s of dag %s to Failed', task, dag)
+
+    def _update_task_status_on_success(self, task, dag_state_class):
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
+        state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
+
+        success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
+
+        if not success:
+            LOGGER.error('Unable to set status of task %s of dag %s to Finished', task, dag)
 
     def _notify_dag(self):
         pass
 
     def _notify_task(self, task):
         pass
+
+    def _send_dag_status_notification(self, status):
+        self._send_email_notification(status)
+
+        self._send_webhook_notification(status)
 
     def _send_email_notification(self, status):
         raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
