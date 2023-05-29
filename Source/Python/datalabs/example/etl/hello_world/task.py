@@ -22,4 +22,4 @@ class HelloWorldTask(Task):
     PARAMETER_CLASS = HelloWorldParameters
 
     def run(self):
-        LOGGER.info(f'Hello, {self._parameters.first_name} {self._parameters.last_name}!')
+        LOGGER.info('Hello, %s %s!', self._parameters.first_name, self._parameters.last_name)

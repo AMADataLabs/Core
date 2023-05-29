@@ -1,3 +1,4 @@
+""" Helper class that loads DAG configuration from a YAML file into the environment. """
 import yaml
 
 from   datalabs.access.environment import VariableTree

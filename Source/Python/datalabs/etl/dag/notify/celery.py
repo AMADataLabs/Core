@@ -1,4 +1,4 @@
-''' Class for notifying tasks to run via SNS. '''
+""" Class for notifying tasks to run via Celery. """
 import logging
 from   datalabs.etl.dag.local.task import run_dag_processor, run_task_processor
 
@@ -8,18 +8,16 @@ LOGGER.setLevel(logging.INFO)
 
 
 class CeleryDAGNotifier:
-    def __init__(self):
-        pass
-
-    def notify(self, dag, execution_time, parameters: dict):
+    @classmethod
+    def notify(cls, dag, execution_time, parameters: dict):
         config_file = parameters['config_file']
-        del parameters['config_file']
+
+        parameters.pop("config_file")
+
         run_dag_processor(dag, execution_time, config_file, parameters)
 
 
 class CeleryTaskNotifier:
-    def __init__(self):
-        pass
-
-    def notify(self, dag, task, execution_time, parameters: dict):
+    @classmethod
+    def notify(cls, dag, task, execution_time, parameters: dict):
         run_task_processor(dag, task, execution_time, parameters)

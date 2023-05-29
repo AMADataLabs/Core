@@ -1,14 +1,11 @@
-''' Classes for executing DAGs via AWS Batch'''
+""" Classes for executing DAGs via Celery """
 from   dataclasses import dataclass
-import json
 import logging
 import os
 import subprocess
 
-from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
-from   datalabs.plugin import import_plugin
 from   datalabs.etl.dag.celery import DAGTaskWrapper
 
 logging.basicConfig()
@@ -109,5 +106,4 @@ class BatchJavaTaskExecutorTask(Task):
             "--arg",
             f"{self._parameters.dag}__{self._parameters.task}__{execution_time}"
         ]
-        subprocess.run(command)
-
+        subprocess.run(command, check=True)

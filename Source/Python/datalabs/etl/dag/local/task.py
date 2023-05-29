@@ -2,8 +2,6 @@
 import os
 import logging
 
-from   celery import Celery  # pylint: disable=import-error
-
 from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.dag.task
 from   datalabs.access.parameter.file import FileEnvironmentLoader
@@ -105,7 +103,9 @@ class TaskProcessorTaskWrapper(
         task = self._get_task_id()
         config_file_path = self._parameters["parameters"]["config_file"]
         dag_parameters = dict(dag=dag, task=task, execution_time=self._get_execution_time())
-        dynamic_parameters = dict(config_file=config_file_path)
+        dynamic_parameters = self._runtime_parameters.get("parameters") or {}
+
+        dynamic_parameters.update(dict(config_file=config_file_path))
 
         dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "LOCAL", config_file_path))
 
