@@ -229,7 +229,7 @@ class DAGTaskWrapper(TaskWrapper):
         dag = self._get_dag_id()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
+        state = import_plugin(dag_state_class)(self._runtime_parameters)
 
         success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
 
