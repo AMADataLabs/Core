@@ -1,27 +1,61 @@
-""" Task wrapper for DAGs and DAG tasks running in AWS. """
-import json
+""" Task wrapper for a Celery runtime environment. """
 import logging
-import os
 
-from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
+from   datalabs.access.parameter.file import FileEnvironmentLoader
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
-from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
+from   datalabs.etl.dag.notify.celery import CeleryDAGNotifier, CeleryTaskNotifier
+from   datalabs.parameter import ParameterValidatorMixin
+import datalabs.etl.dag.task
 from   datalabs.etl.dag.state import Status
 from   datalabs.plugin import import_plugin
-import datalabs.etl.dag.task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+class FileTaskParameterGetterMixin:
+    @classmethod
+    def _get_dag_task_parameters_from_file(cls, dag: str, task: str, config_file: str):
+        file_loader = FileEnvironmentLoader(dict(
+            dag=dag,
+            task=task,
+            path=config_file
+        ))
+        parameters = file_loader.load()
 
-class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
+        return parameters
+
+
+class CeleryProcessorNotifierMixin:
+    def _notify_dag(self):
+        dynamic_parameters = dict(
+            config_file=self._runtime_parameters["config_file"]
+        )
+
+        if "parameters" in self._runtime_parameters:
+            dynamic_parameters.update(self.runtime_parameters["parameters"])
+
+        CeleryDAGNotifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
+
+    def _notify_task(self, task):
+        dynamic_parameters = dict(
+            config_file=self._runtime_parameters["config_file"]
+        )
+
+        if "parameters" in self._runtime_parameters:
+            dynamic_parameters.update(self._runtime_parameters["parameters"])
+
+        CeleryTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
+
+
+class DAGTaskWrapper(
+    FileTaskParameterGetterMixin,
+    CeleryProcessorNotifierMixin,
+    ParameterValidatorMixin,
+    datalabs.etl.dag.task.DAGTaskWrapper
+):
     def _get_runtime_parameters(self, parameters):
-        command_line_parameters = json.loads(parameters[1])
-        LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
-
-        return self._supplement_runtime_parameters(command_line_parameters)
+        return self._supplement_runtime_parameters(parameters)
 
     def _pre_run(self):
         super()._pre_run()
@@ -37,34 +71,26 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
             if not success:
                 LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)
 
-    def _get_task_resolver_class(self):
-        task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.etl.dag.resolve.TaskResolver')
-        task_resolver_class = import_plugin(task_resolver_class_name)
-
-        if not hasattr(task_resolver_class, 'get_task_class'):
-            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
-
-        return task_resolver_class
-
     def _get_dag_task_parameters(self):
         dag_id = self._get_dag_id()
         dag_name = self._get_dag_name()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
-        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
+        config_file_path = self._parameters["config_file"]
         dynamic_parameters = self._runtime_parameters.get("parameters", {})
         LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
+
+        dag_task_parameters = self._get_dag_task_parameters_from_file(dag_name, task, config_file_path)
+        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
             dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
         else:
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
-
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
-        LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
 
+        LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
         dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
         dynamic_loader.load(environment=dag_task_parameters)
 
@@ -72,10 +98,14 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
         return dag_task_parameters
 
+    def _get_task_wrapper_parameters(self):
+        return self._get_validated_parameters(self._runtime_parameters)
+
     def _supplement_runtime_parameters(self, runtime_parameters):
         dag_id = runtime_parameters["dag"].upper()
         dag_name, _ = self._parse_dag_id(dag_id)
-        dag_parameters = self._get_dag_parameters(dag_name)
+        path = runtime_parameters["config_file"]
+        dag_parameters = self._get_dag_parameters(dag_name, path)
         LOGGER.debug('DAG Parameters: %s', dag_parameters)
 
         runtime_parameters.update(dag_parameters)
@@ -88,6 +118,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         return runtime_parameters
 
     def _override_runtime_parameters(self, task_parameters):
+        print(task_parameters)
         for name, value in list(task_parameters.items()):
             if name in self._runtime_parameters:
                 self._runtime_parameters[name] = value
@@ -102,23 +133,9 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
         return task_parameters
 
-    def _get_dag_parameters(self, dag):
+    def _get_dag_parameters(self, dag, path):
         LOGGER.debug('Getting DAG Parameters for %s...', dag)
-        dag_parameters = self._get_dag_task_parameters_from_dynamodb(dag, "DAG")
+        dag_parameters = self._get_dag_task_parameters_from_file(dag, "DAG", path)
         LOGGER.debug('Raw DAG Parameters: %s', dag_parameters)
 
         return dag_parameters
-
-    def _notify_dag(self):
-        dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
-        dynamic_parameters = self._runtime_parameters.get("parameters")
-        notifier = SNSDAGNotifier(dag_topic)
-
-        notifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
-
-    def _notify_task(self, task):
-        task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
-        dynamic_parameters = self._runtime_parameters.get("parameters")
-        notifier = SNSTaskNotifier(task_topic)
-
-        notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
