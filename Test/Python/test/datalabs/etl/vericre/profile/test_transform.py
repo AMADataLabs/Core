@@ -4,6 +4,7 @@ import pytest
 from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
 
 
+# pylint: disable=redefined-outer-name
 def test_caqh_status_url_list_transformer_task(fixture_input_data):
     host = 'example.org'
 
