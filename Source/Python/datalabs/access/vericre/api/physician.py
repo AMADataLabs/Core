@@ -4,6 +4,7 @@ from   datetime import datetime
 import logging
 
 from   zeep import Client
+import os
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
 from   datalabs.access.orm import Database
