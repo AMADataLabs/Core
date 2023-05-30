@@ -5,7 +5,7 @@ boto3==1.18.12
 bs4==0.0.1
 celery==5.2.7
 coverage==5.1
-croniter==0.3.37
+croniter==1.0.5
 cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
 docker==4.2.1
 doit==0.31.1
@@ -56,7 +56,7 @@ python-dotenv==0.12.0
 pytz==2022.2.1
 pywin32==223; platform_system=="Windows"
 PyYAML==6.0
-requests==2.26.0
+requests==2.31.0
 scikit-image==0.19.2
 scikit-learn==1.1.1
 scipy==1.8.1
@@ -67,6 +67,7 @@ sqlalchemy==1.4.31
 snowflake-connector-python==2.7.12
 snowflake-sqlalchemy==1.4.1
 tensorflow==2.1.0; platform_system=="Windows"
+tornado==6.3.2 # not directly required, pinned by Snyk to avoid a vulnerability
 twine==4.0.0
 urllib3==1.26.5
 wheel==0.38.0
