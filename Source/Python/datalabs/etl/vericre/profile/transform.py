@@ -63,6 +63,7 @@ class CAQHProfileURLListTranformerTask(Task):
 
     def run(self):
         host = self._parameters.host
+
         organization_id = self._parameters.organization
 
         packed_data = self._data[0]
@@ -74,20 +75,35 @@ class CAQHProfileURLListTranformerTask(Task):
 
     def generate_urls(self, caqh_provider_ids, host, organization_id):
         urls = []
+
         for caqh_provider_id in caqh_provider_ids:
             url = f"https://{host}/RosterAPI/api/providerstatus?Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
+            url = url.encode()
             urls.append(url)
 
         return urls
 
     def parse_pickle_data(self, data):
-        decoded_data = pickle.loads(data)
+        pdb.set_trace()
+
+        decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in self._data]
+        decoded_data = decoded_data[0][0][1].decode()
+
+        pdb.set_trace()
+
+        parsed_data = json.loads(decoded_data)
+
+        pdb.set_trace()
+
         active_provider_ids = [
-            item[1]['caqh_provider_id'].decode('utf-8')
-            for item in decoded_data
-            if item[1]['roster_status'].decode('utf-8') == 'ACTIVE'
+            item['caqh_provider_id']
+            for item in parsed_data
+            if item['roster_status'] == 'ACTIVE'
         ]
+        pdb.set_trace()
+
         return active_provider_ids
+
 
 
 
