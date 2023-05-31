@@ -2,8 +2,8 @@
 from   dataclasses import dataclass
 from   datetime import datetime
 from   io import BytesIO
-from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 import logging
+from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 
 from   zeep import Client
 
@@ -114,7 +114,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         }
 
     @classmethod
-    def _generate_status_code(self, physicians):
+    def _generate_status_code(cls, physicians):
         return 204 if not physicians else 200
 
     @classmethod
@@ -167,8 +167,8 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             query = database.query(User.ama_entity_id).filter(User.ama_entity_id == entity_id)
             query = cls._filter_by_active_user(query)
             response = query.one_or_none()
-        except OperationalError:
-            raise InternalServerError("Vericre connection error. Please try again later.") 
+        except OperationalError as error:
+            raise InternalServerError("Vericre connection error. Please try again later.") from error
         except MultipleResultsFound:
             LOGGER.error("Multiple results found for entity id : %s", entity_id)
             response = None
@@ -181,12 +181,12 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_date(cls, date_string):
-        date_formatted = None
+        formatted_date = None
 
         try:
             date_object = datetime.strptime(date_string, "%Y%m%d")
-            date_formatted = date_object.strftime("%Y-%m-%d")
+            formatted_date = date_object.strftime("%Y-%m-%d")
         except (TypeError, ValueError) as error:
             LOGGER.error("Exception in formatting the date : %s",error)
 
-        return date_formatted
+        return formatted_date
