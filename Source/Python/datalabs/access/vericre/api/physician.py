@@ -161,6 +161,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_entity_id(cls,entity_id, database):
         response = None
+
         try:
             query = database.query(User.ama_entity_id).filter(User.ama_entity_id == entity_id)
             query = cls._filter_by_active_user(query)
@@ -168,7 +169,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         except OperationalError:
             raise InternalServerError("Vericre connection error. Please try again later.") 
         except MultipleResultsFound:
-            LOGGER.error("Multiple results found for entity id : %s",entity_id)
+            LOGGER.error("Multiple results found for entity id : %s", entity_id)
             response = None
 
         return response
@@ -180,6 +181,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_date(cls, date_string):
         date_formatted = None
+
         try:
             date_object = datetime.strptime(date_string, "%Y%m%d")
             date_formatted = date_object.strftime("%Y-%m-%d")
