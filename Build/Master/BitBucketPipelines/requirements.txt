@@ -1,4 +1,4 @@
-setuptools==47.1.0
+setuptools==65.5.1
 alembic==1.7.3
 alembic_utils==0.7.6
 install-jdk==0.3.0
