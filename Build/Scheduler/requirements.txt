@@ -1,6 +1,6 @@
 arnparse==0.0.2
 boto3==1.18.12
-croniter==0.3.37
+croniter==1.0.5
 jinja2==3.1.2
 json5==0.8.5
 marshmallow==3.10.0
