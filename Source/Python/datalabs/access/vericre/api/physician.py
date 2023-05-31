@@ -3,8 +3,8 @@ from   dataclasses import dataclass
 from   datetime import datetime
 from   io import BytesIO
 import logging
-from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 
+from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 from   zeep import Client
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError, InvalidRequest
