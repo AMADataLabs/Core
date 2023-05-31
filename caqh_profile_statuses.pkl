@@ -1,0 +1,20 @@
+[
+  {
+    "organization_id": "6166",
+    "caqh_provider_id": "16038675",
+    "roster_status": "NOT ON ROSTER",
+    "provider_status": "Expired Attestation",
+    "provider_status_date": "20220814",
+    "provider_practice_state": "IL",
+    "provider_found_flag": "Y"
+  },
+  {
+    "organization_id": "6167",
+    "caqh_provider_id": "16038676",
+    "roster_status": "ACTIVE",
+    "provider_status": "Expired Attestation",
+    "provider_status_date": "20220814",
+    "provider_practice_state": "IL",
+    "provider_found_flag": "Y"
+  }
+]
