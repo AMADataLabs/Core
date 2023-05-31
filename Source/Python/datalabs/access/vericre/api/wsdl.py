@@ -1,7 +1,4 @@
-""" WSDL string constants """
-
-ENTERPRISE_SEARCH_WSDL = """
-<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="enterprisesearch" targetNamespace="http://myama.com/enterprisesearch/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://myama.com/enterprisesearch/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ENTERPRISE_SEARCH_WSDL = """<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="enterprisesearch" targetNamespace="http://myama.com/enterprisesearch/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://myama.com/enterprisesearch/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <wsdl:types>
     <xsd:schema targetNamespace="http://myama.com/enterprisesearch/">
       <xsd:element name="SearchEnterpriseEntity">
