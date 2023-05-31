@@ -7,7 +7,6 @@ from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
 from datalabs.parameter import add_schema
 from datalabs.task import Task
-import pdb
 
 class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def __init__(self, *args, **kwargs):
@@ -84,23 +83,17 @@ class CAQHProfileURLListTranformerTask(Task):
         return urls
 
     def parse_pickle_data(self, data):
-        pdb.set_trace()
-
         decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in data]
+
         decoded_data = decoded_data[0][0][1].decode()
 
-        pdb.set_trace()
-
         parsed_data = json.loads(decoded_data)
-
-        pdb.set_trace()
 
         active_provider_ids = [
             item['caqh_provider_id']
             for item in parsed_data
             if item['roster_status'] == 'ACTIVE'
         ]
-        pdb.set_trace()
 
         return active_provider_ids
 
