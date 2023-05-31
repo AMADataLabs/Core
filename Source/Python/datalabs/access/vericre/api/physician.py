@@ -1,6 +1,7 @@
 """ Release endpoint classes."""
 from   dataclasses import dataclass
 from   datetime import datetime
+from   io import BytesIO
 from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 import logging
 
@@ -89,7 +90,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _submit_search_request(cls, search_request, url):
-        client = Client(wsdl=ENTERPRISE_SEARCH_WSDL)
+        client = Client(wsdl=BytesIO(ENTERPRISE_SEARCH_WSDL.encode('utf-8')))
 
         service = client.bind('EnterpriseSearchService')
 
