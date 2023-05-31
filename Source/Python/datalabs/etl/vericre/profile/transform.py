@@ -66,7 +66,7 @@ class CAQHProfileURLListTranformerTask(Task):
 
         organization_id = self._parameters.organization
 
-        packed_data = self._data[0]
+        packed_data = self._data
         caqh_provider_ids = self.parse_pickle_data(packed_data)
 
         urls = self.generate_urls(caqh_provider_ids, host, organization_id)
@@ -86,7 +86,7 @@ class CAQHProfileURLListTranformerTask(Task):
     def parse_pickle_data(self, data):
         pdb.set_trace()
 
-        decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in self._data]
+        decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in data]
         decoded_data = decoded_data[0][0][1].decode()
 
         pdb.set_trace()
