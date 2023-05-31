@@ -63,41 +63,35 @@ class CAQHProfileURLListTranformerTask(Task):
 
     def run(self):
         host = self._parameters.host
-
         organization_id = self._parameters.organization
-        pdb.set_trace()
-        packed_data = [pickle.loads(pickled_dataset) for pickled_dataset in self._data]
+
+        packed_data = self._data[0]
         caqh_provider_ids = self.parse_pickle_data(packed_data)
 
         urls = self.generate_urls(caqh_provider_ids, host, organization_id)
 
         return urls
-    
+
     def generate_urls(self, caqh_provider_ids, host, organization_id):
-        host = host
-
-        Organization_Id = organization_id  
         urls = []
-
         for caqh_provider_id in caqh_provider_ids:
-            url = f"https://{host}/RosterAPI/api/providerstatus?Product=PV&Organization_Id={Organization_Id}&Caqh_Provider_Id={caqh_provider_id}"
-            encoded_url = url.encode()
-            urls.append(encoded_url)
+            url = f"https://{host}/RosterAPI/api/providerstatus?Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
+            urls.append(url)
 
-        pdb.set_trace()
         return urls
 
-        
     def parse_pickle_data(self, data):
-        encoded_data = data[0][0][1]
-
-        decoded_data = encoded_data.decode().strip()
-        decoded_data = decoded_data.replace('\xa0', ' ')
-        data = json.loads(decoded_data)
-
-        active_provider_ids = [item['caqh_provider_id'] for item in data if item['roster_status'] == 'ACTIVE']
-
+        decoded_data = pickle.loads(data)
+        active_provider_ids = [
+            item[1]['caqh_provider_id'].decode('utf-8')
+            for item in decoded_data
+            if item[1]['roster_status'].decode('utf-8') == 'ACTIVE'
+        ]
         return active_provider_ids
+
+
+
+
 
     
    

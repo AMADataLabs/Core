@@ -3,10 +3,11 @@ import json
 import pytest
 from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
 
+# pylint: disable=redefined-outer-name, protected-access
+
 
 def test_caqh_status_url_list_transformer_task(fixture_input_data):
     host = 'example.org'
-
     organization_id = '123'
     base_url = f'https://{host}/RosterAPI/api/providerstatusbynpi'
     common_params = f'Product=PV&Organization_Id={organization_id}'
@@ -26,10 +27,12 @@ def test_caqh_status_url_list_transformer_task(fixture_input_data):
     result = task.run()
     assert result == expected_urls
 
+# pylint: disable=redefined-outer-name, protected-access
+
 
 @pytest.fixture
 def fixture_input_data():
-    data = [
+    npi_profiles_list = [
         {
             "npi": {
                 "npiCode": "123456009"
@@ -47,4 +50,4 @@ def fixture_input_data():
         }
     ]
 
-    return [json.dumps(data).encode()]
+    return [json.dumps(npi_profiles_list).encode()]
