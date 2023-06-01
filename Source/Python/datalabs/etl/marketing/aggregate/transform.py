@@ -203,9 +203,17 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return data.rename(columns=column.JOIN_LISTKEYS_COLUMNS)
 
 
-# pylint: disable=redefined-outer-name, protected-access, unused-variable
+@add_schema
+@dataclass
+class FlatfileUpdaterTaskParameters:
+    left_merge_key: str
+    right_merge_key: str
+    execution_time: str = None
+
+
+# pylint: disable=redefined-outer-name, protected-access, line-too-long
 class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    PARAMETER_CLASS = InputDataCleanerTaskParameters
+    PARAMETER_CLASS = FlatfileUpdaterTaskParameters
 
     def run(self):
         contacts, list_of_lists, flatfile, inputs = self._read_input_data(self._data)
@@ -217,6 +225,8 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         updated_flatfile = self._update_flatfile_listkeys(flatfile, matched_inputs)
 
         updated_flatfile = self._add_new_records_to_flatfile(updated_flatfile, unmatched_inputs)
+
+        updated_flatfile = self._assign_new_contactid_to_updated_flatfile(updated_flatfile, contacts)
 
         return [self._dataframe_to_csv(updated_flatfile)]
 
@@ -266,6 +276,21 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return updated_flatfile.fillna('').drop(columns=["LISTKEY_COMBINED"])
 
+    def _assign_new_contactid_to_updated_flatfile(self, updated_flatfile, contacts):
+        contacts_old_id = self._select_contactid_and_emmpid(contacts)
+
+        merged_df = self._merge_contacts(updated_flatfile, contacts_old_id)
+
+        merged_df = self._insert_contactid_column(merged_df)
+
+        merged_df = self._drop_old_contactid_column(merged_df)
+
+        merged_df = self._rename_columns(merged_df)
+
+        merged_df = self._remove_spaces_from_dataframe(merged_df)
+
+        return merged_df
+
     @classmethod
     def _get_new_emails(cls, emails, flatfile):
         email_data = pandas.DataFrame(data=dict(BEST_EMAIL=emails))
@@ -306,6 +331,41 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         merged_flatfile = merged_flatfile.drop(columns=["LISTKEY_x", "LISTKEY_y"])
 
         return merged_flatfile
+
+    @classmethod
+    def _select_contactid_and_emmpid(cls, contacts):
+        contact_old_id = contacts.loc[:, ['id', 'hs_contact_id']]
+
+        return contact_old_id
+
+    def _merge_contacts(self, updated_flatfile, contacts_old_id):
+        merged_df = pandas.merge(updated_flatfile.drop(columns=['hs_contact_id']), contacts_old_id, left_on=self._parameters.left_merge_key, right_on=self._parameters.right_merge_key, how='left')
+
+        return merged_df
+
+    @classmethod
+    def _insert_contactid_column(cls, merged_df):
+        merged_df.insert(1, 'hs_contact_idd', merged_df.hs_contact_id)
+
+        return merged_df
+
+    @classmethod
+    def _drop_old_contactid_column(cls, merged_df):
+        merged_df = merged_df.drop(columns=['hs_contact_id'])
+
+        return merged_df
+
+    @classmethod
+    def _rename_columns(cls, merged_df):
+        merged_df.rename(columns={'hs_contact_idd': 'hs_contact_id'}, inplace=True)
+
+        return merged_df
+
+    @classmethod
+    def _remove_spaces_from_dataframe(cls, merged_df):
+        merged_df = merged_df.apply(lambda x: x.str.strip())
+
+        return merged_df
 
 
 @add_schema
