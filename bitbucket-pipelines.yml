@@ -884,7 +884,6 @@ pipelines:
                         --environment sbx
                         --project CPT/Files/Build
                         --bundle CPT/Files/Build.zip
-                        --use-package
 #            - step:
 #                name: Update Development Lambda Bundle
 #                caches:

@@ -141,6 +141,10 @@ class DummyTask(Task):
         pass
 
 
+class DummyDAGState:
+    pass
+
+
 class DummyTaskDataCache(TaskDataCache):
     def extract_data(self):
         return json.loads(self._parameters['DATA'])
