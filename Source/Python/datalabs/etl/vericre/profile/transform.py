@@ -8,6 +8,7 @@ from datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
 from datalabs.parameter import add_schema
 from datalabs.task import Task
 
+
 class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,6 +27,7 @@ class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 class CAQHStatusURLListTransformerParameters:
     host: str = None
     organization: str = None
+
 
 class CAQHStatusURLListTransformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
@@ -56,7 +58,8 @@ class CAQHStatusURLListTransformerTask(Task):
         urls = list(map(generate_url, profiles))
 
         return urls
-    
+
+
 class CAQHProfileURLListTranformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
 
@@ -72,18 +75,24 @@ class CAQHProfileURLListTranformerTask(Task):
 
         return urls
 
+    # pylint: disable=no-self-use
     def generate_urls(self, caqh_provider_ids, host, organization_id):
         urls = []
 
         for caqh_provider_id in caqh_provider_ids:
-            url = f"https://{host}/RosterAPI/api/providerstatus?Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
+            url = (
+                f"https://{host}/RosterAPI/api/providerstatus?"
+                f"Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
+            )
             url = url.encode()
             urls.append(url)
 
         return urls
 
+    # pylint: disable=no-self-use
     def parse_pickle_data(self, data):
-        decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in data]
+        decoded_data = [pickle.loads(pickled_dataset)
+                        for pickled_dataset in data]
 
         decoded_data = decoded_data[0][0][1].decode()
 
@@ -96,12 +105,3 @@ class CAQHProfileURLListTranformerTask(Task):
         ]
 
         return active_provider_ids
-
-
-
-
-
-
-    
-   
-
