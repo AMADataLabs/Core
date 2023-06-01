@@ -1,3 +1,4 @@
+"Define NPI PROFILE COLUMNS"
 NPI_COLUMNS = {
     "NPI_DATA_ID": "npiDataId",
     "ENTITY_ID": "entityId",

@@ -1,6 +1,6 @@
 # Render as follows:
 #
-# update-dag-config -e sbx -p VeriCre -t api -v "database_password={{database_password}}"
+# update-dag-config -e sbx -p VeriCre -t api -v "database_password={{database_password}}" -v"caqh_pdf_password={{caqh_pdf_password}}" -v"client_secret={{client_secret}}"
 ---
 data:
     #######################################################################
@@ -37,14 +37,14 @@ data:
 
 
     # POST /physicians/search
-    VERICRE_API__PHYSICIANS_SEARCH__TASK_CLASS:  'datalabs.access.vericre.api.physicians_search.PhysiciansSearchEndpointTask'
+    VERICRE_API__PHYSICIANS_SEARCH__TASK_CLASS:  'datalabs.access.vericre.api.physician.PhysiciansSearchEndpointTask'
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_BACKEND: ${DATABASE_BACKEND}
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_HOST: ${DATABASE_HOST}
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_PORT: ${DATABASE_PORT}
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_USERNAME: ${DATABASE_USERNAME}
     VERICRE_API__PHYSICIANS_SEARCH__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-
+    VERICRE_API__PHYSICIANS_SEARCH__DOMAIN: 'wsinttest'
 
     ##########################################################################
     # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})

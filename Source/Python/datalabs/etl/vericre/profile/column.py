@@ -8,4 +8,3 @@ AMA_PROFILE_COLUMNS = {"ENTITY_ID": "tempProfileId",
                        "POLO_ZIP": "zipcode",
                        "ME_NBR": "meNumber"
                        }
-

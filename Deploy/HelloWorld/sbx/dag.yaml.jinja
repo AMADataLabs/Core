@@ -23,3 +23,21 @@ data:
     HELLO_WORLD__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
     HELLO_WORLD__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     HELLO_WORLD__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+    HELLO_WORLD__LOCAL__DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
+    HELLO_WORLD__LOCAL__DAG_STATE_CLASS: 'datalabs.etl.dag.state.file.DAGState'
+    HELLO_WORLD__LOCAL__BASE_PATH: './test_output_file_state'
+    HELLO_WORLD__LOCAL__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
+    HELLO_WORLD__LOCAL__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+
+    HELLO_WORLD__PRINT_HELLO_WORLD__FIRST_NAME: 'Bob'
+    HELLO_WORLD__PRINT_HELLO_WORLD__LAST_NAME: 'Marley'
+
+    HELLO_WORLD__PRINT_HELLO_WORLD1__FIRST_NAME: 'Alice'
+    HELLO_WORLD__PRINT_HELLO_WORLD1__LAST_NAME: 'Potter'
+
+    HELLO_WORLD__PRINT_HELLO_WORLD2__FIRST_NAME: 'Harry'
+    HELLO_WORLD__PRINT_HELLO_WORLD2__LAST_NAME: 'Maguire'
+
+    HELLO_WORLD__PRINT_HELLO_WORLD3__FIRST_NAME: 'Ron'
+    HELLO_WORLD__PRINT_HELLO_WORLD3__LAST_NAME: 'Alison'
