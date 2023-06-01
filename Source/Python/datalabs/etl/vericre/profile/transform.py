@@ -68,28 +68,14 @@ class CAQHProfileURLListTranformerTask(Task):
         organization_id = self._parameters.organization
 
         packed_data = self._data
-        caqh_provider_ids = self.parse_pickle_data(packed_data)
+        caqh_provider_ids = self._parse_pickle_data(packed_data)
 
-        urls = self.generate_urls(caqh_provider_ids, host, organization_id)
-
-        return urls
-
-    # pylint: disable=no-self-use
-    def generate_urls(self, caqh_provider_ids, host, organization_id):
-        urls = []
-
-        for caqh_provider_id in caqh_provider_ids:
-            url = (
-                f"https://{host}/RosterAPI/api/providerstatus?"
-                f"Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
-            )
-            url = url.encode()
-            urls.append(url)
+        urls = self._generate_urls(caqh_provider_ids, host, organization_id)
 
         return urls
-
+    
     # pylint: disable=no-self-use
-    def parse_pickle_data(self, data):
+    def _parse_pickle_data(self, data):
         decoded_data = [pickle.loads(pickled_dataset)
                         for pickled_dataset in data]
 
@@ -104,3 +90,18 @@ class CAQHProfileURLListTranformerTask(Task):
         ]
 
         return active_provider_ids
+
+    # pylint: disable=no-self-use
+    def _generate_urls(self, caqh_provider_ids, host, organization_id):
+        urls = []
+
+        for caqh_provider_id in caqh_provider_ids:
+            url = (
+                f"https://{host}/RosterAPI/api/providerstatus?"
+                f"Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
+            )
+            url = url.encode()
+            urls.append(url)
+
+        return urls
+
