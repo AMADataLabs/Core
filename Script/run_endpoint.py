@@ -81,7 +81,7 @@ def generate_api_gateway_event(method, endpoint, path_parameters, query_paramete
         '''
 
     if payload:
-        body = '"' + base64.b64encode(json.dumps(dict(payload=json.loads(payload))).encode()).decode() + '"'
+        body = '"' + base64.b64encode(payload.encode()).decode() + '"'
 
     event = f'''{{
         "resource": "{endpoint}",

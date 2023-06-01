@@ -55,7 +55,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
             payload = base64.b64decode(encoded_body).decode()
 
         if content_type == "application/json":
-            payload = json.loads(payload).get("payload")
+            payload = json.loads(payload)
 
         return payload
 
