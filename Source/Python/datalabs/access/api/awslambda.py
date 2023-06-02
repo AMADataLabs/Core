@@ -34,16 +34,30 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _get_task_parameters(self):
         query_parameters = self._parameters.pop("queryStringParameters") or {}
         multivalue_query_parameters = self._parameters.pop("multiValueQueryStringParameters") or {}
+        payload = self._get_payload(self._parameters.get("body"), self._parameters["headers"].get("Content-Type"))
+
         standard_parameters = dict(
             method=self._parameters.get("httpMethod"),
             identity=self._parameters.get("requestContext")["identity"],
             path=self._parameters.pop("pathParameters") or {},
             query={**query_parameters, **multivalue_query_parameters},
-            payload=self._parameters.get("payload"),
+            payload=payload,
             authorization=self._extract_authorization_parameters(self._parameters)
         )
 
         return {**standard_parameters, **self._runtime_parameters["task_parameters"]}
+
+    @classmethod
+    def _get_payload(cls, encoded_body, content_type):
+        payload = None
+
+        if encoded_body:
+            payload = base64.b64decode(encoded_body).decode()
+
+        if content_type == "application/json":
+            payload = json.loads(payload)
+
+        return payload
 
     def _handle_success(self) -> (int, dict):
         if isinstance(self.task.response_body, bytes):

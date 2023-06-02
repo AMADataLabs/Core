@@ -1,4 +1,5 @@
 import argparse
+import base64
 from   collections import defaultdict
 import json
 import os
@@ -17,7 +18,6 @@ def main(args):
     os.environ["DYNAMODB_CONFIG_TABLE"] = f'DataLake-configuration-{args["environment"]}'
     print(f'Using DynamoDB Configuration Table {os.environ["DYNAMODB_CONFIG_TABLE"]}')
     os.environ["API_ID"] = args["api"]
-    payload = json.loads(args["payload"])
 
     path_parameters = extract_path_parameters(args["endpoint"], args["path_parameter"] or [])
 
@@ -28,14 +28,13 @@ def main(args):
         args["endpoint"],
         path_parameters,
         query_parameters,
+        args["payload"],
         args["no_auth"]
     )
 
     if args["dry_run"]:
         print(event)
     else:
-        event["payload"] = payload
-
         task_wrapper = APIEndpointTaskWrapper(event)
 
         print(task_wrapper.run())
@@ -62,9 +61,10 @@ def aggregate_query_parameters(query_parameter_kvargs):
 
     return query_parameters
 
-def generate_api_gateway_event(method, endpoint, path_parameters, query_parameters, no_auth):
+def generate_api_gateway_event(method, endpoint, path_parameters, query_parameters, payload, no_auth):
     single_query_parameters = {key:value[0] for key, value in query_parameters.items()}
     authorizer_context = ""
+    body = "null"
 
     if not method:
         method = "GET"
@@ -80,6 +80,9 @@ def generate_api_gateway_event(method, endpoint, path_parameters, query_paramete
             }}, "resourcePath": "{endpoint}",
         '''
 
+    if payload:
+        body = '"' + base64.b64encode(payload.encode()).decode() + '"'
+
     event = f'''{{
         "resource": "{endpoint}",
         "path": "{endpoint}",
@@ -88,6 +91,7 @@ def generate_api_gateway_event(method, endpoint, path_parameters, query_paramete
             "Accept": "*/*",
             "Accept-Encoding": "gzip,deflate, br",
             "Authorization": "Bearer WJfefqn5pWUZ9jv2RorEucE0MLVUemayqGAByOsS",
+            "Content-Type": "application/json",
             "Host": "localhost",
             "Postman-Token": "50934e08-9798-4eb4-bf8d-ec8e96060a2a",
             "User-Agent": "PostmanRuntime/7.29.0",
@@ -150,8 +154,8 @@ def generate_api_gateway_event(method, endpoint, path_parameters, query_paramete
             "domainName": "localhost",
             "apiId": "b1secmwhmj"
         }},
-        "body": null,
-        "isBase64Encoded": false
+        "body": {body},
+        "isBase64Encoded": true
     }}'''
 
     return json.loads(event)
