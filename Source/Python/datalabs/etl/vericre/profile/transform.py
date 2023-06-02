@@ -34,16 +34,12 @@ class CAQHStatusURLListTransformerTask(Task):
     def run(self) -> List[str]:
         profiles = json.loads(self._data[0].decode())
 
-        host = self._parameters.host
-        organization_id = self._parameters.organization
-        urls = self._get_caqh_profile_status_urls(
-            profiles, host, organization_id)
-        encoded_urls = '\n'.join(urls).encode()
+        urls = self._generate_caqh_profile_status_urls(profiles, self._parameters.host, self._parameters.organization)
 
-        return [encoded_urls]
+        return ['\n'.join(urls).encode()]
 
     @classmethod
-    def _get_caqh_profile_status_urls(cls, profiles, host, organization_id):
+    def _generate_caqh_profile_status_urls(cls, profiles, host, organization_id):
         base_url = "https://" + host + "/RosterAPI/api/providerstatusbynpi"
         product_param = "Product=PV"
         org_id_param = "Organization_Id=" + str(organization_id)
