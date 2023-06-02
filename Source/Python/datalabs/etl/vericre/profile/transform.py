@@ -24,8 +24,8 @@ class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 @add_schema
 @dataclass
 class CAQHStatusURLListTransformerParameters:
-    host: str = None
-    organization: str = None
+    host: str
+    organization: str
 
 
 class CAQHStatusURLListTransformerTask(Task):
@@ -39,16 +39,14 @@ class CAQHStatusURLListTransformerTask(Task):
         return ['\n'.join(urls).encode()]
 
     @classmethod
-    def _generate_caqh_profile_status_urls(cls, profiles, host, organization_id):
+    def _generate_caqh_profile_status_urls(cls, profiles, host, organization):
+        return [cls._generate_url(profile, host, organization) for profile in profiles]
+
+    @classmethod
+    def _generate_url(cls, profile, host, organization):
         base_url = "https://" + host + "/RosterAPI/api/providerstatusbynpi"
-        product_param = "Product=PV"
-        org_id_param = "Organization_Id=" + str(organization_id)
+        product_parameter = "Product=PV"
+        organization_parameter = "Organization_Id=" + str(organization)
+        npi_parameter = "NPI_Provider_Id=" + str(profile.get('npi').get('npiCode'))
 
-        def generate_url(profile):
-            npi_code = profile.get('npi').get('npiCode')
-            npi_param = "NPI_Provider_Id=" + str(npi_code)
-            return f"{base_url}?{product_param}&{org_id_param}&{npi_param}"
-
-        urls = list(map(generate_url, profiles))
-
-        return urls
+        return f"{base_url}?{product_parameter}&{organization_parameter}&{npi_parameter}"
