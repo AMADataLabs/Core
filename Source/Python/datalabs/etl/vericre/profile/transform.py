@@ -37,12 +37,12 @@ class CAQHStatusURLListTransformerTask(Task):
     def run(self) -> List[str]:
         profiles = json.loads(self._data[0].decode())
 
-        urls = self._get_caqh_profile_status_urls(profiles, self._parameters.host, self._parameters.organization)
+        urls = self._generate_urls(profiles, self._parameters.host, self._parameters.organization)
 
         return ['\n'.join(urls).encode()]
 
     @classmethod
-    def _generate_caqh_profile_status_urls(cls, profiles, host, organization):
+    def _generate_urls(cls, profiles, host, organization):
         return [cls._generate_url(profile, host, organization) for profile in profiles]
 
     @classmethod
@@ -88,7 +88,7 @@ class CAQHProfileURLListTranformerTask(Task):
         return active_provider_ids
 
     @classmethod
-    def _generate_caqh_profile_status_urls(cls, statuses, host, organization):
+    def _generate_urls(cls, statuses, host, organization):
         return [cls._generate_url(status, host, organization) for status in statuses]
 
     @classmethod
