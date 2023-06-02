@@ -34,17 +34,19 @@ class QLDBLoaderTask(Task):
 
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
-        raw_documents = json.loads(self._data[0])
+        qldb = self._get_qldb_client()
+        qldb_driver = QldbDriver(self._parameters.ledger, retry_config=qldb[0])
+        incoming_documents = self._add_hash_to_entries(qldb[1])
+        current_hashes = qldb_driver.execute_lambda(lambda executor: self._get_current_hashes(executor))
 
-        retry_config = RetryConfig(retry_limit=3)
-        qldb_driver = QldbDriver(self._parameters.ledger, retry_config=retry_config)
+        qldb_driver.execute_lambda(lambda executor: self._delete_data(executor, incoming_documents, current_hashes))
 
-        incoming_documents = self._add_hash_to_entries(raw_documents)
-        current_hashes_and_entity_ids = qldb_driver.execute_lambda(lambda executor: self._get_current_hashes_and_entity_ids(executor))
+        qldb_driver.execute_lambda(lambda executor: self._add_data(executor, incoming_documents, current_hashes))
 
-        qldb_driver.execute_lambda(lambda executor: self._delete_data(executor, incoming_documents, current_hashes_and_entity_ids))
-        qldb_driver.execute_lambda(lambda executor: self._add_data(executor, incoming_documents, current_hashes_and_entity_ids))
-        qldb_driver.execute_lambda(lambda executor: self._update_data(executor, incoming_documents, current_hashes_and_entity_ids))
+        qldb_driver.execute_lambda(lambda executor: self._update_data(executor, incoming_documents, current_hashes))
+
+    def _get_qldb_client(self):
+        return RetryConfig(retry_limit=3), json.loads(self._data[0])
 
     @classmethod
     def _add_hash_to_entries(cls, documents):
@@ -57,44 +59,64 @@ class QLDBLoaderTask(Task):
 
         return hashed_documents
 
-    def _get_current_hashes_and_entity_ids(self, transaction_executor):
-        cursor = transaction_executor.execute_statement("SELECT " + self._parameters.primary_key + ", md5 from loader_development")
-
-        current_hashes_and_entity_ids = {}
+    def _get_current_hashes(self, transaction_executor):
+        cursor = transaction_executor.execute_statement("SELECT " + self._parameters.primary_key + ", md5 from " + self._parameters.table)
+        current_hashes = {}
 
         for doc in cursor:
-            current_hashes_and_entity_ids[doc[self._parameters.primary_key]] = doc['md5']
+            current_hashes[doc[self._parameters.primary_key]] = doc['md5']
 
-        return current_hashes_and_entity_ids
+        return current_hashes
 
-    def _delete_data(self, transaction_executor, incoming_documents, current_hashes_and_entity_ids):
-        for entity_id in current_hashes_and_entity_ids:
-            delete_document = True
-            for document in incoming_documents:
-                if document[self._parameters.primary_key] == entity_id:
-                    delete_document = False
+    def _delete_data(self, transaction_executor, incoming_documents, current_hashes):
+        deleted_primary_keys = self._get_deleted_primary_keys(incoming_documents, current_hashes)
+        self._delete_documents_from_qldb(deleted_primary_keys, transaction_executor)
 
-            if delete_document:
-                transaction_executor.execute_statement("DELETE FROM loader_development WHERE loader_development." + self._parameters.primary_key + " = ?", entity_id)
+    def _add_data(self, transaction_executor, incoming_documents, current_hashes):
+        added_documents = self._get_added_data(incoming_documents, current_hashes)
+        self._add_documents_to_qldb(added_documents, transaction_executor)
 
-    def _add_data(self, transaction_executor, incoming_documents, current_hashes_and_entity_ids):
-        for document in incoming_documents:
-            if document[self._parameters.primary_key] not in current_hashes_and_entity_ids.keys():
-                transaction_executor.execute_statement("INSERT INTO loader_development ?", document)
-
-    def _update_data(self, transaction_executor, incoming_documents, current_hashes_and_entity_ids):
-        for entity_id in current_hashes_and_entity_ids:
-            for document in incoming_documents:
-                if document[self._parameters.primary_key] == entity_id and document['md5'] != current_hashes_and_entity_ids[entity_id]:
-                    transaction_executor.execute_statement("UPDATE loader_development AS p SET p = ? WHERE p." + self._parameters.primary_key + " = ?", document, entity_id)
+    def _update_data(self, transaction_executor, incoming_documents, current_hashes):
+        updated_documents = self._get_updated_documents(incoming_documents, current_hashes)
+        self._update_documents_in_qldb(updated_documents, transaction_executor)
 
     @classmethod
-    def _sort_inner_keys(cls, obj):
-        if isinstance(obj, dict):
-            for key, value in obj.items():
-                obj[key] = cls._sort_inner_keys(value)
-            return dict(sorted(obj.items()))
-        elif isinstance(obj, list):
-            return [cls._sort_inner_keys(item) for item in obj]
+    def _sort_inner_keys(cls, element):
+        sorted_element = None
+
+        if isinstance(element, dict):
+            sorted_element = {}
+            for key, value in element.items():
+                sorted_element[key] = cls._sort_inner_keys(value)
+            sorted_element = dict(sorted(sorted_element.items()))
+        elif isinstance(element, list):
+            sorted_element = [cls._sort_inner_keys(item) for item in element]
         else:
-            return obj
+            sorted_element = element
+
+        return sorted_element
+
+    def _get_deleted_primary_keys(self, incoming_documents, current_hashes):
+        incoming_primary_keys = [d[self._parameters.primary_key] for d in incoming_documents]
+        return [key for key in current_hashes.keys() if key not in incoming_primary_keys]
+
+    def _delete_documents_from_qldb(self, deleted_primary_keys, transaction_executor):
+        for key in deleted_primary_keys:
+            transaction_executor.execute_statement("DELETE FROM " + self._parameters.table + " WHERE " + self._parameters.table + "." + self._parameters.primary_key + " = ?", key)
+
+    def _get_added_data(self, incoming_documents, current_hashes):
+        current_primary_keys = list(current_hashes.keys())
+        return [d for d in incoming_documents if d[self._parameters.primary_key] not in current_primary_keys]
+
+    def _add_documents_to_qldb(self, added_documents, transaction_executor):
+        for document in added_documents:
+            transaction_executor.execute_statement("INSERT INTO " + self._parameters.table + " ?", document)
+
+    def _get_updated_documents(self, incoming_documents, current_hashes):
+        current_primary_keys = list(current_hashes.keys())
+        existing_documents = [d for d in incoming_documents if d[self._parameters.primary_key] in current_primary_keys]
+        return [d for d in existing_documents if d["md5"] != current_hashes[d[self._parameters.primary_key]]]
+
+    def _update_documents_in_qldb(self, updated_documents, transaction_executor):
+        for document in updated_documents:
+            transaction_executor.execute_statement("UPDATE " + self._parameters.table + " AS p SET p = ? WHERE p." + self._parameters.primary_key + " = ?", document, document[self._parameters.primary_key])
