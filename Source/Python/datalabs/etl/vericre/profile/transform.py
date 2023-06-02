@@ -11,24 +11,11 @@ from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
 
-class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def run(self):
-        ama_profiles = self._csv_to_dataframe(self._data[0], encoding="latin")
-
-        ama_metadata = ama_profiles[list(AMA_PROFILE_COLUMNS.keys())].rename(
-            columns=AMA_PROFILE_COLUMNS)
-
-        return [self._dataframe_to_csv(ama_metadata)]
-
-
 @add_schema
 @dataclass
 class CAQHStatusURLListTransformerParameters:
-    host: str = None
-    organization: str = None
+    host: str
+    organization: str
 
 
 class CAQHStatusURLListTransformerTask(Task):
@@ -61,19 +48,18 @@ class CAQHProfileURLListTranformerTask(Task):
     def run(self):
         host = self._parameters.host
 
-        organization_id = self._parameters.organization
+        organization = self._parameters.organization
 
         packed_data = self._data
         caqh_provider_ids = self._parse_pickle_data(packed_data)
 
-        urls = self._generate_urls(caqh_provider_ids, host, organization_id)
+        urls = self._generate_urls(caqh_provider_ids, host, organization)
 
         return urls
 
     # pylint: disable=no-self-use
     def _parse_pickle_data(self, data):
-        decoded_data = [pickle.loads(pickled_dataset)
-                        for pickled_dataset in data]
+        decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in data]
 
         decoded_data = decoded_data[0][0][1].decode()
 
