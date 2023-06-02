@@ -1,12 +1,15 @@
 """ Tranformer Task for AMAMetadata, CAQHStatusURLList. """
-from dataclasses import dataclass
+from   dataclasses import dataclass
+from   datetime import datetime
 import json
 import pickle
-from typing import List
-from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
-from datalabs.parameter import add_schema
-from datalabs.task import Task
+from   typing import List
+
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
+
 
 class AMAMetadataTranformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def __init__(self, *args, **kwargs):
@@ -34,29 +37,22 @@ class CAQHStatusURLListTransformerTask(Task):
     def run(self) -> List[str]:
         profiles = json.loads(self._data[0].decode())
 
-        host = self._parameters.host
-        organization_id = self._parameters.organization
-        urls = self._get_caqh_profile_status_urls(
-            profiles, host, organization_id)
-        encoded_urls = '\n'.join(urls).encode()
+        urls = self._get_caqh_profile_status_urls(profiles, self._parameters.host, self._parameters.organization)
 
-        return [encoded_urls]
+        return ['\n'.join(urls).encode()]
 
     @classmethod
-    def _get_caqh_profile_status_urls(cls, profiles, host, organization_id):
+    def _generate_caqh_profile_status_urls(cls, profiles, host, organization):
+        return [cls._generate_url(profile, host, organization) for profile in profiles]
+
+    @classmethod
+    def _generate_url(cls, profile, host, organization):
         base_url = "https://" + host + "/RosterAPI/api/providerstatusbynpi"
+        product_parameter = "Product=PV"
+        organization_parameter = "Organization_Id=" + str(organization)
+        npi_parameter = "NPI_Provider_Id=" + str(profile.get('npi').get('npiCode'))
 
-        product_param = "Product=PV"
-        org_id_param = "Organization_Id=" + str(organization_id)
-
-        def generate_url(profile):
-            npi_code = profile.get('npi').get('npiCode')
-            npi_param = "NPI_Provider_Id=" + str(npi_code)
-            return f"{base_url}?{product_param}&{org_id_param}&{npi_param}"
-
-        urls = list(map(generate_url, profiles))
-
-        return urls
+        return f"{base_url}?{product_parameter}&{organization_parameter}&{npi_parameter}"
 
 
 class CAQHProfileURLListTranformerTask(Task):
@@ -73,7 +69,7 @@ class CAQHProfileURLListTranformerTask(Task):
         urls = self._generate_urls(caqh_provider_ids, host, organization_id)
 
         return urls
-    
+
     # pylint: disable=no-self-use
     def _parse_pickle_data(self, data):
         decoded_data = [pickle.loads(pickled_dataset)
@@ -91,17 +87,16 @@ class CAQHProfileURLListTranformerTask(Task):
 
         return active_provider_ids
 
-    # pylint: disable=no-self-use
-    def _generate_urls(self, caqh_provider_ids, host, organization_id):
-        urls = []
+    @classmethod
+    def _generate_caqh_profile_status_urls(cls, statuses, host, organization):
+        return [cls._generate_url(status, host, organization) for status in statuses]
 
-        for caqh_provider_id in caqh_provider_ids:
-            url = (
-                f"https://{host}/RosterAPI/api/providerstatus?"
-                f"Product=PV&Organization_Id={organization_id}&Caqh_Provider_Id={caqh_provider_id}"
-            )
-            url = url.encode()
-            urls.append(url)
+    @classmethod
+    def _generate_url(cls, status, host, organization):
+        base_url = "https://" + host + "/credentialingapi/api/v8/entities"
+        organization_parameter = "organizationId=" + str(organization)
+        provider_parameters = "caqhProviderId=" + status["caqh_provider_id"]
+        attestation_date = datetime.strptime(status["provider_status_date"], '%Y%m%d').strftime("%m/%d/%Y")
+        attestation_parameter = "attestationDate=" + attestation_date
 
-        return urls
-
+        return f"{base_url}?{organization_parameter}&{provider_parameters}&{attestation_parameter}"

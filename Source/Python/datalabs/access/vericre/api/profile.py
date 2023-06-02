@@ -227,8 +227,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _filter_by_entity_id(cls, query, entity_id):
-        # query me_number temporary and will update to filter by ama_entity_id in next sprint
-        return query.filter(User.ama_me_number == entity_id)
+        return query.filter(User.ama_entity_id == entity_id)
 
     @classmethod
     def _filter_by_active_user(cls, query):
@@ -545,8 +544,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     @classmethod
     def _filter_by_entity_id(cls, query, entity_id):
-        # temporary entity_id as ama_me_number
-        return query.filter(User.ama_me_number == entity_id)
+        return query.filter(User.ama_entity_id == entity_id)
 
     @classmethod
     def _filter_by_active_user(cls, query):

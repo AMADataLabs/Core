@@ -1,10 +1,16 @@
 """ HTTP File Extractor """
 from   dataclasses import dataclass
 import itertools
+import logging
 import requests
 
+from   datalabs.access.api.task import APIEndpointException
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -15,6 +21,7 @@ class HTTPFileExtractorParameters:
     execution_time: str = None
     username: str = None
     password: str = None
+    include_names: str = None
 
 
 class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
@@ -39,9 +46,13 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
 
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
-        text = self._client.get(file)
+        LOGGER.info("Invoking HTTP GET on %s", file)
+        response = self._client.get(file)
 
-        return text.content
+        if response.status_code != 200:
+            raise APIEndpointException(response.reason, response.status_code)
+
+        return response.content
 
 
 @add_schema
@@ -51,6 +62,7 @@ class HTTPFileListExtractorParameters:
     execution_time: str = None
     username: str = None
     password: str = None
+    include_names: str = None
 
 
 class HTTPFileListExtractorTask(HTTPFileExtractorTask):
@@ -62,4 +74,4 @@ class HTTPFileListExtractorTask(HTTPFileExtractorTask):
     @classmethod
     def _parse_url_lists(cls, data):
         for url_list in data:
-            yield [url.decode().strip() for url in url_list.split(b'\n')]
+            yield [url.strip() for url in url_list.decode().split('\n') if url != "" ]
