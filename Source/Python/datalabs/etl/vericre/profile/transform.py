@@ -1,12 +1,18 @@
 """ Tranformer Task for AMAMetadata, CAQHStatusURLList. """
-from   dataclasses import dataclass
-from   datetime import datetime
+from dataclasses import dataclass
+from  datetime import datetime
 import json
+import logging
 import pickle
 from   typing import List
 
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+
+import pdb
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 @add_schema
 @dataclass
@@ -42,61 +48,31 @@ class CAQHProfileURLListTranformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
 
     def run(self):
-        host = self._parameters.host
 
-        organization = self._parameters.organization
+        statuses = pickle.loads([x[1] for x in pickle.loads(self._data[0])][0])
 
-        packed_data = self._data
+        active_statuses = [self._select_if_active(status) for status in statuses]
 
-        urls = self._generate_urls(packed_data, host, organization)
-
-        return urls
-
-    # pylint: disable=no-self-use
-    def _parse_pickle_data(self, data):
-        decoded_data = [pickle.loads(pickled_dataset) for pickled_dataset in data]
-
-        decoded_data = decoded_data[0][0][1].decode()
-
-        parsed_data = json.loads(decoded_data)
-
-        active_provider_ids = [
-            item['caqh_provider_id']
-            for item in parsed_data
-            if item['roster_status'] == 'ACTIVE'
+        return [
+            self._generate_url(caqh_provider_id, provider_status_date, self._parameters.host, self._parameters.organization).encode() 
+            for caqh_provider_id, provider_status_date in active_statuses if caqh_provider_id is not None
         ]
 
-        return active_provider_ids
-    
-    # pylint: disable=trailing-whitespace
-    @classmethod
-    def _generate_urls(cls, statuses, host, organization):
-        parsed_statuses = pickle.loads(statuses[0])
 
-        active_statuses = []
+    def _select_if_active(self, status):
+        roster_status = status["roster_status"]
 
-        for status in parsed_statuses:
-            status_dict = status[1]  
-            decoded_data = pickle.loads(status_dict)
-            
-            for data in decoded_data:
+        caqh_provider_id = status["caqh_provider_id"]
+        provider_status_date = status["provider_status_date"]
 
-                roster_status = data["roster_status"]
-                caqh_provider_id =  data["caqh_provider_id"]
-                provider_status_date = data["provider_status_date"]
+        if roster_status == "ACTIVE":
+            return caqh_provider_id, provider_status_date
+        else:
+            LOGGER.info('Ignoring status with roster status:%s', roster_status)
+            return None, None
 
-                if roster_status == "ACTIVE":
-                    active_statuses.append(caqh_provider_id)
-                else:
-                    print(f"Ignoring status with roster status: {roster_status}")
 
-        value = [cls._generate_url(caqh_provider_id, provider_status_date, host, organization) 
-                 for caqh_provider_id in active_statuses]
-
-        return value
-
-    @classmethod
-    def _generate_url(cls, caqh_provider_id, provider_status_date, host, organization):
+    def _generate_url(self, caqh_provider_id, provider_status_date, host, organization):
         base_url = "https://" + host + "/credentialingapi/api/v8/entities"
 
         organization_parameter = "organizationId=" + str(organization)
@@ -104,4 +80,4 @@ class CAQHProfileURLListTranformerTask(Task):
         attestation_date = datetime.strptime(provider_status_date, '%Y%m%d').strftime("%m/%d/%Y")
         attestation_parameter = "attestationDate=" + attestation_date
 
-        return f"{base_url}?{organization_parameter}&{provider_parameters}&{attestation_parameter}".encode()
+        return f"{base_url}?{organization_parameter}&{provider_parameters}&{attestation_parameter}"
