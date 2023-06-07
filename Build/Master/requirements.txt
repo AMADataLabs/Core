@@ -1,6 +1,7 @@
 alembic==1.7.3
 alembic_utils==0.7.6
 arnparse==0.0.2
+atlassian-python-api==3.38.0
 boto3==1.18.12
 bs4==0.0.1
 celery==5.2.7
