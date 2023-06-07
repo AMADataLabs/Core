@@ -36,6 +36,7 @@ class CAQHStatusURLListTransformerTask(Task):
     @classmethod
     def _generate_url(cls, profile, host, organization):
         base_url = "https://" + host + "/RosterAPI/api/providerstatusbynpi"
+
         product_parameter = "Product=PV"
         organization_parameter = "Organization_Id=" + str(organization)
         npi_parameter = "NPI_Provider_Id=" + str(profile.get('npi').get('npiCode'))
@@ -45,10 +46,9 @@ class CAQHStatusURLListTransformerTask(Task):
 
 class CAQHProfileURLListTranformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
-
     # pylint: disable=trailing-whitespace
     def run(self):
-        statuses = pickle.loads([x[1] for x in pickle.loads(self._data[0])][0])
+        statuses = [json.loads(x[1]) for x in pickle.load(self._data[0])]
 
         active_statuses = [status for status in statuses if status["roster_status"] == "ACTIVE"]
 
