@@ -46,14 +46,14 @@ class CAQHStatusURLListTransformerTask(Task):
 
 class CAQHProfileURLListTranformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
-    # pylint: disable=trailing-whitespace
+
     def run(self):
-        statuses = [json.loads(x[1]) for x in pickle.load(self._data[0])]
+        statuses = [json.loads(x[1]) for x in pickle.loads(self._data[0])]
 
         active_statuses = [status for status in statuses if status["roster_status"] == "ACTIVE"]
 
         return [self._generate_url(status, self._parameters).encode() for status in active_statuses]
-  
+
     @classmethod
     def _generate_url(cls, status, parameters):
         base_url = "https://" + parameters.host + "/credentialingapi/api/v8/entities"
