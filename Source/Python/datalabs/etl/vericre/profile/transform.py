@@ -4,12 +4,11 @@ from  datetime import datetime
 import json
 import logging
 import pickle
-from   typing import List
+from  typing import List
 
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
-import pdb
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -47,37 +46,21 @@ class CAQHStatusURLListTransformerTask(Task):
 class CAQHProfileURLListTranformerTask(Task):
     PARAMETER_CLASS = CAQHStatusURLListTransformerParameters
 
+    # pylint: disable=trailing-whitespace
     def run(self):
-
         statuses = pickle.loads([x[1] for x in pickle.loads(self._data[0])][0])
 
-        active_statuses = [self._select_if_active(status) for status in statuses]
+        active_statuses = [status for status in statuses if status["roster_status"] == "ACTIVE"]
 
-        return [
-            self._generate_url(caqh_provider_id, provider_status_date, self._parameters.host, self._parameters.organization).encode() 
-            for caqh_provider_id, provider_status_date in active_statuses if caqh_provider_id is not None
-        ]
+        return [self._generate_url(status, self._parameters).encode() for status in active_statuses]
+  
+    @classmethod
+    def _generate_url(cls, status, parameters):
+        base_url = "https://" + parameters.host + "/credentialingapi/api/v8/entities"
 
-
-    def _select_if_active(self, status):
-        roster_status = status["roster_status"]
-
-        caqh_provider_id = status["caqh_provider_id"]
-        provider_status_date = status["provider_status_date"]
-
-        if roster_status == "ACTIVE":
-            return caqh_provider_id, provider_status_date
-        else:
-            LOGGER.info('Ignoring status with roster status:%s', roster_status)
-            return None, None
-
-
-    def _generate_url(self, caqh_provider_id, provider_status_date, host, organization):
-        base_url = "https://" + host + "/credentialingapi/api/v8/entities"
-
-        organization_parameter = "organizationId=" + str(organization)
-        provider_parameters = "caqhProviderId=" + caqh_provider_id
-        attestation_date = datetime.strptime(provider_status_date, '%Y%m%d').strftime("%m/%d/%Y")
+        organization_parameter = "organizationId=" + str(parameters.organization)
+        provider_parameters = "caqhProviderId=" + status["caqh_provider_id"]
+        attestation_date = datetime.strptime(status["provider_status_date"], '%Y%m%d').strftime("%m/%d/%Y")
         attestation_parameter = "attestationDate=" + attestation_date
 
         return f"{base_url}?{organization_parameter}&{provider_parameters}&{attestation_parameter}"
