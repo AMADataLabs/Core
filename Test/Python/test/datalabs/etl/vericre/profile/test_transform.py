@@ -1,13 +1,15 @@
 """ source: datalabs.etl.vericre.profile.transform """
 import json
+import pickle
+
 import pytest
-from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
+
+from   datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask, CAQHProfileURLListTranformerTask
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, protected-access
 def test_caqh_status_url_list_transformer_task(fixture_input_data):
     host = 'example.org'
-
     organization_id = '123'
     base_url = f'https://{host}/RosterAPI/api/providerstatusbynpi'
     common_params = f'Product=PV&Organization_Id={organization_id}'
@@ -25,12 +27,33 @@ def test_caqh_status_url_list_transformer_task(fixture_input_data):
         dict(host=host, organization=organization_id), data=fixture_input_data)
 
     result = task.run()
+
+    assert result == expected_urls
+
+
+# pylint: disable=redefined-outer-name
+def test_caqh_url_list_transformer_task(caqh_profile_statuses):
+    host = 'example.org'
+
+    organization_id = '6167'
+    url_1 = (
+        "https://example.org/credentialingapi/api/v8/entities?"
+        "organizationId=6167&caqhProviderId=16038676&attestationDate=08/14/2022"
+    )
+
+    expected_urls = [url_1.encode()]
+
+    task = CAQHProfileURLListTranformerTask(
+        dict(host=host, organization=organization_id), data=caqh_profile_statuses)
+
+    result = task.run()
+
     assert result == expected_urls
 
 
 @pytest.fixture
 def fixture_input_data():
-    data = [
+    npi_profiles_list = [
         {
             "npi": {
                 "npiCode": "123456009"
@@ -48,4 +71,22 @@ def fixture_input_data():
         }
     ]
 
-    return [json.dumps(data).encode()]
+    return [json.dumps(npi_profiles_list).encode()]
+
+# pylint: disable=line-too-long
+@pytest.fixture
+def caqh_profile_statuses():
+    return [
+        pickle.dumps(
+            [
+                (
+                    'https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=6166&NPI_Provider_Id=1669768537',
+                    b'{"organization_id": "6166", "caqh_provider_id": "16113253", "roster_status": "NOT ON ROSTER", "provider_status": "Expired Attestation", "provider_status_date": "20220814", "provider_practice_state": "IL", "provider_found_flag": "Y"}'
+                ),
+                (
+                    'https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=6166&NPI_Provider_Id=1669768538',
+                    b'{"organization_id": "6167", "caqh_provider_id": "16038676", "roster_status": "ACTIVE", "provider_status": "Expired Attestation", "provider_status_date": "20220814", "provider_practice_state": "IL", "provider_found_flag": "Y"}'
+                )
+            ]
+        )
+    ]
