@@ -21,7 +21,7 @@ LOGGER.setLevel(logging.DEBUG)
 class QLDBLoaderParameters:
     primary_key: str
     ledger: str
-    table: str = None
+    table: str
     execution_time: str = None
 
 
