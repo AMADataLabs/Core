@@ -50,7 +50,7 @@ class QLDBLoaderTask(Task):
 
     def _get_current_hashes(self, transaction_executor):
         cursor = transaction_executor.execute_statement(
-            f"SELECT {self._parameters.primary_key} md5 FROM {self._parameters.table}"
+            f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table}"
         )
 
         return {doc[self._parameters.primary_key]:doc['md5'] for doc in cursor}
