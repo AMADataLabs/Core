@@ -18,6 +18,9 @@ modspec:
       - orm
       - sftp
       - sqlalchemy
+  - package: datalabs.access.api
+    include:
+      - task
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
   - package: datalabs.etl
