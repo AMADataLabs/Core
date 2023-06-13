@@ -1,4 +1,5 @@
 """ DAG task wrapper and runner classes. """
+import json
 import logging
 
 from   datalabs.access.environment import VariableTree
@@ -14,7 +15,54 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class DAGTaskWrapper(TaskWrapper):
+class DAGTaskIDMixin:
+    def _get_dag_id(self):
+        return self._runtime_parameters["dag"].upper()
+
+    def _get_dag_name(self):
+        base_name, _ = self._parse_dag_id(self._get_dag_id())
+
+        return base_name
+
+    def _get_dag_index(self):
+        _, index = self._parse_dag_id(self._get_dag_id())
+
+        return index
+
+    def _get_task_id(self):
+        return self._runtime_parameters.get("task", "DAG").upper()
+
+    def _get_execution_time(self):
+        return self._runtime_parameters["execution_time"].upper()
+
+    @classmethod
+    def _parse_dag_id(cls, dag):
+        base_name = dag
+        iteration = None
+        components = dag.split(':')
+
+        if len(components) == 2:
+            base_name, iteration = components
+
+        return base_name, iteration
+
+
+class StatefulDAGMixin:
+    @classmethod
+    def _get_state_plugin(cls, parameters):
+        state_parameters = None
+
+        if hasattr(parameters, 'dag_state_parameters') and parameters.dag_state_parameters:
+            state_parameters = json.loads(parameters.dag_state_parameters)
+        elif hasattr(parameters, 'get'):
+            state_parameters = json.loads(parameters.get("DAG_STATE_PARAMETERS"))
+
+        plugin = import_plugin(state_parameters.pop("DAG_STATE_CLASS"))
+
+        return plugin(state_parameters)
+
+
+class DAGTaskWrapper(DAGTaskIDMixin, StatefulDAGMixin, TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
@@ -35,7 +83,7 @@ class DAGTaskWrapper(TaskWrapper):
 
         return task_parameters
 
-    def _get_task_data(self):
+    def _get_task_input_data(self):
         data = []
         cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
 
@@ -44,8 +92,15 @@ class DAGTaskWrapper(TaskWrapper):
 
         return data
 
+    def _put_task_output_data(self, data):
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
+
+        if cache:
+            cache.load_data(data)
+
     def _handle_success(self) -> str:
         super()._handle_success()
+
         if self._get_task_id() == "DAG":
             self._handle_dag_success(self.task)
         else:
@@ -86,33 +141,29 @@ class DAGTaskWrapper(TaskWrapper):
         return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
 
     def _handle_dag_success(self, dag):
-        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
+        dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        if dag_state_class:
-            self._update_dag_status_on_success(dag, dag_state_class)
+        self._update_dag_status_on_success(dag, dag_state)
 
         for task in dag.triggered_tasks:
             self._notify_task(task)
 
     def _handle_task_success(self, task):
-        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
+        dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        if dag_state_class:
-            self._update_task_status_on_success(task, dag_state_class)
+        self._update_task_status_on_success(task, dag_state)
 
         self._notify_dag()
 
     def _handle_dag_exception(self, dag):
-        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
+        dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        if dag_state_class:
-            self._update_dag_status_on_exception(dag, dag_state_class)
+        self._update_dag_status_on_exception(dag, dag_state)
 
     def _handle_task_exception(self, task):
-        dag_state_class = self._runtime_parameters.get("DAG_STATE_CLASS")
+        dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        if dag_state_class:
-            self._update_task_status_on_exception(task, dag_state_class)
+        self._update_task_status_on_exception(task, dag_state)
 
         self._notify_dag()
 
@@ -121,25 +172,6 @@ class DAGTaskWrapper(TaskWrapper):
             self._get_task_id(),
             self._get_dag_id()
         )
-
-    def _get_dag_name(self):
-        base_name, _ = self._parse_dag_id(self._get_dag_id())
-
-        return base_name
-
-    def _get_dag_index(self):
-        _, index = self._parse_dag_id(self._get_dag_id())
-
-        return index
-
-    def _get_dag_id(self):
-        return self._runtime_parameters["dag"].upper()
-
-    def _get_task_id(self):
-        return self._runtime_parameters["task"].upper()
-
-    def _get_execution_time(self):
-        return self._runtime_parameters["execution_time"].upper()
 
     @classmethod
     def _get_default_parameters_from_environment(cls, dag_id):
@@ -164,17 +196,6 @@ class DAGTaskWrapper(TaskWrapper):
         return parameters
 
     @classmethod
-    def _parse_dag_id(cls, dag):
-        base_name = dag
-        iteration = None
-        components = dag.split(':')
-
-        if len(components) == 2:
-            base_name, iteration = components
-
-        return base_name, iteration
-
-    @classmethod
     def _get_parameters(cls, branch):
         var_tree = VariableTree.from_environment()
 
@@ -182,15 +203,14 @@ class DAGTaskWrapper(TaskWrapper):
 
         return {key:value for key, value in candidate_parameters.items() if value is not None}
 
-    def _update_dag_status_on_success(self, dag, dag_state_class):
+    def _update_dag_status_on_success(self, dag, dag_state):
         dag_id = self._get_dag_id()
         execution_time = self._get_execution_time()
-        state = import_plugin(dag_state_class)(self._runtime_parameters)
-        current_status = state.get_dag_status(dag_id, execution_time)
+        current_status = dag_state.get_dag_status(dag_id, execution_time)
         LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, dag.status)
 
         if current_status != dag.status:
-            success = state.set_dag_status(dag_id, execution_time, dag.status)
+            success = dag_state.set_dag_status(dag_id, execution_time, dag.status)
             LOGGER.info( 'Setting status of DAG "%s" (%s) to %s', dag_id, execution_time, dag.status)
 
             if not success:
@@ -199,14 +219,23 @@ class DAGTaskWrapper(TaskWrapper):
             if dag.status in [Status.FINISHED, Status.FAILED]:
                 self._send_dag_status_notification(dag.status)
 
-    def _update_dag_status_on_exception(self, dag, dag_state_class):
+    def _update_task_status_on_success(self, task, dag_state):
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
+
+        success = dag_state.set_task_status(dag, task, execution_time, Status.FINISHED)
+
+        if not success:
+            LOGGER.error('Unable to set status of task %s of dag %s to Finished', task, dag)
+
+    def _update_dag_status_on_exception(self, dag, dag_state):
         dag_id = self._get_dag_id()
         execution_time = self._get_execution_time()
-        state = import_plugin(dag_state_class)(self._runtime_parameters)
-        current_status = state.get_dag_status(dag_id, execution_time)
+        current_status = dag_state.get_dag_status(dag_id, execution_time)
 
         if current_status not in [Status.FINISHED, Status.FAILED]:
-            success = state.set_dag_status(dag_id, execution_time, Status.FAILED)
+            success = dag_state.set_dag_status(dag_id, execution_time, Status.FAILED)
             LOGGER.info( 'Setting status of dag "%s" (%s) to %s', dag_id, execution_time, Status.FAILED)
 
             if not success:
@@ -214,27 +243,15 @@ class DAGTaskWrapper(TaskWrapper):
 
             self._send_dag_status_notification(Status.FAILED)
 
-    def _update_task_status_on_exception(self, task, dag_state_class):
+    def _update_task_status_on_exception(self, task, dag_state):
         dag = self._get_dag_id()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        state = import_plugin(dag_state_class)(self._runtime_parameters)
 
-        success = state.set_task_status(dag, task, execution_time, Status.FAILED)
+        success = dag_state.set_task_status(dag, task, execution_time, Status.FAILED)
 
         if not success:
             LOGGER.error('Unable to set status of task %s of dag %s to Failed', task, dag)
-
-    def _update_task_status_on_success(self, task, dag_state_class):
-        dag = self._get_dag_id()
-        task = self._get_task_id()
-        execution_time = self._get_execution_time()
-        state = import_plugin(dag_state_class)(self._runtime_parameters)
-
-        success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
-
-        if not success:
-            LOGGER.error('Unable to set status of task %s of dag %s to Finished', task, dag)
 
     def _notify_dag(self):
         pass

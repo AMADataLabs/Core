@@ -85,8 +85,6 @@ class TaskWrapper(ABC):
         self._parameters = parameters or {}
         self._runtime_parameters = None
         self._task_parameters = None
-        self._inputs = None
-        self._outputs = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -100,15 +98,17 @@ class TaskWrapper(ABC):
 
             self._task_parameters = self._get_task_parameters()
 
-            self._inputs = self._get_task_data()
+            input_data = self._get_task_input_data()
 
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(self._task_parameters, self._inputs)
+            self.task = self.task_class(self._task_parameters, input_data)
 
             self._pre_run()
 
-            self._outputs = self.task.run()
+            output_data = self.task.run()
+
+            self._put_task_output_data(output_data)
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
@@ -142,8 +142,11 @@ class TaskWrapper(ABC):
     def _get_task_parameters(self):
         return self._parameters
 
-    def _get_task_data(self):
+    def _get_task_input_data(self):
         return []
+
+    def _put_task_output_data(self, data):
+        LOGGER.info("Output Data:\n %s", data)
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):

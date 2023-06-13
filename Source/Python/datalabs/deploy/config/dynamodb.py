@@ -114,7 +114,7 @@ class ConfigMapLoader:
         dag_class = import_plugin(parameters["DAG"]["DAG_CLASS"])
 
         for task, task_parameters in parameters.items():
-            if task not in ("GLOBAL", "DAG", "LOCAL") and "TASK_CLASS" not in task_parameters:
+            if task not in ("GLOBAL", "DAG") and "TASK_CLASS" not in task_parameters:
                 parameters[task] = cls._add_task_class(dag_class, task, task_parameters)
 
         for task in dag_class.tasks:
@@ -211,7 +211,7 @@ class Configuration:
         for item in response["Items"]:
             task = item["Task"]["S"]
 
-            if task not in ["DAG", "GLOBAL", "LOCAL"]:
+            if task not in ["DAG", "GLOBAL"]:
                 tasks.append(task)
 
         return tasks
