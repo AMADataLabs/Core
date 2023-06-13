@@ -8,7 +8,7 @@ ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 
 WORKDIR /Task
 ENV AWS_DEFAULT_REGION=us-east-1
-ENV MAVEN_VERSION=3.9.1
+ENV MAVEN_VERSION=3.9.2
 ENV MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 ENV PATH="/Task/apache-maven-${MAVEN_VERSION}/bin:$PATH"
 

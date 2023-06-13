@@ -8,7 +8,7 @@ ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 
 WORKDIR /Task
 ENV AWS_DEFAULT_REGION=us-east-1
-ENV MAVEN_VERSION=3.9.1
+ENV MAVEN_VERSION=3.9.2
 ENV MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 ENV PATH="/Task/apache-maven-${MAVEN_VERSION}/bin:$PATH"
 
@@ -18,10 +18,10 @@ RUN apt update && \
     apt update && \
     apt install -y jq unzip python3.9 python3-pip python3.9-venv
 
-RUN curl "${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o apache-maven.tar.gz && \
+RUN curl --fail "${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o apache-maven.tar.gz && \
     tar xzf apache-maven.tar.gz
 
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+RUN curl --fail "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
     rm -rf ./aws
