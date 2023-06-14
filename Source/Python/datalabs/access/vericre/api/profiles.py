@@ -49,6 +49,15 @@ class ProfileRecords:
     work_history: list=None
     insurance: list=None
 
+class StaticTaskParameters:
+    PROFILE_RECORD_SECTION_MAPPING = {
+        'medicalSchools': 'medical_schools',
+        'medicalTraining': "medical_training",
+        'ProviderCDS': "provider_cds",
+        'WorkHistory': "work_history",
+        "Insurance": "insurance"
+    }
+
 
 class BaseProfileEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = ProfilesEndpointParameters
@@ -87,13 +96,10 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
         query = self._sort(query)
 
         query_result = [row._asdict() for row in query.all()]
-        print("query_result===\n", len(query_result))
+        print("query_result count === ", len(query_result))
         print(query_result[0])
 
         response_result = self._format_query_result(query_result)
-        print("=======")
-        print(asdict(response_result[entity_id]))
-        print("=======")
         
         response_result = [asdict(response_result[entity_id])]
         self._response_body = self._generate_response_body(response_result)
@@ -170,10 +176,16 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
                 values = record['values']
             )
             
-            if 'demographics' == record['section_identifier']:
-                if type(None) == type(response_result_dict[record['ama_entity_id']].demographics):
-                    response_result_dict[record['ama_entity_id']].demographics = []
-                
-                response_result_dict[record['ama_entity_id']].demographics.append(item)
-        
+            if record['section_identifier'] in StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING:
+                record_section = StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING[record['section_identifier']]
+            else:
+                record_section = record['section_identifier']
+
+            if type(None) == type(getattr(response_result_dict[record['ama_entity_id']], record_section)):
+                setattr(response_result_dict[record['ama_entity_id']], record_section, [])
+
+            result_list = getattr(response_result_dict[record['ama_entity_id']], record_section)
+            result_list.append(item)
+            setattr(response_result_dict[record['ama_entity_id']], record_section, result_list)
+
         return response_result_dict
