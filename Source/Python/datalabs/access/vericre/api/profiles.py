@@ -3,8 +3,7 @@ from   dataclasses import dataclass, asdict
 import json
 import logging
 
-from   sqlalchemy import case, func, literal
-from   sqlalchemy.dialects.postgresql import UUID
+from   sqlalchemy import case, literal
 
 from   datalabs.access.api.task import APIEndpointTask
 from   datalabs.access.orm import Database
@@ -96,12 +95,10 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
         query = self._sort(query)
 
         query_result = [row._asdict() for row in query.all()]
-        print("query_result count === ", len(query_result))
-        print(query_result[0])
 
         response_result = self._format_query_result(query_result)
         
-        response_result = [asdict(response_result[entity_id])]
+        response_result = json.dumps(list(response_result.values()), default=lambda o: asdict(o))
         self._response_body = self._generate_response_body(response_result)
 
     @classmethod
@@ -147,7 +144,7 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
 
     @classmethod
     def _filter_by_entity_id(cls, query, entity_id):
-        return query.filter(User.ama_entity_id == entity_id)
+        return query.filter(User.ama_entity_id.in_([entity_id]))
 
     @classmethod
     def _filter_by_active_user(cls, query):
