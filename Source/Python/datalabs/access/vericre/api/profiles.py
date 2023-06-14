@@ -98,7 +98,8 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
 
         response_result = self._format_query_result(query_result)
         
-        response_result = json.dumps(list(response_result.values()), default=lambda o: asdict(o))
+        response_result = [asdict(object) for object in list(response_result.values())]
+
         self._response_body = self._generate_response_body(response_result)
 
     @classmethod
