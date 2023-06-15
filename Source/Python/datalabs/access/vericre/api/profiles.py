@@ -115,38 +115,69 @@ class BaseProfileEndpointTask(APIEndpointTask):
         return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
 
     def _format_query_result(self, query_result):
-        response_result_dict = {}
+        response_result = {}
         for record in query_result:
-            if record['ama_entity_id'] not in response_result_dict:
-                response_result_dict[record['ama_entity_id']] = ProfileRecords(
-                    entity_id = record['ama_entity_id']
-                )
+            if record['ama_entity_id'] not in response_result:
+                response_result = self._add_entity_id_in_response(response_result, record)
 
-            item = dict(
-                field_identifier = record['field_identifier'],
-                is_authoritative = record['is_authoritative'],
-                is_source = record['is_source'],
-                name = record['name'],
-                read_only = record['read_only'],
-                source_key = record['source_key'],
-                source_tag = record['source_tag'],
-                type = record['type'],
-                values = record['values']
-            )
-            
-            if record['section_identifier'] in StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING:
-                record_section = StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING[record['section_identifier']]
-            else:
-                record_section = record['section_identifier']
+            record_section = self._format_section_identifier(record['section_identifier'])
 
-            if type(None) == type(getattr(response_result_dict[record['ama_entity_id']], record_section)):
-                setattr(response_result_dict[record['ama_entity_id']], record_section, [])
+            response_result = self._append_record_to_response_result(response_result, record_section, record)
 
-            result_list = getattr(response_result_dict[record['ama_entity_id']], record_section)
-            result_list.append(item)
-            setattr(response_result_dict[record['ama_entity_id']], record_section, result_list)
+        return [asdict(object) for object in list(response_result.values())]
 
-        return [asdict(object) for object in list(response_result_dict.values())]
+    @classmethod
+    def _add_entity_id_in_response(cls, response_result, record):
+        response_result[record['ama_entity_id']] = ProfileRecords(
+            entity_id = record['ama_entity_id']
+        )
+
+        return response_result
+    
+    @classmethod
+    def _format_section_identifier(cls, section_identifier):
+        record_section = None
+
+        if section_identifier in StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING:
+            record_section = StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING[section_identifier]
+        else:
+            record_section = section_identifier
+
+        return record_section
+
+    def _append_record_to_response_result(self, response_result, record_section, record):
+        if type(None) == type(getattr(response_result[record['ama_entity_id']], record_section)):
+            response_result = self._initial_record_section(response_result, record_section, record)
+
+        item = self._create_record_item(record)
+
+        result_list = getattr(response_result[record['ama_entity_id']], record_section)
+
+        result_list.append(item)
+        
+        setattr(response_result[record['ama_entity_id']], record_section, result_list)
+        
+        return response_result
+
+    @classmethod
+    def _initial_record_section(cls, response_result, record_section, record):
+        setattr(response_result[record['ama_entity_id']], record_section, [])
+
+        return response_result
+
+    @classmethod
+    def _create_record_item(cls, record):
+        return dict(
+            field_identifier = record['field_identifier'],
+            is_authoritative = record['is_authoritative'],
+            is_source = record['is_source'],
+            name = record['name'],
+            read_only = record['read_only'],
+            source_key = record['source_key'],
+            source_tag = record['source_tag'],
+            type = record['type'],
+            values = record['values']
+        )
 
     @classmethod
     def _generate_response_body(cls, response_result):
