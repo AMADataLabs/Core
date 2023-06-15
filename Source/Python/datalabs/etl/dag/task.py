@@ -51,15 +51,19 @@ class StatefulDAGMixin:
     @classmethod
     def _get_state_plugin(cls, parameters):
         state_parameters = None
+        plugin = None
 
         if hasattr(parameters, 'dag_state_parameters') and parameters.dag_state_parameters:
             state_parameters = json.loads(parameters.dag_state_parameters)
         elif hasattr(parameters, 'get'):
-            state_parameters = json.loads(parameters.get("DAG_STATE_PARAMETERS"))
+            state_parameters = json.loads(parameters.get("DAG_STATE_PARAMETERS", "{}"))
 
-        plugin = import_plugin(state_parameters.pop("DAG_STATE_CLASS"))
+        plugin_class = import_plugin(state_parameters.pop("DAG_STATE_CLASS", None))
 
-        return plugin(state_parameters)
+        if plugin_class:
+            plugin = plugin_class(state_parameters)
+
+        return plugin
 
 
 class DAGTaskWrapper(DAGTaskIDMixin, StatefulDAGMixin, TaskWrapper):
@@ -151,19 +155,22 @@ class DAGTaskWrapper(DAGTaskIDMixin, StatefulDAGMixin, TaskWrapper):
     def _handle_task_success(self, task):
         dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        self._update_task_status_on_success(task, dag_state)
+        if dag_state:
+            self._update_task_status_on_success(task, dag_state)
 
         self._notify_dag()
 
     def _handle_dag_exception(self, dag):
         dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        self._update_dag_status_on_exception(dag, dag_state)
+        if dag_state:
+            self._update_dag_status_on_exception(dag, dag_state)
 
     def _handle_task_exception(self, task):
         dag_state = self._get_state_plugin(self._runtime_parameters)
 
-        self._update_task_status_on_exception(task, dag_state)
+        if dag_state:
+            self._update_task_status_on_exception(task, dag_state)
 
         self._notify_dag()
 

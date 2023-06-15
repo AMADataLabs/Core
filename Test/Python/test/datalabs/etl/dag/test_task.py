@@ -69,7 +69,7 @@ def test_task_input_data_is_loaded(args, environment):
 
     task_wrapper._get_task_parameters()  # required to extract cache parameters
 
-    data = task_wrapper._get_task_data()
+    data = task_wrapper._get_task_input_data()
 
     assert data is not None
     assert len(data) == 3
@@ -162,6 +162,12 @@ def environment():
     current_environment = os.environ.copy()
 
     os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_task.DummyTask'
+    os.environ['TEST_DAG__DAG_STATE_PARAMETERS'] = '''
+        {
+            "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
+            "BASE_PATH": "./"
+        }
+    '''
     os.environ['TEST_DAG__DAG_VARIABLE'] = 'tootie'
     os.environ['TEST_DAG__CACHE_CLASS'] = 'test.datalabs.etl.dag.test_task.DummyTaskDataCache'
     os.environ['TEST_DAG__CACHE_STUFF'] = 'JIDFSAF9E0RU90FOV9A0FUD'

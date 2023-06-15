@@ -1,4 +1,5 @@
 """ Task wrapper for a Celery runtime environment. """
+import json
 import logging
 
 from   datalabs.access.parameter.file import FileEnvironmentLoader
@@ -7,7 +8,6 @@ from   datalabs.etl.dag.notify.celery import CeleryDAGNotifier, CeleryTaskNotifi
 from   datalabs.parameter import ParameterValidatorMixin
 import datalabs.etl.dag.task
 from   datalabs.etl.dag.state import Status
-from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class DAGTaskWrapper(
             state = self._get_state_plugin(self._parameters)
             dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
         else:
-            self._override_runtime_parameters(dag_task_parameters.pop("OVERRIDES", {}))
+            self._override_runtime_parameters(dag_task_parameters)
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
 
         LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
@@ -114,10 +114,10 @@ class DAGTaskWrapper(
 
         return runtime_parameters
 
-    def _override_runtime_parameters(self, overrides):
-        for name, value in list(overrides.items()):
-            if name in self._runtime_parameters:
-                self._runtime_parameters[name] = value
+    def _override_runtime_parameters(self, task_parameters):
+        overrides = json.loads(task_parameters.pop("OVERRIDES", "{}"))
+
+        self._runtime_parameters.update({k:v for k, v in overrides.items() if k in self._runtime_parameters})
 
     @classmethod
     def _remove_bootstrap_parameters(cls, task_parameters):

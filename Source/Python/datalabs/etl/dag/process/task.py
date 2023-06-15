@@ -1,13 +1,11 @@
 ''' DAG and Task Processor component classes. '''
 from   dataclasses import dataclass
-import json
 import logging
 
 from   datalabs.etl.dag.task import StatefulDAGMixin
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.dag.plugin import PluginExecutorMixin
 from   datalabs.parameter import add_schema
-from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
 
 logging.basicConfig()
