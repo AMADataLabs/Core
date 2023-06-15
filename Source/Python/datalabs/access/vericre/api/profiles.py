@@ -30,7 +30,7 @@ class ProfilesEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    payload: dict or None
+    # payload: dict or None
     unknowns: dict=None
 
 
