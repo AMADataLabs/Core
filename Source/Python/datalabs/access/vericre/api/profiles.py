@@ -16,24 +16,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=too-many-instance-attributes
-@add_schema(unknowns=True)
-@dataclass
-class ProfilesEndpointParameters:
-    method: str
-    path: dict
-    query: dict
-    authorization: dict
-    database_name: str
-    database_backend: str
-    database_host: str
-    database_port: str
-    database_username: str
-    database_password: str
-    # payload: dict or None
-    unknowns: dict=None
-
-
 @dataclass
 class ProfileRecords:
     entity_id: str
@@ -61,8 +43,6 @@ class StaticTaskParameters:
 
 
 class BaseProfileEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = ProfilesEndpointParameters
-
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
@@ -173,7 +153,26 @@ class BaseProfileEndpointTask(APIEndpointTask):
         return response_result
 
 
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class LookupMultiProfilesEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    payload: dict
+    unknowns: dict=None
+
+
 class LookupMultiProfilesEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = LookupMultiProfilesEndpointParameters
 
     def _run(self, database):
         entity_id = self._parameters.payload.get("entity_id")
@@ -185,7 +184,26 @@ class LookupMultiProfilesEndpointTask(BaseProfileEndpointTask):
         return query.filter(User.ama_entity_id.in_(entity_id))
 
 
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class LookupSingleProfileEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = LookupSingleProfileEndpointParameters
+
     def _run(self, database):
         entity_id = self._parameters.path.get('entityId')
 
