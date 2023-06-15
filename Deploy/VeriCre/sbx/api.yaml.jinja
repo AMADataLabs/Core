@@ -23,6 +23,7 @@ data:
     #######################################################################
 
     VERICRE_API__ROUTE__PHYSICIANS_SEARCH: '/physicians/search'
+    VERICRE_API__ROUTE__PROFILES_LOOKUP:   '/profiles/lookup'
     VERICRE_API__ROUTE__PROFILES:          '/profiles'
     VERICRE_API__ROUTE__PROFILE:           '/profile/*'
     VERICRE_API__ROUTE__PROFILE_DOCUMENTS: '/profile/*/documents'
@@ -51,7 +52,21 @@ data:
     #########################################################################
 
 
-    # GET/PATCH /profiles
+    # POST /profiles/lookup
+    VERICRE_API__PROFILES_LOOKUP__TASK_CLASS:  'datalabs.access.vericre.api.profiles.LookupMultiProfilesEndpointTask'
+    VERICRE_API__PROFILES_LOOKUP__DATABASE_NAME:  ${DATABASE_NAME}
+    VERICRE_API__PROFILES_LOOKUP__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    VERICRE_API__PROFILES_LOOKUP__DATABASE_HOST: ${DATABASE_HOST}
+    VERICRE_API__PROFILES_LOOKUP__DATABASE_PORT: ${DATABASE_PORT}
+    VERICRE_API__PROFILES_LOOKUP__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    VERICRE_API__PROFILES_LOOKUP__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "VERICRE_API"}, "Task": {"S": "<Task ID>"}})
+    #########################################################################
+
+
+    # PATCH /profiles
     VERICRE_API__PROFILES__TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
     VERICRE_API__PROFILES__DATABASE_NAME:  ${DATABASE_NAME}
     VERICRE_API__PROFILES__DATABASE_BACKEND: ${DATABASE_BACKEND}

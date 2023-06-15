@@ -1,4 +1,5 @@
 """ Release endpoint classes."""
+from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import json
 import logging
@@ -29,6 +30,7 @@ class ProfilesEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
+    payload: dict
     unknowns: dict=None
 
 
@@ -67,27 +69,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
-    def _run(self):
-        pass
-
-    @classmethod
-    def _generate_response_body(cls, response_result):
-        return response_result
-
-
-class ProfilesEndpointTask(BaseProfileEndpointTask):
-
-    def _run(self):
-        method = self._parameters.method
-
-        response_result = f"ProfilesEndpointTask success, method: {method}"
-        self._response_body = self._generate_response_body(response_result)
-
-
-class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
-    def _run(self, database):
-        entity_id = self._parameters.path.get('entityId')
-
+    def _run(self, database, entity_id):
         query = self._query_for_profile(database)
 
         query = self._filter(query, entity_id)
@@ -97,8 +79,6 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
         query_result = [row._asdict() for row in query.all()]
 
         response_result = self._format_query_result(query_result)
-        
-        response_result = [asdict(object) for object in list(response_result.values())]
 
         self._response_body = self._generate_response_body(response_result)
 
@@ -143,9 +123,9 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
 
         return query.filter(FormField.is_hidden == 'False')
 
-    @classmethod
+    @abstractmethod
     def _filter_by_entity_id(cls, query, entity_id):
-        return query.filter(User.ama_entity_id.in_([entity_id]))
+        pass
 
     @classmethod
     def _filter_by_active_user(cls, query):
@@ -186,4 +166,31 @@ class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
             result_list.append(item)
             setattr(response_result_dict[record['ama_entity_id']], record_section, result_list)
 
-        return response_result_dict
+        return [asdict(object) for object in list(response_result_dict.values())]
+
+    @classmethod
+    def _generate_response_body(cls, response_result):
+        return response_result
+
+
+class LookupMultiProfilesEndpointTask(BaseProfileEndpointTask):
+
+    def _run(self, database):
+        entity_id = self._parameters.payload.get("entity_id")
+        
+        super()._run(database, entity_id)
+
+    @classmethod
+    def _filter_by_entity_id(cls, query, entity_id):
+        return query.filter(User.ama_entity_id.in_(entity_id))
+
+
+class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
+    def _run(self, database):
+        entity_id = self._parameters.path.get('entityId')
+
+        super()._run(database, entity_id)
+
+    @classmethod
+    def _filter_by_entity_id(cls, query, entity_id):
+        return query.filter(User.ama_entity_id == entity_id)
