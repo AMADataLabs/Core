@@ -87,9 +87,13 @@ def dag_parameters():
     return dict(
         LAMBDA_FUNCTION='MyAppStack-sbx-MyETL',
         DAG_CLASS='datalabs.etl.dag.cpt.api.MY_DAGDAG',
-        DAG_STATE_CLASS='datalabs.etl.dag.state.dynamodb.DAGState',
-        DAG_STATE_TABLE='DataLake-dag-state-sbx',
-        STATE_LOCK_TABLE='DataLake-scheduler-locks-sbx',
+        DAG_STATE_PARAMETERS='''
+            {
+                "DAG_STATE_CLASS": "datalabs.etl.dag.state.dynamodb.DAGState",
+                "DAG_STATE_TABLE": "DataLake-dag-state-sbx",
+                "STATE_LOCK_TABLE": "DataLake-scheduler-locks-sbx"
+            }
+        ''',
         DAG_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor',
         TASK_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-TaskProcessor',
         DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask',
@@ -100,8 +104,12 @@ def dag_parameters():
 @pytest.fixture
 def task_parameters():
     return dict(
-        LAMBDA_FUNCTION='MyAppStack-sbx-MyBigTask',
-        TASK_EXECUTOR_CLASS='com.dancinglamb.LambdaTaskExecutorTask',
+        OVERRIDES='''
+            {
+                "LAMBDA_FUNCTION": "MyAppStack-sbx-MyBigTask",
+                "TASK_EXECUTOR_CLASS": "com.dancinglamb.LambdaTaskExecutorTask"
+            }
+        ''',
         CORNBREAD_TEMPERATURE='32',
         BASE_METRIC='grit'
     )
@@ -112,9 +120,13 @@ def expected_runtime_parameters():
     return dict(
         LAMBDA_FUNCTION='MyAppStack-sbx-MyETL',
         DAG_CLASS='datalabs.etl.dag.cpt.api.MY_DAGDAG',
-        DAG_STATE_CLASS='datalabs.etl.dag.state.dynamodb.DAGState',
-        DAG_STATE_TABLE='DataLake-dag-state-sbx',
-        STATE_LOCK_TABLE='DataLake-scheduler-locks-sbx',
+        DAG_STATE_PARAMETERS='''
+            {
+                "DAG_STATE_CLASS": "datalabs.etl.dag.state.dynamodb.DAGState",
+                "DAG_STATE_TABLE": "DataLake-dag-state-sbx",
+                "STATE_LOCK_TABLE": "DataLake-scheduler-locks-sbx"
+            }
+        ''',
         DAG_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor',
         TASK_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-TaskProcessor',
         DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask',

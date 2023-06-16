@@ -1,117 +1,104 @@
-data:
-  #######################################################################
-  # Global Variables - {"DAG": {"S": "CPTCORE"}, "Task": {"S": "GLOBAL"}}
-  #######################################################################
+---
+CPT_CORE:
+    GLOBAL:
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
 
-  ENVIRONMENT: sbx
-  ACCOUNT: '644454719059'
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-  S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-  S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+    PYTHON_S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    JAVA_S3_CACHE_CLASS: 'datalabs.task.cache.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/CPT/Core'
+    S3_CACHE_JAVA_CLASS: 'datalabs.etl.dag.cache.S3TaskDataCache'
 
-  PYTHON_S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-  JAVA_S3_CACHE_CLASS: 'datalabs.task.cache.S3TaskDataCache'
-  S3_BASE_PATH: 'AMA/CPT/Core'
-  S3_CACHE_JAVA_CLASS: 'datalabs.etl.dag.cache.S3TaskDataCache'
+    CORE_OUTPUT_ZIP: output.zip
 
-  CORE_OUTPUT_ZIP: output.zip
+    DAG:
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-BuilderDAG'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.files.core.CPTCoreDAG'
+        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+        DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+        STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+        STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,rudainah.najeeb@ama-assn.org'
+        STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
+        JOB_QUEUE: 'CPT-API-${ENVIRONMENT}-Files'
+        JOB_DEFINITION: 'CPT-API-${ENVIRONMENT}-Files'
+        TASK_CLASS: ''
 
+    FIND_INPUT_FILES:
+        BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        BASE_PATH: ${S3_BASE_PATH}
+        CORE_FILES_ZIP: ${CORE_OUTPUT_ZIP}
 
-  #######################################################################
-  # DAG Variables - ({"DAG": {"S": "CPTCORE"}, "Task": {"S": "DAG"}})
-  #######################################################################
-
-  CPT_CORE__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-BuilderDAG'
-  CPT_CORE__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.core.CPTCoreDAG'
-  CPT_CORE__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-  CPT_CORE__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-  CPT_CORE__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-  CPT_CORE__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-  CPT_CORE__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-  CPT_CORE__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-  CPT_CORE__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-  CPT_CORE__DAG__ENVIRONMENT: ${ENVIRONMENT}
-  CPT_CORE__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,rudainah.najeeb@ama-assn.org'
-  CPT_CORE__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
-  CPT_CORE__DAG__JOB_QUEUE: 'CPT-API-${ENVIRONMENT}-Files'
-  CPT_CORE__DAG__JOB_DEFINITION: 'CPT-API-${ENVIRONMENT}-Files'
-  CPT_CORE__DAG__TASK_CLASS: ''  # Used by Java DAG tasks
-
-
-  ##########################################################################
-  # Task Variables - ({"DAG": {"S": "CPTCORE"}, "Task": {"S": "<Task ID>"}})
-  ##########################################################################
-
-
-  # Find previous core releases
-  CPT_CORE__FIND_INPUT_FILES__BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-  CPT_CORE__FIND_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__FIND_INPUT_FILES__CORE_FILES_ZIP: ${CORE_OUTPUT_ZIP}
-
-  CPT_CORE__FIND_INPUT_FILES__CACHE_OUTPUT_CLASS: ${PYTHON_S3_CACHE_CLASS}
-  CPT_CORE__FIND_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-  CPT_CORE__FIND_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__FIND_INPUT_FILES__CACHE_OUTPUT_FILES: input_files.txt
+        CACHE_OUTPUT_CLASS: ${PYTHON_S3_CACHE_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: input_files.txt
 
 
-  # Extract previous link releases
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_CLASS: ${PYTHON_S3_CACHE_CLASS}
+    EXTRACT_INPUT_FILES:
+        CACHE_CLASS: ${PYTHON_S3_CACHE_CLASS}
 
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_INPUT_FILES: input_files.txt
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: input_files.txt
 
-  CPT_CORE__EXTRACT_INPUT_FILES__BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-  CPT_CORE__EXTRACT_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__EXTRACT_INPUT_FILES__INCLUDE_DATESTAMP: 'False'
+        BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        BASE_PATH: ${S3_BASE_PATH}
+        INCLUDE_DATESTAMP: 'False'
 
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__EXTRACT_INPUT_FILES__CACHE_OUTPUT_FILES: 'input/annual_core.zip,input/incremental_core.zip'
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'input/annual_core.zip,input/incremental_core.zip'
 
+    BUILD_CORE:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
+        TASK_CLASS: datalabs.etl.cpt.build.CoreBuilderTask
+        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+        CACHE_CLASS: ${JAVA_S3_CACHE_CLASS}
 
-  # Build Core
-  CPT_CORE__BUILD_CORE__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
-  CPT_CORE__BUILD_CORE__TASK_CLASS: datalabs.etl.cpt.build.CoreBuilderTask
-  CPT_CORE__BUILD_CORE__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
-  CPT_CORE__BUILD_CORE__CACHE_CLASS: ${JAVA_S3_CACHE_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'input/annual_core.zip,input/incremental_core.zip'
 
-  CPT_CORE__BUILD_CORE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-  CPT_CORE__BUILD_CORE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__BUILD_CORE__CACHE_INPUT_FILES: 'input/annual_core.zip,input/incremental_core.zip'
-
-  CPT_CORE__BUILD_CORE__HOST: 'ec2-35-169-124-185.compute-1.amazonaws.com'
-  CPT_CORE__BUILD_CORE__USERNAME: 'admin'
-  CPT_CORE__BUILD_CORE__PASSWORD: '{{marklogic_password}}'
-  CPT_CORE__BUILD_CORE__PORT: '8022'
-  CPT_CORE__BUILD_CORE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-  CPT_CORE__BUILD_CORE__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-  CPT_CORE__BUILD_CORE__CACHE_OUTPUT_FILES: ${CORE_OUTPUT_ZIP}
-
-
-  # Build CONSUMER_AND_CLINICIAN_DESCRIPTORS
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_CLASS: ${JAVA_S3_CACHE_CLASS}
-
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_FILES: incremental_core.zip
-
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-  # CPT_CORE__BUILD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_OUTPUT_FILES: consumer_and_clinician_descriptors.csv
+        HOST: 'ec2-35-169-124-185.compute-1.amazonaws.com'
+        USERNAME: 'admin'
+        PASSWORD: '{{marklogic_password}}'
+        PORT: '8022'
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: ${CORE_OUTPUT_ZIP}
 
 
-  # Load Consumer and Clinician Descriptors
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_CLASS: ${PYTHON_S3_CACHE_CLASS}
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__CACHE_INPUT_FILES: consumer_and_clinician_descriptors.csv
 
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__TO_ADDRESS: datalabs@ama-assn.org
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__FILES: consumer_and_clinician_descriptors.csv
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__SUBJECT: "Consumer and Clinician Descriptors Report - %Y-%m-%d"
-  # CPT_CORE__LOAD_CONSUMER_AND_CLINICIAN_DESCRIPTORS__MESSAGE: "
-  # This is an automated email from DataLabs.
-  #
-  # Attached is the latest Consumer and Clinician Descriptors report.
-  # "
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #
+
+

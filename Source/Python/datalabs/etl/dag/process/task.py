@@ -2,6 +2,7 @@
 from   dataclasses import dataclass
 import logging
 
+from   datalabs.etl.dag.task import StatefulDAGMixin
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.dag.plugin import PluginExecutorMixin
 from   datalabs.parameter import add_schema
@@ -18,17 +19,17 @@ class DAGProcessorParameters:
     dag: str
     execution_time: str
     dag_class: str
-    dag_state_class: str
+    dag_state_parameters: str
     dag_executor_class: str
     unknowns: dict=None
 
 
-class DAGProcessorTask(PluginExecutorMixin, Task):
+class DAGProcessorTask(StatefulDAGMixin, PluginExecutorMixin, Task):
     PARAMETER_CLASS = DAGProcessorParameters
 
     def run(self):
         LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
-        state = self._get_plugin(self._parameters.dag_state_class, self._parameters)
+        state = self._get_state_plugin(self._parameters)
         executor = self._get_plugin(self._parameters.dag_executor_class, self._parameters)
 
         status = state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
@@ -44,7 +45,6 @@ class DAGProcessorTask(PluginExecutorMixin, Task):
         executor.run()
 
 
-
 @add_schema(unknowns=True)
 @dataclass
 class TaskProcessorParameters:
@@ -52,12 +52,12 @@ class TaskProcessorParameters:
     task: str
     execution_time: str
     dag_class: str
-    dag_state_class: str
+    dag_state_parameters: str
     task_executor_class: str
     unknowns: dict=None
 
 
-class TaskProcessorTask(PluginExecutorMixin, Task):
+class TaskProcessorTask(StatefulDAGMixin, PluginExecutorMixin, Task):
     PARAMETER_CLASS = TaskProcessorParameters
 
     def run(self):
@@ -65,7 +65,7 @@ class TaskProcessorTask(PluginExecutorMixin, Task):
         dag = self._parameters.dag
         task = self._parameters.task
         execution_time = self._parameters.execution_time
-        state = self._get_plugin(self._parameters.dag_state_class, self._parameters)
+        state = self._get_state_plugin(self._parameters)
         executor = self._get_plugin(self._parameters.task_executor_class, self._parameters)
 
         status = state.get_task_status(dag, task, execution_time)
