@@ -25,19 +25,20 @@ class DAG(dag.DAG):
         CREATE_AMA_PROFILE_TABLE: AMAProfilesTransformerTask
     LOAD_AMA_PROFILES_TO_LEDGER: QLDBLoaderTask
 
-    CREATE_CAQH_STATUS_URLS: CAQHStatusURLListTransformerTask
-    EXTRACT_CAQH_PHYSICIAN_STATUSES: HTTPFileListExtractorTask
-    CREATE_CAQH_PROFILE_URLS: CAQHProfileURLListTranformerTask
-    EXTRACT_CAQH_PHYSICIAN_PROFILES: HTTPFileListExtractorTask
-    if feature.enabled("DL_3462"):
-        CREATE_CAQH_PROFILE_TABLE: CAQHProfileTransformerTask
-    LOAD_CAQH_PROFILES_TO_LEDGER: QLDBLoaderTask
+    if feature.enabled("CAQH_PROFILES"):
+        CREATE_CAQH_STATUS_URLS: CAQHStatusURLListTransformerTask
+        EXTRACT_CAQH_PHYSICIAN_STATUSES: HTTPFileListExtractorTask
+        CREATE_CAQH_PROFILE_URLS: CAQHProfileURLListTranformerTask
+        EXTRACT_CAQH_PHYSICIAN_PROFILES: HTTPFileListExtractorTask
+        if feature.enabled("DL_3462"):
+            CREATE_CAQH_PROFILE_TABLE: CAQHProfileTransformerTask
+        LOAD_CAQH_PROFILES_TO_LEDGER: QLDBLoaderTask
 
     if feature.enabled("DL_3436"):
         SYNC_PROFILES_TO_DATABASE: VeriCreProfileSynchronizerTask
 
 
-# pylint: disable=expression-not-assigned
+# pylint: disable=expression-not-assigned, pointless-statement
 if feature.enabled("DL_3436"):
     DAG.EXTRACT_AMA_PHYSICIAN_PROFILES \
         >> DAG.CREATE_AMA_PROFILE_TABLE \
