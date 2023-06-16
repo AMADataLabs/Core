@@ -1,6 +1,10 @@
 ''' Source: datalabs.etl.dag.vericre.profile '''
+import importlib
 import os
+import sys
+
 import pytest
+
 
 # pylint: disable=import-outside-toplevel, unused-import
 def test_cpt_api_dag_imports():
@@ -8,10 +12,27 @@ def test_cpt_api_dag_imports():
 
     assert True
 
-# pylint: disable=no-name-in-module
-def test_cpt_api_dag_imports_with_exception():
-    os.environ["DL_3436"] = "True"
+
+# pylint: disable=import-outside-toplevel, unused-import
+def test_dl_3460_not_implemented_yet():
+    os.environ["ENABLE_FEATURE_DL_3460"] = "True"
 
     with pytest.raises(ImportError):
-        from datalabs.etl.vericre.profile.transform import AMAProfilesTransformerTask
-        from datalabs.etl.vericre.profile.transform import VeriCreProfileSynchronizerTask
+        # import datalabs.etl.dag.vericre.profile
+        importlib.reload(sys.modules["datalabs.etl.dag.vericre.profile"])
+
+
+# pylint: disable=import-outside-toplevel, unused-import
+def test_dl_3462_not_implemented_yet():
+    os.environ["ENABLE_FEATURE_DL_3462"] = "True"
+
+    with pytest.raises(ImportError):
+        importlib.reload(sys.modules["datalabs.etl.dag.vericre.profile"])
+
+
+# pylint: disable=import-outside-toplevel, unused-import
+def test_dl_3463_not_implemented_yet():
+    os.environ["ENABLE_FEATURE_DL_3463"] = "True"
+
+    with pytest.raises(ImportError):
+        importlib.reload(sys.modules["datalabs.etl.dag.vericre.profile"])
