@@ -1,0 +1,54 @@
+---
+CPT_FILES_WATERMARK:
+    GLOBAL:
+        ENVIRONMENT: itg
+        ACCOUNT: '285887636563'
+
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/CPT/Files'
+
+    DAG:
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-WatermarkDAG'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.files.watermark.CoordinationDAG'
+        DAG_STATE_PARAMETERS:
+            DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+    EXTRACT_USER_IDS:
+        BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        BASE_PATH: ${S3_BASE_PATH}
+        FILES: watermark_parameters.csv
+        INCLUDE_DATESTAMP: 'False'
+
+        CACHE_OUTPUT_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'watermark_parameters.csv'
+
+    SCHEDULE_USER_DAGS:
+        CACHE_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'watermark_parameters.csv'
+
+        DAG:  'CPT_FILES_WATERMARK_USER'
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'watermark_notifications.json'
+
+    NOTIFY_DAG_PROCESSOR:
+        CACHE_INPUT_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'watermark_notifications.json'
+
+        TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'

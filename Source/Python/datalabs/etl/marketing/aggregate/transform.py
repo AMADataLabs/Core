@@ -203,9 +203,17 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return data.rename(columns=column.JOIN_LISTKEYS_COLUMNS)
 
 
-# pylint: disable=redefined-outer-name, protected-access, unused-variable
+@add_schema
+@dataclass
+class FlatfileUpdaterTaskParameters:
+    left_merge_key: str
+    right_merge_key: str
+    execution_time: str = None
+
+
+# pylint: disable=redefined-outer-name, protected-access, line-too-long
 class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    PARAMETER_CLASS = InputDataCleanerTaskParameters
+    PARAMETER_CLASS = FlatfileUpdaterTaskParameters
 
     def run(self):
         contacts, list_of_lists, flatfile, inputs = self._read_input_data(self._data)
@@ -217,6 +225,8 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         updated_flatfile = self._update_flatfile_listkeys(flatfile, matched_inputs)
 
         updated_flatfile = self._add_new_records_to_flatfile(updated_flatfile, unmatched_inputs)
+
+        updated_flatfile = self._assign_new_contactid_to_updated_flatfile(updated_flatfile, contacts)
 
         return [self._dataframe_to_csv(updated_flatfile)]
 
@@ -266,6 +276,21 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return updated_flatfile.fillna('').drop(columns=["LISTKEY_COMBINED"])
 
+    def _assign_new_contactid_to_updated_flatfile(self, updated_flatfile, contacts):
+        old_contact_ids = self._select_contactids_and_empids(contacts)
+
+        merged_flatfile = self._merge_contacts(updated_flatfile, old_contact_ids)
+
+        merged_flatfile = self._insert_contactid_column(merged_flatfile)
+
+        merged_flatfile = self._drop_old_contactid_column(merged_flatfile)
+
+        merged_flatfile = self._rename_columns(merged_flatfile)
+
+        merged_flatfile = self._remove_spaces_from_dataframe(merged_flatfile)
+
+        return merged_flatfile
+
     @classmethod
     def _get_new_emails(cls, emails, flatfile):
         email_data = pandas.DataFrame(data=dict(BEST_EMAIL=emails))
@@ -307,16 +332,52 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return merged_flatfile
 
+    @classmethod
+    def _select_contactids_and_empids(cls, contacts):
+        contact_ids = contacts.loc[:, ['id', 'hs_contact_id']]
+
+        return contact_ids
+
+    def _merge_contacts(self, updated_flatfile, contacts_old_id):
+        merged_df = pandas.merge(updated_flatfile.drop(columns=['hs_contact_id']), contacts_old_id, left_on=self._parameters.left_merge_key, right_on=self._parameters.right_merge_key, how='left')
+
+        return merged_df
+
+    @classmethod
+    def _insert_contactid_column(cls, merged_df):
+        merged_df.insert(1, 'hs_contact_idd', merged_df.hs_contact_id)
+
+        return merged_df
+
+    @classmethod
+    def _drop_old_contactid_column(cls, merged_df):
+        merged_df = merged_df.drop(columns=['hs_contact_id'])
+
+        return merged_df
+
+    @classmethod
+    def _rename_columns(cls, merged_df):
+        merged_df.rename(columns={'hs_contact_idd': 'hs_contact_id'}, inplace=True)
+
+        return merged_df
+
+    @classmethod
+    def _remove_spaces_from_dataframe(cls, merged_df):
+        merged_df = merged_df.apply(lambda x: x.str.strip())
+
+        return merged_df
+
 
 @add_schema
 @dataclass
 class EmailValidatorTaskParameters:
-    host: str = None
-    account: str = None
-    api_key: str = None
-    execution_time: str = None
-    max_months: int = 0
-
+    host: str
+    account: str
+    api_key: str
+    execution_time: str
+    max_months: int
+    left_merge_key: str
+    right_merge_key: str
 
 # pylint: disable=consider-using-with, line-too-long
 class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
@@ -327,55 +388,64 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
 
-        dated_dataset_with_emails['months_since_validated'] = self._calculate_months_since_last_validated(dated_dataset_with_emails.email_last_validated)
+        dated_dataset_with_emails = self._calculate_months_since_last_validated(dated_dataset_with_emails)
 
-        invalid_emails, dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails, self._parameters.max_months)
+        dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails)
 
-        pruned_flatfile = self._remove_invalid_records(invalid_emails, dated_dataset_with_emails)
+        return [self._dataframe_to_csv(dated_dataset_with_emails)]
 
-        return [self._dataframe_to_csv(pruned_flatfile)]
+    def _add_existing_validation_dates_to_emails(self, dataset_with_emails, dataset_with_validation_dates):
+        if not dataset_with_validation_dates[self._parameters.right_merge_key].is_unique:
+            dataset_with_validation_dates = self._remove_duplicate_dataset_with_validation_dates(dataset_with_validation_dates)
 
-    @classmethod
-    def _add_existing_validation_dates_to_emails(cls, dataset_with_emails, dataset_with_validation_dates):
-        data = dataset_with_emails.merge(dataset_with_validation_dates, left_on='EMPPID', right_on='id',how='left')
+        data = dataset_with_emails.merge(dataset_with_validation_dates, left_on=self._parameters.left_merge_key, right_on=self._parameters.right_merge_key, how='left')
 
         data['email_last_validated'] = data.groupby(['BEST_EMAIL'], sort=False)['email_last_validated'].apply(lambda x: x.ffill())
 
         return data
 
-    def _calculate_months_since_last_validated(self, email_last_validated):
-        email_last_validated = pandas.to_datetime(email_last_validated, format='%m/%d/%Y')
+    def _calculate_months_since_last_validated(self, dated_dataset_with_emails):
         execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
 
-        months_since_last_validated = (execution_time - email_last_validated).astype('timedelta64[M]')
+        dated_dataset_with_emails["months_since_validated"] = (execution_time - pandas.to_datetime(dated_dataset_with_emails.email_last_validated[~dated_dataset_with_emails.email_last_validated.isnull()])).astype('timedelta64[M]')
 
-        return months_since_last_validated
+        dated_dataset_with_emails.months_since_validated[dated_dataset_with_emails.email_last_validated.isnull()] = 6
 
-    # pylint: disable=no-member
-    def _validate_expired_records(self, dated_dataset_with_emails, max_months):
-        email_data_list = self._get_expired_emails(dated_dataset_with_emails, max_months)
+        return dated_dataset_with_emails
+
+    # pylint: disable=no-member, no-value-for-parameter
+    def _validate_expired_records(self, dated_dataset_with_emails):
+        dated_dataset_with_emails = self._unset_update_flag_for_unexpired_emails(dated_dataset_with_emails)
+
+        email_data_list = self._get_expired_emails(dated_dataset_with_emails)
 
         validated_emails = self._validate_emails(email_data_list)
 
-        dated_dataset_with_emails = self._set_emails_last_validated_date(dated_dataset_with_emails)
+        dated_dataset_with_emails = self._set_update_flag_for_valid_emails(dated_dataset_with_emails, validated_emails)
 
-        invalid_emails = [email for email in email_data_list if email not in validated_emails]
+        dated_dataset_with_emails = self._remove_invalid_records(dated_dataset_with_emails)
 
-        return invalid_emails, dated_dataset_with_emails
-
-    @classmethod
-    def _remove_invalid_records(cls, invalid_emails, dated_dataset_with_emails):
-        dated_dataset_with_emails = dated_dataset_with_emails[~dated_dataset_with_emails['BEST_EMAIL'].isin(invalid_emails)]
+        dated_dataset_with_emails = self._update_email_last_validated(dated_dataset_with_emails)
 
         return dated_dataset_with_emails
 
     @classmethod
-    def _get_expired_emails(cls, dated_dataset_with_emails, max_months):
-        mask = dated_dataset_with_emails['months_since_validated'] > float(max_months)
+    def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
+        return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
 
-        expired_dated_dataset_with_emails = dated_dataset_with_emails[mask]
+    def _unset_update_flag_for_unexpired_emails(self, dated_dataset_with_emails):
+        mask =  dated_dataset_with_emails.months_since_validated < int(self._parameters.max_months)
 
-        expired_emails = list(set(expired_dated_dataset_with_emails.BEST_EMAIL.values))
+        dated_dataset_with_emails.loc[mask, 'update'] = False
+
+        dated_dataset_with_emails.loc[(~mask & ~dated_dataset_with_emails.BEST_EMAIL.isnull()), 'update'] = True
+
+        return dated_dataset_with_emails
+
+    # pylint: disable=singleton-comparison
+    @classmethod
+    def _get_expired_emails(cls, dated_dataset_with_emails):
+        expired_emails = list(set(dated_dataset_with_emails[dated_dataset_with_emails['update'] == True].BEST_EMAIL.values))
 
         return expired_emails
 
@@ -386,17 +456,32 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return validated_emails
 
-    def _set_emails_last_validated_date(self, dated_dataset_with_emails):
-        mask = dated_dataset_with_emails['months_since_validated'] > float(self._parameters.max_months)
-
-        dated_dataset_with_emails['email_last_validated'][mask] =  datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').date()
+    @classmethod
+    def _set_update_flag_for_valid_emails(cls, dated_dataset_with_emails, validated_emails):
+        dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
 
         return dated_dataset_with_emails
 
+    @classmethod
+    def _remove_invalid_records(cls, dated_dataset_with_emails):
+        return dated_dataset_with_emails[~dated_dataset_with_emails['update'].isnull()]
+
+    # pylint: disable=singleton-comparison
+    def _update_email_last_validated(self, dated_dataset_with_emails):
+        dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').strftime("%m/%d/%Y")
+
+        return dated_dataset_with_emails
+
+class SFMCPrunerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+    Parameter_class = InputDataCleanerTaskParameters
+
+    def run(self):
+        input_data = [InputDataParser.parse(x) for x in self._data][0]
+
+        updated_contacts = input_data[['id', 'hs_contact_id', 'email_last_validated']][~input_data.id.isnull()]
+
+        return [self._dataframe_to_csv(updated_contacts)]
+
 
 class DuplicatePrunerTask:
-    pass
-
-
-class SFMCPrunerTask:
     pass

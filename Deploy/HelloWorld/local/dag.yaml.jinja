@@ -1,0 +1,25 @@
+---
+HELLO_WORLD:
+    DAG:
+        DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
+        DAG_STATE_PARAMETERS:
+            DAG_STATE_CLASS: 'datalabs.etl.dag.state.file.DAGState'
+            BASE_PATH: './test_output_file_state'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+
+    PRINT_HELLO_WORLD:
+        FIRST_NAME: 'Bob'
+        LAST_NAME: 'Marley'
+
+    PRINT_HELLO_WORLD1:
+        FIRST_NAME: 'Alice'
+        LAST_NAME: 'Potter'
+
+    PRINT_HELLO_WORLD2:
+        FIRST_NAME: 'Harry'
+        LAST_NAME: 'Maguire'
+
+    PRINT_HELLO_WORLD3:
+        FIRST_NAME: 'Ron'
+        LAST_NAME: 'Alison'

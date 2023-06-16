@@ -1,18 +1,14 @@
 """AWS DynamoDB Loader"""
-from   collections import defaultdict
 from   dataclasses import dataclass
 import hashlib
 import json
 import logging
 
-import pandas
+from   pyqldb.config.retry_config import RetryConfig
+from   pyqldb.driver.qldb_driver import QldbDriver
 
-from   datalabs.access.aws import AWSClient, AWSResource
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
-
-from pyqldb.config.retry_config import RetryConfig
-from pyqldb.driver.qldb_driver import QldbDriver
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +21,7 @@ LOGGER.setLevel(logging.DEBUG)
 class QLDBLoaderParameters:
     primary_key: str
     ledger: str
-    table: str = None
+    table: str
     execution_time: str = None
 
 
@@ -36,7 +32,7 @@ class QLDBLoaderTask(Task):
         LOGGER.debug('Input data: \n%s', self._data)
         qldb = self._get_qldb_client()
         incoming_documents = self._add_hash_to_documents(json.loads(self._data[0]))
-        current_hashes = qldb.execute_lambda(lambda executor: self._get_current_hashes(executor))
+        current_hashes = qldb.execute_lambda(self._get_current_hashes)
 
         qldb.execute_lambda(lambda executor: self._delete_data(executor, incoming_documents, current_hashes))
 
@@ -53,8 +49,9 @@ class QLDBLoaderTask(Task):
         return [cls._add_hash_to_document(document) for document in documents]
 
     def _get_current_hashes(self, transaction_executor):
-        cursor = transaction_executor.execute_statement("SELECT " + self._parameters.primary_key + ", md5 from " + self._parameters.table)
-        current_hashes = {}
+        cursor = transaction_executor.execute_statement(
+            f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table}"
+        )
 
         return {doc[self._parameters.primary_key]:doc['md5'] for doc in cursor}
 
@@ -99,7 +96,10 @@ class QLDBLoaderTask(Task):
 
     def _delete_documents_from_qldb(self, deleted_primary_keys, transaction_executor):
         for key in deleted_primary_keys:
-            transaction_executor.execute_statement("DELETE FROM " + self._parameters.table + " WHERE " + self._parameters.table + "." + self._parameters.primary_key + " = ?", key)
+            transaction_executor.execute_statement(
+                f"DELETE FROM {self._parameters.table} "
+                f"WHERE {self._parameters.table}.{self._parameters.primary_key} = {key}"
+            )
 
     def _get_added_data(self, incoming_documents, current_hashes):
         current_primary_keys = list(current_hashes.keys())
@@ -118,7 +118,10 @@ class QLDBLoaderTask(Task):
 
     def _update_documents_in_qldb(self, updated_documents, transaction_executor):
         for document in updated_documents:
-            transaction_executor.execute_statement("UPDATE " + self._parameters.table + " AS p SET p = ? WHERE p." + self._parameters.primary_key + " = ?", document, document[self._parameters.primary_key])
+            transaction_executor.execute_statement(
+                f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?",
+                document, document[self._parameters.primary_key]
+            )
 
     @classmethod
     def _sort_inner_keys_if_dict(cls, element):

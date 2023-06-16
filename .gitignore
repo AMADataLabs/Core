@@ -26,6 +26,8 @@ Environment/*
 Bundle/*
 target/*
 Scratch/*
+*.old
+*.new
 
 
 .idea

@@ -1,15 +1,24 @@
 # Build Example:
-#    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl-batch --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Batch/Dockerfile ./
+#    docker build \
+#      --build-arg ENVIRONMENT=sbx \
+#      --build-arg PROJECT=CPT/Files/Legacy \
+#      --build-arg AWS_ACCESS_KEY_ID_SANDBOX=   \
+#      --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=   \
+#      --build-arg MAVEN_VERSION=3.9.3   \
+#      -t cpt-files-legacy -f ./Build/CPT/Files/Legacy/Dockerfile ./
 FROM eclipse-temurin:18.0.2.1_1-jdk AS build
 ARG ENVIRONMENT
 ARG PROJECT
 ARG AWS_ACCESS_KEY_ID_SANDBOX
 ARG AWS_SECRET_ACCESS_KEY_SANDBOX
+ARG MAVEN_VERSION=3.9.0
 
 WORKDIR /Task
 ENV AWS_DEFAULT_REGION=us-east-1
-ENV MAVEN_VERSION=3.9.1
-ENV MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
+ENV MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3
+
+RUN echo "${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+
 ENV PATH="/Task/apache-maven-${MAVEN_VERSION}/bin:$PATH"
 
 RUN apt update && \
@@ -18,10 +27,10 @@ RUN apt update && \
     apt update && \
     apt install -y jq unzip python3.9 python3-pip python3.9-venv
 
-RUN curl "${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o apache-maven.tar.gz && \
+RUN curl --fail "${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o apache-maven.tar.gz && \
     tar xzf apache-maven.tar.gz
 
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+RUN curl --fail "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
     rm -rf ./aws

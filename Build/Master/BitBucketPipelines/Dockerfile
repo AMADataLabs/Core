@@ -1,8 +1,8 @@
 # Build from repository root
-FROM amazonlinux:2.0.20220719.0 as amazon-python
+FROM amazonlinux:2.0.20230504.1 as amazon-python
 WORKDIR /Build
 ARG PYTHON_VERSION=3.9.13
-ARG MAVEN_VERSION=3.8.5
+ARG MAVEN_VERSION=3.9.2
 ENV MAVEN_HOME=/Build/apache-maven-${MAVEN_VERSION}
 ENV M2_HOME=${MAVEN_HOME}
 ENV PATH=${MAVEN_HOME}/bin:${PATH}
