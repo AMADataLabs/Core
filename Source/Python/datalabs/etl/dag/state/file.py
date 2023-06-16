@@ -35,6 +35,9 @@ class DAGState(State):
         statuses = {}
 
         for directory in dir_list:
+            if directory.startswith("."):
+                continue
+
             match = re.search('^(?![0-9]{4}-[0-9]{2}-[0-9]{2})', directory)
             if match is not None:
                 statuses[directory] = self.get_task_status(dag, directory, execution_time)

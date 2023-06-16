@@ -2,9 +2,9 @@
 import os
 import logging
 
-from   datalabs.etl.task import ExecutionTimeMixin
-import datalabs.etl.dag.task
+from   datalabs.etl.task import ExecutionTimeMixin, TaskWrapper
 from   datalabs.access.parameter.file import FileEnvironmentLoader
+from   datalabs.etl.dag.task import DAGTaskIDMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -47,6 +47,7 @@ def run_task_processor(dag, task, execution_time, parameters=None):
 
     return task_wrapper.run()
 
+
 class FileTaskParameterGetterMixin:
     # pylint: disable=redefined-outer-name
     @classmethod
@@ -60,16 +61,18 @@ class FileTaskParameterGetterMixin:
 
         return parameters
 
+
 class DAGProcessorTaskWrapper(
     ExecutionTimeMixin,
+    DAGTaskIDMixin,
     FileTaskParameterGetterMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
+    TaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event: %s', parameters)
         return parameters
 
-    def _get_dag_task_parameters(self):
+    def _get_task_parameters(self):
         ''' Get parameters for the DAG Processor. '''
         dag = self._get_dag_id()
         dag_name = self._get_dag_name()
@@ -77,7 +80,7 @@ class DAGProcessorTaskWrapper(
         dag_parameters = dict(dag=dag, execution_time=self._get_execution_time())
         dynamic_parameters = dict(config_file=config_file_path)
 
-        dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "LOCAL", config_file_path))
+        dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "DAG", config_file_path))
 
         if "parameters" in self._runtime_parameters:
             dynamic_parameters.update(self._runtime_parameters["parameters"])
@@ -86,17 +89,48 @@ class DAGProcessorTaskWrapper(
 
         return dag_parameters
 
+    def _handle_success(self) -> (int, dict):
+        return "Success"
+
+    def _handle_exception(self, exception) -> (int, dict):
+        LOGGER.exception('An exception occured while running the processor.')
+
+        return f'Failed: {str(exception)}'
+
+    def _get_dag_id(self):
+        return self._runtime_parameters["dag"].upper()
+
+    def _get_dag_name(self):
+        base_name, _ = self._parse_dag_id(self._get_dag_id())
+
+        return base_name
+
+    def _get_execution_time(self):
+        return self._runtime_parameters["execution_time"].upper()
+
+    @classmethod
+    def _parse_dag_id(cls, dag):
+        base_name = dag
+        iteration = None
+        components = dag.split(':')
+
+        if len(components) == 2:
+            base_name, iteration = components
+
+        return base_name, iteration
+
 
 class TaskProcessorTaskWrapper(
     ExecutionTimeMixin,
+    DAGTaskIDMixin,
     FileTaskParameterGetterMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
+    TaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event: %s', parameters)
         return parameters
 
-    def _get_dag_task_parameters(self):
+    def _get_task_parameters(self):
         ''' Get parameters the Task Processor. '''
         dag = self._get_dag_id()
         dag_name = self._get_dag_name()
@@ -107,7 +141,7 @@ class TaskProcessorTaskWrapper(
 
         dynamic_parameters.update(dict(config_file=config_file_path))
 
-        dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "LOCAL", config_file_path))
+        dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "DAG", config_file_path))
 
         task_parameters = self._get_dag_task_parameters_from_file(dag_name, task, config_file_path)
 
@@ -116,6 +150,14 @@ class TaskProcessorTaskWrapper(
         dag_parameters = self._add_dynamic_dag_parameters(dag_parameters, self._runtime_parameters["parameters"])
 
         return dag_parameters
+
+    def _handle_success(self) -> (int, dict):
+        return "Success"
+
+    def _handle_exception(self, exception) -> (int, dict):
+        LOGGER.exception('An exception occured while running the processor.')
+
+        return f'Failed: {str(exception)}'
 
     @classmethod
     def _override_dag_parameters(cls, dag_parameters, task_parameters):

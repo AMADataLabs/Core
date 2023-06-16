@@ -1,63 +1,47 @@
-# Render as follows:
-#
-# Script/render-template -t Deploy/CPT-API/dev/ingest.yaml.jinja -f Deploy/CPT-API/dev/ingest.yaml \
-# -V "datalabs_password={{datalabs_password}},eft_password={{eft_password}},database_password={{database_password}}"
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "HCPCSAPI"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+HCPCS:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
 
-    ENVIRONMENT: sbx
-    ACCOUNT: '644454719059'
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/CPT/HCPCS'
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/CPT/HCPCS'
+    DAG:
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.files.hcpcs.HCPCSDAG'
+        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+        DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+        STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
+    SCRAPE_HCPCS_REPORTS:
+        URL:  'https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets/HCPCS-Quarterly-Update'
+        FILTER_FUTURE:  'False'
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "HCPCS"}, "Task": {"S": "DAG"}})
-    #######################################################################
+        CACHE_OUTPUT_CLASS:  ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: 'cache/hcpcs_url.txt'
 
-    HCPCS__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
-    HCPCS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.hcpcs.HCPCSDAG'
-    HCPCS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    HCPCS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    HCPCS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    HCPCS__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    HCPCS__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    HCPCS__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    HCPCS__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    EXTRACT_HCPCS_REPORT:
+        CACHE_CLASS:  ${S3_CACHE_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'cache/hcpcs_url.txt'
+        CACHE_OUTPUT_FILES: 'cache/hcpcs_quarterly_report.zip'
 
+    UNZIP_HCPCS_REPORTS:
+        INCLUDE_NAMES: 'True'
 
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "HCPCS"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
-
-
-    HCPCS__SCRAPE_HCPCS_REPORTS__URL:  'https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets/HCPCS-Quarterly-Update'
-    HCPCS__SCRAPE_HCPCS_REPORTS__FILTER_FUTURE:  'False'
-
-    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_CLASS:  ${S3_CACHE_CLASS}
-    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_FILES: 'cache/hcpcs_url.txt'
-
-
-    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_CLASS:  ${S3_CACHE_CLASS}
-    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_BASE_PATH: ${S3_BASE_PATH}
-    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_INPUT_FILES: 'cache/hcpcs_url.txt'
-    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_OUTPUT_FILES: 'cache/hcpcs_quarterly_report.zip'
-
-    HCPCS__UNZIP_HCPCS_REPORTS__INCLUDE_NAMES: 'True'
-
-    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_CLASS: ${S3_CACHE_CLASS}
-    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_BASE_PATH: ${S3_BASE_PATH}
-    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_INPUT_FILES: 'cache/hcpcs_quarterly_report.zip'
-    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_OUTPUT_INCLUDES_NAMES: 'True'
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'cache/hcpcs_quarterly_report.zip'
+        CACHE_OUTPUT_INCLUDES_NAMES: 'True'
