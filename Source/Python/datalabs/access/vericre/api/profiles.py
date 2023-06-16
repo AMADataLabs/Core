@@ -32,6 +32,7 @@ class ProfileRecords:
     work_history: list=None
     insurance: list=None
 
+
 class StaticTaskParameters:
     PROFILE_RECORD_SECTION_MAPPING = {
         'medicalSchools': 'medical_schools',
@@ -116,15 +117,21 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     def _format_query_result(self, query_result):
         response_result = {}
+
         for record in query_result:
-            if record['ama_entity_id'] not in response_result:
-                response_result = self._add_entity_id_in_response(response_result, record)
-
-            record_section = self._format_section_identifier(record['section_identifier'])
-
-            response_result = self._append_record_to_response_result(response_result, record_section, record)
+            response_result = self._process_record(response_result, record)
 
         return [asdict(object) for object in list(response_result.values())]
+
+    def _process_record(self, response_result, record):
+        if record['ama_entity_id'] not in response_result:
+            response_result = self._add_entity_id_in_response(response_result, record)
+
+        record_section = self._format_section_identifier(record['section_identifier'])
+
+        response_result = self._append_record_to_response_result(response_result, record_section, record)
+
+        return response_result
 
     @classmethod
     def _add_entity_id_in_response(cls, response_result, record):
@@ -136,33 +143,25 @@ class BaseProfileEndpointTask(APIEndpointTask):
     
     @classmethod
     def _format_section_identifier(cls, section_identifier):
-        record_section = None
+        record_section = section_identifier
 
         if section_identifier in StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING:
             record_section = StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING[section_identifier]
-        else:
-            record_section = section_identifier
 
         return record_section
 
     def _append_record_to_response_result(self, response_result, record_section, record):
-        if type(None) == type(getattr(response_result[record['ama_entity_id']], record_section)):
-            response_result = self._initial_record_section(response_result, record_section, record)
+        result_list = getattr(response_result[record['ama_entity_id']], record_section)
+
+        if type(None) == type(result_list):
+            result_list = []
 
         item = self._create_record_item(record)
-
-        result_list = getattr(response_result[record['ama_entity_id']], record_section)
 
         result_list.append(item)
         
         setattr(response_result[record['ama_entity_id']], record_section, result_list)
         
-        return response_result
-
-    @classmethod
-    def _initial_record_section(cls, response_result, record_section, record):
-        setattr(response_result[record['ama_entity_id']], record_section, [])
-
         return response_result
 
     @classmethod
@@ -187,7 +186,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class LookupMultiProfilesEndpointParameters:
+class MultiProfilesLookupEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -202,8 +201,8 @@ class LookupMultiProfilesEndpointParameters:
     unknowns: dict=None
 
 
-class LookupMultiProfilesEndpointTask(BaseProfileEndpointTask):
-    PARAMETER_CLASS = LookupMultiProfilesEndpointParameters
+class MultiProfilesLookupEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = MultiProfilesLookupEndpointParameters
 
     def _run(self, database):
         entity_id = self._parameters.payload.get("entity_id")
@@ -218,7 +217,7 @@ class LookupMultiProfilesEndpointTask(BaseProfileEndpointTask):
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class LookupSingleProfileEndpointParameters:
+class SingleProfileLookupEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -232,8 +231,8 @@ class LookupSingleProfileEndpointParameters:
     unknowns: dict=None
 
 
-class LookupSingleProfileEndpointTask(BaseProfileEndpointTask):
-    PARAMETER_CLASS = LookupSingleProfileEndpointParameters
+class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
     def _run(self, database):
         entity_id = self._parameters.path.get('entityId')
