@@ -2,30 +2,27 @@
 
 # Script/render-template -t Deploy/HelloWorld/sbx/dag.yaml.jinja -f Deploy/HelloWorld/sbx/dag.yaml
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "HELLO_WORLD"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+HELLO_WORLD:
+    DAG:
+        DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
+        DAG_STATE_PARAMETERS:
+            DAG_STATE_CLASS: 'datalabs.etl.dag.state.file.DAGState'
+            BASE_PATH: './test_output_file_state'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
 
+    PRINT_HELLO_WORLD:
+        FIRST_NAME: 'Bob'
+        LAST_NAME: 'Marley'
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "HELLO_WORLD"}, "Task": {"S": "HELLO_WORLD"}})
-    #######################################################################
+    PRINT_HELLO_WORLD1:
+        FIRST_NAME: 'Alice'
+        LAST_NAME: 'Potter'
 
-    HELLO_WORLD__DAG__DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
-    HELLO_WORLD__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.file.DAGState'
-    HELLO_WORLD__DAG__BASE_PATH: './test_output_file_state'
-    HELLO_WORLD__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
-    HELLO_WORLD__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+    PRINT_HELLO_WORLD2:
+        FIRST_NAME: 'Harry'
+        LAST_NAME: 'Maguire'
 
-    HELLO_WORLD__PRINT_HELLO_WORLD__FIRST_NAME: 'Bob'
-    HELLO_WORLD__PRINT_HELLO_WORLD__LAST_NAME: 'Marley'
-
-    HELLO_WORLD__PRINT_HELLO_WORLD1__FIRST_NAME: 'Alice'
-    HELLO_WORLD__PRINT_HELLO_WORLD1__LAST_NAME: 'Potter'
-
-    HELLO_WORLD__PRINT_HELLO_WORLD2__FIRST_NAME: 'Harry'
-    HELLO_WORLD__PRINT_HELLO_WORLD2__LAST_NAME: 'Maguire'
-
-    HELLO_WORLD__PRINT_HELLO_WORLD3__FIRST_NAME: 'Ron'
-    HELLO_WORLD__PRINT_HELLO_WORLD3__LAST_NAME: 'Alison'
+    PRINT_HELLO_WORLD3:
+        FIRST_NAME: 'Ron'
+        LAST_NAME: 'Alison'
