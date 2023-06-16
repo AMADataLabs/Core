@@ -18,7 +18,7 @@ if feature.enabled("DL_3436"):
     from datalabs.etl.vericre.profile.transform import VeriCreProfileSynchronizerTask
 
 
-@dag.register(name="PROFILES")
+@dag.register(name="VERICRE_PROFILES")
 class DAG(dag.DAG):
     EXTRACT_AMA_PHYSICIAN_PROFILES: SFTPFileExtractorTask
     if feature.enabled("DL_3460"):
