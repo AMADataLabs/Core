@@ -1,7 +1,6 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
-import json
 import logging
 
 from   sqlalchemy import case, literal
@@ -15,7 +14,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class ProfileRecords:
     entity_id: str
@@ -50,10 +49,10 @@ class BaseProfileEndpointTask(APIEndpointTask):
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
-    def _run(self, database, entity_id):
+    def _run(self, database):
         query = self._query_for_profile(database)
 
-        query = self._filter(query, entity_id)
+        query = self._filter(query)
 
         query = self._sort(query)
 
@@ -70,7 +69,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
             FormSubSection.identifier.label('section_identifier'),
             FormField.identifier.label('field_identifier'),
             case(
-                [(((FormField.is_source_field == True) & (FormField.is_authoritative == True)), literal(True))],
+                [(((FormField.is_source_field is True) & (FormField.is_authoritative is True)), literal(True))],
                 else_=literal(False)
             ).label("is_authoritative"),
             FormField.is_source_field.label('is_source'),
@@ -79,8 +78,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
             FormField.source_key,
             case(
                 [
-                    (((FormField.is_source_field == True) & (FormField.source == 1)), 'AMA'),
-                    (((FormField.is_source_field == True) & (FormField.source == 2)), 'CAQH')
+                    (((FormField.is_source_field is True) & (FormField.source == 1)), 'AMA'),
+                    (((FormField.is_source_field is True) & (FormField.source == 2)), 'CAQH')
                 ],
                 else_='Physician Provided'
             ).label("source_tag"),
@@ -98,21 +97,22 @@ class BaseProfileEndpointTask(APIEndpointTask):
             User, User.id == Physician.user
         )
 
-    def _filter(self, query, entity_id):
-        query = self._filter_by_entity_id(query, entity_id)
+    def _filter(self, query):
+        query = self._filter_by_entity_id(query)
         query = self._filter_by_active_user(query)
 
         return query.filter(FormField.is_hidden == 'False')
 
     @abstractmethod
-    def _filter_by_entity_id(cls, query, entity_id):
+    def _filter_by_entity_id(self, query):
         pass
 
     @classmethod
     def _filter_by_active_user(cls, query):
         return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
-    
-    def _sort(self, query):
+
+    @classmethod
+    def _sort(cls, query):
         return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
 
     def _format_query_result(self, query_result):
@@ -140,7 +140,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         )
 
         return response_result
-    
+
     @classmethod
     def _format_section_identifier(cls, section_identifier):
         record_section = section_identifier
@@ -153,15 +153,15 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _append_record_to_response_result(self, response_result, record_section, record):
         result_list = getattr(response_result[record['ama_entity_id']], record_section)
 
-        if type(None) == type(result_list):
+        if result_list is None:
             result_list = []
 
         item = self._create_record_item(record)
 
         result_list.append(item)
-        
+
         setattr(response_result[record['ama_entity_id']], record_section, result_list)
-        
+
         return response_result
 
     @classmethod
@@ -205,12 +205,10 @@ class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupEndpointParameters
 
     def _run(self, database):
-        entity_id = self._parameters.payload.get("entity_id")
-        
-        super()._run(database, entity_id)
+        super()._run(database)
 
-    @classmethod
-    def _filter_by_entity_id(cls, query, entity_id):
+    def _filter_by_entity_id(self, query):
+        entity_id = self._parameters.payload.get("entity_id")
         return query.filter(User.ama_entity_id.in_(entity_id))
 
 
@@ -235,10 +233,9 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
     def _run(self, database):
+        super()._run(database)
+
+    def _filter_by_entity_id(self, query):
         entity_id = self._parameters.path.get('entityId')
 
-        super()._run(database, entity_id)
-
-    @classmethod
-    def _filter_by_entity_id(cls, query, entity_id):
         return query.filter(User.ama_entity_id == entity_id)
