@@ -186,7 +186,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class MultiProfilesLookupEndpointParameters:
+class MultiProfileLookupEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -201,8 +201,8 @@ class MultiProfilesLookupEndpointParameters:
     unknowns: dict=None
 
 
-class MultiProfilesLookupEndpointTask(BaseProfileEndpointTask):
-    PARAMETER_CLASS = MultiProfilesLookupEndpointParameters
+class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupEndpointParameters
 
     def _run(self, database):
         entity_id = self._parameters.payload.get("entity_id")
