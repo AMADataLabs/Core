@@ -1,39 +1,27 @@
-# Render as follows:
-#
-# Script/render-template -t Deploy/HelloWorldJava/sbx/lambda.yaml.jinja -f Deploy/HelloWorldJava/sbx/lambda.yaml
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "HELLO_WORLD_JAVA"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+HELLO_WORLD_JAVA:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
 
-    ENVIRONMENT: sbx
-    ACCOUNT: '644454719059'
+    DAG:
+        LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaDAG'
+        DAG_CLASS: 'datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG'
+        DAG_STATE_PARAMETERS:
+            DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
-
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "HELLO_WORLD_JAVA"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    HELLO_WORLD_JAVA__DAG__LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaDAG'
-    HELLO_WORLD_JAVA__DAG__JOB_DEFINITION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaTask'
-    HELLO_WORLD_JAVA__DAG__JOB_QUEUE: 'DataLake-${ENVIRONMENT}-HelloWorldJavaTask'
-    HELLO_WORLD_JAVA__DAG__DAG_CLASS: 'datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG'
-    HELLO_WORLD_JAVA__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    HELLO_WORLD_JAVA__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    HELLO_WORLD_JAVA__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    HELLO_WORLD_JAVA__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    HELLO_WORLD_JAVA__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    HELLO_WORLD_JAVA__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    HELLO_WORLD_JAVA__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    HELLO_WORLD_JAVA__DAG__TASK_CLASS: ''
-
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "HELLO_WORLD_JAVA"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
-
-    # Message Logger
-    HELLO_WORLD_JAVA__LOG_MESSAGE__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
-    HELLO_WORLD_JAVA__LOG_MESSAGE__TASK_CLASS: 'datalabs.example.etl.HelloWorldTask'
-    HELLO_WORLD_JAVA__LOG_MESSAGE__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+    LOG_MESSAGE:
+        OVERRIDES:
+            LAMBDA_FUNCTION: DataLake-${ENVIRONMENT}-HelloWorldJavaTask
+            DAG_STATE_PARAMETERS:
+                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+            TASK_EXECUTOR_CLASS: datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask
+        TASK_CLASS: 'datalabs.example.etl.HelloWorldTask'

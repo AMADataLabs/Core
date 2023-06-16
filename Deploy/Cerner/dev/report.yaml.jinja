@@ -1,69 +1,45 @@
-# Render as follows:
-
-# Script/update-dag-config -e dev -p Cerner -t report \
-# -v "VISTEX_DB_password=yV80tNwNN64q4644"
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "CERNER_REPORT"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+CERNER_REPORT:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+        APP_STACK: DataLake
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
-    APP_STACK: DataLake
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        VISTEX_DB_BACKEND: mssql+pymssql
+        VISTEX_DB_HOST: rdbt5302.ad.ama-assn.org
+        VISTEX_DB_PORT: '1433'
+        VISTEX_DB_NAME: LicenseMaestro_CPT
+        VISTEX_DB_USERNAME: dlabs_read
+        VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
 
-    VISTEX_DB_BACKEND: mssql+pymssql
-    VISTEX_DB_HOST: rdbt5302.ad.ama-assn.org
-    VISTEX_DB_PORT: '1433'
-    VISTEX_DB_NAME: LicenseMaestro_CPT
-    VISTEX_DB_USERNAME: dlabs_read
-    VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/Cerner'
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/Cerner'
+    DAG:
+        LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-Cerner'
+        DAG_CLASS: 'datalabs.etl.dag.customer_intelligence.cerner.DAG'
+         DAG_STATE_PARAMETERS:
+            DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+        STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "CERNER_REPORT"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    CERNER_REPORT__DAG__LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-Cerner'
-    CERNER_REPORT__DAG__DAG_CLASS: 'datalabs.etl.dag.customer_intelligence.cerner.DAG'
-    CERNER_REPORT__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    CERNER_REPORT__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    CERNER_REPORT__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    CERNER_REPORT__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    CERNER_REPORT__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    CERNER_REPORT__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    CERNER_REPORT__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    CERNER_REPORT__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    CERNER_REPORT__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
-
-    #######################################################################
-    # Local DAG Variables - ({"DAG": {"S": "CERNER_REPORT"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    CERNER_REPORT__LOCAL__DAG_CLASS: 'datalabs.etl.dag.cpt.cerner.CernerReportDAG'
-    CERNER_REPORT__LOCAL__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    CERNER_REPORT__LOCAL__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    CERNER_REPORT__LOCAL__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    CERNER_REPORT__LOCAL__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    CERNER_REPORT__LOCAL__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "CERNER_REPORT"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
-
-    # Cerner Data Extractor
-    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_HOST: ${VISTEX_DB_HOST}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_PORT: ${VISTEX_DB_PORT}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_NAME: ${VISTEX_DB_NAME}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__SQL: "
+    EXTRACT_CERNER_DATA:
+        DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
+        DATABASE_HOST: ${VISTEX_DB_HOST}
+        DATABASE_PORT: ${VISTEX_DB_PORT}
+        DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
+        DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
+        DATABASE_NAME: ${VISTEX_DB_NAME}
+        SQL: "
 SELECT DISTINCT
     Cerner_ID.Cerner_Mnemonic               AS 'Cerner Mnemonic'
     , T4.id                                 AS 'AMA Licensee ID'
@@ -138,23 +114,22 @@ AND T3.due_date IS NOT NULL
 ORDER BY CAST(T3.due_date AS DATE) DESC
 "
 
-    CERNER_REPORT__EXTRACT_CERNER_DATA__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    CERNER_REPORT__EXTRACT_CERNER_DATA__CACHE_OUTPUT_FILES: cerner_customers_paid.csv
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: cerner_customers_paid.csv
 
+    SEND_CERNER_REPORT:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: cerner_customers_paid.csv
 
-    # Cerner Report Sender
-    CERNER_REPORT__SEND_CERNER_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    CERNER_REPORT__SEND_CERNER_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    CERNER_REPORT__SEND_CERNER_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    CERNER_REPORT__SEND_CERNER_REPORT__CACHE_INPUT_FILES: cerner_customers_paid.csv
-
-    CERNER_REPORT__SEND_CERNER_REPORT__TO_ADDRESSES: datalabs@ama-assn.org
-    CERNER_REPORT__SEND_CERNER_REPORT__SUBJECT: "Cerner Report - %Y-%m-%d"
-    CERNER_REPORT__SEND_CERNER_REPORT__MESSAGE: "
+        TO_ADDRESSES: datalabs@ama-assn.org
+        SUBJECT: "Cerner Report - %Y-%m-%d"
+        MESSAGE: "
 This is an automated email from DataLabs.
 
 Attached is the latest Cerner report.
 "
-    CERNER_REPORT__SEND_CERNER_REPORT__FILES: Cerner_CustomersPaid.csv
+        FILES: Cerner_CustomersPaid.csv
