@@ -2,7 +2,6 @@
 import json
 import yaml
 
-from   datalabs.access.environment import VariableTree
 from   datalabs.plugin import import_plugin
 
 
@@ -20,7 +19,7 @@ class ParameterExtractionMixin:
                 config.update(document[dag])
 
         for key, value in config.items():
-            if not key.endswith('@MACRO_COUNT@') and not (isinstance(value, str) or isinstance(value, dict)):
+            if not key.endswith('@MACRO_COUNT@') and not isinstance(value, (str, dict)):
                 raise ValueError(f'The value for parameter {key} is not a string, but is {type(value)}: {value}.')
 
         return dag, config
