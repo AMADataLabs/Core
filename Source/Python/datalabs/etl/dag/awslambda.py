@@ -140,7 +140,7 @@ class ProcessorTaskWrapper(
     def _override_dag_parameters(cls, dag_parameters, task_parameters):
         candidate_overrides = json.loads(task_parameters.pop("OVERRIDES", "{}"))
 
-        overrides = {k:v for k, v in overrides.items() if k in dag_parameters}
+        overrides = {k:v for k, v in candidate_overrides.items() if k in dag_parameters}
         LOGGER.info("Overriding the following DAG parameters: %s", list(overrides))
 
         dag_parameters.update(overrides)
