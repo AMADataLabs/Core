@@ -19,7 +19,7 @@ class ParameterExtractionMixin:
                 config.update(document[dag])
 
         for key, value in config.items():
-            if not key.endswith('@MACRO_COUNT@') and not isinstance(value, (str, dict)):
+            if not key.endswith('__MACRO_COUNT__') and not isinstance(value, (str, dict)):
                 raise ValueError(f'The value for parameter {key} is not a string, but is {type(value)}: {value}.')
 
         return dag, config
@@ -52,7 +52,7 @@ class ParameterExtractionMixin:
         expanded_task_parameters = []
 
         for task, task_parameters in parameters.items():
-            if '@MACRO_COUNT@' in task_parameters:
+            if '__MACRO_COUNT__' in task_parameters:
                 deleted_tasks.append(task)
 
                 expanded_task_parameters += cls._generate_macro_parameters(task, task_parameters)
@@ -81,14 +81,14 @@ class ParameterExtractionMixin:
 
     @classmethod
     def _generate_macro_parameters(cls, task, task_parameters):
-        count = int(task_parameters['@MACRO_COUNT@'])
+        count = int(task_parameters['__MACRO_COUNT__'])
         generated_parameters = []
 
 
         for index in range(count):
             instance_parameters = {
                 name: cls._replace_macro_parameters(value, count, index) for name, value in task_parameters.items()
-                if name != '@MACRO_COUNT@'
+                if name != '__MACRO_COUNT__'
             }
 
             generated_parameters.append({f'{task}_{index}': instance_parameters})
@@ -122,8 +122,8 @@ class ParameterExtractionMixin:
         resolved_value = value
 
         if hasattr(value, 'replace'):
-            resolved_value = value.replace('@MACRO_COUNT@', str(macro_count))
-            resolved_value = resolved_value.replace('@MACRO_INDEX@', str(macro_index))
+            resolved_value = value.replace('__MACRO_COUNT__', str(macro_count))
+            resolved_value = resolved_value.replace('__MACRO_INDEX__', str(macro_index))
 
         return resolved_value
 

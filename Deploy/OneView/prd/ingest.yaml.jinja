@@ -55,7 +55,7 @@ ONEVIEW:
             DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
@@ -113,7 +113,7 @@ ONEVIEW:
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
-        @MACRO_COUNT@: 3
+        __MACRO_COUNT__: 3
         DATABASE_NAME: ${EDW_NAME}
         DATABASE_PORT: ${EDW_PORT}
         DATABASE_HOST: ${EDW_HOST}
@@ -122,9 +122,9 @@ ONEVIEW:
         SQL: "SELECT PARTY_ID, KEY_TYPE_ID, KEY_VAL FROM AMAEDW.PARTY_KEY WHERE KEY_TYPE_ID=9 OR (KEY_TYPE_ID=18 AND ACTIVE_IND='Y') OR (KEY_TYPE_ID=38 AND ACTIVE_IND='Y') ORDER BY PARTY_ID LIMIT {index}, {count};"
         CHUNK_SIZE: '1000000'
         COUNT: '3000000'
-        START_INDEX: '@MACRO_INDEX@'
-        MAX_PARTS: '@MACRO_COUNT@'
-        PART_INDEX: '@MACRO_INDEX@'
+        START_INDEX: '__MACRO_INDEX__'
+        MAX_PARTS: '__MACRO_COUNT__'
+        PART_INDEX: '__MACRO_INDEX__'
         DRIVER: ${DB2_DRIVER}
         DRIVER_TYPE: ${DB2_DRIVER_TYPE}
         JAR_PATH: ${DB2_JAR_PATH}
@@ -132,7 +132,7 @@ ONEVIEW:
         CACHE_OUTPUT_CLASS: ${S3_CACHE_JAVA_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_OUTPUT_FILES: 'party_key_@MACRO_INDEX@.csv'
+        CACHE_OUTPUT_FILES: 'party_key___MACRO_INDEX__.csv'
 
     CONCATENATE_PARTY_KEYS:
         CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
@@ -202,11 +202,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'email_status.csv'
 
     CREATE_PHYSICIAN_TABLE:
-        @MACRO_COUNT@: 10
+        __MACRO_COUNT__: 10
         CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_FILES: 'physician_professional_data_@MACRO_INDEX@.csv,physician_npi.csv,membership_year.csv,email_status.csv'
-        CACHE_OUTPUT_FILES: 'physician_@MACRO_INDEX@.csv'
+        CACHE_INPUT_FILES: 'physician_professional_data___MACRO_INDEX__.csv,physician_npi.csv,membership_year.csv,email_status.csv'
+        CACHE_OUTPUT_FILES: 'physician___MACRO_INDEX__.csv'
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
 
@@ -605,7 +605,7 @@ ONEVIEW:
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
-        @MACRO_COUNT@: 6
+        __MACRO_COUNT__: 6
         DATABASE_NAME: ${ODS_NAME}
         DATABASE_PORT: ${ODS_PORT}
         SQL: "SELECT B.IMS_ORG_ID, B.BUSINESS_NAME, B.DBA_NAME, B.ADDRESS_ID, B.PHYSICAL_ADDR_1, B.PHYSICAL_ADDR_2, B.PHYSICAL_CITY, B.PHYSICAL_STATE, B.PHYSICAL_ZIP, B.POSTAL_ADDR_1, B.POSTAL_ADDR_2, B.POSTAL_CITY, B.POSTAL_STATE, B.POSTAL_ZIP, B.PHONE, B.FAX, B.WEBSITE, B.LATITUDE, B.LONGITUDE, B.OWNER_STATUS, B.PROFIT_STATUS, B.PRIMARY_COT_ID, B.COT_CLASSIFICATION_ID, B.COT_CLASSIFICATION, B.COT_FACILITY_TYPE_ID, B.COT_FACILITY_TYPE, B.COT_SPECIALTY_ID, B.COT_SPECIALTY, B.RECORD_TYPE, B.TTL_LICENSE_BEDS, B.TTL_CENSUS_BEDS, B.TTL_STAFFED_BEDS, B.TEACHING_HOSP, B.COMMHOSP, B.MSA, B.FIPS_STATE, B.FIPS_COUNTY, B.NUM_OF_PROVIDERS, B.ELECTRONIC_MED_REC, B.EPRESCRIBE, B.PAYPERFORM, B.DEACTIVATION_REASON, B.REFERBACK_IMS_ORG_ID, B.STATUS_INDICATOR, B.BATCH_BUSINESS_DATE FROM ODS.ODS_IMS_BUSINESS B ORDER BY B.IMS_ORG_ID LIMIT {index}, {count};"
@@ -617,23 +617,23 @@ ONEVIEW:
         JAR_PATH: ${DB2_JAR_PATH}
         CHUNK_SIZE: '200000'
         COUNT: '200000'
-        START_INDEX: '@MACRO_INDEX@'
-        MAX_PARTS: '@MACRO_COUNT@'
-        PART_INDEX: '@MACRO_INDEX@'
+        START_INDEX: '__MACRO_INDEX__'
+        MAX_PARTS: '__MACRO_COUNT__'
+        PART_INDEX: '__MACRO_INDEX__'
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_JAVA_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_OUTPUT_FILES: 'iqvia_business_@MACRO_INDEX@.csv'
+        CACHE_OUTPUT_FILES: 'iqvia_business___MACRO_INDEX__.csv'
 
     CREATE_BUSINESS_TABLE:
-        @MACRO_COUNT@: 6
+        __MACRO_COUNT__: 6
         CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        CACHE_INPUT_FILES: 'iqvia_business_@MACRO_INDEX@.csv,class_of_trade.csv'
+        CACHE_INPUT_FILES: 'iqvia_business___MACRO_INDEX__.csv,class_of_trade.csv'
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_OUTPUT_FILES: 'business_@MACRO_INDEX@.csv'
+        CACHE_OUTPUT_FILES: 'business___MACRO_INDEX__.csv'
 
     CONCATENATE_BUSINESS_TABLE:
         CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
@@ -652,7 +652,7 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'iqvia_update.csv'
 
     LOAD_BUSINESS_TABLE:
-        @MACRO_COUNT@: 6
+        __MACRO_COUNT__: 6
         MODEL_CLASSES: 'datalabs.model.masterfile.oneview.Business'
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -664,7 +664,7 @@ ONEVIEW:
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_FILES: 'business_@MACRO_INDEX@.csv'
+        CACHE_INPUT_FILES: 'business___MACRO_INDEX__.csv'
 
     EXTRACT_IQVIA_PROVIDER:
         OVERRIDES:
@@ -704,21 +704,21 @@ ONEVIEW:
 
         DATABASE_NAME: ${ODS_NAME}
         DATABASE_PORT: ${ODS_PORT}
-        SQL: >
-        SELECT
-            P.AFFIL_TYPE_ID,
-            P.IMS_ORG_ID,
-            P.PROFESSIONAL_ID,
-            A.AFFIL_TYPE_DESC,
-            P.AFFIL_IND,
-            P.AFFIL_RANK,
-            A.AFFIL_GROUP_CODE,
-            A.AFFIL_GROUP_DESC,
-            P.BATCH_BUSINESS_DATE
-        FROM ODS.ODS_IMS_PROVIDER_AFFILIATION_FACT P
-        LEFT JOIN ODS.ODS_IMS_AFFILIATION_TYPE A
-        ON P.AFFIL_TYPE_ID = A.AFFIL_TYPE_ID ORDER BY AFFIL_TYPE_ID
-        LIMIT {index}, {count};
+        SQL: >-
+            SELECT
+                P.AFFIL_TYPE_ID,
+                P.IMS_ORG_ID,
+                P.PROFESSIONAL_ID,
+                A.AFFIL_TYPE_DESC,
+                P.AFFIL_IND,
+                P.AFFIL_RANK,
+                A.AFFIL_GROUP_CODE,
+                A.AFFIL_GROUP_DESC,
+                P.BATCH_BUSINESS_DATE
+            FROM ODS.ODS_IMS_PROVIDER_AFFILIATION_FACT P
+            LEFT JOIN ODS.ODS_IMS_AFFILIATION_TYPE A
+            ON P.AFFIL_TYPE_ID = A.AFFIL_TYPE_ID ORDER BY AFFIL_TYPE_ID
+            LIMIT {index}, {count};
         DATABASE_HOST: ${ODS_HOST}
         DATABASE_USERNAME: ${ODS_USERNAME}
         DATABASE_PASSWORD: ${ODS_PASSWORD}
@@ -790,7 +790,7 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'iqvia_provider_affiliation_0.csv,iqvia_provider_affiliation_1.csv,iqvia_provider_affiliation_2.csv,iqvia_provider_affiliation_3.csv,iqvia_provider_affiliation_4.csv,iqvia_provider_affiliation_5.csv'
 
     LOAD_IQVIA_PROVIDER_TABLE:
-        @MACRO_COUNT@: 3
+        __MACRO_COUNT__: 3
         MODEL_CLASSES: 'datalabs.model.masterfile.oneview.Provider'
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -802,14 +802,14 @@ ONEVIEW:
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_FILES: 'iqvia_provider_@MACRO_INDEX@.csv'
+        CACHE_INPUT_FILES: 'iqvia_provider___MACRO_INDEX__.csv'
 
     LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE:
-        @MACRO_COUNT@: 6
+        __MACRO_COUNT__: 6
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_FILES: 'iqvia_provider_affiliation_@MACRO_INDEX@.csv'
+        CACHE_INPUT_FILES: 'iqvia_provider_affiliation___MACRO_INDEX__.csv'
 
         MODEL_CLASSES: 'datalabs.model.masterfile.oneview.ProviderAffiliation'
         DATABASE_HOST: ${DATABASE_HOST}
@@ -926,7 +926,7 @@ ONEVIEW:
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_FILES: 'credentialing_order_years.csv'
 
-        @MACRO_COUNT@: 9
+        __MACRO_COUNT__: 9
         DATABASE_NAME: ${DATAMART_NAME}
         DATABASE_PORT: ${DATAMART_PORT}
         SQL: "SELECT DISTINCT O.FACT_EPROFILE_KEY, O.ORDER_NBR, O.CUSTOMER_KEY, O.ORDER_PRODUCT_ID, O.QUANTITY, H.MED_EDU_NBR, H.UPIN_NBR, D.FULL_DT FROM AMADM.DIM_DATE D, AMADM.FACT_EPROFILE_ORDERS O, AMADM.DIM_PHYSICIAN_HIST H WHERE D.DATE_KEY = O.ORDER_DT_KEY AND H.PHYSICIAN_HIST_KEY = O.ORDER_PHYSICIAN_HIST_KEY AND D.YR = '{YR}' ORDER BY FACT_EPROFILE_KEY;"
@@ -936,13 +936,13 @@ ONEVIEW:
         DRIVER: ${DB2_DRIVER}
         DRIVER_TYPE: ${DB2_DRIVER_TYPE}
         JAR_PATH: ${DB2_JAR_PATH}
-        MAX_PARTS: '@MACRO_COUNT@'
-        PART_INDEX: '@MACRO_INDEX@'
+        MAX_PARTS: '__MACRO_COUNT__'
+        PART_INDEX: '__MACRO_INDEX__'
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_JAVA_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_OUTPUT_FILES: 'credentialing_order_@MACRO_INDEX@.csv'
+        CACHE_OUTPUT_FILES: 'credentialing_order___MACRO_INDEX__.csv'
 
     CONCATENATE_CREDENTIALING_ORDER:
         CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
@@ -1027,8 +1027,8 @@ ONEVIEW:
         CACHE_INPUT_FILES: 'credentialing_order.csv'
         CACHE_OUTPUT_FILES: 'credentialing_order_0.csv,credentialing_order_1.csv,credentialing_order_2.csv,credentialing_order_3.csv,credentialing_order_4.csv,credentialing_order_5.csv,credentialing_order_6.csv,credentialing_order_7.csv,credentialing_order_8.csv,credentialing_order_9.csv,credentialing_order_10.csv,credentialing_order_11.csv'
 
-    LOAD_CREDENTIALING_ORDER_TABLE
-        @MACRO_COUNT@: 12
+    LOAD_CREDENTIALING_ORDER_TABLE:
+        __MACRO_COUNT__: 12
         MODEL_CLASSES: 'datalabs.model.masterfile.oneview.CredentialingOrder'
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -1040,7 +1040,7 @@ ONEVIEW:
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_FILES: 'credentialing_order_@MACRO_INDEX@.csv'
+        CACHE_INPUT_FILES: 'credentialing_order___MACRO_INDEX__.csv'
 
     EXTRACT_PHYSICIAN_RACE_ETHNICITY:
         BASE_PATH: 'Data Analytics/Data-Science/Data/Masterfile_OneView'
@@ -1244,7 +1244,7 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'historical_resident_0.csv,historical_resident_1.csv,historical_resident_2.csv,historical_resident_3.csv,historical_resident_4.csv,historical_resident_5.csv'
 
     LOAD_HISTORICAL_RESIDENT_TABLE:
-        @MACRO_COUNT@: 6
+        __MACRO_COUNT__: 6
         MODEL_CLASSES: 'datalabs.model.masterfile.oneview.HistoricalResident'
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -1256,7 +1256,7 @@ ONEVIEW:
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_FILES: 'historical_resident_@MACRO_INDEX@.csv'
+        CACHE_INPUT_FILES: 'historical_resident___MACRO_INDEX__.csv'
 
     EXTRACT_MEDICAL_STUDENT:
         BASE_PATH: ''
