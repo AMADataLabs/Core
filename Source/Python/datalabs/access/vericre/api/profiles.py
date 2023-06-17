@@ -204,12 +204,9 @@ class MultiProfileLookupEndpointParameters:
 class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupEndpointParameters
 
-    def _run(self, database):
-        super()._run(database)
-
     def _filter_by_entity_id(self, query):
         entity_id = self._parameters.payload.get("entity_id")
-        
+
         return query.filter(User.ama_entity_id.in_(entity_id))
 
 
@@ -232,9 +229,6 @@ class SingleProfileLookupEndpointParameters:
 
 class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
-
-    def _run(self, database):
-        super()._run(database)
 
     def _filter_by_entity_id(self, query):
         entity_id = self._parameters.path.get('entityId')
