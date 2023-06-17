@@ -69,7 +69,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
             FormSubSection.identifier.label('section_identifier'),
             FormField.identifier.label('field_identifier'),
             case(
-                [(((FormField.is_source_field is True) & (FormField.is_authoritative is True)), literal(True))],
+                [(((FormField.is_source_field == 'True') & (FormField.is_authoritative == 'True')), literal(True))],
                 else_=literal(False)
             ).label("is_authoritative"),
             FormField.is_source_field.label('is_source'),
@@ -78,8 +78,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
             FormField.source_key,
             case(
                 [
-                    (((FormField.is_source_field is True) & (FormField.source == 1)), 'AMA'),
-                    (((FormField.is_source_field is True) & (FormField.source == 2)), 'CAQH')
+                    (((FormField.is_source_field == 'True') & (FormField.source == 1)), 'AMA'),
+                    (((FormField.is_source_field == 'True') & (FormField.source == 2)), 'CAQH')
                 ],
                 else_='Physician Provided'
             ).label("source_tag"),
