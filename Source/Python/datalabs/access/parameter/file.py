@@ -1,64 +1,94 @@
 """ Helper class that loads DAG configuration from a YAML file into the environment. """
+import json
 import yaml
 
-from   datalabs.access.environment import VariableTree
+from   datalabs.plugin import import_plugin
 
 
 class ParameterExtractionMixin:
     @classmethod
-    def _extract_variables_from_config(cls, filename):
+    def _extract_variables_from_config(cls, filenames):
         config = {}
+        dag = None
 
-        with open(filename, encoding='utf-8') as file:
-            config.update(yaml.safe_load(file.read())['data'])
+        for filename in filenames:
+            with open(filename, encoding='utf-8') as file:
+                document = yaml.safe_load(file.read())
+                dag = list(document)[0]
+
+                config.update(document[dag])
 
         for key, value in config.items():
-            if not key.endswith('@MACRO_COUNT@') and not isinstance(value, str):
+            if not key.endswith('__MACRO_COUNT__') and not isinstance(value, (str, dict)):
                 raise ValueError(f'The value for parameter {key} is not a string, but is {type(value)}: {value}.')
 
-        return config
+        return dag, config
 
-    def _parse_variables(self, variables):
-        parameters = {}
-        var_tree = VariableTree.generate(variables)
-        dag = self._get_dag_id(var_tree)
-        parameters["GLOBAL"] = self._get_global_variables(dag, var_tree)
-        tasks = var_tree.get_branches([dag])
+    def _parse_variables(self, variables, top_level=True):
+        parameters = variables
 
-        for task in tasks:
-            parameters[task] = var_tree.get_branch_values([dag, task])
+        if isinstance(variables, dict):
+            for key, value in variables.items():
+                if isinstance(value, dict):
+                    parameters[key] =  self._parse_variables(value, top_level=False)
 
-        return (dag, parameters)
+                    if not top_level:
+                        parameters[key] = json.dumps(parameters[key])
+
+        return parameters
 
     @classmethod
     def _expand_macros(cls, parameters):
+        parameters = cls._expand_task_parameters(parameters)
+
+        if "DAG" in parameters:
+            parameters = cls._add_task_classes(parameters)
+
+        return parameters
+
+    @classmethod
+    def _expand_task_parameters(cls, parameters):
         deleted_tasks = []
-        added_tasks = []
+        expanded_task_parameters = []
 
         for task, task_parameters in parameters.items():
-            if '@MACRO_COUNT@' in task_parameters:
+            if '__MACRO_COUNT__' in task_parameters:
                 deleted_tasks.append(task)
 
-                added_tasks += cls._generate_macro_parameters(task, task_parameters)
+                expanded_task_parameters += cls._generate_macro_parameters(task, task_parameters)
 
         for task in deleted_tasks:
             parameters.pop(task)
 
-        for task_parameters in added_tasks:
+        for task_parameters in expanded_task_parameters:
             parameters.update(task_parameters)
 
         return parameters
 
     @classmethod
+    def _add_task_classes(cls, parameters):
+        dag_class = import_plugin(parameters["DAG"]["DAG_CLASS"])
+
+        for task, task_parameters in parameters.items():
+            if task not in ("GLOBAL", "DAG") and "TASK_CLASS" not in task_parameters:
+                parameters[task] = cls._add_task_class(dag_class, task, task_parameters)
+
+        for task in dag_class.tasks:
+            if task not in parameters:
+                parameters[task] = cls._add_task_class(dag_class, task, {})
+
+        return parameters
+
+    @classmethod
     def _generate_macro_parameters(cls, task, task_parameters):
-        count = int(task_parameters['@MACRO_COUNT@'])
+        count = int(task_parameters['__MACRO_COUNT__'])
         generated_parameters = []
 
 
         for index in range(count):
             instance_parameters = {
                 name: cls._replace_macro_parameters(value, count, index) for name, value in task_parameters.items()
-                if name != '@MACRO_COUNT@'
+                if name != '__MACRO_COUNT__'
             }
 
             generated_parameters.append({f'{task}_{index}': instance_parameters})
@@ -66,34 +96,36 @@ class ParameterExtractionMixin:
         return generated_parameters
 
     @classmethod
+    def _add_task_class(cls, dag_class, task, task_parameters):
+        task_class = dag_class.task_class(task)
+        task_class_name = task_class
+
+        if hasattr(task_class, "name"):
+            task_class_name = task_class.name
+
+        task_parameters["TASK_CLASS"] = task_class_name
+
+        return task_parameters
+
+    @classmethod
+    def _generate_item(cls, dag, task, variables):
+        item = dict(
+            Task=dict(S=task),
+            DAG=dict(S=dag),
+            Variables=dict(S=json.dumps(variables))
+        )
+
+        return item
+
+    @classmethod
     def _replace_macro_parameters(cls, value, macro_count, macro_index):
         resolved_value = value
 
         if hasattr(value, 'replace'):
-            resolved_value = value.replace('@MACRO_COUNT@', str(macro_count))
-            resolved_value = resolved_value.replace('@MACRO_INDEX@', str(macro_index))
+            resolved_value = value.replace('__MACRO_COUNT__', str(macro_count))
+            resolved_value = resolved_value.replace('__MACRO_INDEX__', str(macro_index))
 
         return resolved_value
-
-    @classmethod
-    def _get_dag_id(cls, var_tree):
-        global_variables = var_tree.get_branch_values([])
-        dag = None
-
-        for key, value in global_variables.items():
-            if value is None:
-                dag = key
-                break
-
-        return dag
-
-    @classmethod
-    def _get_global_variables(cls, dag, var_tree):
-        global_variables = var_tree.get_branch_values([])
-
-        global_variables.pop(dag)
-
-        return global_variables
 
 
 class FileEnvironmentParameters:
@@ -109,8 +141,9 @@ class FileEnvironmentLoader(ParameterExtractionMixin):
         self._parameters = parameters
 
     def load(self):
-        variables = self._extract_variables_from_config(self._parameters['path'])
-        dag, parameters = self._parse_variables(variables)
+        dag, variables = self._extract_variables_from_config([self._parameters['path']])
+
+        parameters = self._parse_variables(variables)
 
         if dag != self._parameters["dag"]:
             raise ValueError("Requested DAG " + self._parameters.dag + " does not match the config file DAG " + dag)
