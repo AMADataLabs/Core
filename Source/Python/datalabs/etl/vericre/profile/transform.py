@@ -93,9 +93,9 @@ class CAQHProfileTransformerTask(Task):
       qldb_profiles = []
 
       for profile in profiles:
-          result_dict = xmltodict.parse(profile)
-          qldb_profle = self.create_qldb_profile(result_dict["Provider"], current_date)
-          qldb_profiles.append(qldb_profle)
+        result_dict = xmltodict.parse(profile)
+        qldb_profle = self.create_qldb_profile(result_dict["Provider"], current_date)
+        qldb_profiles.append(qldb_profle)
 
       return qldb_profiles
 
