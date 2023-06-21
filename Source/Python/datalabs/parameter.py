@@ -7,20 +7,15 @@ from   marshmallow.exceptions import ValidationError
 def add_schema(*args, **kwargs):
     def create_schema(model_class):
         model_fields = [key for key, value in model_class.__dict__.items() if not key.startswith('_')]
-        unknown_handling = marshmallow.RAISE
 
         if '__dataclass_fields__' in model_class.__dict__:
             model_fields = [key for key, value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
-
-        if 'unknowns' in kwargs and kwargs['unknowns']:
-            unknown_handling = marshmallow.INCLUDE
-
 
         class Schema(marshmallow.Schema):
             class Meta:
                 # strict = True
                 fields = copy.deepcopy(model_fields)
-                unknown = unknown_handling
+                unknown = marshmallow.INCLUDE
 
             @marshmallow.post_load
             #pylint: disable=unused-argument
@@ -39,7 +34,7 @@ def add_schema(*args, **kwargs):
 
                 self._fill_dataclass_defaults(data)
 
-                if self.Meta.unknown == marshmallow.INCLUDE and 'unknowns' in model_fields and 'unknowns' in data:
+                if 'unknowns' in model_fields and 'unknowns' not in data:
                     data['unknowns'] = unknowns
 
                 return model_class(**data)
@@ -50,7 +45,7 @@ def add_schema(*args, **kwargs):
                 self._fill_class_defaults(data)
                 model = model_class()
 
-                if self.Meta.unknown == marshmallow.INCLUDE and 'unknowns' in model_fields and 'unknowns' in data:
+                if 'unknowns' in model_fields and 'unknowns' not in data:
                     data['unknowns'] = unknowns
 
                 for field in data:

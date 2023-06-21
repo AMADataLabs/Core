@@ -17,11 +17,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
-    def _get_runtime_parameters(self, parameters):
-        command_line_parameters = json.loads(parameters[1])
-        LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
-
-        return self._supplement_runtime_parameters(command_line_parameters)
 
     def _pre_run(self):
         super()._pre_run()
@@ -30,7 +25,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = self._get_state_plugin(self._parameters)
+            state = self._get_state_plugin(self._runtime_parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
@@ -46,6 +41,21 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
         return task_resolver_class
 
+    def _get_dag_parameters(self, parameters):
+        dag_parameters = json.loads(parameters[1])
+        dag_id = dag_parameters["dag"].upper()
+        dag_name, _ = self._parse_dag_id(dag_id)
+        LOGGER.debug('Command-line Parameters: %s', dag_parameters)
+
+        dag_parameters.update(self._get_dag_parameters_from_dynamodb(dag_name))
+
+        if "task" not in self._runtime_parameters:
+            dag_parameters["task"] = "DAG"
+
+        LOGGER.debug('DAG Parameters: %s', self._runtime_parameters)
+
+        return dag_parameters
+
     def _get_dag_task_parameters(self):
         dag_id = self._get_dag_id()
         dag_name = self._get_dag_name()
@@ -57,7 +67,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
 
         if task == 'DAG':
-            state = self._get_state_plugin(self._parameters)
+            state = self._get_state_plugin(self._runtime_parameters)
             dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
         else:
             self._override_runtime_parameters(dag_task_parameters)
@@ -72,21 +82,6 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
         return dag_task_parameters
 
-    def _supplement_runtime_parameters(self, runtime_parameters):
-        dag_id = runtime_parameters["dag"].upper()
-        dag_name, _ = self._parse_dag_id(dag_id)
-        dag_parameters = self._get_dag_parameters(dag_name)
-        LOGGER.debug('DAG Parameters: %s', dag_parameters)
-
-        runtime_parameters.update(dag_parameters)
-
-        if "task" not in runtime_parameters:
-            runtime_parameters["task"] = "DAG"
-
-        LOGGER.debug('Runtime Parameters: %s', runtime_parameters)
-
-        return runtime_parameters
-
     def _override_runtime_parameters(self, task_parameters):
         overrides = json.loads(task_parameters.pop("OVERRIDES", "{}"))
 
@@ -99,7 +94,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
         return task_parameters
 
-    def _get_dag_parameters(self, dag):
+    def _get_dag_parameters_from_dynamodb(self, dag):
         LOGGER.debug('Getting DAG Parameters for %s...', dag)
         dag_parameters = self._get_dag_task_parameters_from_dynamodb(dag, "DAG")
         LOGGER.debug('Raw DAG Parameters: %s', dag_parameters)

@@ -151,5 +151,3 @@ class ProcessorTaskWrapper(
 class DAGTaskWrapper(aws.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event Parameters: %s', parameters)
-
-        return self._supplement_runtime_parameters(parameters)

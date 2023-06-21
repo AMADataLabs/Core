@@ -39,10 +39,7 @@ class TaskDataCacheParameters:
         )
         cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
 
-        for key in cache_keys:
-            task_parameters.pop(key)
-
-        return task_parameters, cache_parameters
+        return cache_parameters
 
     @classmethod
     def _get_cache_parameters(cls, task_parameters: dict, direction: CacheDirection) -> dict:

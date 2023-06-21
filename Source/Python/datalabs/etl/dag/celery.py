@@ -55,7 +55,22 @@ class DAGTaskWrapper(
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):
-        return self._supplement_runtime_parameters(parameters)
+        return parameters
+
+    def _supplement_runtime_parameters(self, task_parameters):
+        super()._supplement_runtime_parameters(task_parameters)
+
+        dag_id = self._runtime_parameters["dag"].upper()
+        dag_name, _ = self._parse_dag_id(dag_id)
+        path = self._runtime_parameters["config_file"]
+        dag_parameters = self._get_dag_parameters(dag_name, path)
+        LOGGER.debug('DAG Parameters: %s', dag_parameters)
+
+        self._runtime_parameters.update(dag_parameters)
+
+        LOGGER.debug('Runtime Parameters: %s', self._runtime_parameters)
+
+        return self._runtime_parameters
 
     def _pre_run(self):
         super()._pre_run()
@@ -64,7 +79,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = self._get_state_plugin(self._parameters)
+            state = self._get_state_plugin(self._runtime_parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
@@ -76,7 +91,7 @@ class DAGTaskWrapper(
         dag_name = self._get_dag_name()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        config_file_path = self._parameters["config_file"]
+        config_file_path = self._runtime_parameters["config_file"]
         dynamic_parameters = self._runtime_parameters.get("parameters", {})
         LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
 
@@ -84,7 +99,7 @@ class DAGTaskWrapper(
         LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
-            state = self._get_state_plugin(self._parameters)
+            state = self._get_state_plugin(self._runtime_parameters)
             dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
         else:
             self._override_runtime_parameters(dag_task_parameters)
@@ -100,19 +115,6 @@ class DAGTaskWrapper(
 
     def _get_task_wrapper_parameters(self):
         return self._get_validated_parameters(self._runtime_parameters)
-
-    def _supplement_runtime_parameters(self, runtime_parameters):
-        dag_id = runtime_parameters["dag"].upper()
-        dag_name, _ = self._parse_dag_id(dag_id)
-        path = runtime_parameters["config_file"]
-        dag_parameters = self._get_dag_parameters(dag_name, path)
-        LOGGER.debug('DAG Parameters: %s', dag_parameters)
-
-        runtime_parameters.update(dag_parameters)
-
-        LOGGER.debug('Runtime Parameters: %s', runtime_parameters)
-
-        return runtime_parameters
 
     def _override_runtime_parameters(self, task_parameters):
         overrides = json.loads(task_parameters.pop("OVERRIDES", "{}"))
