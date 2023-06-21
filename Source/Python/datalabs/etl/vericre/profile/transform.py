@@ -85,21 +85,17 @@ class CAQHProfileTransformerTask(Task):
     def run(self):
       profiles = [x[1] for x in pickle.loads(self._data[0])]
       current_date = isoparse(self._parameters.execution_time)
+
       qldb_profiles = self.create_vericre_profile_from_caqh_profile(profiles, current_date)
 
       return [json.dumps(qldb_profiles).encode()]
 
     def create_vericre_profile_from_caqh_profile(self, profiles, current_date):
-      qldb_profiles = []
+      return [self.create_qldb_profile(profile, current_date) for profile in profiles]
 
-      for profile in profiles:
-        result_dict = xmltodict.parse(profile)
-        qldb_profle = self.create_qldb_profile(result_dict["Provider"], current_date)
-        qldb_profiles.append(qldb_profle)
+    def create_qldb_profile(self, raw_profile, current_date):
+      profile = xmltodict.parse(raw_profile)['Provider']
 
-      return qldb_profiles
-
-    def create_qldb_profile(self, profile, current_date):
       transformed_profile = {
         'FutureBoardExamDate': self.create_future_board_exam_date(profile["Specialty"]),
         'TaxID': self.create_tax_id(profile["Practice"]["Tax"]),
@@ -129,9 +125,8 @@ class CAQHProfileTransformerTask(Task):
       future_board_exam_date = ''
 
       for specialty in specialties:
-        if specialty["SpecialtyType"]["SpecialtyTypeDescription"] == "Primary":
-          if "FutureBoardExamDate" in specialty:
-            future_board_exam_date = specialty["FutureBoardExamDate"]
+        if specialty["SpecialtyType"]["SpecialtyTypeDescription"] == "Primary" and "FutureBoardExamDate" in specialty:
+          future_board_exam_date = specialty["FutureBoardExamDate"]
 
       return future_board_exam_date
 
