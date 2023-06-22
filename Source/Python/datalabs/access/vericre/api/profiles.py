@@ -117,7 +117,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _sort(cls, query):
         return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
 
-    def _verify_query_result(self, query_result):
+    @classmethod
+    def _verify_query_result(cls, query_result):
         if len(query_result) == 0:
             raise ResourceNotFound("The profile was not found for the provided Entity Id")
 
@@ -217,7 +218,8 @@ class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
 
         return query.filter(User.ama_entity_id.in_(entity_id))
 
-    def _verify_entity_id_count(self, entity_id):
+    @classmethod
+    def _verify_entity_id_count(cls, entity_id):
         if len(entity_id) > 1000:
             raise APIEndpointException("Bad Request. The request should have a limit of 1000 Entity Ids")
 

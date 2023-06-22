@@ -1,10 +1,7 @@
 """ source: datalabs.access.vericre.api.physician """
-from   collections import namedtuple
 import logging
 
-import mock
 import pytest
-from   sqlalchemy.orm.exc import MultipleResultsFound
 
 from   datalabs.access.api.task import InvalidRequest
 from   datalabs.access.vericre.api.physician import PhysiciansSearchEndpointTask
