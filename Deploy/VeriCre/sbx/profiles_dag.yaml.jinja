@@ -4,12 +4,10 @@ VERICRE_PROFILES:
         ENVIRONMENT: dev
         ACCOUNT: '191296302136'
 
-        UDRIVE_HOST: eft.ama-assn.org
-        UDRIVE_USERNAME: datalabs
-        UDRIVE_PASSWORD: '{{udrive_password}}'
-
         CAQH_USERNAME: DeepakA123
         CAQH_PASSWORD: '{{caqh_password}}'
+
+        eft_password: '{{caqh_password}}'
 
         S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
@@ -50,7 +48,7 @@ VERICRE_PROFILES:
     
     EXTRACT_AMA_PHYSICIAN_PROFILES:
         USERNAME: datalabs
-        PASSWORD: '{{EFT_PASSWORD}}'
+        PASSWORD: '{{eft_password}}'
 
     EXTRACT_CAQH_PHYSICIAN_PROFILES:
         USERNAME: ${CAQH_USERNAME}
@@ -59,7 +57,6 @@ VERICRE_PROFILES:
     EXTRACT_CAQH_PROFILE_STATUSES:
         USERNAME: ${CAQH_USERNAME}
         PASSWORD: ${CAQH_PASSWORD}
-        INCLUDE_NAMES=True
 
     LOAD_AMA_MASTERFILE_TABLE:
         LEDGER: vericre-sbx-ledger
