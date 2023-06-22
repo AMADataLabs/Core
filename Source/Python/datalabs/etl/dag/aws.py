@@ -67,7 +67,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, SNSProcessorNotifierMixin
 
         dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
 
-        if "task" not in self._runtime_parameters:
+        if "task" not in dag_parameters:
             dag_parameters["task"] = "DAG"
 
         LOGGER.debug('DAG Parameters: %s', dag_parameters)

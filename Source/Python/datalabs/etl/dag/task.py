@@ -104,6 +104,8 @@ class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
         return {}
 
     def _get_dag_task_parameters(self, dag_parameters):
+        dag_id = dag_parameters["dag"].upper()
+        dag, _ = self._parse_dag_id(dag_id)
         parameters = {}
 
         try:
