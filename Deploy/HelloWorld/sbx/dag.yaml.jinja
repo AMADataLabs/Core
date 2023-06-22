@@ -1,43 +1,33 @@
-# Render as follows:
-
-# Script/render-template -t Deploy/HelloWorld/sbx/dag.yaml.jinja -f Deploy/HelloWorld/sbx/dag.yaml
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "HELLO_WORLD"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+HELLO_WORLD:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
 
-    ENVIRONMENT: sbx
-    ACCOUNT: '644454719059'
+    DAG:
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "HELLO_WORLD"}, "Task": {"S": "HELLO_WORLD"}})
-    #######################################################################
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-DBLReport'
+        DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
+        DAG_STATE_PARAMETERS:
+            DAG_STATE_CLASS: 'datalabs.etl.dag.state.file.DAGState'
+            BASE_PATH: './test_output_file_state'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
-    HELLO_WORLD__DAG__LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-AMC'
-    HELLO_WORLD__DAG__DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
-    HELLO_WORLD__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    HELLO_WORLD__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    HELLO_WORLD__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    HELLO_WORLD__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    HELLO_WORLD__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    HELLO_WORLD__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    HELLO_WORLD__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    PRINT_HELLO_WORLD:
+        FIRST_NAME: 'Bob'
+        LAST_NAME: 'Marley'
 
-    HELLO_WORLD__LOCAL__DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
-    HELLO_WORLD__LOCAL__DAG_STATE_CLASS: 'datalabs.etl.dag.state.file.DAGState'
-    HELLO_WORLD__LOCAL__BASE_PATH: './test_output_file_state'
-    HELLO_WORLD__LOCAL__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
-    HELLO_WORLD__LOCAL__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+    PRINT_HELLO_WORLD1:
+        FIRST_NAME: 'Alice'
+        LAST_NAME: 'Potter'
 
-    HELLO_WORLD__PRINT_HELLO_WORLD__FIRST_NAME: 'Bob'
-    HELLO_WORLD__PRINT_HELLO_WORLD__LAST_NAME: 'Marley'
+    PRINT_HELLO_WORLD2:
+        FIRST_NAME: 'Harry'
+        LAST_NAME: 'Maguire'
 
-    HELLO_WORLD__PRINT_HELLO_WORLD1__FIRST_NAME: 'Alice'
-    HELLO_WORLD__PRINT_HELLO_WORLD1__LAST_NAME: 'Potter'
-
-    HELLO_WORLD__PRINT_HELLO_WORLD2__FIRST_NAME: 'Harry'
-    HELLO_WORLD__PRINT_HELLO_WORLD2__LAST_NAME: 'Maguire'
-
-    HELLO_WORLD__PRINT_HELLO_WORLD3__FIRST_NAME: 'Ron'
-    HELLO_WORLD__PRINT_HELLO_WORLD3__LAST_NAME: 'Alison'
+    PRINT_HELLO_WORLD3:
+        FIRST_NAME: 'Ron'
+        LAST_NAME: 'Alison'

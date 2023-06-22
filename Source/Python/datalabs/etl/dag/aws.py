@@ -30,7 +30,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
+            state = self._get_state_plugin(self._parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
@@ -57,10 +57,10 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
 
         if task == 'DAG':
-            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
+            state = self._get_state_plugin(self._parameters)
             dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
         else:
-            dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
+            self._override_runtime_parameters(dag_task_parameters)
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
         LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
@@ -88,12 +88,9 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         return runtime_parameters
 
     def _override_runtime_parameters(self, task_parameters):
-        for name, value in list(task_parameters.items()):
-            if name in self._runtime_parameters:
-                self._runtime_parameters[name] = value
-                task_parameters.pop(name)
+        overrides = json.loads(task_parameters.pop("OVERRIDES", "{}"))
 
-        return task_parameters
+        self._runtime_parameters.update({k:v for k, v in overrides.items() if k in self._runtime_parameters})
 
     @classmethod
     def _remove_bootstrap_parameters(cls, task_parameters):

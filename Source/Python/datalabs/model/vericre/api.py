@@ -26,7 +26,6 @@ class Institution(BASE):
     id = sa.Column(sa.BigInteger, primary_key=True, nullable=False)
     name = sa.Column(sa.String(255))
     cms_certificate = sa.Column(sa.String(255))
-    # address = sa.Column(sa)
     logo = sa.Column(sa.String(255))
     abbreviation = sa.Column(sa.String(255))
 
@@ -37,7 +36,7 @@ class InstitutionManagement(BASE, CommonColumns):
 
     id = sa.Column(sa.BigInteger, sa.Sequence('inst_mgmt_seq', start=1, increment=1), primary_key=True, nullable=False)
     status = sa.Column(sa.String(255))
-    institution = sa.Column(sa.BigInteger, sa.ForeignKey("institution.id"))
+    institution = sa.Column(sa.BigInteger)
 
 
 class User(BASE, CommonColumns):
@@ -54,7 +53,7 @@ class User(BASE, CommonColumns):
     role = sa.Column(sa.String(255))
     sso_id = sa.Column(sa.String(255))
     status = sa.Column(sa.String(255))
-    institution = sa.Column(sa.BigInteger, sa.ForeignKey("institution_management.id"))
+    institution = sa.Column(sa.BigInteger)
     ama_me_number = sa.Column(sa.String(255))
     ama_name = sa.Column(sa.String(255))
     ama_user_name = sa.Column(sa.String(255))

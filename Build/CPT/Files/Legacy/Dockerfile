@@ -1,16 +1,23 @@
 # Build Example:
-#    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl-batch --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Batch/Dockerfile ./
+#    docker build \
+#      --build-arg ENVIRONMENT=sbx \
+#      --build-arg PROJECT=CPT/Files/Legacy \
+#      --build-arg AWS_ACCESS_KEY_ID_SANDBOX=   \
+#      --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=   \
+#      --build-arg MAVEN_VERSION=3.9.3   \
+#      -t cpt-files-legacy -f ./Build/CPT/Files/Legacy/Dockerfile ./
 FROM eclipse-temurin:18.0.2.1_1-jdk AS build
 ARG ENVIRONMENT
 ARG PROJECT
 ARG AWS_ACCESS_KEY_ID_SANDBOX
 ARG AWS_SECRET_ACCESS_KEY_SANDBOX
+ARG MAVEN_VERSION=3.9.0
 
 WORKDIR /Task
 ENV AWS_DEFAULT_REGION=us-east-1
+ENV MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3
 
-RUN export MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3
-RUN export MAVEN_VERSION=$(curl --silent ${MAVEN_BASE_URL}/ | grep 3.9 | sed 's/^..*href="\([^/][^/]*\)..*/\1/g')
+RUN echo "${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
 
 ENV PATH="/Task/apache-maven-${MAVEN_VERSION}/bin:$PATH"
 
