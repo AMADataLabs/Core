@@ -1,13 +1,10 @@
 """ source: datalabs.access.vericre.api.profiles """
-from   collections import namedtuple
 import logging
 
-import mock
 import pytest
-from   sqlalchemy.orm.exc import MultipleResultsFound
 
 from   datalabs.access.api.task import APIEndpointException
-from   datalabs.access.vericre.api.profiles import MultiProfileLookupEndpointTask, SingleProfileLookupEndpointTask
+from   datalabs.access.vericre.api.profiles import MultiProfileLookupEndpointTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,7 +20,7 @@ def test_verify_entity_id_count(multi_profile_lookup_event, over_size_entity_ids
 
         task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
 
-        results = task._verify_entity_id_count(task._parameters.payload.get('entity_id'))
+        task._verify_entity_id_count(task._parameters.payload.get('entity_id'))
 
     assert except_info.type == APIEndpointException
     assert str(except_info.value) == 'Bad Request. The request should have a limit of 1000 Entity Ids'
