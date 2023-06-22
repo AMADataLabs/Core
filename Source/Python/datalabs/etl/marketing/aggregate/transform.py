@@ -1,10 +1,13 @@
 """Transformer task for running marketing aggregator"""
 from   dataclasses import dataclass
 from   datetime import datetime
+from bisect import bisect_left
 import io
 import logging
 import os
 import pickle
+import random
+import string
 
 import pandas
 
@@ -287,7 +290,13 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         merged_flatfile = self._rename_columns(merged_flatfile)
 
+        merged_flatfile = self._drop_contacts_without_emails_addresses(merged_flatfile)
+
+        merged_flatfile = self._assign_hscontactid_to_new_contacts(merged_flatfile)
+
         merged_flatfile = self._remove_spaces_from_dataframe(merged_flatfile)
+
+        merged_flatfile = self._assign_listkeys_to_updated_flatfile(merged_flatfile)
 
         return merged_flatfile
 
@@ -362,8 +371,105 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return merged_df
 
     @classmethod
+    def _drop_contacts_without_emails_addresses(cls, merged_df):
+        merged_df = merged_df[merged_df['BEST_EMAIL'].notna()]
+
+        return merged_df
+
+    @classmethod
+    def _assign_hscontactid_to_new_contacts(cls, merged_df):
+        id_list = []
+        for index in merged_df.index:
+            if merged_df['hs_contact_id'][index] != merged_df['hs_contact_id'][index] :
+                contact_id = cls._id_check(id_list, merged_df['hs_contact_id'])
+                merged_df['hs_contact_id'][index] = contact_id
+
+        return merged_df
+
+    @classmethod
     def _remove_spaces_from_dataframe(cls, merged_df):
         merged_df = merged_df.apply(lambda x: x.str.strip())
+
+        return merged_df
+
+    #@classmethod
+    def _assign_listkeys_to_updated_flatfile(self, merged_df):
+        duplicated_merged_df = self._get_contacts_with_duplicate_emails(merged_df)
+
+        listkey_df = self._get_listkeys_for_contacts_with_same_emails(duplicated_merged_df)
+
+        merged_df = self._remove_duplicate_contacts(merged_df, duplicated_merged_df, listkey_df)
+
+        merged_df = self._assign_liskeys(merged_df, listkey_df)
+
+        return merged_df
+
+    @classmethod
+    def _id_check(cls, id_list, existing_ids):
+        while True:
+            contact_id = cls._id_generator()
+
+            found_contact_id = cls._binary_search(id_list, contact_id, existing_ids)
+
+            if found_contact_id != 'nan':
+                return found_contact_id
+
+    @classmethod
+    def _id_generator(cls, size=15, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
+        return ''.join(random.choice(chars) for _ in range(size))
+
+    @classmethod
+    def _binary_search(cls, id_list, contact_id, existing_ids):
+        index = bisect_left(id_list, contact_id)
+        found_contact_id = 'nan'
+
+        if not (index != len(id_list) and id_list[index] == contact_id) and (contact_id not in existing_ids):
+            found_contact_id = contact_id
+
+        return found_contact_id
+
+
+    @classmethod
+    def _get_contacts_with_duplicate_emails(cls, merged_df):
+        merged_df = merged_df[merged_df.duplicated('BEST_EMAIL') | merged_df.duplicated('BEST_EMAIL', keep='last')]
+
+        return merged_df
+
+    @classmethod
+    def _get_listkeys_for_contacts_with_same_emails(cls, duplicated_merged_df):
+        duplicated_sorted = duplicated_merged_df.sort_values(by=['NAME'], ascending= False)
+
+        duplicated_dict = duplicated_sorted.to_dict('records')
+
+        best_emails, dict_list = [], []
+
+        for row in duplicated_dict:
+            if row['BEST_EMAIL'] not in best_emails:
+                row_data = duplicated_sorted[duplicated_sorted['BEST_EMAIL'] == row['BEST_EMAIL']].copy()
+                values= row_data['LISTKEY'].to_list()
+                values = [x for x in values if str(x) != 'nan']
+                values = list(set(values))
+                values = ''.join(values)
+                row_data.iloc[0]['LISTKEY'] = values
+                dict_list.append(row_data.iloc[0])
+                best_emails.append(row['BEST_EMAIL'])
+
+        return pandas.DataFrame(dict_list)
+
+    @classmethod
+    def _remove_duplicate_contacts(cls, merged_df, duplicated_merged_df, listkey_df):
+        duplicated = duplicated_merged_df[~duplicated_merged_df['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
+
+        merged_df = merged_df[~merged_df['hs_contact_id'].isin(duplicated['hs_contact_id'])]
+
+        return merged_df
+
+    @classmethod
+    def _assign_liskeys(cls, merged_df, listkey_df):
+        listkey_dict = listkey_df.to_dict('records')
+        for row in listkey_dict:
+            idx = merged_df.index[merged_df['hs_contact_id'] == row['hs_contact_id']]
+            merged_df.loc[idx,'LISTKEY'] = row['LISTKEY']
 
         return merged_df
 
@@ -471,6 +577,7 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').strftime("%m/%d/%Y")
 
         return dated_dataset_with_emails
+
 
 class SFMCPrunerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     Parameter_class = InputDataCleanerTaskParameters
