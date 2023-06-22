@@ -34,7 +34,7 @@ def add_schema(*args, **kwargs):
 
                 self._fill_dataclass_defaults(data)
 
-                if 'unknowns' in model_fields and 'unknowns' not in data:
+                if 'unknowns' in model_fields and 'unknowns' in data and data["unknowns"] is None:
                     data['unknowns'] = unknowns
 
                 return model_class(**data)
@@ -45,7 +45,7 @@ def add_schema(*args, **kwargs):
                 self._fill_class_defaults(data)
                 model = model_class()
 
-                if 'unknowns' in model_fields and 'unknowns' not in data:
+                if 'unknowns' in model_fields and 'unknowns' in data and data["unknowns"] is None:
                     data['unknowns'] = unknowns
 
                 for field in data:

@@ -99,7 +99,7 @@ class TaskWrapper(ABC):
 
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(input_data)
+            self.task = self.task_class(self._task_parameters, input_data)
 
             self._pre_run()
 
@@ -109,7 +109,7 @@ class TaskWrapper(ABC):
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
-            LOGGER.exception('Unable to run task.')
+            LOGGER.exception('Unable to run task.', exception)
             response = self._handle_exception(exception)
 
         return response
