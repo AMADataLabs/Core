@@ -1,17 +1,16 @@
 """ Task wrapper for a Celery runtime environment. """
-import json
 import logging
 
 from   datalabs.access.parameter.file import FileEnvironmentLoader
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.celery import CeleryDAGNotifier, CeleryTaskNotifier
-from   datalabs.parameter import ParameterValidatorMixin
 import datalabs.etl.dag.task
 from   datalabs.etl.dag.state import Status
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
 
 class FileTaskParameterGetterMixin:
     @classmethod
@@ -48,89 +47,71 @@ class CeleryProcessorNotifierMixin:
         CeleryTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
 
-class DAGTaskWrapper(
-    FileTaskParameterGetterMixin,
-    CeleryProcessorNotifierMixin,
-    ParameterValidatorMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
-):
-    def _get_runtime_parameters(self, parameters):
-        return parameters
-
-    def _supplement_runtime_parameters(self, task_parameters):
-        super()._supplement_runtime_parameters(task_parameters)
-
-        dag_id = self._runtime_parameters["dag"].upper()
-        dag_name, _ = self._parse_dag_id(dag_id)
-        path = self._runtime_parameters["config_file"]
-        dag_parameters = self._get_dag_parameters(dag_name, path)
-        LOGGER.debug('DAG Parameters: %s', dag_parameters)
-
-        self._runtime_parameters.update(dag_parameters)
-
-        LOGGER.debug('Runtime Parameters: %s', self._runtime_parameters)
-
-        return self._runtime_parameters
-
+class DAGTaskWrapper(FileTaskParameterGetterMixin, CeleryProcessorNotifierMixin, datalabs.etl.dag.task.DAGTaskWrapper):
     def _pre_run(self):
         super()._pre_run()
-        dag = self._get_dag_id()
-        task = self._get_task_id()
-        execution_time = self._get_execution_time()
+        LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', self._task_parameters)
 
-        if task != "DAG":
-            state = self._get_state_plugin(self._runtime_parameters)
+        self._task_parameters = self._resolve_dynamic_parameters(self._task_parameters)
 
-            success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
+        LOGGER.debug('Final DAG Task Parameters: %s', self._task_parameters)
 
-            if not success:
-                LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)
+        if self._get_task_id() == 'DAG':
+            self._start_dag_run()
 
-    def _get_dag_task_parameters(self):
-        dag_id = self._get_dag_id()
-        dag_name = self._get_dag_name()
-        task = self._get_task_id()
-        execution_time = self._get_execution_time()
-        config_file_path = self._runtime_parameters["config_file"]
-        dynamic_parameters = self._runtime_parameters.get("parameters", {})
-        LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
+    def _get_dag_parameters(self, parameters):
+        dag_parameters = parameters
+        dag_id = dag_parameters["dag"].upper()
+        dag, _ = self._parse_dag_id(dag_id)
+        config_file_path = dag_parameters["config_file"]
+        LOGGER.debug('Command-line Parameters: %s', dag_parameters)
 
-        dag_task_parameters = self._get_dag_task_parameters_from_file(dag_name, task, config_file_path)
+        dag_parameters = self._get_dag_task_parameters_from_file(dag, "DAG", config_file_path)
+
+        if "task" not in self._runtime_parameters:
+            dag_parameters["task"] = "DAG"
+
+        LOGGER.debug('DAG Parameters: %s', dag_parameters)
+
+        return dag_parameters
+
+    def _get_dag_task_parameters(self, dag_parameters):
+        dag_id = dag_parameters["dag"].upper()
+        dag, _ = self._parse_dag_id(dag_id)
+        task = dag_parameters.get("task", "DAG").upper()
+        execution_time = dag_parameters["execution_time"].upper()
+        config_file_path = dag_parameters["config_file"]
+
+        dag_task_parameters = self._get_dag_task_parameters_from_file(dag, task, config_file_path)
         LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
             state = self._get_state_plugin(self._runtime_parameters)
-            dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
-        else:
-            self._override_runtime_parameters(dag_task_parameters)
-            dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
 
-        LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
-        dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
-        dynamic_loader.load(environment=dag_task_parameters)
-
-        LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
+            self.task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
 
         return dag_task_parameters
 
-    def _get_task_wrapper_parameters(self):
-        return self._get_validated_parameters(self._runtime_parameters)
-
-    def _override_runtime_parameters(self, task_parameters):
-        overrides = json.loads(task_parameters.pop("OVERRIDES", "{}"))
-
-        self._runtime_parameters.update({k:v for k, v in overrides.items() if k in self._runtime_parameters})
+    def _get_dag_parameters(self, parameters):
+        return parameters
 
     @classmethod
-    def _remove_bootstrap_parameters(cls, task_parameters):
-        if 'TASK_CLASS' in task_parameters:
-            task_parameters.pop("TASK_CLASS")
+    def _resolve_dynamic_parameters(cls, task_parameters):
+        dynamic_parameters = task_parameters.get("parameters", {})
+        LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
+
+        dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
+        dynamic_loader.load(environment=task_parameters)
 
         return task_parameters
 
-    def _get_dag_parameters(self, dag, path):
-        LOGGER.debug('Getting DAG Parameters for %s...', dag)
-        dag_parameters = self._get_dag_task_parameters_from_file(dag, "DAG", path)
-        LOGGER.debug('Raw DAG Parameters: %s', dag_parameters)
+    def _start_dag_run(self):
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
+        state = self._get_state_plugin(self._task_parameters)
 
-        return dag_parameters
+        success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
+
+        if not success:
+            LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)

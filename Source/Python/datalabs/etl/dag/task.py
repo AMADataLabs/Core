@@ -53,9 +53,11 @@ class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
     def _get_task_parameters(self):
         task_parameters = None
 
-        task_parameters = self._get_dag_parameters()
+        dag_parameters = self._get_dag_parameters()
 
-        task_parameters.update(self._get_dag_task_parameters())
+        task_parameters = self._get_dag_task_parameters(dag_parameters)
+
+        task_parameters = self._merge_parameters(dag_parameters, task_parameters)
 
         self._cache_parameters = self._extract_cache_parameters(task_parameters)
         LOGGER.debug('Task Parameters: %s', task_parameters)
@@ -101,7 +103,7 @@ class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
     def _get_dag_parameters(self):
         return {}
 
-    def _get_dag_task_parameters(self):
+    def _get_dag_task_parameters(self, dag_parameters):
         parameters = {}
 
         try:
