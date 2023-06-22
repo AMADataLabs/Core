@@ -16,22 +16,10 @@ LOGGER.setLevel(logging.INFO)
 
 
 class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
-    def _get_runtime_parameters(self, parameters):
-        api_id = os.environ['API_ID']
-        path = parameters.get('path', "")
-        route_parameters = self._get_dag_task_parameters_from_dynamodb(api_id, "ROUTE")
-        task_id = self._get_task_id(path, route_parameters)
-        task_parameters = self._get_dag_task_parameters_from_dynamodb(api_id, task_id)
-        task_class = task_parameters.pop("TASK_CLASS")
-
-        runtime_parameters = dict(
-            TASK_CLASS=task_class,
-            task_parameters=task_parameters
-        )
-
-        return runtime_parameters
-
     def _get_task_parameters(self):
+        route_parameters = self._get_route_parameters()
+        task_parameters = self._get_api_task_parameters(route_parameters)
+
         query_parameters = self._parameters.pop("queryStringParameters") or {}
         multivalue_query_parameters = self._parameters.pop("multiValueQueryStringParameters") or {}
         payload = self._get_payload(self._parameters.get("body"), self._parameters["headers"].get("Content-Type"))
@@ -45,7 +33,18 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
             authorization=self._extract_authorization_parameters(self._parameters)
         )
 
-        return {**standard_parameters, **self._runtime_parameters["task_parameters"]}
+        return self._merge_parameters(task_parameters, standard_parameters)
+
+    def _get_route_parameters(self):
+        path = self._parameters.get('path', "")
+
+        return self._get_dag_task_parameters_from_dynamodb(os.environ['API_ID'], "ROUTE")
+
+    def _get_api_task_parameters(self, route_parameters):
+        path = self._parameters.get('path', "")
+        task_id = self._get_task_id(path, route_parameters)
+
+        return self._get_dag_task_parameters_from_dynamodb(os.environ['API_ID'], task_id)
 
     @classmethod
     def _get_payload(cls, encoded_body, content_type):

@@ -10,13 +10,20 @@ import datalabs.access.api.task as api
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_task_wrapper_get_task_parameters(expected_parameters, event, runtime_parameters):
+def test_task_wrapper_get_task_parameters(expected_parameters, event):
     wrapper = APIEndpointTaskWrapper(parameters=event)
-    wrapper._setup_environment()
-    wrapper._runtime_parameters = runtime_parameters
-    parameters = wrapper._get_task_parameters()
 
-    assert expected_parameters == parameters
+    with mock.patch.object(
+        APIEndpointTaskWrapper,
+        '_get_dag_task_parameters_from_dynamodb',
+        new=_get_dag_task_parameters_from_dynamodb
+    ):
+        wrapper._setup_environment()
+        parameters = wrapper._get_task_parameters()
+
+    for key, value in expected_parameters.items():
+        assert key in parameters
+        assert expected_parameters[key] == parameters[key]
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -42,28 +49,6 @@ def test_task_wrapper_handle_success(event):
     assert response['statusCode'] == 200
     assert response['body'] == json.dumps({})
 
-# pylint: disable=unused-argument
-def _get_dag_task_parameters_from_dynamodb(cls, dag, task, execution_time=None):
-    parameters = {}
-
-    if task == "ROUTE":
-        parameters = dict(TEST_ENDPOINT="/test")
-    elif task == "TEST_ENDPOINT":
-        parameters = dict(
-            TASK_CLASS='test.datalabs.access.api.test_awslambda.MockTask',
-            DATABASE_NAME='name',
-            DATABASE_BACKEND='postgresql+psycopg2',
-            DATABASE_HOST='host',
-            DATABASE_PORT='5432',
-            DATABASE_USERNAME='username',
-            DATABASE_PASSWORD='password',
-            BUCKET_NAME='mybucket',
-            BUCKET_BASE_PATH='AMA/SOMETHING',
-            BUCKET_URL_DURATION='30'
-        )
-
-    return parameters
-
 
 class MockTask(api.APIEndpointTask):
     def run(self):
@@ -73,24 +58,33 @@ class MockTask(api.APIEndpointTask):
 @pytest.fixture
 def task_parameters():
     return dict(
-        database_name='name',
-        database_backend='postgresql+psycopg2',
-        database_host='host',
-        database_port='5432',
-        database_username='username',
-        database_password='password',
-        bucket_name='mybucket',
-        bucket_base_path='AMA/SOMETHING',
-        bucket_url_duration='30'
+        TASK_CLASS='test.datalabs.access.api.test_awslambda.MockTask',
+        DATABASE_NAME='name',
+        DATABASE_BACKEND='postgresql+psycopg2',
+        DATABASE_HOST='host',
+        DATABASE_PORT='5432',
+        DATABASE_USERNAME='username',
+        DATABASE_PASSWORD='password',
+        BUCKET_NAME='mybucket',
+        BUCKET_BASE_PATH='AMA/SOMETHING',
+        BUCKET_URL_DURATION='30'
     )
 
 
 @pytest.fixture
-def runtime_parameters(task_parameters):
-    return dict(
-        TASK_CLASS='test.datalabs.access.api.test_awslambda.MockTask',
-        task_parameters=task_parameters
-    )
+def get_dag_task_parameters_from_dynamodb(task_parameters):
+    # pylint: disable=unused-argument
+    def _get_dag_task_parameters_from_dynamodb(cls, dag, task, execution_time=None):
+        parameters = {}
+
+        if task == "ROUTE":
+            parameters = dict(TEST_ENDPOINT="/test")
+        elif task == "TEST_ENDPOINT":
+            parameters = task_parameters
+
+        return parameters
+
+    return _get_dag_task_parameters_from_dynamodb
 
 
 @pytest.fixture
@@ -136,7 +130,7 @@ def event():
     os.environ.clear()
 
     os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.access.api.awslambda.APIEndpointTaskWrapper'
-    os.environ['DYNAMODB_CONFG_TABLE'] = 'DataLake-configuration-nas'
+    os.environ['DYNAMODB_CONFIG_TABLE'] = 'DataLake-configuration-nas'
     os.environ['API_ID'] = 'TEST_API'
 
     endpoint = "/test"
