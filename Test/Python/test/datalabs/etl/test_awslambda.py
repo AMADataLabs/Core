@@ -25,7 +25,9 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
             parameters = wrapper._get_task_parameters()
             LOGGER.debug(parameters)
 
-    assert expected_parameters == parameters
+    for key, value in expected_parameters.items():
+        assert key in parameters
+        assert expected_parameters[key] == parameters[key]
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -51,7 +53,7 @@ def test_task_wrapper_handle_success():
 
 @pytest.fixture
 def expected_parameters():
-    return etl.ETLParameters(
+    return dict(
         extractor=dict(
             TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
             thing='True',

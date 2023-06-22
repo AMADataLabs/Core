@@ -10,13 +10,13 @@ import datalabs.access.api.task as api
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_task_wrapper_get_task_parameters(expected_parameters, event):
+def test_task_wrapper_get_task_parameters(expected_parameters, event, get_dag_task_parameters_from_dynamodb):
     wrapper = APIEndpointTaskWrapper(parameters=event)
 
     with mock.patch.object(
         APIEndpointTaskWrapper,
         '_get_dag_task_parameters_from_dynamodb',
-        new=_get_dag_task_parameters_from_dynamodb
+        new=get_dag_task_parameters_from_dynamodb
     ):
         wrapper._setup_environment()
         parameters = wrapper._get_task_parameters()
@@ -36,11 +36,11 @@ def test_task_wrapper_handle_exception():
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_task_wrapper_handle_success(event):
+def test_task_wrapper_handle_success(event, get_dag_task_parameters_from_dynamodb):
     with mock.patch.object(
         APIEndpointTaskWrapper,
         '_get_dag_task_parameters_from_dynamodb',
-        new=_get_dag_task_parameters_from_dynamodb
+        new=get_dag_task_parameters_from_dynamodb
     ):
         wrapper = APIEndpointTaskWrapper(parameters=event)
         wrapper.run()
