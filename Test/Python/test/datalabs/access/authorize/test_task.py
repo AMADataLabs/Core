@@ -20,6 +20,7 @@ def test_authorized(authorized_passport_response, parameters):
 
 # pylint: disable=redefined-outer-name
 def test_not_authorized(unauthorized_passport_response, parameters):
+    parameters.customer = "000003570999"
     authorizer = AuthorizerTask(parameters)
 
     with mock.patch('requests.Session.post') as post:
@@ -36,6 +37,7 @@ def test_not_authorized(unauthorized_passport_response, parameters):
 
 # pylint: disable=redefined-outer-name
 def test_authorization_contains_subscriptions(authorized_passport_response, parameters):
+    parameters.customer = "000003570997"
     authorizer = AuthorizerTask(parameters)
 
     with mock.patch('requests.Session.post') as post:
@@ -67,6 +69,7 @@ def test_invalid_user_authorization_returns_no_subscriptions(bad_user_passport_r
 def parameters():
     return AuthorizerParameters(
         token='fj9d0ayf40y04tyq0yfdaso',
+        customer=None,
         passport_url=None,
         endpoint='arn:aws:execute-api:us-east-1:123456789012:abcdef1234/ESTestInvoke-stage/GET/Function'
     )
