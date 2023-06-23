@@ -1,16 +1,14 @@
 """ Tranformer Task for AMAMetadata, CAQHStatusURLList. """
 from   dataclasses import dataclass
 from   datetime import datetime
-from   dateutil.parser import isoparse
 import json
 import logging
 import pickle
 from   typing import List
+from   dateutil.parser import isoparse
 
 import xmltodict
 
-from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -121,16 +119,19 @@ class CAQHProfileTransformerTask(Task):
 
         return transformed_profile
 
-    def create_future_board_exam_date(self, specialties):
+    @classmethod
+    def create_future_board_exam_date(cls, specialties):
         future_board_exam_date = ''
 
         for specialty in specialties:
-            if specialty["SpecialtyType"]["SpecialtyTypeDescription"] == "Primary" and "FutureBoardExamDate" in specialty:
-                future_board_exam_date = specialty["FutureBoardExamDate"]
+            if specialty["SpecialtyType"]["SpecialtyTypeDescription"] == "Primary":
+                if "FutureBoardExamDate" in specialty:
+                    future_board_exam_date = specialty["FutureBoardExamDate"]
 
         return future_board_exam_date
 
-    def create_tax_id(self, taxes):
+    @classmethod
+    def create_tax_id(cls, taxes):
         tax_id = ""
 
         for tax in taxes:
@@ -140,18 +141,21 @@ class CAQHProfileTransformerTask(Task):
 
         return tax_id
 
-    def create_work_history(self, work_histories):
+    @classmethod
+    def create_work_history(cls, work_histories):
         for work_history in work_histories:
             work_history.pop("@ID")
 
         return sorted(work_histories, key=lambda x: x["StartDate"])
 
-    def create_other_name(self, other_name):
+    @classmethod
+    def create_other_name(cls, other_name):
         other_name.pop("@ID")
 
         return other_name
 
-    def create_previous_insurance(self, insurances, current_date):
+    @classmethod
+    def create_previous_insurance(cls, insurances, current_date):
         for insurance in insurances:
             insurance.pop("@ID")
 
@@ -162,15 +166,18 @@ class CAQHProfileTransformerTask(Task):
 
         return sorted(previous_insurances, key=lambda x: x["StartDate"])
 
-    def create_languages(self, languages):
+    @classmethod
+    def create_languages(cls, languages):
         return [lang["Language"]["LanguageName"] for lang in languages]
 
-    def create_provider_medicaid(self, provider_medicare):
+    @classmethod
+    def create_provider_medicaid(cls, provider_medicare):
         provider_medicare.pop("@ID")
 
         return provider_medicare
 
-    def create_time_gap(self, time_gaps):
+    @classmethod
+    def create_time_gap(cls, time_gaps):
         for time_gap in time_gaps:
             time_gap.pop("@ID")
 
@@ -178,7 +185,8 @@ class CAQHProfileTransformerTask(Task):
 
         return sorted(time_gaps, key=lambda x: x["StartDate"])
 
-    def create_insurance(self, insurances, current_date):
+    @classmethod
+    def create_insurance(cls, insurances, current_date):
         insurances = [
             insurance for insurance in insurances
             if datetime.fromisoformat(insurance["EndDate"]) > current_date
@@ -186,12 +194,14 @@ class CAQHProfileTransformerTask(Task):
 
         return sorted(insurances, key=lambda x: x["StartDate"])
 
-    def create_provider_address(self, provider_address):
+    @classmethod
+    def create_provider_address(cls, provider_address):
         provider_address.pop("@ID")
 
         return provider_address
 
-    def create_provider_cds(self, all_provider_cds):
+    @classmethod
+    def create_provider_cds(cls, all_provider_cds):
         if isinstance(all_provider_cds, dict):
             all_provider_cds = [all_provider_cds]
 
