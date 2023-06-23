@@ -3,6 +3,7 @@ import json
 import logging
 import os
 
+import mock
 import pytest
 
 from   datalabs.etl.dag.airflow import DAGTaskWrapper
@@ -61,32 +62,29 @@ def test_task_input_data_is_loaded(args, environment):
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_runtime_parameters_are_not_included_in_task_parameters(args, environment):
+def test_runtime_parameters_are_included_in_task_parameters(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
-    assert "dag" not in parameters
-    assert "task" not in parameters
-    assert "execution_time" not in parameters
+    assert "dag" in parameters
+    assert "task" in parameters
+    assert "execution_time" in parameters
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_env_vars_yields_no_cache_parameters(args):
     task_wrapper = DAGTaskWrapper(parameters=args)
-    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
-    parameters = task_wrapper._get_dag_task_parameters()
+    parameters = task_wrapper._get_task_parameters()
 
-    assert not parameters
+    assert len(parameters) == 3
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_input_parameters_skips_cache_pull(args):
     task_wrapper = DAGTaskWrapper(parameters=args)
-    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     parameters = task_wrapper._get_task_parameters()
 
-    assert len(parameters) == 1
-    assert 'EXECUTION_TIME' in parameters
+    assert len(parameters) == 3
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -108,16 +106,6 @@ def test_no_cache_output_parameters_skips_cache_push(args, environment):
     task_wrapper.run()
 
     task_wrapper._handle_success()
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_cache_parameters_omitted_from_task_parameters(args, environment):
-    task_wrapper = DAGTaskWrapper(parameters=args)
-
-    task_wrapper.run()
-
-    for parameter in task_wrapper._task_parameters:
-        assert not parameter.startswith('CACHE_')
 
 class DummyTask(Task):
     def run(self):
@@ -144,17 +132,19 @@ def args():
 def environment():
     current_environment = os.environ.copy()
 
-    os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_task.DummyTask'
+    os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_airflow.DummyTask'
     os.environ['TEST_DAG__DAG_STATE_PARAMETERS'] = '''
         {
             "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
             "BASE_PATH": "./"
         }
     '''
+    os.environ['TEST_DAG__TEST_TASK__CACHE_CLASS'] = 'test.datalabs.etl.dag.test_airflow.DummyTaskDataCache'
     os.environ['TEST_DAG__TEST_TASK__CACHE_QUOTE_ONE'] = 'How will this end? - Sheridan'
     os.environ['TEST_DAG__TEST_TASK__TASK_VARIABLE'] = 'fruity'
-    os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_DATA'] = '["light", "and", "smoothie"]'
+
     os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_STUFF'] = 'Hello, there!'
+    os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_DATA'] = '["light", "and", "smoothie"]'
     os.environ['TEST_DAG__TEST_TASK__CACHE_OUTPUT_THING'] = 'I am Batman'
     os.environ['TEST_DAG__TEST_TASK__CACHE_OUTPUT_STUFF'] = 'Dear John'
     os.environ['TEST_DAG__OTHER_TASK__CACHE_QUOTE_TWO'] = 'In fire. - Kosh'

@@ -12,7 +12,7 @@ LOGGER.setLevel(logging.INFO)
 
 class EventDrivenDAGMixin(StatefulDAGMixin):
     def _handle_dag_success(self, dag):
-        dag_state = self._get_state_plugin(self._runtime_parameters)
+        dag_state = self._get_state_plugin(self._task_parameters)
 
         self._update_dag_status_on_success(dag, dag_state)
 
@@ -20,7 +20,7 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
             self._notify_task(task)
 
     def _handle_task_success(self, task):
-        dag_state = self._get_state_plugin(self._runtime_parameters)
+        dag_state = self._get_state_plugin(self._task_parameters)
 
         if dag_state:
             self._update_task_status_on_success(task, dag_state)
@@ -28,13 +28,13 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
         self._notify_dag()
 
     def _handle_dag_exception(self, dag):
-        dag_state = self._get_state_plugin(self._runtime_parameters)
+        dag_state = self._get_state_plugin(self._task_parameters)
 
         if dag_state:
             self._update_dag_status_on_exception(dag, dag_state)
 
     def _handle_task_exception(self, task):
-        dag_state = self._get_state_plugin(self._runtime_parameters)
+        dag_state = self._get_state_plugin(self._task_parameters)
 
         if dag_state:
             self._update_task_status_on_exception(task, dag_state)
@@ -109,21 +109,21 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
         self._send_webhook_notification(status)
 
     def _send_email_notification(self, status):
-        raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
+        raw_email_list = self._task_parameters.get("STATUS_NOTIFICATION_EMAILS")
         LOGGER.info('EMAIL LIST %s', raw_email_list)
         if raw_email_list is not None:
             emails = raw_email_list.split(',')
-            environment = self._runtime_parameters.get("ENVIRONMENT")
-            from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM")
+            environment = self._task_parameters.get("ENVIRONMENT")
+            from_account = self._task_parameters.get("STATUS_NOTIFICATION_FROM")
             notifier = StatusEmailNotifier(emails, environment, from_account)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
 
     def _send_webhook_notification(self, status):
-        raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
+        raw_webhook_url_list = self._task_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
         LOGGER.info('WEB HOOK LIST %s', raw_webhook_url_list)
         if raw_webhook_url_list is not None:
             urls = raw_webhook_url_list.split(',')
-            environment = self._runtime_parameters.get("ENVIRONMENT")
+            environment = self._task_parameters.get("ENVIRONMENT")
             notifier = StatusWebHookNotifier(urls, environment)
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)

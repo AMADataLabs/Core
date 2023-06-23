@@ -16,19 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_runtime_parameters_are_combined(args, environment, dag_parameters, expected_runtime_parameters):
-    with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
-            as _get_dag_task_parameters_from_dynamodb:
-        _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
-        task_wrapper = DAGTaskWrapper(args)
-
-        runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
-
-        assert runtime_parameters == expected_runtime_parameters
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_task_parameters_override_runtime_parameters(args, environment, get_dag_task_parameters_from_dynamodb):
+def test_task_parameters_override_dag_parameters(args, environment, get_dag_task_parameters_from_dynamodb):
     task_wrapper = DAGTaskWrapper(args)
 
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
@@ -38,11 +26,11 @@ def test_task_parameters_override_runtime_parameters(args, environment, get_dag_
 
             task_wrapper.run()
 
-    LOGGER.debug("Runtime Parameters: %s", task_wrapper._runtime_parameters)
+    LOGGER.debug("Task Parameters: %s", task_wrapper._task_parameters)
 
-    assert len(task_wrapper._task_parameters) == 3
-    assert task_wrapper._runtime_parameters["LAMBDA_FUNCTION"] == 'MyAppStack-sbx-MyBigTask'
-    assert task_wrapper._runtime_parameters["TASK_EXECUTOR_CLASS"] == 'com.dancinglamb.LambdaTaskExecutorTask'
+    assert len(task_wrapper._task_parameters) == 14
+    assert task_wrapper._task_parameters["LAMBDA_FUNCTION"] == 'MyAppStack-sbx-MyBigTask'
+    assert task_wrapper._task_parameters["TASK_EXECUTOR_CLASS"] == 'com.dancinglamb.LambdaTaskExecutorTask'
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -53,14 +41,14 @@ def test_dynamic_parameter_substitutions(args_parameters, environment, dag_param
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
         _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
-        task_wrapper = DAGTaskWrapper(args_parameters)
-        task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
         _get_dag_task_parameters_from_dynamodb.return_value = task_parameters
+        task_wrapper = DAGTaskWrapper(args_parameters)
+        task_wrapper._task_parameters = task_wrapper._get_task_parameters()
 
-        task_parameters = task_wrapper._get_dag_task_parameters()
+        task_wrapper._pre_run()
 
-        assert task_parameters["CORNBREAD_TEMPERATURE"] == '35'
-        assert task_parameters["BASE_METRIC"] == 'SuperAwesomeStandard'
+        assert task_wrapper._task_parameters["CORNBREAD_TEMPERATURE"] == '35'
+        assert task_wrapper._task_parameters["BASE_METRIC"] == 'SuperAwesomeStandard'
 
 
 @pytest.fixture
@@ -118,12 +106,8 @@ def dag_parameters(state_directory):
 @pytest.fixture
 def task_parameters():
     return dict(
-        OVERRIDES='''
-            {
-                "LAMBDA_FUNCTION": "MyAppStack-sbx-MyBigTask",
-                "TASK_EXECUTOR_CLASS": "com.dancinglamb.LambdaTaskExecutorTask"
-            }
-        ''',
+        LAMBDA_FUNCTION= "MyAppStack-sbx-MyBigTask",
+        TASK_EXECUTOR_CLASS= "com.dancinglamb.LambdaTaskExecutorTask",
         TASK_CLASS="datalabs.etl.task.DummyTask",
         CORNBREAD_TEMPERATURE='32',
         BASE_METRIC='grit'

@@ -21,10 +21,10 @@ class ProcessorTaskWrapper(
     DynamoDBTaskParameterGetterMixin,
     TaskWrapper
 ):
-    def _get_task_parameters(self, parameters):
-        LOGGER.debug('Event: %s', parameters)
-        topic = self._extract_topic_base_name(parameters)
-        event_parameters = self._get_sns_event_parameters(parameters)
+    def _get_task_parameters(self):
+        LOGGER.debug('Event: %s', self._parameters)
+        topic = self._extract_topic_base_name(self._parameters)
+        event_parameters = self._get_sns_event_parameters(self._parameters)
         task_parameters = None
 
         if topic not in ("DAGProcessor", "TaskProcessor"):
@@ -107,13 +107,13 @@ class ProcessorTaskWrapper(
         return task_parameters
 
     def _get_dag_processor_parameters(self, event_parameters):
-        dag = self._get_dag_id()
-        dag_name = self._get_dag_name()
+        dag_id = event_parameters["dag"].upper()
+        dag, _ = self._parse_dag_id(dag_id)
         dag_parameters = dict(
             dag=dag,
-            execution_time=self._get_execution_time(),
+            execution_time=event_parameters["execution_time"].upper(),
         )
-        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag_name, "DAG"))
+        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
 
         if "parameters" in event_parameters:
             dag_parameters["parameters"] = event_parameters["parameters"]

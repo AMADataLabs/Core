@@ -59,8 +59,8 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, SNSProcessorNotifierMixin
 
         return task_resolver_class
 
-    def _get_dag_parameters(self, parameters):
-        dag_parameters = json.loads(parameters[1])
+    def _get_dag_parameters(self):
+        dag_parameters = json.loads(self._parameters[1])
         dag_id = dag_parameters["dag"].upper()
         dag, _ = self._parse_dag_id(dag_id)
         LOGGER.debug('Command-line Parameters: %s', dag_parameters)
