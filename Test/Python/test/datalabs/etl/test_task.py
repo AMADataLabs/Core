@@ -33,8 +33,8 @@ def test_etl_task_wrapper(environment_variables):
 
 
 def test_get_validated_parameters_returns_proper_object(parameters):
-    parameters.transformer.pop('TASK_CLASS')
-    task = DummyTask(parameters.transformer)
+    parameters["transformer"].pop('TASK_CLASS')
+    task = DummyTask(parameters["transformer"])
 
     assert isinstance(task._parameters, TaskParameters)
     assert hasattr(task._parameters, 'cooley')
@@ -46,8 +46,8 @@ def test_get_validated_parameters_returns_proper_object(parameters):
 
 
 def test_get_validated_parameters_preserves_input_data(parameters):
-    parameters.transformer.pop('TASK_CLASS')
-    task = DummyTask(parameters.transformer, ['East', 'Coast', 'Family'])
+    parameters["transformer"].pop('TASK_CLASS')
+    task = DummyTask(parameters["transformer"], ['East', 'Coast', 'Family'])
 
     assert isinstance(task._parameters, TaskParameters)
     assert task._data == ['East', 'Coast', 'Family']
@@ -71,7 +71,7 @@ class DummyTask(task.Task):
 
 @pytest.fixture
 def parameters():
-    return task.ETLParameters(
+    return dict(
         extractor=dict(
             TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
             COOLEY='Boyz',

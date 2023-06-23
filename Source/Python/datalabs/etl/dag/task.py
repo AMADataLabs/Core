@@ -106,10 +106,11 @@ class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
     def _get_dag_task_parameters(self, dag_parameters):
         dag_id = dag_parameters["dag"].upper()
         dag, _ = self._parse_dag_id(dag_id)
+        task = dag_parameters.get("task", "DAG").upper()
         parameters = {}
 
         try:
-            parameters = self._get_parameters_from_environment(self._get_dag_id().upper(), self._get_task_id().upper())
+            parameters = self._get_parameters_from_environment(dag, task)
         except KeyError:
             pass
 

@@ -37,7 +37,7 @@ class TaskDataCacheParameters:
             task_parameters,
             CacheDirection.OUTPUT
         )
-        cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
+        # cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
 
         return cache_parameters
 
@@ -47,6 +47,9 @@ class TaskDataCacheParameters:
 
         for key, value in task_parameters.items():
             cache_parameters.update(cls._extract_cache_parameter(direction, key, value))
+
+        if cache_parameters:
+            cache_parameters["execution_time"] = task_parameters["execution_time"]
 
         return cache_parameters
 
