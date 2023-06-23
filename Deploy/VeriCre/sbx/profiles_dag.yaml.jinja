@@ -7,7 +7,7 @@ VERICRE_PROFILES:
         CAQH_USERNAME: DeepakA123
         CAQH_PASSWORD: '{{caqh_password}}'
 
-        eft_password: '{{caqh_password}}'
+        EFT_PASSWORD: '{{eft_password}}'
 
         S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
@@ -48,7 +48,7 @@ VERICRE_PROFILES:
     
     EXTRACT_AMA_PHYSICIAN_PROFILES:
         USERNAME: datalabs
-        PASSWORD: '{{eft_password}}'
+        PASSWORD: ${EFT_PASSWORD}
 
     EXTRACT_CAQH_PHYSICIAN_PROFILES:
         USERNAME: ${CAQH_USERNAME}
