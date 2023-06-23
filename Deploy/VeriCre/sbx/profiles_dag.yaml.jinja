@@ -18,7 +18,7 @@ VERICRE_PROFILES:
 
     DAG:
         LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-ETL'
-        DAG_CLASS: 'datalabs.etl.dag.masterfile.oneview.OneViewDAG'
+        DAG_CLASS: 'datalabs.etl.dag.vericre.profile.DAG'
         DAG_STATE_PARAMETERS: 
             DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
@@ -29,40 +29,21 @@ VERICRE_PROFILES:
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
 
-    LOAD_CAQH_PROFILES_TO_LEDGER:
-        LEDGER: vericre-sbx-ledger
-        TABLE: caqh_profile_testing
-        PRIMARY_KEY: providerId
-    
-    EXTRACT_CAQH_PHYSICIAN_STATUSES: 
-        USERNAME: ${CAQH_USERNAME}
-        PASSWORD: ${CAQH_PASSWORD}
-
-    CREATE_CAQH_PROFILE_STATUS_URLS:
-        USERNAME: ${CAQH_USERNAME}
-        PASSWORD: ${CAQH_PASSWORD}
-    
-    CREATE_PROFILE_STATUS_URLS:
-        USERNAME: ${CAQH_USERNAME}
-        PASSWORD: ${CAQH_PASSWORD}
     
     EXTRACT_AMA_PHYSICIAN_PROFILES:
+        CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
         USERNAME: datalabs
         PASSWORD: ${EFT_PASSWORD}
+        
+        {# CACHE_INPUT_BUCKET:${S3_PROCESSED_DATA_BUCKET} #}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES:'ABMS_DATA.csv,DEA_DATA.csv,DEMOG_DATA.csv,LICENSE_DATA.csv,MED_SCH_DATA.csv,MED_TRAIN_DATA.csv,NPI_DATA.csv,SANCTIONS_DATA.csv'
 
-    EXTRACT_CAQH_PHYSICIAN_PROFILES:
-        USERNAME: ${CAQH_USERNAME}
-        PASSWORD: ${CAQH_PASSWORD}
-
-    EXTRACT_CAQH_PROFILE_STATUSES:
-        USERNAME: ${CAQH_USERNAME}
-        PASSWORD: ${CAQH_PASSWORD}
-
-    LOAD_AMA_MASTERFILE_TABLE:
-        LEDGER: vericre-sbx-ledger
-        TABLE: loader_development
-        PRIMARY_KEY: entityId
-
-    
+        {# CACHE_OUTPUT_BUCKET:${S3_PROCESSED_DATA_BUCKET} #}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: 'ABMS_DATA.csv,DEA_DATA.csv,DEMOG_DATA.csv,LICENSE_DATA.csv,MED_SCH_DATA.csv,MED_TRAIN_DATA.csv,NPI_DATA.csv,SANCTIONS_DATA.csv'
+       
 
   
