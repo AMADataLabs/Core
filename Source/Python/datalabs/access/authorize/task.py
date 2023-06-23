@@ -69,7 +69,13 @@ class AuthorizerTask(Task):
 
     @classmethod
     def _get_active_subscriptions(cls, entitlements):
-        return [s for s in entitlements.get('subscriptionsList') if s.get("agreementStatus") == "A"]
+        subscriptions = entitlements.get('subscriptionsList')
+        active_subscriptions = []
+
+        if subscriptions:
+            active_subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
+
+        return active_subscriptions
 
 
     def _generate_policy(self, effect):
