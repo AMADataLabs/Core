@@ -27,7 +27,7 @@ class DAG(dag.DAG):
 
     if feature.enabled("CAQH_PROFILES"):
         CREATE_CAQH_STATUS_URLS: CAQHStatusURLListTransformerTask
-        EXTRACT_CAQH_PHYSICIAN_STATUSES: HTTPFileListExtractorTask
+        EXTRACT_CAQH_PROFILE_STATUSES: HTTPFileListExtractorTask
         CREATE_CAQH_PROFILE_URLS: CAQHProfileURLListTranformerTask
         EXTRACT_CAQH_PHYSICIAN_PROFILES: HTTPFileListExtractorTask
         if feature.enabled("DL_3462"):
@@ -48,7 +48,7 @@ if feature.enabled("DL_3436"):
 if feature.enabled("CAQH_PROFILES"):
     DAG.CREATE_AMA_PROFILE_TABLE \
         >> DAG.CREATE_CAQH_STATUS_URLS \
-        >> DAG.EXTRACT_CAQH_PHYSICIAN_STATUSES \
+        >> DAG.EXTRACT_CAQH_PROFILE_STATUSES \
         >> DAG.CREATE_CAQH_PROFILE_URLS \
         >> DAG.EXTRACT_CAQH_PHYSICIAN_PROFILES \
         >> DAG.LOAD_CAQH_PROFILES_TO_LEDGER \

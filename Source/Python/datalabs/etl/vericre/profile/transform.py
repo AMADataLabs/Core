@@ -7,8 +7,6 @@ import logging
 import pickle
 from   typing import List
 
-import xmltodict
-
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
 from   datalabs.parameter import add_schema
