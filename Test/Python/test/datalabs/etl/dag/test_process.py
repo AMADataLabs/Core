@@ -102,7 +102,7 @@ def dag_parameters():
             DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
             DAG_STATE_PARAMETERS=f'''
                 {{
-                    "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
+                    "CLASS": "datalabs.etl.dag.state.file.DAGState",
                     "BASE_PATH": "{state_base_path}"
                 }}
             ''',
@@ -122,7 +122,7 @@ def task_parameters():
             DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
             DAG_STATE_PARAMETERS=f'''
                 {{
-                    "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
+                    "CLASS": "datalabs.etl.dag.state.file.DAGState",
                     "BASE_PATH": "{state_base_path}"
                 }}
             ''',

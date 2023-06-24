@@ -93,10 +93,11 @@ class ProcessorTaskWrapper(
         )
 
     def _get_task_processor_parameters(self, event_parameters):
-        dag_parameters = self._get_dag_processor_parameters(event_parameters)
-        dag_id = dag_parameters["dag"].upper()
+        dag_id = event_parameters["dag"].upper()
         dag, _ = self._parse_dag_id(dag_id)
-        task = dag_parameters.get("task", "DAG").upper()
+        task = event_parameters["task"].upper()
+
+        dag_parameters = self._get_dag_processor_parameters(event_parameters)
 
         task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
