@@ -3,7 +3,6 @@ import json
 import logging
 import os
 
-import mock
 import pytest
 
 from   datalabs.etl.dag.airflow import DAGTaskWrapper
@@ -39,13 +38,13 @@ def test_cache_parameters_are_parsed(args, environment):
     assert input_cache_parameters.get("DATA") == '["light", "and", "smoothie"]'
     assert input_cache_parameters.get("STUFF") == 'Hello, there!'
     assert input_cache_parameters.get("QUOTE_ONE") == 'How will this end? - Sheridan'
-    assert input_cache_parameters.get("QUOTE_TWO") == None
+    assert input_cache_parameters.get("QUOTE_TWO") is None
 
     assert output_cache_parameters.get("execution_time") == '19000101'
     assert output_cache_parameters.get("THING") == 'I am Batman'
     assert output_cache_parameters.get("STUFF") == 'Dear John'
     assert output_cache_parameters.get("QUOTE_ONE") == 'How will this end? - Sheridan'
-    assert output_cache_parameters.get("QUOTE_TWO") == None
+    assert output_cache_parameters.get("QUOTE_TWO") is None
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument

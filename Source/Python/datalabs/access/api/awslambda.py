@@ -36,8 +36,6 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
         return self._merge_parameters(task_parameters, standard_parameters)
 
     def _get_route_parameters(self):
-        path = self._parameters.get('path', "")
-
         return self._get_dag_task_parameters_from_dynamodb(os.environ['API_ID'], "ROUTE")
 
     def _get_api_task_parameters(self, route_parameters):
@@ -91,7 +89,7 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
         else:
             message = str(exception)
 
-        LOGGER.exception("Handling API endpoint exception: %s", exception)
+        LOGGER.exception("Handling API endpoint exception")
 
         return {
             "statusCode": status_code,

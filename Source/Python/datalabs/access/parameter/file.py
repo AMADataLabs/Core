@@ -151,3 +151,17 @@ class FileEnvironmentLoader(ParameterExtractionMixin):
         parameters = self._expand_macros(parameters)
 
         return parameters[self._parameters['task']]
+
+
+class FileTaskParameterGetterMixin:
+    # pylint: disable=redefined-outer-name
+    @classmethod
+    def _get_dag_task_parameters_from_file(cls, dag: str, task: str, config_file):
+        file_loader = FileEnvironmentLoader(dict(
+            dag=dag,
+            task=task,
+            path=config_file
+        ))
+        parameters = file_loader.load()
+
+        return parameters

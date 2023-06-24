@@ -147,7 +147,7 @@ def get_dag_task_parameters_from_dynamodb(dag_parameters, task_parameters, trigg
 
         if task == "DAG":
             parameters = dag_parameters
-        elif task == "HANDLER" or task == "Scheduler":
+        elif task in ("HANDLER", "Scheduler"):
             parameters = trigger_parameters
         else:
             parameters = task_parameters

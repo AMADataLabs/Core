@@ -19,21 +19,21 @@ LOGGER.setLevel(logging.DEBUG)
 class SNSProcessorNotifierMixin:
     def _notify_dag(self):
         dynamic_parameters = dict(
-            config_file=self._runtime_parameters["config_file"]
+            config_file=self._task_parameters["config_file"]
         )
 
-        if "parameters" in self._runtime_parameters:
+        if "parameters" in self._task_parameters:
             dynamic_parameters.update(self.runtime_parameters["parameters"])
 
         SNSDAGNotifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
 
     def _notify_task(self, task):
         dynamic_parameters = dict(
-            config_file=self._runtime_parameters["config_file"]
+            config_file=self._task_parameters["config_file"]
         )
 
-        if "parameters" in self._runtime_parameters:
-            dynamic_parameters.update(self._runtime_parameters["parameters"])
+        if "parameters" in self._task_parameters:
+            dynamic_parameters.update(self._task_parameters["parameters"])
 
         SNSTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
@@ -84,9 +84,9 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, SNSProcessorNotifierMixin
         LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
-            state = self._get_state_plugin(self._runtime_parameters)
+            state = self._get_state_plugin(self._task_parameters)
 
-            self.task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
+            self._task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
 
         return dag_task_parameters
 

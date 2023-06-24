@@ -23,7 +23,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event, get_dag_ta
 
     for key, value in expected_parameters.items():
         assert key in parameters
-        assert expected_parameters[key] == parameters[key]
+        assert value == parameters[key]
 
 
 # pylint: disable=redefined-outer-name, protected-access

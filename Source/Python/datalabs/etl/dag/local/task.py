@@ -3,7 +3,7 @@ import os
 import logging
 
 from   datalabs.etl.task import ExecutionTimeMixin, TaskWrapper
-from   datalabs.access.parameter.file import FileEnvironmentLoader
+from   datalabs.access.parameter.file import FileTaskParameterGetterMixin
 from   datalabs.etl.dag.task import DAGTaskIDMixin
 
 logging.basicConfig()
@@ -48,29 +48,15 @@ def run_task_processor(dag, task, execution_time, parameters=None):
     return task_wrapper.run()
 
 
-class FileTaskParameterGetterMixin:
-    # pylint: disable=redefined-outer-name
-    @classmethod
-    def _get_dag_task_parameters_from_file(cls, dag: str, task: str, config_file):
-        file_loader = FileEnvironmentLoader(dict(
-            dag=dag,
-            task=task,
-            path=config_file
-        ))
-        parameters = file_loader.load()
-
-        return parameters
-
-
 class DAGProcessorTaskWrapper(
     ExecutionTimeMixin,
     DAGTaskIDMixin,
     FileTaskParameterGetterMixin,
     TaskWrapper
 ):
-    def _get_runtime_parameters(self, parameters):
-        LOGGER.debug('Event: %s', parameters)
-        return parameters
+    def _get_task_parameters(self):
+        LOGGER.debug('Event: %s', self._parameters)
+        return self._parameters
 
     def _get_task_parameters(self):
         ''' Get parameters for the DAG Processor. '''
@@ -82,8 +68,8 @@ class DAGProcessorTaskWrapper(
 
         dag_parameters.update(self._get_dag_task_parameters_from_file(dag_name, "DAG", config_file_path))
 
-        if "parameters" in self._runtime_parameters:
-            dynamic_parameters.update(self._runtime_parameters["parameters"])
+        if "parameters" in self._task_parameters:
+            dynamic_parameters.update(self._task_parameters["parameters"])
 
         dag_parameters["parameters"] = dynamic_parameters
 
@@ -98,7 +84,7 @@ class DAGProcessorTaskWrapper(
         return f'Failed: {str(exception)}'
 
     def _get_dag_id(self):
-        return self._runtime_parameters["dag"].upper()
+        return self._task_parameters["dag"].upper()
 
     def _get_dag_name(self):
         base_name, _ = self._parse_dag_id(self._get_dag_id())
@@ -106,7 +92,7 @@ class DAGProcessorTaskWrapper(
         return base_name
 
     def _get_execution_time(self):
-        return self._runtime_parameters["execution_time"].upper()
+        return self._task_parameters["execution_time"].upper()
 
     @classmethod
     def _parse_dag_id(cls, dag):
@@ -126,9 +112,9 @@ class TaskProcessorTaskWrapper(
     FileTaskParameterGetterMixin,
     TaskWrapper
 ):
-    def _get_runtime_parameters(self, parameters):
-        LOGGER.debug('Event: %s', parameters)
-        return parameters
+    def _get_task_parameters(self):
+        LOGGER.debug('Event: %s', self._parameters)
+        return self._parameters
 
     def _get_task_parameters(self):
         ''' Get parameters the Task Processor. '''
@@ -137,7 +123,7 @@ class TaskProcessorTaskWrapper(
         task = self._get_task_id()
         config_file_path = self._parameters["parameters"]["config_file"]
         dag_parameters = dict(dag=dag, task=task, execution_time=self._get_execution_time())
-        dynamic_parameters = self._runtime_parameters.get("parameters") or {}
+        dynamic_parameters = self._task_parameters.get("parameters") or {}
 
         dynamic_parameters.update(dict(config_file=config_file_path))
 
@@ -147,7 +133,7 @@ class TaskProcessorTaskWrapper(
 
         dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
-        dag_parameters = self._add_dynamic_dag_parameters(dag_parameters, self._runtime_parameters["parameters"])
+        dag_parameters = self._add_dynamic_dag_parameters(dag_parameters, self._task_parameters["parameters"])
 
         return dag_parameters
 
@@ -166,8 +152,8 @@ class TaskProcessorTaskWrapper(
         return dag_parameters
 
     def _add_dynamic_dag_parameters(self, dag_parameters, dynamic_parameters):
-        if "parameters" in self._runtime_parameters:
-            dynamic_parameters.update(self._runtime_parameters["parameters"])
+        if "parameters" in self._task_parameters:
+            dynamic_parameters.update(self._task_parameters["parameters"])
 
             dag_parameters["parameters"] = dynamic_parameters
 

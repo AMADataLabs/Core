@@ -1,7 +1,7 @@
 """ Task wrapper for a Celery runtime environment. """
 import logging
 
-from   datalabs.access.parameter.file import FileEnvironmentLoader
+from   datalabs.access.parameter.file import FileTaskParameterGetterMixin
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.celery import CeleryDAGNotifier, CeleryTaskNotifier
 import datalabs.etl.dag.task
@@ -12,37 +12,24 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class FileTaskParameterGetterMixin:
-    @classmethod
-    def _get_dag_task_parameters_from_file(cls, dag: str, task: str, config_file: str):
-        file_loader = FileEnvironmentLoader(dict(
-            dag=dag,
-            task=task,
-            path=config_file
-        ))
-        parameters = file_loader.load()
-
-        return parameters
-
-
 class CeleryProcessorNotifierMixin:
     def _notify_dag(self):
         dynamic_parameters = dict(
-            config_file=self._runtime_parameters["config_file"]
+            config_file=self._task_parameters["config_file"]
         )
 
-        if "parameters" in self._runtime_parameters:
+        if "parameters" in self._task_parameters:
             dynamic_parameters.update(self.runtime_parameters["parameters"])
 
         CeleryDAGNotifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
 
     def _notify_task(self, task):
         dynamic_parameters = dict(
-            config_file=self._runtime_parameters["config_file"]
+            config_file=self._task_parameters["config_file"]
         )
 
-        if "parameters" in self._runtime_parameters:
-            dynamic_parameters.update(self._runtime_parameters["parameters"])
+        if "parameters" in self._task_parameters:
+            dynamic_parameters.update(self._task_parameters["parameters"])
 
         CeleryTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
@@ -59,8 +46,8 @@ class DAGTaskWrapper(FileTaskParameterGetterMixin, CeleryProcessorNotifierMixin,
         if self._get_task_id() == 'DAG':
             self._start_dag_run()
 
-    def _get_dag_parameters(self, parameters):
-        dag_parameters = parameters
+    def _get_dag_parameters(self):
+        dag_parameters = self._parameters
         dag_id = dag_parameters["dag"].upper()
         dag, _ = self._parse_dag_id(dag_id)
         config_file_path = dag_parameters["config_file"]
@@ -68,7 +55,7 @@ class DAGTaskWrapper(FileTaskParameterGetterMixin, CeleryProcessorNotifierMixin,
 
         dag_parameters = self._get_dag_task_parameters_from_file(dag, "DAG", config_file_path)
 
-        if "task" not in self._runtime_parameters:
+        if "task" not in self._task_parameters:
             dag_parameters["task"] = "DAG"
 
         LOGGER.debug('DAG Parameters: %s', dag_parameters)
@@ -86,14 +73,14 @@ class DAGTaskWrapper(FileTaskParameterGetterMixin, CeleryProcessorNotifierMixin,
         LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
-            state = self._get_state_plugin(self._runtime_parameters)
+            state = self._get_state_plugin(self._task_parameters)
 
-            self.task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
+            self._task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
 
         return dag_task_parameters
 
-    def _get_dag_parameters(self, parameters):
-        return parameters
+    def _get_dag_parameters(self):
+        return self._parameters
 
     @classmethod
     def _resolve_dynamic_parameters(cls, task_parameters):

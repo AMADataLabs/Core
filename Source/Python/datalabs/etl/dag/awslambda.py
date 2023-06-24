@@ -121,7 +121,8 @@ class ProcessorTaskWrapper(
 
         return dag_parameters
 
-    def _get_trigger_processor_parameters(self, event_parameters):
+    @classmethod
+    def _get_trigger_processor_parameters(cls, event_parameters):
         return event_parameters
 
     @classmethod
@@ -130,8 +131,8 @@ class ProcessorTaskWrapper(
 
 
 class DAGTaskWrapper(aws.DAGTaskWrapper):
-    def _get_dag_parameters(self, parameters):
-        dag_parameters = parameters
+    def _get_dag_parameters(self):
+        dag_parameters = self._parameters
         dag_id = dag_parameters["dag"].upper()
         dag, _ = self._parse_dag_id(dag_id)
         LOGGER.debug('Event Parameters: %s', dag_parameters)
