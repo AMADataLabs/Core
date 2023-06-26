@@ -59,12 +59,12 @@ class StatefulDAGMixin:
         state_parameters = None
         plugin = None
 
-        if hasattr(parameters, 'dag_state_parameters') and parameters.dag_state_parameters:
-            state_parameters = json.loads(parameters.dag_state_parameters)
+        if hasattr(parameters, 'dag_state') and parameters.dag_state:
+            state_parameters = json.loads(parameters.dag_state)
         elif hasattr(parameters, 'get'):
             state_parameters = json.loads(parameters.get("DAG_STATE", "{}"))
 
-        plugin_class = import_plugin(state_parameters.pop("CLASS", None))
+        plugin_class = import_plugin(state_parameters["CLASS"])
 
         if plugin_class:
             plugin = plugin_class(state_parameters)

@@ -19,7 +19,7 @@ class DAGProcessorParameters:
     dag: str
     execution_time: str
     dag_class: str
-    dag_state_parameters: str
+    dag_state: dict
     dag_executor_class: str
     unknowns: dict=None
 
@@ -52,7 +52,7 @@ class TaskProcessorParameters:
     task: str
     execution_time: str
     dag_class: str
-    dag_state_parameters: str
+    dag_state: dict
     task_executor_class: str
     unknowns: dict=None
 
