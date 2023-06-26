@@ -23,7 +23,7 @@ class DAG(dag.DAG):
     EXTRACT_AMA_PHYSICIAN_PROFILES: SFTPFileExtractorTask
     if feature.enabled("DL_3460"):
         CREATE_AMA_PROFILE_TABLE: AMAProfilesTransformerTask
-    LOAD_AMA_PROFILES_TO_LEDGER: QLDBLoaderTask
+    LOAD_AMA_MASTERFILE_TABLE: QLDBLoaderTask
 
     if feature.enabled("CAQH_PROFILES"):
         CREATE_CAQH_STATUS_URLS: CAQHStatusURLListTransformerTask
