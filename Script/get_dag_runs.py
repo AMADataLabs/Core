@@ -11,8 +11,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 def main(args):
     parameters = dict(
-        STATE_LOCK_TABLE='N/A',
-        DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
+        LOCK_TABLE='N/A',
+        STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
     )
     state = DAGState(parameters)
     limit = None
