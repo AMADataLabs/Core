@@ -1,81 +1,59 @@
-# Render as follows:
-#
-# update-dag-config -e dev -p Scheduler -t scheduler
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "DAG_SCHEDULER"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+DAG_SCHEDULER:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+        TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+        STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
+        S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
-    TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
-    S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
+    DAG:
+        LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-Scheduler'
+        DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
+        DAG_STATE:
+            CLASS: ${DAG_STATE_CLASS}
+            STATE_TABLE: ${DAG_STATE_TABLE}
+            LOCAL_TABLE: ${DAG_STATE_TABLE}
+        DAG_TOPIC_ARN: '${DAG_TOPIC_ARN}'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+        STATUS_NOTIFICATION_FROM: 'DataLabs@ama-assn.org'
 
+    EXTRACT_SCHEDULE:
+        BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
+        BASE_PATH: ''
+        FILES: 'schedule.csv'
+        INCLUDE_DATESTAMP: 'False'
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "DAG_SCHEDULER"}, "Task": {"S": "DAG"}})
-    #######################################################################
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_OUTPUT_FILES: 'schedule-%H_%M.csv'
 
-    DAG_SCHEDULER__DAG__LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-Scheduler'
-    DAG_SCHEDULER__DAG__DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
-    DAG_SCHEDULER__DAG__DAG_STATE_CLASS: '${DAG_STATE_CLASS}'
-    DAG_SCHEDULER__DAG__DAG_STATE_TABLE: '${DAG_STATE_TABLE}'
-    DAG_SCHEDULER__DAG__STATE_LOCK_TABLE: '${STATE_LOCK_TABLE}'
-    DAG_SCHEDULER__DAG__DAG_TOPIC_ARN: '${DAG_TOPIC_ARN}'
-    DAG_SCHEDULER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    DAG_SCHEDULER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    DAG_SCHEDULER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    DAG_SCHEDULER__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_FROM: 'DataLabs@ama-assn.org'
+    SCHEDULE_DAGS:
+        INTERVAL_MINUTES: '15'
+        CACHE_CLASS: '${TASK_CACHE_CLASS}'
 
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_INPUT_FILES: 'schedule-%H_%M.csv'
 
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "DAG_SCHEDULER"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_OUTPUT_FILES: 'scheduled_dags-%H_%M.csv'
 
-    # DAG Schedule Extractor Variables
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__BASE_PATH: ''
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__FILES: 'schedule.csv'
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__INCLUDE_DATESTAMP: 'False'
+    NOTIFY_DAG_PROCESSOR:
+        TOPIC_ARN: '${DAG_TOPIC_ARN}'
 
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_FILES: 'schedule-%H_%M.csv'
-
-
-    # DAG Scheduler Variables
-    DAG_SCHEDULER__SCHEDULE_DAGS__DAG_STATE_PARAMETERS: >-
-        {
-            "DAG_STATE_CLASS": "${DAG_STATE_CLASS}",
-            "DAG_STATE_TABLE": "${DAG_STATE_TABLE}",
-            "STATE_LOCK_TABLE": "${STATE_LOCK_TABLE}"
-        }
-    DAG_SCHEDULER__SCHEDULE_DAGS__INTERVAL_MINUTES: '15'
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_CLASS: '${TASK_CACHE_CLASS}'
-
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_INPUT_FILES: 'schedule-%H_%M.csv'
-
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
-    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_OUTPUT_FILES: 'scheduled_dags-%H_%M.csv'
-
-
-    # Scheduled DAGs Loader Variables
-    DAG_SCHEDULER__NOTIFY_DAG_PROCESSOR__TOPIC_ARN: '${DAG_TOPIC_ARN}'
-
-    DAG_SCHEDULER__NOTIFY_DAG_PROCESSOR__CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
-    DAG_SCHEDULER__NOTIFY_DAG_PROCESSOR__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    DAG_SCHEDULER__NOTIFY_DAG_PROCESSOR__CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
-    DAG_SCHEDULER__NOTIFY_DAG_PROCESSOR__CACHE_INPUT_FILES: 'scheduled_dags-%H_%M.csv'
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_INPUT_FILES: 'scheduled_dags-%H_%M.csv'

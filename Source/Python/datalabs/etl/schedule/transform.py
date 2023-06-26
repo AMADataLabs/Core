@@ -10,7 +10,7 @@ from   dateutil.parser import isoparse
 from   croniter import croniter
 import pandas
 
-from   datalabs.etl.dag.state import Status
+from   datalabs.etl.dag.state import Status, StatefulDAGMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
@@ -26,11 +26,11 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    dag_state_parameters: str
+    dag_state: str
     execution_time: str
 
 
-class DAGSchedulerTask(ExecutionTimeMixin, Task):
+class DAGSchedulerTask(ExecutionTimeMixin, StatefulDAGMixin, Task):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def run(self):
@@ -102,9 +102,3 @@ class DAGSchedulerTask(ExecutionTimeMixin, Task):
         status = state.get_dag_status(dag["dag"], dag["execution_time"].to_pydatetime().isoformat())
 
         return status != Status.UNKNOWN
-
-    def _get_state_plugin(self):
-        parameters = json.loads(self._parameters.dag_state_parameters)
-        plugin = import_plugin(parameters.pop("DAG_STATE_CLASS"))
-
-        return plugin(parameters)
