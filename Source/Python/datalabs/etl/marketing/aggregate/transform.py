@@ -217,6 +217,7 @@ class FlatfileUpdaterTaskParameters:
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
 class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     PARAMETER_CLASS = FlatfileUpdaterTaskParameters
+    MAX_ID_ATTEMPTS = 20
 
     def run(self):
         contacts, list_of_lists, flatfile, inputs = self._read_input_data(self._data)
@@ -290,9 +291,7 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         merged_flatfile = self._rename_columns(merged_flatfile)
 
-        merged_flatfile = self._drop_contacts_without_emails_addresses(merged_flatfile)
-
-        merged_flatfile = self._assign_hscontactid_to_new_contacts(merged_flatfile)
+        merged_flatfile = self._assign_contactid_to_new_contacts(merged_flatfile)
 
         merged_flatfile = self._remove_spaces_from_dataframe(merged_flatfile)
 
@@ -371,20 +370,14 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return merged_df
 
     @classmethod
-    def _drop_contacts_without_emails_addresses(cls, merged_df):
-        merged_df = merged_df[merged_df['BEST_EMAIL'].notna()]
-
-        return merged_df
-
-    @classmethod
-    def _assign_hscontactid_to_new_contacts(cls, merged_df):
+    def _assign_contactid_to_new_contacts(cls, flatfile):
         id_list = []
-        for index in merged_df.index:
-            if merged_df['hs_contact_id'][index] != merged_df['hs_contact_id'][index] :
-                contact_id = cls._id_check(id_list, merged_df['hs_contact_id'])
-                merged_df['hs_contact_id'][index] = contact_id
+        for index in flatfile.index:
+            if flatfile['hs_contact_id'][index] != flatfile['hs_contact_id'][index]:
+                contact_id = cls._generate_unique_contact_id(id_list, flatfile['hs_contact_id'])
+                flatfile['hs_contact_id'][index] = contact_id
 
-        return merged_df
+        return flatfile
 
     @classmethod
     def _remove_spaces_from_dataframe(cls, merged_df):
@@ -405,39 +398,48 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return merged_df
 
     @classmethod
-    def _id_check(cls, id_list, existing_ids):
-        while True:
-            contact_id = cls._id_generator()
+    def _generate_unique_contact_id(cls, id_list, existing_ids):
+        found_contact_id = False
+        contact_id = None
+        attempts = 0
 
-            found_contact_id = cls._binary_search(id_list, contact_id, existing_ids)
+        while not found_contact_id and attempts <= cls.MAX_ID_ATTEMPTS:
+            contact_id = cls._generate_contact_id()
+            found_contact_id = cls._is_contact_id_unique(id_list, contact_id, existing_ids)
+            attempts += 1
 
-            if found_contact_id != 'nan':
-                return found_contact_id
+        if attempts > cls.MAX_ID_ATTEMPTS:
+            raise ValueError(
+                f'The maximum number of attempts ({cls.MAX_ID_ATTEMPTS}) to '
+                f'generate a new, unique contact ID was exceeded.',
+            )
+
+        return contact_id
 
     @classmethod
-    def _id_generator(cls, size=15, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
+    def _generate_contact_id(cls, size=15, chars=None):
+        if not chars:
+            chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
+
         return ''.join(random.choice(chars) for _ in range(size))
 
     @classmethod
-    def _binary_search(cls, id_list, contact_id, existing_ids):
+    def _is_contact_id_unique(cls, id_list, contact_id, existing_ids):
         index = bisect_left(id_list, contact_id)
-        found_contact_id = 'nan'
+        found_contact_id = False
 
         if not (index != len(id_list) and id_list[index] == contact_id) and (contact_id not in existing_ids):
-            found_contact_id = contact_id
+            found_contact_id = True
 
         return found_contact_id
 
+    @classmethod
+    def _get_contacts_with_duplicate_emails(cls, flatfile):
+        return flatfile[flatfile.duplicated('BEST_EMAIL') | flatfile.duplicated('BEST_EMAIL', keep='last')]
 
     @classmethod
-    def _get_contacts_with_duplicate_emails(cls, merged_df):
-        merged_df = merged_df[merged_df.duplicated('BEST_EMAIL') | merged_df.duplicated('BEST_EMAIL', keep='last')]
-
-        return merged_df
-
-    @classmethod
-    def _get_listkeys_for_contacts_with_same_emails(cls, duplicated_merged_df):
-        duplicated_sorted = duplicated_merged_df.sort_values(by=['NAME'], ascending= False)
+    def _get_listkeys_for_contacts_with_same_emails(cls, duplicated_flatfile):
+        duplicated_sorted = duplicated_flatfile.sort_values(by=['NAME'], ascending= False)
 
         duplicated_dict = duplicated_sorted.to_dict('records')
 
@@ -457,21 +459,19 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return pandas.DataFrame(dict_list)
 
     @classmethod
-    def _remove_duplicate_contacts(cls, merged_df, duplicated_merged_df, listkey_df):
-        duplicated = duplicated_merged_df[~duplicated_merged_df['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
+    def _remove_duplicate_contacts(cls, flatfile, duplicated_flatfile, listkey_df):
+        duplicated = duplicated_flatfile[~duplicated_flatfile['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
 
-        merged_df = merged_df[~merged_df['hs_contact_id'].isin(duplicated['hs_contact_id'])]
-
-        return merged_df
+        return flatfile[~flatfile['hs_contact_id'].isin(duplicated['hs_contact_id'])]
 
     @classmethod
-    def _assign_liskeys(cls, merged_df, listkey_df):
+    def _assign_liskeys(cls, flatfile, listkey_df):
         listkey_dict = listkey_df.to_dict('records')
         for row in listkey_dict:
-            idx = merged_df.index[merged_df['hs_contact_id'] == row['hs_contact_id']]
-            merged_df.loc[idx,'LISTKEY'] = row['LISTKEY']
+            idx = flatfile.index[flatfile['hs_contact_id'] == row['hs_contact_id']]
+            flatfile.loc[idx,'LISTKEY'] = row['LISTKEY']
 
-        return merged_df
+        return flatfile
 
 
 @add_schema
