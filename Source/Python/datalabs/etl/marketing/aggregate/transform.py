@@ -252,11 +252,11 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _assign_emppids_to_inputs(self, inputs, flatfile):
         emails = inputs.BEST_EMAIL.unique()
 
-        new_emails = self._get_new_emails(emails, flatfile)
+        new_emails = self._get_new_emails(emails, flatfile).BEST_EMAIL
 
-        matched_inputs = self._assign_emppids_to_known_input(inputs[~inputs.BEST_EMAIL.isin(new_emails)], flatfile)
+        matched_inputs = self._assign_emppids_to_known_inputs(inputs, new_emails,flatfile)
 
-        unmatched_inputs = self._assign_emppids_to_new_inputs(inputs[inputs.BEST_EMAIL.isin(new_emails)], flatfile)
+        unmatched_inputs = self._assign_emppids_to_new_inputs(inputs, new_emails, flatfile)
 
         return matched_inputs, unmatched_inputs
 
@@ -306,18 +306,21 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return email_data[~email_data.BEST_EMAIL.isin(flatfile.BEST_EMAIL)]
 
     @classmethod
-    def _assign_emppids_to_known_input(cls, inputs: pandas.DataFrame, flatfile) -> pandas.DataFrame:
+    def _assign_emppids_to_known_inputs(cls, inputs: pandas.DataFrame,new_emails, flatfile) -> pandas.DataFrame:
+        known_inputs = inputs.loc[~inputs.BEST_EMAIL.isin(new_emails), :].copy()
         max_emppid_per_email = flatfile.groupby(flatfile.BEST_EMAIL).EMPPID.max().reset_index()
 
-        return pandas.merge(inputs, max_emppid_per_email, on="BEST_EMAIL", how='left' )
+        return pandas.merge(known_inputs, max_emppid_per_email, on="BEST_EMAIL", how='left' )
 
     @classmethod
-    def _assign_emppids_to_new_inputs(cls, unmatched_inputs, flatfile):
+    def _assign_emppids_to_new_inputs(cls, inputs, new_emails, flatfile):
+        new_inputs = inputs.loc[inputs.BEST_EMAIL.isin(new_emails), :].copy()
         last_emppid = max(flatfile["EMPPID"])
+        new_emppids = range(int(last_emppid)+1, int(last_emppid)+ len(new_inputs)+1)
 
-        unmatched_inputs.loc[:, "EMPPID"] = range(int(last_emppid)+1, int(last_emppid)+len(unmatched_inputs)+1)
+        new_inputs["EMPPID"] = pandas.Series(new_emppids)
 
-        return unmatched_inputs
+        return new_inputs
 
     # pylint: disable= unnecessary-lambda
     @classmethod
@@ -467,6 +470,7 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     @classmethod
     def _assign_liskeys(cls, flatfile, listkey_df):
         listkey_dict = listkey_df.to_dict('records')
+
         for row in listkey_dict:
             idx = flatfile.index[flatfile['hs_contact_id'] == row['hs_contact_id']]
             flatfile.loc[idx,'LISTKEY'] = row['LISTKEY']
