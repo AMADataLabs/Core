@@ -14,6 +14,7 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 class AuthorizerParameters:
     token: str
+    customer: str
     passport_url: str
     endpoint: str
 
@@ -36,7 +37,10 @@ class AuthorizerTask(Task):
     def run(self):
         response = self._session.post(
             self._parameters.passport_url,
-            headers={'Authorization': 'Bearer ' + self._parameters.token}
+            headers={
+                'Authorization': 'Bearer ' + self._parameters.token,
+                'x-customer-nbr': self._parameters.customer
+            }
         )
 
         if response.status_code in (200, 401):
@@ -50,7 +54,7 @@ class AuthorizerTask(Task):
     def _authorize(self, entitlements):
         policy = None
         context = dict(
-            customerNumber=entitlements.get("customerNumber"),
+            customerNumber=self._parameters.customer,
             customerName=entitlements.get("customerName")
         )
         active_subscriptions = self._get_active_subscriptions(entitlements)
@@ -69,7 +73,13 @@ class AuthorizerTask(Task):
 
     @classmethod
     def _get_active_subscriptions(cls, entitlements):
-        return [s for s in entitlements.get('subscriptionsList') if s.get("agreementStatus") == "A"]
+        subscriptions = entitlements.get('subscriptionsList')
+        active_subscriptions = []
+
+        if subscriptions:
+            active_subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
+
+        return active_subscriptions
 
 
     def _generate_policy(self, effect):
