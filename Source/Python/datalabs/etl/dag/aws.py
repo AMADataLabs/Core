@@ -5,6 +5,7 @@ import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.etl.dag.event import EventDrivenDAGMixin
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.state import Status
@@ -38,7 +39,12 @@ class SNSProcessorNotifierMixin:
         SNSTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
 
-class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, SNSProcessorNotifierMixin, datalabs.etl.dag.task.DAGTaskWrapper):
+class DAGTaskWrapper(
+    EventDrivenDAGMixin,
+    DynamoDBTaskParameterGetterMixin,
+    SNSProcessorNotifierMixin,
+    datalabs.etl.dag.task.DAGTaskWrapper
+):
     def _pre_run(self):
         super()._pre_run()
         LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', self._task_parameters)

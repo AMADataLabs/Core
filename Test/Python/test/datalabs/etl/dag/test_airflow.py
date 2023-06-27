@@ -132,9 +132,9 @@ def environment():
     current_environment = os.environ.copy()
 
     os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_airflow.DummyTask'
-    os.environ['TEST_DAG__DAG_STATE_PARAMETERS'] = '''
+    os.environ['TEST_DAG__DAG_STATE'] = '''
         {
-            "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
+            "CLASS": "datalabs.etl.dag.state.file.DAGState",
             "BASE_PATH": "./"
         }
     '''

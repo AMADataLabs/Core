@@ -3,14 +3,14 @@ import logging
 import pprint
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.access.parameter.file import ParameterExtractionMixin
+from   datalabs.access.parameter.file import ParameterExtractorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class ConfigMapLoader(ParameterExtractionMixin):
+class ConfigMapLoader(ParameterExtractorMixin):
     def __init__(self, table: str):
         self._table = table
 
@@ -39,8 +39,10 @@ class ConfigMapLoader(ParameterExtractionMixin):
 
         return response
 
+
 class IncompleteConfigurationException(Exception):
     pass
+
 
 class Configuration:
     def __init__(self, table: str):

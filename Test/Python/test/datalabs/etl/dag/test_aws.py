@@ -90,9 +90,9 @@ def dag_parameters(state_directory):
     return dict(
         LAMBDA_FUNCTION='MyAppStack-sbx-MyETL',
         DAG_CLASS='test.datalabs.etl.dag.test_aws.MyDAG',
-        DAG_STATE_PARAMETERS=f'''
+        DAG_STATE=f'''
             {{
-                "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
+                "CLASS": "datalabs.etl.dag.state.file.DAGState",
                 "BASE_PATH": "{state_directory}"
             }}
         ''',
@@ -119,9 +119,9 @@ def expected_runtime_parameters(state_directory):
     return dict(
         LAMBDA_FUNCTION='MyAppStack-sbx-MyETL',
         DAG_CLASS='test.datalabs.etl.dag.test_aws.DAG',
-        DAG_STATE_PARAMETERS=f'''
+        DAG_STATE=f'''
             {{
-                "DAG_STATE_CLASS": "datalabs.etl.dag.state.file.DAGState",
+                "CLASS": "datalabs.etl.dag.state.file.DAGState",
                 "BASE_PATH": "{state_directory}"
             }}
         ''',

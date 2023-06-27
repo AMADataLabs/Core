@@ -4,7 +4,6 @@ import logging
 
 from   datalabs.access.environment import VariableTree
 from   datalabs.etl.dag.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
-from   datalabs.etl.dag.event import EventDrivenDAGMixin
 from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
@@ -44,7 +43,7 @@ class DAGTaskIDMixin:
         return base_name, iteration
 
 
-class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
+class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
@@ -119,6 +118,18 @@ class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
     @classmethod
     def _extract_cache_parameters(cls, task_parameters):
         return TaskDataCacheParameters.extract(task_parameters)
+
+    def _handle_dag_success(self, dag):
+        LOGGER.info("DAG %s succeeded.", dag)
+
+    def _handle_task_success(self, task):
+        LOGGER.info("Task %s succeeded.", task)
+
+    def _handle_dag_exception(self, dag):
+        LOGGER.info("DAG %s failed.", dag)
+
+    def _handle_task_exception(self, task):
+        LOGGER.info("Task %s failed.", task)
 
     @classmethod
     def _get_parameters_from_environment(cls, dag, task):

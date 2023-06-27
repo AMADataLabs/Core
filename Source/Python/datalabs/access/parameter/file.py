@@ -2,10 +2,11 @@
 import json
 import yaml
 
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.plugin import import_plugin
 
 
-class ParameterExtractionMixin:
+class ParameterExtractorMixin:
     @classmethod
     def _extract_variables_from_config(cls, filenames):
         config = {}
@@ -134,14 +135,27 @@ class FileEnvironmentParameters:
     path: str
 
 
-class FileEnvironmentLoader(ParameterExtractionMixin):
+class FileEnvironmentLoader(ParameterExtractorMixin):
     PARAMETER_CLASS = FileEnvironmentParameters
 
     def __init__(self, parameters):
         self._parameters = parameters
 
-    def load(self):
-        dag, variables = self._extract_variables_from_config([self._parameters['path']])
+    def load(self, environment: dict = None):
+        if environment is None:
+            environment = os.environ
+
+        global_parameters, task_parameters = self._get_parameters_from_file(
+            self._parameters["path"],
+            self._parameters['task']
+        )
+
+        ReferenceEnvironmentLoader(global_parameters).load(environment=task_parameters)
+
+        environment.update(task_parameters)
+
+    def _get_parameters_from_file(self, config_file):
+        dag, variables = self._extract_variables_from_config([config_file])
 
         parameters = self._parse_variables(variables)
 
@@ -150,7 +164,7 @@ class FileEnvironmentLoader(ParameterExtractionMixin):
 
         parameters = self._expand_macros(parameters)
 
-        return parameters[self._parameters['task']]
+        return parameters["GLOBAL"], parameters[self._parameters['task']]
 
 
 class FileTaskParameterGetterMixin:
@@ -162,6 +176,8 @@ class FileTaskParameterGetterMixin:
             task=task,
             path=config_file
         ))
-        parameters = file_loader.load()
+        parameters = {}
+
+        file_loader.load(parameters)
 
         return parameters
