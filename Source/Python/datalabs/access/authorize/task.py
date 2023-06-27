@@ -64,7 +64,7 @@ class AuthorizerTask(Task):
             customerName=entitlements.get("customerName")
         )
 
-        if active_subscriptions and len(active_subscriptions) > 0:
+        if active_subscriptions is not None:
             policy = self._generate_policy(effect='Allow')
             context.update(self._generate_context_from_subscriptions(active_subscriptions))
         else:
@@ -79,7 +79,7 @@ class AuthorizerTask(Task):
     @classmethod
     def _get_active_subscriptions(cls, entitlements):
         subscriptions = entitlements.get('subscriptionsList')
-        active_subscriptions = []
+        active_subscriptions = None
 
         if subscriptions:
             active_subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]

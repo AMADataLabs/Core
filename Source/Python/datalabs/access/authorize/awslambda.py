@@ -28,9 +28,9 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _get_authorization_parameters(self, token):
         return AuthorizerParameters(
             token=token.split(' ')[1],
-            customer=self._parameters["headers"].get("x-customer-nbr"),
             endpoint=self._parameters.get('methodArn'),
-            passport_url=os.environ.get('PASSPORT_URL')
+            passport_url=os.environ.get('PASSPORT_URL'),
+            customer=self._parameters["headers"].get("x-customer-nbr"),
         )
 
     def _handle_exception(self, exception: AuthorizerTaskException) -> (int, dict):
