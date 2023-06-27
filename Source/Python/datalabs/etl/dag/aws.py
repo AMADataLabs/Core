@@ -90,9 +90,9 @@ class DAGTaskWrapper(
         LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
-            state = self._get_state_plugin(self._task_parameters)
+            state = self._get_state_plugin(dag_task_parameters)
 
-            self._task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
+            dag_task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
 
         return dag_task_parameters
 

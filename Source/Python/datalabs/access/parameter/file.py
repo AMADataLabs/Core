@@ -1,8 +1,11 @@
 """ Helper class that loads DAG configuration from a YAML file into the environment. """
+from   dataclasses import dataclass
 import json
+import os
 import yaml
 
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.parameter import add_schema, ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
 
 
@@ -129,42 +132,46 @@ class ParameterExtractorMixin:
         return resolved_value
 
 
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
 class FileEnvironmentParameters:
+    path: str
     dag: str
     task: str
-    path: str
 
 
-class FileEnvironmentLoader(ParameterExtractorMixin):
+class FileEnvironmentLoader(ParameterExtractorMixin, ParameterValidatorMixin):
     PARAMETER_CLASS = FileEnvironmentParameters
 
     def __init__(self, parameters):
-        self._parameters = parameters
+        self._parameters = self._get_validated_parameters(parameters)
 
     def load(self, environment: dict = None):
         if environment is None:
             environment = os.environ
 
-        global_parameters, task_parameters = self._get_parameters_from_file(
-            self._parameters["path"],
-            self._parameters['task']
+        task_parameters = self._get_parameters_from_file(
+            self._parameters.path,
+            self._parameters.dag,
+            self._parameters.task
         )
-
-        ReferenceEnvironmentLoader(global_parameters).load(environment=task_parameters)
 
         environment.update(task_parameters)
 
-    def _get_parameters_from_file(self, config_file):
-        dag, variables = self._extract_variables_from_config([config_file])
+    def _get_parameters_from_file(self, config_file, dag, task):
+        dag_from_file, variables = self._extract_variables_from_config([config_file])
 
         parameters = self._parse_variables(variables)
 
-        if dag != self._parameters["dag"]:
-            raise ValueError("Requested DAG " + self._parameters.dag + " does not match the config file DAG " + dag)
+        if dag != dag_from_file:
+            raise ValueError("Requested DAG " + dag + " does not match the config file DAG " + dag_from_file)
 
         parameters = self._expand_macros(parameters)
 
-        return parameters["GLOBAL"], parameters[self._parameters['task']]
+        ReferenceEnvironmentLoader(parameters["GLOBAL"]).load(environment=parameters[task])
+
+        return parameters[task]
 
 
 class FileTaskParameterGetterMixin:
