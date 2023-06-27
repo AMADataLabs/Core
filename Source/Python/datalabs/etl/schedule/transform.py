@@ -82,7 +82,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, StatefulDAGMixin, Task):
         return (execution_times >= execution_time_bounds[0]) & (execution_times < execution_time_bounds[1])
 
     def _get_started_dags(self, schedule):
-        state = self._get_state_plugin()
+        state = self._get_state_plugin(self._parameters)
 
         return schedule.apply(lambda dag: self._is_started(state, dag), axis = 1)
 
