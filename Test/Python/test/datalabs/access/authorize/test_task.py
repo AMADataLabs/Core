@@ -31,8 +31,8 @@ def test_not_authorized(unauthorized_passport_response, parameters):
 
         context = authorizer.authorization.get('context')
         assert len(context) == 2
+        assert context.get("customerName") is None
         assert context.get("customerNumber") == "000003570999"
-        assert context.get("customerName") == "Cahaba Medical Center - Maplesville"
 
 
 # pylint: disable=redefined-outer-name
@@ -81,15 +81,15 @@ PassportResponse = namedtuple('PassportResponse', 'status_code, text')
 @pytest.fixture
 def unauthorized_passport_response():
     return PassportResponse(
-        status_code=200,
+        status_code=401,
         text='''
             {
-                "returnCode": 0,
-                "returnMessage": "SUCCESS",
-                "customerNumber": "000003570999",
-                "customerName": "Cahaba Medical Center - Maplesville",
-                "responseId": "7d7e2836-1c2d-4a13-a0fe-8bd58c92d7c5",
-                "subscriptionsList": []
+                "returnCode": null,
+                "returnMessage": null,
+                "customerNumber": null,
+                "customerName": null,
+                "responseId": null,
+                "subscriptionsList": null
             }
         '''
     )
