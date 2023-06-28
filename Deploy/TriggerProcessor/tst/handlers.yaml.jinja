@@ -1,22 +1,9 @@
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "TRIGGER_PROCESSOR"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
-
-    ENVIRONMENT: tst
-    ACCOUNT: '194221139997'
-
-
-    #######################################################################
-    # Handler Variables - {"DAG": {"S": "TRIGGER_PROCESSOR"}, "Task": {"S": "HANDLER"}}
-    #######################################################################
-
-    TRIGGER_PROCESSOR__HANDLER__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-
-
-    #######################################################################
-    # Trigger Variables - ({"DAG": {"S": "TRIGGER_PROCESSOR"}, "Task": {"S": <Topic>}})
-    #######################################################################
-
-    TRIGGER_PROCESSOR__Scheduler__HANDLER_CLASS: datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask
+TRIGGER_PROCESSOR:
+    GLOBAL:
+        ACCOUNT: '194221139997'
+        ENVIRONMENT: tst
+    HANDLER:
+        DAG_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor
+    Scheduler:
+        HANDLER_CLASS: datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask
