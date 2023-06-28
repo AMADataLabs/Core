@@ -34,7 +34,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         )
 
     def _handle_exception(self, exception: AuthorizerTaskException) -> (int, dict):
-        LOGGER.exception('An error occurred during authorization:')
+        LOGGER.exception('An error occurred during authorization')
         return dict(message=exception.message)
 
     def _handle_success(self) -> (int, dict):

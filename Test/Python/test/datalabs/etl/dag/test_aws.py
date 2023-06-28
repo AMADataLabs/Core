@@ -1,39 +1,36 @@
 ''' Source: datalabs.etl.dag.aws '''
+import logging
 import os
+import tempfile
 
 import mock
 
 import pytest
 
+from   datalabs.etl.dag import DAG
 from   datalabs.etl.dag.aws import DAGTaskWrapper
 
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_runtime_parameters_are_combined(args, environment, dag_parameters, expected_runtime_parameters):
-    with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
-            as _get_dag_task_parameters_from_dynamodb:
-        _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
-        task_wrapper = DAGTaskWrapper(args)
-
-        runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
-
-        assert runtime_parameters == expected_runtime_parameters
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_task_parameters_override_runtime_parameters(args, environment, dag_parameters, task_parameters):
+def test_task_parameters_override_dag_parameters(args, environment, get_dag_task_parameters_from_dynamodb):
+    task_wrapper = DAGTaskWrapper(args)
+
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
-        _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
-        task_wrapper = DAGTaskWrapper(args)
-        task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
-        _get_dag_task_parameters_from_dynamodb.return_value = task_parameters
+        with mock.patch.object(DAGTaskWrapper, '_notify_dag'):
+            _get_dag_task_parameters_from_dynamodb.side_effect = get_dag_task_parameters_from_dynamodb
 
-        task_parameters = task_wrapper._get_dag_task_parameters()
+            task_wrapper.run()
 
-        assert len(task_parameters) == 2
-        assert task_wrapper._runtime_parameters["LAMBDA_FUNCTION"] == 'MyAppStack-sbx-MyBigTask'
-        assert task_wrapper._runtime_parameters["TASK_EXECUTOR_CLASS"] == 'com.dancinglamb.LambdaTaskExecutorTask'
+    LOGGER.debug("Task Parameters: %s", task_wrapper._task_parameters)
+
+    assert len(task_wrapper._task_parameters) == 14
+    assert task_wrapper._task_parameters["LAMBDA_FUNCTION"] == 'MyAppStack-sbx-MyBigTask'
+    assert task_wrapper._task_parameters["TASK_EXECUTOR_CLASS"] == 'com.dancinglamb.LambdaTaskExecutorTask'
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -44,14 +41,14 @@ def test_dynamic_parameter_substitutions(args_parameters, environment, dag_param
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
         _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
-        task_wrapper = DAGTaskWrapper(args_parameters)
-        task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
         _get_dag_task_parameters_from_dynamodb.return_value = task_parameters
+        task_wrapper = DAGTaskWrapper(args_parameters)
+        task_wrapper._task_parameters = task_wrapper._get_task_parameters()
 
-        task_parameters = task_wrapper._get_dag_task_parameters()
+        task_wrapper._pre_run()
 
-        assert task_parameters["CORNBREAD_TEMPERATURE"] == '35'
-        assert task_parameters["BASE_METRIC"] == 'SuperAwesomeStandard'
+        assert task_wrapper._task_parameters["CORNBREAD_TEMPERATURE"] == '35'
+        assert task_wrapper._task_parameters["BASE_METRIC"] == 'SuperAwesomeStandard'
 
 
 @pytest.fixture
@@ -83,16 +80,21 @@ def environment():
 
 
 @pytest.fixture
-def dag_parameters():
+def state_directory():
+    with tempfile.TemporaryDirectory() as directory:
+        yield directory
+
+
+@pytest.fixture
+def dag_parameters(state_directory):
     return dict(
         LAMBDA_FUNCTION='MyAppStack-sbx-MyETL',
-        DAG_CLASS='datalabs.etl.dag.cpt.api.MY_DAGDAG',
-        DAG_STATE_PARAMETERS='''
-            {
-                "DAG_STATE_CLASS": "datalabs.etl.dag.state.dynamodb.DAGState",
-                "DAG_STATE_TABLE": "DataLake-dag-state-sbx",
-                "STATE_LOCK_TABLE": "DataLake-scheduler-locks-sbx"
-            }
+        DAG_CLASS='test.datalabs.etl.dag.test_aws.MyDAG',
+        DAG_STATE=f'''
+            {{
+                "CLASS": "datalabs.etl.dag.state.file.DAGState",
+                "BASE_PATH": "{state_directory}"
+            }}
         ''',
         DAG_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor',
         TASK_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-TaskProcessor',
@@ -104,28 +106,24 @@ def dag_parameters():
 @pytest.fixture
 def task_parameters():
     return dict(
-        OVERRIDES='''
-            {
-                "LAMBDA_FUNCTION": "MyAppStack-sbx-MyBigTask",
-                "TASK_EXECUTOR_CLASS": "com.dancinglamb.LambdaTaskExecutorTask"
-            }
-        ''',
+        LAMBDA_FUNCTION= "MyAppStack-sbx-MyBigTask",
+        TASK_EXECUTOR_CLASS= "com.dancinglamb.LambdaTaskExecutorTask",
+        TASK_CLASS="datalabs.etl.task.DummyTask",
         CORNBREAD_TEMPERATURE='32',
         BASE_METRIC='grit'
     )
 
 
 @pytest.fixture
-def expected_runtime_parameters():
+def expected_runtime_parameters(state_directory):
     return dict(
         LAMBDA_FUNCTION='MyAppStack-sbx-MyETL',
-        DAG_CLASS='datalabs.etl.dag.cpt.api.MY_DAGDAG',
-        DAG_STATE_PARAMETERS='''
-            {
-                "DAG_STATE_CLASS": "datalabs.etl.dag.state.dynamodb.DAGState",
-                "DAG_STATE_TABLE": "DataLake-dag-state-sbx",
-                "STATE_LOCK_TABLE": "DataLake-scheduler-locks-sbx"
-            }
+        DAG_CLASS='test.datalabs.etl.dag.test_aws.DAG',
+        DAG_STATE=f'''
+            {{
+                "CLASS": "datalabs.etl.dag.state.file.DAGState",
+                "BASE_PATH": "{state_directory}"
+            }}
         ''',
         DAG_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor',
         TASK_TOPIC_ARN='arn:aws:sns:us-east-1:644454719059:DataLake-sbx-TaskProcessor',
@@ -136,3 +134,19 @@ def expected_runtime_parameters():
         task='MY_TASK',
         execution_time='2022-03-26T00:00:00'
     )
+
+@pytest.fixture
+def get_dag_task_parameters_from_dynamodb(dag_parameters, task_parameters):
+    def _get_dag_task_parameters_from_dynamodb(dag, task):
+        parameters = task_parameters
+
+        if task == "DAG":
+            parameters = dag_parameters
+
+        return parameters
+
+    return _get_dag_task_parameters_from_dynamodb
+
+
+class MyDAG(DAG):
+    MY_TASK: "datalabs.etl.transform.PassThroughTransformerTask"

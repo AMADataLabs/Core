@@ -1,33 +1,45 @@
 ''' Source: datalabs.etl.dag.awslambda '''
+from   functools import partial
 import os
 import mock
 
 import pytest
 
+from   datalabs.task import Task
+from   datalabs.etl.dag import DAG
 from   datalabs.etl.dag.awslambda import ProcessorTaskWrapper
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_process_wrapper_dag_event_parsed_correctly(dag_event):
-    wrapper = ProcessorTaskWrapper()
-    parameters = wrapper._get_runtime_parameters(dag_event)
+def test_process_wrapper_dag_event_parsed_correctly(dag_event, get_dag_task_parameters_from_dynamodb):
+    wrapper = ProcessorTaskWrapper(dag_event)
 
-    assert len(parameters) == 2
-    assert "dag" in parameters
-    assert parameters["dag"] == "DAG_SCHEDULER"
-    assert "task" not in parameters
-    assert "execution_time" in parameters
-    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
+    with mock.patch.object(
+        ProcessorTaskWrapper,
+        '_get_dag_task_parameters_from_dynamodb',
+        new=get_dag_task_parameters_from_dynamodb
+    ):
+        parameters = wrapper._get_task_parameters()
+
+    assert len(parameters) == 3
+    assert parameters.get("dag") == "DAG_SCHEDULER"
+    assert parameters.get("DAG_CLASS") == "SOME_DAG"
+    assert parameters.get("execution_time") == "2021-07-13T16:18:54.663464"
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_process_wrapper_task_event_parsed_correctly(task_event):
-    wrapper = ProcessorTaskWrapper()
-    parameters = wrapper._get_runtime_parameters(task_event)
+def test_process_wrapper_task_event_parsed_correctly(task_event, get_dag_task_parameters_from_dynamodb):
+    wrapper = ProcessorTaskWrapper(task_event)
 
-    assert len(parameters) == 3
-    assert "dag" in parameters
-    assert parameters["dag"] == "DAG_SCHEDULER"
+    with mock.patch.object(
+        ProcessorTaskWrapper,
+        '_get_dag_task_parameters_from_dynamodb',
+        new=get_dag_task_parameters_from_dynamodb
+    ):
+        parameters = wrapper._get_task_parameters()
+
+    assert len(parameters) == 5
+    assert parameters.get("dag") == "DAG_SCHEDULER"
     assert "task" in parameters
     assert parameters["task"] == "EXTRACT_SCHEDULE"
     assert "execution_time" in parameters
@@ -35,12 +47,15 @@ def test_process_wrapper_task_event_parsed_correctly(task_event):
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_process_wrapper_scheduler_event_parsed_correctly(environment, scheduler_event, trigger_config):
-    wrapper = ProcessorTaskWrapper()
-    with mock.patch("boto3.client") as client:
-        client.return_value.get_item.return_value = trigger_config
+def test_process_wrapper_scheduler_event_parsed_correctly(scheduler_event, get_dag_task_parameters_from_dynamodb):
+    wrapper = ProcessorTaskWrapper(scheduler_event)
 
-        parameters = wrapper._get_runtime_parameters(scheduler_event)
+    with mock.patch.object(
+        ProcessorTaskWrapper,
+        '_get_dag_task_parameters_from_dynamodb',
+        new=partial(get_dag_task_parameters_from_dynamodb, ProcessorTaskWrapper)
+    ):
+        parameters = wrapper._get_task_parameters()
 
     assert len(parameters) == 3
     assert "handler_class" in parameters
@@ -49,56 +64,6 @@ def test_process_wrapper_scheduler_event_parsed_correctly(environment, scheduler
     assert parameters["dag_topic_arn"] == "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGPRocessor"
     assert "event" in parameters
     assert hasattr(parameters["event"], "items")
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_dag_event_yields_correct_task_parameters(environment, dag_event, trigger_config):
-    wrapper = ProcessorTaskWrapper()
-    with mock.patch("boto3.client") as client:
-        client.return_value.get_item.return_value = trigger_config
-
-        wrapper._runtime_parameters = wrapper._get_runtime_parameters(dag_event)
-
-        parameters = wrapper._get_task_parameters()
-
-    assert len(parameters) == 4
-    assert "dag" in parameters
-    assert parameters["dag"] == "DAG_SCHEDULER"
-    assert "execution_time" in parameters
-    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
-    assert "task" not in parameters
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_task_event_yields_correct_task_parameters(environment, task_event, trigger_config):
-    wrapper = ProcessorTaskWrapper()
-    with mock.patch("boto3.client") as client:
-        client.return_value.get_item.return_value = trigger_config
-
-        wrapper._runtime_parameters = wrapper._get_runtime_parameters(task_event)
-
-        parameters = wrapper._get_task_parameters()
-
-    assert len(parameters) == 5
-    assert "dag" in parameters
-    assert parameters["dag"] == "DAG_SCHEDULER"
-    assert "execution_time" in parameters
-    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
-    assert "task" in parameters
-    assert parameters["task"] == "EXTRACT_SCHEDULE"
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_scheduler_event_yields_correct_task_parameters(environment, scheduler_event, trigger_config):
-    wrapper = ProcessorTaskWrapper()
-    with mock.patch("boto3.client") as client:
-        client.return_value.get_item.return_value = trigger_config
-
-        wrapper._runtime_parameters = wrapper._get_runtime_parameters(scheduler_event)
-
-        parameters = wrapper._get_task_parameters()
-
-    assert parameters == wrapper._runtime_parameters
 
 
 @pytest.mark.skipif(
@@ -129,6 +94,16 @@ def test_task_processor_runs(environment, dag_event):
     wrapper.run()
 
 
+class MockTask(Task):
+    def run(self):
+        pass
+
+
+class MockDAG(DAG):
+    def run(self):
+        pass
+
+
 @pytest.fixture
 def environment():
     current_env = os.environ.copy()
@@ -143,16 +118,47 @@ def environment():
 
 
 @pytest.fixture
-def runtime_parameters():
+def dag_parameters():
     return dict(
-        dag="SOME_DAG",
-        task="SOME_TASK",
-        execution_time="2021-01-01T00:00:00.000000"
+        DAG_CLASS="SOME_DAG"
     )
 
 
 @pytest.fixture
-def dag_event():
+def task_parameters():
+    return dict(
+        TASK_CLASS='test.datalabs.etl.dag.test_awslambda.MockTask',
+    )
+
+
+@pytest.fixture
+def trigger_parameters():
+    return dict(
+        HANDLER_CLASS="datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask",
+        DAG_TOPIC_ARN="arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGPRocessor"
+    )
+
+
+@pytest.fixture
+def get_dag_task_parameters_from_dynamodb(dag_parameters, task_parameters, trigger_parameters):
+    # pylint: disable=unused-argument
+    def _get_dag_task_parameters_from_dynamodb(cls, dag, task, execution_time=None):
+        parameters = {}
+
+        if task == "DAG":
+            parameters = dag_parameters
+        elif task in ("HANDLER", "Scheduler"):
+            parameters = trigger_parameters
+        else:
+            parameters = task_parameters
+
+        return parameters
+
+    return _get_dag_task_parameters_from_dynamodb
+
+
+@pytest.fixture
+def dag_event(environment):
     # pylint: disable=line-too-long
     return {
       'Records': [
@@ -179,7 +185,7 @@ def dag_event():
 
 
 @pytest.fixture
-def task_event():
+def task_event(environment):
     # pylint: disable=line-too-long
     return {
       'Records': [
@@ -206,7 +212,7 @@ def task_event():
 
 
 @pytest.fixture
-def scheduler_event():
+def scheduler_event(environment):
     # pylint: disable=line-too-long
     return {
       "Records": [
@@ -230,18 +236,3 @@ def scheduler_event():
         }
       ]
     }
-
-
-@pytest.fixture
-def trigger_config():
-    return dict(
-        Item=dict(
-            Variables=dict(
-                S='''{
-                    "HANDLER_CLASS": "datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask",
-                    "DAG_TOPIC_ARN": "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGPRocessor"
-                }
-                '''
-            )
-        )
-    )

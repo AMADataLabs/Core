@@ -52,9 +52,9 @@ ONEVIEW:
         LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-ETL'
         DAG_CLASS: 'datalabs.etl.dag.masterfile.oneview.OneViewDAG'
         DAG_STATE_PARAMETERS:
-            DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-            DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-            STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
@@ -107,9 +107,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -145,9 +145,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -171,9 +171,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -257,9 +257,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -291,9 +291,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -325,9 +325,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -412,9 +412,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -599,9 +599,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -670,9 +670,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -696,9 +696,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -736,9 +736,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -838,9 +838,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -864,9 +864,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -890,9 +890,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -915,9 +915,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlParametricExtractorTask
 
@@ -1080,9 +1080,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1274,9 +1274,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1323,9 +1323,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1392,9 +1392,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1440,9 +1440,9 @@ ONEVIEW:
         OVERRIDES:
             LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
             DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+                CLASS: datalabs.etl.dag.state.dynamodb.DagState
+                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 

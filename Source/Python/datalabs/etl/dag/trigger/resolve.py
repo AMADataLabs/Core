@@ -17,5 +17,5 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
     PARAMETER_CLASS = TaskResolverParameters
 
     @classmethod
-    def get_task_class(cls, runtime_parameters):
-        return import_plugin(runtime_parameters["handler_class"])
+    def get_task_class(cls, task_parameters):
+        return import_plugin(task_parameters["handler_class"])
