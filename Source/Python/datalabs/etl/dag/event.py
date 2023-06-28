@@ -16,6 +16,7 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
 
         self._update_dag_status_on_success(dag, dag_state)
 
+        LOGGER.debug("%d tasks ready to run.", len(dag.triggered_tasks))
         for task in dag.triggered_tasks:
             self._notify_task(task)
 

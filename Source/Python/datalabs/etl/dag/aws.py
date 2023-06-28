@@ -26,6 +26,7 @@ class SNSProcessorNotifierMixin:
         if "parameters" in self._task_parameters:
             dynamic_parameters.update(self.runtime_parameters["parameters"])
 
+        LOGGER.debug("Notifying DAG %s...", self._get_dag_id())
         SNSDAGNotifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
 
     def _notify_task(self, task):
@@ -36,6 +37,7 @@ class SNSProcessorNotifierMixin:
         if "parameters" in self._task_parameters:
             dynamic_parameters.update(self._task_parameters["parameters"])
 
+        LOGGER.debug("Notifying task %s for DAG %s...", task, self._get_dag_id())
         SNSTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
 
