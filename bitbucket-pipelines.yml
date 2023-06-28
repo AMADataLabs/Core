@@ -639,7 +639,7 @@ pipelines:
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
-                    bash Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
+                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
                     JSON-API=Endpoint.zip
                     JSON-API-Authorizer=Endpoint.zip
                     ZIP-API=Endpoint.zip
