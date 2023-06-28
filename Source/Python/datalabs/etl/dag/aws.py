@@ -20,15 +20,17 @@ LOGGER.setLevel(logging.DEBUG)
 class SNSProcessorNotifierMixin:
     def _notify_dag(self):
         dynamic_parameters = self._task_parameters.get("parameters")
+        notifier = SNSDAGNotifier(self._task_parameters["DAG_TOPIC_ARN"])
 
         LOGGER.debug("Notifying DAG %s...", self._get_dag_id())
-        SNSDAGNotifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
+        notifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
 
     def _notify_task(self, task):
         dynamic_parameters = self._task_parameters.get("parameters")
+        notifier = SNSTaskNotifier(self._task_parameters["TASK_TOPIC_ARN"])
 
         LOGGER.debug("Notifying task %s for DAG %s...", task, self._get_dag_id())
-        SNSTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
+        notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
 
 class DAGTaskWrapper(
