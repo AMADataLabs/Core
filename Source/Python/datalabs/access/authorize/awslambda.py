@@ -18,7 +18,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         return self._get_authorization_parameters(token)
 
     def _get_authorization_token(self):
-        token = self._parameters.get('authorizationToken').strip()
+        token = self._parameters["headers"].get("Authorization").strip()
 
         if not token.startswith('Bearer '):
             raise AuthorizerTaskException('Invalid bearer token: "{token}"')
