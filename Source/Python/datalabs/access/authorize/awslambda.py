@@ -26,6 +26,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         return token
 
     def _get_authorization_parameters(self, token):
+        LOGGER.debug("Authorization Lambda event:\n%s", self._parameters)
         return AuthorizerParameters(
             token=token.split(' ')[1],
             endpoint=self._parameters.get('methodArn'),
