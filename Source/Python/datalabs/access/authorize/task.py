@@ -8,7 +8,7 @@ from   datalabs.task import Task, TaskException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -46,6 +46,7 @@ class AuthorizerTask(Task):
             self._parameters.passport_url,
             headers=headers
         )
+        LOGGER.debug("Passport Response: \n%s", response)
 
         if response.status_code in (200, 401):
             entitlements = json.loads(response.text)
