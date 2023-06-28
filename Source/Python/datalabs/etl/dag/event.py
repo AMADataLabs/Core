@@ -7,7 +7,7 @@ from   datalabs.etl.dag.state import Status, StatefulDAGMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class EventDrivenDAGMixin(StatefulDAGMixin):
@@ -47,12 +47,6 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
             self._get_task_id(),
             self._get_dag_id()
         )
-
-    def _notify_dag(self):
-        pass
-
-    def _notify_task(self, task):
-        pass
 
     def _update_dag_status_on_success(self, dag, dag_state):
         dag_id = self._get_dag_id()
