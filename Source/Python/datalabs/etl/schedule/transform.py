@@ -13,7 +13,6 @@ import pandas
 from   datalabs.etl.dag.state import Status, StatefulDAGMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
-from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
 
 logging.basicConfig()

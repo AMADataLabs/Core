@@ -119,15 +119,19 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def _extract_cache_parameters(cls, task_parameters):
         return TaskDataCacheParameters.extract(task_parameters)
 
+    # pylint: disable=no-self-use
     def _handle_dag_success(self, dag):
         LOGGER.info("DAG %s succeeded.", dag)
 
+    # pylint: disable=no-self-use
     def _handle_task_success(self, task):
         LOGGER.info("Task %s succeeded.", task)
 
+    # pylint: disable=no-self-use
     def _handle_dag_exception(self, dag):
         LOGGER.info("DAG %s failed.", dag)
 
+    # pylint: disable=no-self-use
     def _handle_task_exception(self, task):
         LOGGER.info("Task %s failed.", task)
 

@@ -21,7 +21,7 @@ CPTAPI:
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
         DAG_CLASS: 'datalabs.etl.dag.cpt.api.CPTAPIDAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'

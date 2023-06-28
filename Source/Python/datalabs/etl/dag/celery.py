@@ -3,6 +3,7 @@ import logging
 
 from   datalabs.access.parameter.file import FileTaskParameterGetterMixin
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.etl.dag.event import EventDrivenDAGMixin
 from   datalabs.etl.dag.notify.celery import CeleryDAGNotifier, CeleryTaskNotifier
 import datalabs.etl.dag.task
 from   datalabs.etl.dag.state import Status
@@ -34,7 +35,12 @@ class CeleryProcessorNotifierMixin:
         CeleryTaskNotifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
 
 
-class DAGTaskWrapper(FileTaskParameterGetterMixin, CeleryProcessorNotifierMixin, datalabs.etl.dag.task.DAGTaskWrapper):
+class DAGTaskWrapper(
+    EventDrivenDAGMixin,
+    FileTaskParameterGetterMixin,
+    CeleryProcessorNotifierMixin,
+    datalabs.etl.dag.task.DAGTaskWrapper
+):
     def _pre_run(self):
         super()._pre_run()
         LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', self._task_parameters)

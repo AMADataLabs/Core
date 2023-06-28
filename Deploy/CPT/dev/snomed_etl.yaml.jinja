@@ -15,7 +15,7 @@ SNOMED_CPT_ETL:
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-SNOMED-DAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.snomed.DAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
