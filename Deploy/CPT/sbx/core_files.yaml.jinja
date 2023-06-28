@@ -1,18 +1,18 @@
 ---
 CPT_CORE:
     GLOBAL:
-    ENVIRONMENT: sbx
-    ACCOUNT: '644454719059'
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    PYTHON_S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    JAVA_S3_CACHE_CLASS: 'datalabs.task.cache.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/CPT/Core'
-    S3_CACHE_JAVA_CLASS: 'datalabs.etl.dag.cache.S3TaskDataCache'
+        PYTHON_S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        JAVA_S3_CACHE_CLASS: 'datalabs.task.cache.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/CPT/Core'
+        S3_CACHE_JAVA_CLASS: 'datalabs.etl.dag.cache.S3TaskDataCache'
 
-    CORE_OUTPUT_ZIP: output.zip
+        CORE_OUTPUT_ZIP: output.zip
 
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-BuilderDAG'
