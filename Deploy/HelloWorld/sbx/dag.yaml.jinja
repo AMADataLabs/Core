@@ -8,7 +8,7 @@ HELLO_WORLD:
 
         LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-DBLReport'
         DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.file.DAGState'
             BASE_PATH: './test_output_file_state'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'

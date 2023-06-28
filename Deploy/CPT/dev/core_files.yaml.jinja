@@ -18,9 +18,10 @@ CPT_CORE:
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-BuilderDAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.files.core.CPTCoreDAG'
-        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-        DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-        STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
@@ -61,7 +62,10 @@ CPT_CORE:
     BUILD_CORE:
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
         TASK_CLASS: datalabs.etl.cpt.build.CoreBuilderTask
-        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         CACHE_CLASS: ${JAVA_S3_CACHE_CLASS}
 
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}

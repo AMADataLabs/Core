@@ -19,10 +19,10 @@ VERICRE_PROFILES:
     DAG:
         LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-ETL'
         DAG_CLASS: 'datalabs.etl.dag.vericre.profile.DAG'
-        DAG_STATE_PARAMETERS:
-            DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-            DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-            STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
@@ -38,7 +38,7 @@ VERICRE_PROFILES:
 
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: 'ABMS_DATA.csv,DEA_DATA.csv,DEMOG_DATA.csv,LICENSE_DATA.csv,MED_SCH_DATA.csv,MED_TRAIN_DATA.csv,NPI_DATA.csv,SANCTIONS_DATA.csv'
- 
+
     #CREATE_AMA_PROFILE_TABLE:
         #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         #CACHE_BASE_PATH: ${S3_BASE_PATH}
@@ -48,8 +48,8 @@ VERICRE_PROFILES:
 
         #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         #CACHE_OUTPUT_FILES: 'ama_masterfile.json'
- 
-    
+
+
     #SYNC_PROFILES_TO_DATABASE:
         #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         #CACHE_BASE_PATH: ${S3_BASE_PATH}
@@ -70,7 +70,7 @@ VERICRE_PROFILES:
 
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_INPUT_FILES: 'caqh_profile.json'
-    
+
     #CREATE_CAQH_STATUS_URLS:
         #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         #CACHE_BASE_PATH: ${S3_BASE_PATH}
@@ -109,7 +109,7 @@ VERICRE_PROFILES:
 
         #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         #CACHE_OUTPUT_FILES: 'caqh_profile_urls.txt'
-    
+
     #EXTRACT_CAQH_PHYSICIAN_PROFILES:
         #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         #CACHE_BASE_PATH: ${S3_BASE_PATH}
@@ -122,7 +122,7 @@ VERICRE_PROFILES:
 
         #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         #CACHE_OUTPUT_FILES: 'caqh_profiles.csv'
-    
+
     #CREATE_CAQH_PROFILE_TABLE:
         #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         #CACHE_BASE_PATH: ${S3_BASE_PATH}
@@ -132,7 +132,7 @@ VERICRE_PROFILES:
 
         #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         #CACHE_OUTPUT_FILES: 'caqh_profiles.csv'
-     
+
     #LOAD_CAQH_PROFILE_TABLE:
         #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
         #CACHE_BASE_PATH: ${S3_BASE_PATH}

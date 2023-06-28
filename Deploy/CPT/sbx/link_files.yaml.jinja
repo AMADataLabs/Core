@@ -14,7 +14,7 @@ CPT_LINK:
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-LinkDAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.files.link.CPTLinkDAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
@@ -58,12 +58,11 @@ CPT_LINK:
         CAHCE_OUTPUT_FILES: edits.txt,rvus.txt
 
     BUILD_LINK:
-        OVERRIDES:
-            LAMBDA_FUNCTION: CPT-API-${ENVIRONMENT}-Legacy
-            DAG_STATE_PARAMETERS:
-                CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
-                STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: CPT-API-${ENVIRONMENT}-Legacy
+        DAG_STATE_PARAMETERS:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.cpt.build.LinkBuilderTask
 

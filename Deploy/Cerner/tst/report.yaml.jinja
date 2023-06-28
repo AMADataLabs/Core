@@ -21,7 +21,7 @@ CERNER_REPORT:
     DAG:
         LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-Cerner'
         DAG_CLASS: 'datalabs.etl.dag.customer_intelligence.cerner.DAG'
-         DAG_STATE_PARAMETERS:
+         DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
@@ -40,79 +40,79 @@ CERNER_REPORT:
         DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
         DATABASE_NAME: ${VISTEX_DB_NAME}
         SQL: "
-SELECT DISTINCT
-    Cerner_ID.Cerner_Mnemonic               AS 'Cerner Mnemonic'
-    , T4.id                                 AS 'AMA Licensee ID'
-    , T4.licensee                           AS 'Licensee Name'
-    , 'Location'=
-    CASE
-    WHEN Cerner_ID.Cerner_Mnemonic IS NULL
-    THEN CONCAT(/*COMPANY.STREET, ', ',*/COMPANY.CITY, ', ', COMPANY.state, ', ', COMPANY.POSTCODE)
-    ELSE ' '
-    END
-    , VENDOR.description                    AS 'Product Licensed'
-    , CAST(T3.due_date AS DATE)             AS 'Payment Date'
-FROM cm_model_incl T1
-    join (
-        select *
-        from ri_article
-        where
-            id = '26003'
-            or id = '27169'
-            or id = '2146'
-            or id = '2359'
-            or id = '2690'
-            or id = '2691'
-            or id = '2693'
-            or id = '2732'
-            or id = '2737'
-            or id = '2792'
-            or id = '2804'
-            or id = '2814'
-            or id = '2845'
-            or id = '2921'
-            or id = '2940'
-            or id = '3026'
-            or id = '3051'
-            or id = '3054'
-            or id = '3076'
-            or id = '3092'
-            or id = '28631'
-            or id = '28628'
-            ) VENDOR
-    ON T1.article_key = VENDOR.article_key
-    JOIN cm_model T2
-    ON t2.model_key = t1.model_key
-    JOIN cm_contract_fee T3
-    ON T3.model_key = T2.model_key
-    JOIN v_cm_contracts T4
-    ON T4.contract_key = T3.contract_key
-    JOIN v_arp_receivables T5
-    ON t5.contract_id = T4.id
-		LEFT JOIN (
-			SELECT DISTINCT
-				v_ts_custom_fields_details.text_value	AS Cerner_Mnemonic,
-				T4.id									AS AMA_Licensee_ID
-            FROM LicenseMaestro_CPT.dbo.v_cm_contracts T4
-            JOIN v_ts_custom_fields_details
-            ON T4.contract_key = v_ts_custom_fields_details.key_value
-            WHERE v_ts_custom_fields_details.customfield_id = 39
-			) Cerner_ID
-		ON T4.id = Cerner_ID.AMA_Licensee_ID
-        LEFT JOIN(
-			SELECT *
-            FROM V_MP_COMPANIES
-            ) COMPANY
-        ON COMPANY.COMPANY_ID = T4.licensee_company_key
-        JOIN cm_section_term T6
-        ON T3.term_key = T6.section_term_key
-WHERE YEAR(T6.date_end) = 2021
-AND YEAR(T6.DATE_START) = 2021
-AND YEAR(T5.accrual_date) > 2019
-AND CAST(T4.mod_date AS DATE) >= '2020-09-01'
-AND T3.due_date IS NOT NULL
-ORDER BY CAST(T3.due_date AS DATE) DESC
-"
+            SELECT DISTINCT
+                Cerner_ID.Cerner_Mnemonic               AS 'Cerner Mnemonic'
+                , T4.id                                 AS 'AMA Licensee ID'
+                , T4.licensee                           AS 'Licensee Name'
+                , 'Location'=
+                CASE
+                WHEN Cerner_ID.Cerner_Mnemonic IS NULL
+                THEN CONCAT(/*COMPANY.STREET, ', ',*/COMPANY.CITY, ', ', COMPANY.state, ', ', COMPANY.POSTCODE)
+                ELSE ' '
+                END
+                , VENDOR.description                    AS 'Product Licensed'
+                , CAST(T3.due_date AS DATE)             AS 'Payment Date'
+            FROM cm_model_incl T1
+                join (
+                    select *
+                    from ri_article
+                    where
+                        id = '26003'
+                        or id = '27169'
+                        or id = '2146'
+                        or id = '2359'
+                        or id = '2690'
+                        or id = '2691'
+                        or id = '2693'
+                        or id = '2732'
+                        or id = '2737'
+                        or id = '2792'
+                        or id = '2804'
+                        or id = '2814'
+                        or id = '2845'
+                        or id = '2921'
+                        or id = '2940'
+                        or id = '3026'
+                        or id = '3051'
+                        or id = '3054'
+                        or id = '3076'
+                        or id = '3092'
+                        or id = '28631'
+                        or id = '28628'
+                        ) VENDOR
+                ON T1.article_key = VENDOR.article_key
+                JOIN cm_model T2
+                ON t2.model_key = t1.model_key
+                JOIN cm_contract_fee T3
+                ON T3.model_key = T2.model_key
+                JOIN v_cm_contracts T4
+                ON T4.contract_key = T3.contract_key
+                JOIN v_arp_receivables T5
+                ON t5.contract_id = T4.id
+                    LEFT JOIN (
+                        SELECT DISTINCT
+                            v_ts_custom_fields_details.text_value	AS Cerner_Mnemonic,
+                            T4.id									AS AMA_Licensee_ID
+                        FROM LicenseMaestro_CPT.dbo.v_cm_contracts T4
+                        JOIN v_ts_custom_fields_details
+                        ON T4.contract_key = v_ts_custom_fields_details.key_value
+                        WHERE v_ts_custom_fields_details.customfield_id = 39
+                        ) Cerner_ID
+                    ON T4.id = Cerner_ID.AMA_Licensee_ID
+                    LEFT JOIN(
+                        SELECT *
+                        FROM V_MP_COMPANIES
+                        ) COMPANY
+                    ON COMPANY.COMPANY_ID = T4.licensee_company_key
+                    JOIN cm_section_term T6
+                    ON T3.term_key = T6.section_term_key
+            WHERE YEAR(T6.date_end) = 2021
+            AND YEAR(T6.DATE_START) = 2021
+            AND YEAR(T5.accrual_date) > 2019
+            AND CAST(T4.mod_date AS DATE) >= '2020-09-01'
+            AND T3.due_date IS NOT NULL
+            ORDER BY CAST(T3.due_date AS DATE) DESC
+        "
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
@@ -128,8 +128,8 @@ ORDER BY CAST(T3.due_date AS DATE) DESC
         TO_ADDRESSES: datalabs@ama-assn.org
         SUBJECT: "Cerner Report - %Y-%m-%d"
         MESSAGE: "
-This is an automated email from DataLabs.
+            This is an automated email from DataLabs.
 
-Attached is the latest Cerner report.
-"
+            Attached is the latest Cerner report.
+        "
         FILES: Cerner_CustomersPaid.csv

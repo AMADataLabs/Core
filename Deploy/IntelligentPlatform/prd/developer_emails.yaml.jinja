@@ -1,95 +1,82 @@
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+---
+DEVELOPER_EMAILS:
+    GLOBAL:
+        ACCOUNT: '285887636563'
+        ENVIRONMENT: prd
 
+        PLATFORM_DB_BACKEND: mysql+pymysql
+        PLATFORM_DB_HOST: pe-prd-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
+        PLATFORM_DB_NAME: usermgmt
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_PORT: '3306'
+        PLATFORM_DB_USERNAME: platform
 
-    ENVIRONMENT: prd
-    ACCOUNT: '285887636563'
+        S3_BASE_PATH: AMA/IntelligentPlatform
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_CACHE_CLASS: datalabs.etl.dag.cache.s3.S3TaskDataCache
 
-    PLATFORM_DB_HOST: pe-prd-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
-    PLATFORM_DB_PORT: '3306'
-    PLATFORM_DB_BACKEND: 'mysql+pymysql'
-    PLATFORM_DB_NAME: 'usermgmt'
-    PLATFORM_DB_USERNAME:  platform
-    PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+    DAG:
+        DAG_CLASS: datalabs.etl.dag.intelligent_platform.developer.email.DAG
+        DAG_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DAGState
+            LOCK_TABLE: DataLake-scheduler-locks-${ENVIRONMENT}
+            STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
+        DAG_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor
+        ENVIRONMENT: ${ENVIRONMENT}
+        LAMBDA_FUNCTION: AIP-${ENVIRONMENT}-DeveloperDAG
+        STATUS_NOTIFICATION_WEB_HOOK: https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908
+        TASK_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask
+        TASK_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor
+    EXTRACT_EMAILS:
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${PLATFORM_DB_NAME}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        SQL: "
+            SELECT
+                u.id as CUSTOMER_ID,
+                CONCAT(u.fname,' ',u.lname) as NAME,
+                '' as BUSTITLE,
+                '' as BUSNAME,
+                u.addr1 as ADDR1,
+                u.addr2 as ADDR2,
+                u.addr3 as ADDR3,
+                u.city as CITY,
+                u.state as STATE,
+                u.zip as ZIP,
+                '' as COUNTRY,
+                u.email as EMAIL,
+                '' as DAY_PHONE,
+                '' as EVENING_PHONE,
+                '' as INDUSTRY_DESC
+            FROM
+                usermgmt.User u
+            WHERE u.id >96 and u.dev_program_user is NOT NULL;
+        "
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/IntelligentPlatform'
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_FILES: developer_emails.csv
+    SEND_EMAIL_REPORT:
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_FILES: developer_emails.csv
 
-
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    DEVELOPER_EMAILS__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    DEVELOPER_EMAILS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-DeveloperDAG'
-    DEVELOPER_EMAILS__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.developer.email.DAG'
-    DEVELOPER_EMAILS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    DEVELOPER_EMAILS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    DEVELOPER_EMAILS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    DEVELOPER_EMAILS__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    DEVELOPER_EMAILS__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    DEVELOPER_EMAILS__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    DEVELOPER_EMAILS__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    DEVELOPER_EMAILS__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
-
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
-
-    # Email Extractor
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__BACKEND: ${PLATFORM_DB_BACKEND}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__DATABASE_HOST: ${PLATFORM_DB_HOST}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__DATABASE_PORT: ${PLATFORM_DB_PORT}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__DATABASE_NAME: ${PLATFORM_DB_NAME}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__SQL: "
-    SELECT
-        u.id as CUSTOMER_ID,
-        CONCAT(u.fname,' ',u.lname) as NAME,
-        '' as BUSTITLE,
-        '' as BUSNAME,
-        u.addr1 as ADDR1,
-        u.addr2 as ADDR2,
-        u.addr3 as ADDR3,
-        u.city as CITY,
-        u.state as STATE,
-        u.zip as ZIP,
-        '' as COUNTRY,
-        u.email as EMAIL,
-        '' as DAY_PHONE,
-        '' as EVENING_PHONE,
-        '' as INDUSTRY_DESC
-    FROM
-        usermgmt.User u
-    WHERE u.id >96 and u.dev_program_user is NOT NULL;
-    "
-
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    DEVELOPER_EMAILS__EXTRACT_EMAILS__CACHE_OUTPUT_FILES: developer_emails.csv
-
-
-    # Email Notifier
-    DEVELOPER_EMAILS__SEND_EMAIL_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    DEVELOPER_EMAILS__SEND_EMAIL_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    DEVELOPER_EMAILS__SEND_EMAIL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    DEVELOPER_EMAILS__SEND_EMAIL_REPORT__CACHE_INPUT_FILES: 'developer_emails.csv'
-    DEVELOPER_EMAILS__SEND_EMAIL_REPORT__TO: '
-        datalabs@ama-assn.org,
-        yvonne.yip@ama-assn.org,
-        Hayley.Trowbridge@ama-assn.org,
-        Sandeep.Dhamale@ama-assn.org,
-        Vanessa.Prieto@ama-assn.org,
-        Denis.Casaubon@ama-assn.org,
-        Katherine.Cardinale@ama-assn.org,
-        Nikhil.Khatri@ama-assn.org,
-        kate.callaghan@ama-assn.org
-    '
+        TO: '
+            datalabs@ama-assn.org,
+            yvonne.yip@ama-assn.org,
+            Hayley.Trowbridge@ama-assn.org,
+            Sandeep.Dhamale@ama-assn.org,
+            Vanessa.Prieto@ama-assn.org,
+            Denis.Casaubon@ama-assn.org,
+            Katherine.Cardinale@ama-assn.org,
+            Nikhil.Khatri@ama-assn.org,
+            kate.callaghan@ama-assn.org
+        '

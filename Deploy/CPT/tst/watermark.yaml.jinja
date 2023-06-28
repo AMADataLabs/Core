@@ -13,7 +13,7 @@ CPT_FILES_WATERMARK:
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-WatermarkDAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.files.watermark.CoordinationDAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'

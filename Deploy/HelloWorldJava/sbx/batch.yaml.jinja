@@ -7,7 +7,7 @@ HELLO_WORLD_JAVA:
     DAG:
         LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaDAG'
         DAG_CLASS: 'datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
@@ -19,7 +19,7 @@ HELLO_WORLD_JAVA:
     LOG_MESSAGE:
         OVERRIDES:
             LAMBDA_FUNCTION: DataLake-${ENVIRONMENT}-HelloWorldJavaTask
-            DAG_STATE_PARAMETERS:
+            DAG_STATE:
                 CLASS: datalabs.etl.dag.state.dynamodb.DagState
                 STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
                 LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
