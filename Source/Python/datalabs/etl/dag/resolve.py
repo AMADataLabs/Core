@@ -21,8 +21,8 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
     PARAMETER_CLASS = TaskResolverParameters
 
     @classmethod
-    def get_task_class(cls, runtime_parameters):
-        event_type = runtime_parameters["type"]
+    def get_task_class(cls, task_parameters):
+        event_type = task_parameters["type"]
         getter_method = None
 
         try:
@@ -30,21 +30,21 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
         except AttributeError as exception:
             raise ValueError(f"Invalid DAG plugin event type '{event_type}'") from exception
 
-        return getter_method(runtime_parameters)
+        return getter_method(task_parameters)
 
     # pylint: disable=unused-argument
     @classmethod
-    def _get_dag_class(cls, runtime_parameters):
+    def _get_dag_class(cls, task_parameters):
         return LocalDAGExecutorTask
 
     @classmethod
-    def _get_task_class(cls, runtime_parameters):
-        runtime_parameters = cls._get_validated_parameters(runtime_parameters)
+    def _get_task_class(cls, task_parameters):
+        task_parameters = cls._get_validated_parameters(task_parameters)
 
-        if runtime_parameters.task_class:
-            task_class = import_plugin(runtime_parameters.task_class)
+        if task_parameters.task_class:
+            task_class = import_plugin(task_parameters.task_class)
         else:
-            task_class = cls._get_task_class_from_dag(runtime_parameters.dag_class, runtime_parameters.task)
+            task_class = cls._get_task_class_from_dag(task_parameters.dag_class, task_parameters.task)
 
         return task_class
 

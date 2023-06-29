@@ -4,7 +4,7 @@ ONEVIEW:
         ENVIRONMENT: prd
         ACCOUNT: '285887636563'
 
-        EDW_HOST: rdbp1190.ama-assn.org
+        EDW_HOST: rdbp1714.ama-assn.org
         EDW_PORT: '54000'
         EDW_NAME: prddw
         EDW_USERNAME: 'dlabs'
@@ -51,10 +51,10 @@ ONEVIEW:
     DAG:
         LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-ETL'
         DAG_CLASS: 'datalabs.etl.dag.masterfile.oneview.OneViewDAG'
-        DAG_STATE_PARAMETERS:
-            DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-            DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-            STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
@@ -104,12 +104,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'physician_professional_data_0.csv,physician_professional_data_1.csv,physician_professional_data_2.csv,physician_professional_data_3.csv,physician_professional_data_4.csv,physician_professional_data_5.csv,physician_professional_data_6.csv,physician_professional_data_7.csv,physician_professional_data_8.csv,physician_professional_data_9.csv'
 
     EXTRACT_PARTY_KEYS:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -142,12 +141,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'party_key.csv'
 
     EXTRACT_MEMBERSHIP_DATA:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -168,12 +166,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'membership_year.csv'
 
     EXTRACT_PHYSICIAN_EMAIL_STATUS:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -218,8 +215,7 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'physician.csv'
 
     LOAD_PHYSICIAN_TABLE:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
@@ -236,8 +232,7 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     PRUNE_PHYSICIAN_TABLE:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
@@ -254,12 +249,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_TYPE_OF_PRACTICE:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -288,12 +282,11 @@ ONEVIEW:
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
 
     EXTRACT_PRESENT_EMPLOYMENT:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -322,12 +315,11 @@ ONEVIEW:
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
 
     EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -409,12 +401,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'core_based_statistical_area.csv'
 
     EXTRACT_SPECIALTY:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -596,12 +587,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_IQVIA_BUSINESS:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -667,12 +657,11 @@ ONEVIEW:
         CACHE_INPUT_FILES: 'business___MACRO_INDEX__.csv'
 
     EXTRACT_IQVIA_PROVIDER:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -693,12 +682,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'iqvia_provider.csv'
 
     EXTRACT_IQVIA_PROVIDER_AFFILIATION:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -733,12 +721,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'iqvia_provider_affiliation.csv'
 
     EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -835,12 +822,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_CREDENTIALING_CUSTOMER:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -861,12 +847,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'credentialing_customer.csv'
 
     EXTRACT_CREDENTIALING_PRODUCT:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -887,12 +872,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'credentialing_product.csv'
 
     EXTRACT_CREDENTIALING_ORDER_YEARS:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -912,12 +896,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'credentialing_order_years.csv'
 
     EXTRACT_CREDENTIALING_ORDER:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlParametricExtractorTask
 
@@ -989,8 +972,7 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'credentialing_order.csv'
 
     LOAD_CREDENTIALING_CUSTOMER_TABLE:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
@@ -1077,12 +1059,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_MELISSA:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1271,12 +1252,11 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'medical_student.psv'
 
     EXTRACT_STATE:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1320,12 +1300,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_CLASS_OF_TRADE:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1389,12 +1368,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_MEDICAL_SCHOOL:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1437,12 +1415,11 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     EXTRACT_MEDICAL_LICENSES:
-        OVERRIDES:
-            LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
-            DAG_STATE_PARAMETERS:
-                DAG_STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
-                DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-                STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
 
@@ -1482,8 +1459,7 @@ ONEVIEW:
         CACHE_OUTPUT_FILES: 'medical_licenses.csv'
 
     LOAD_MEDICAL_LICENSES_TABLE:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
@@ -1499,8 +1475,7 @@ ONEVIEW:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     REFRESH_PHYSICIAN_VIEW:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -1511,8 +1486,7 @@ ONEVIEW:
         VIEWS: 'oneview.mat_phy_view'
 
     REINDEX_PHYSICIAN_VIEW:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -1523,8 +1497,7 @@ ONEVIEW:
         TABLES: 'oneview.mat_phy_view'
 
     REFRESH_PROVIDER_VIEW:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}
@@ -1535,8 +1508,7 @@ ONEVIEW:
         VIEWS: 'oneview.mat_phy_pro_view'
 
     REINDEX_PROVIDER_VIEW:
-        OVERRIDES:
-            TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
 
         DATABASE_HOST: ${DATABASE_HOST}
         DATABASE_PORT: ${DATABASE_PORT}

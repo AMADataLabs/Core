@@ -571,6 +571,17 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/API/Endpoint
         - parallel:
             - step:
+                name: Update Sandbox Bundle
+                caches:
+                    - environment-master
+                script:
+                    - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    - >-
+                        bash Deploy/Master/deploy-lambda-function
+                        --environment sbx
+                        --project CPT/API/Endpoint
+                        --bundle CPT/API/Endpoint.zip
+            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -624,7 +635,18 @@ pipelines:
                     --bundle CPT/API/Endpoint.zip
         - parallel:
             - step:
-                name: Update Development Lambda Functions
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
+                    JSON-API=Endpoint.zip
+                    JSON-API-Authorizer=Endpoint.zip
+                    ZIP-API=Endpoint.zip
+                    ZIP-API-Authorizer=Endpoint.zip
+                    SNOMED-API-Authorizer=Endpoint.zip
+            - step:
+                name: Reload Development Lambda Functions
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX

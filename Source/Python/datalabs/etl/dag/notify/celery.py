@@ -10,11 +10,7 @@ LOGGER.setLevel(logging.INFO)
 class CeleryDAGNotifier:
     @classmethod
     def notify(cls, dag, execution_time, parameters: dict):
-        config_file = parameters['config_file']
-
-        parameters.pop("config_file")
-
-        run_dag_processor(dag, execution_time, config_file, parameters)
+        run_dag_processor(dag, execution_time, parameters)
 
 
 class CeleryTaskNotifier:

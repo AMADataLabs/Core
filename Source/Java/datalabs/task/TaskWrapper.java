@@ -43,6 +43,8 @@ public class TaskWrapper {
 
             Map<String, String> taskParameters = this.getTaskParameters();
 
+            this.supplementRuntimeParameters(taskParameters);
+
             TaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
             LOGGER.debug("Cache Parameters: " + this.cacheParameters);
 
@@ -161,6 +163,14 @@ public class TaskWrapper {
         );
 
         return PluginImporter.importPlugin(taskResolverClassName);
+    }
+
+    void supplementRuntimeParameters(Map<String, String> taskParameters) {
+        Map<String, String> supplementedRuntimeParameters = new HashMap<>(runtimeParameters);
+
+        supplementedRuntimeParameters.put("TASK_CLASS", taskParameters.get("TASK_CLASS"));
+
+        this.runtimeParameters = supplementedRuntimeParameters;
     }
 
     static void extractCacheParameters(
