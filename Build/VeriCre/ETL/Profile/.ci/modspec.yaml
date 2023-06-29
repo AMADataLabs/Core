@@ -1,0 +1,21 @@
+module:
+  name: VeriCre-ETL
+  description: ETL pipeline for loading AMA and CAQH physician profiles into VeriCre
+  version: 1.0.0
+
+requirements:
+  build:
+    - python>=3.8
+  run:
+    - python>=3.8
+
+includes:
+  - src: ./src
+  - lib: ./lib
+  - tests: ./tests
+
+commands:
+  build:
+    - python setup.py install
+  test:
+    - python -m unittest discover tests
