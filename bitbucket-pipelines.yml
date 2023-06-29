@@ -2546,19 +2546,6 @@ pipelines:
                         --project VeriCre/ETL/Profile/.ci
                         --bundle VeriCre/ETL/Profile/.ci.zip
                 - step:
-                    name: Update integration Bundle
-                    caches:
-                    - environment-int
-                    script:
-                    - >-
-                        bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                    - >-
-                        bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                        --environment itg
-                        --project VeriCre/ETL/Profile/.ci
-                        --bundle VeriCre/ETL/Profile/.ci.zip
-                - step:
                     name: Update production Bundle
                     caches:
                     - environment-prod
