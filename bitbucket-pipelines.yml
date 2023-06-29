@@ -2506,7 +2506,7 @@ pipelines:
                 - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/deploy-package --project VeriCre/ETL/Profile/.ci
+                - bash Deploy/Master/deploy-package --project VeriCre/ETL/Profile
             - parallel:
                 - step:
                     name: Update sandbox Bundle
@@ -2517,8 +2517,8 @@ pipelines:
                     - >-
                         bash Deploy/Master/deploy-lambda-function
                         --environment sbx
-                        --project VeriCre/ETL/Profile/.ci
-                        --bundle VeriCre/ETL/Profile/.ci.zip
+                        --project VeriCre/ETL/Profile
+                        --bundle VeriCre/ETL/Profile.zip
                 - step:
                     name: Update development Bundle
                     caches:
@@ -2530,8 +2530,8 @@ pipelines:
                     - >-
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment dev
-                        --project VeriCre/ETL/Profile/.ci
-                        --bundle VeriCre/ETL/Profile/.ci.zip
+                        --project VeriCre/ETL/Profile
+                        --bundle VeriCre/ETL/Profile.zip
                 - step:
                     name: Update test Bundle
                     caches:
@@ -2543,8 +2543,8 @@ pipelines:
                     - >-
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment tst
-                        --project VeriCre/ETL/Profile/.ci
-                        --bundle VeriCre/ETL/Profile/.ci.zip
+                        --project VeriCre/ETL/Profile
+                        --bundle VeriCre/ETL/Profile.zip
                 - step:
                     name: Update production Bundle
                     caches:
@@ -2556,8 +2556,8 @@ pipelines:
                     - >-
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment prd
-                        --project VeriCre/ETL/Profile/.ci
-                        --bundle VeriCre/ETL/Profile/.ci.zip
+                        --project VeriCre/ETL/Profile
+                        --bundle VeriCre/ETL/Profile.zip
 
 
         #   - parallel: (This section is commented out as instructed. If you need to uncomment it in the future, please remove the '#' at the beginning of each line.)
