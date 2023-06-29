@@ -2518,7 +2518,7 @@ pipelines:
                         bash Deploy/Master/deploy-lambda-function
                         --environment sbx
                         --project VeriCre/ETL/Profile/.ci
-                        # --bundle VeriCre/ETL/Profile.zip
+                        --bundle VeriCre/ETL/Profile/.ci.zip
                 - step:
                     name: Update development Bundle
                     caches:
@@ -2531,7 +2531,7 @@ pipelines:
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment dev
                         --project VeriCre/ETL/Profile/.ci
-                        # --bundle VeriCre/ETL/Profile/.ci.zip
+                        --bundle VeriCre/ETL/Profile/.ci.zip
                 - step:
                     name: Update test Bundle
                     caches:
@@ -2544,7 +2544,7 @@ pipelines:
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment tst
                         --project VeriCre/ETL/Profile/.ci
-                        # --bundle VeriCre/ETL/Profile/.ci.zip
+                        --bundle VeriCre/ETL/Profile/.ci.zip
                 - step:
                     name: Update integration Bundle
                     caches:
@@ -2570,7 +2570,8 @@ pipelines:
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment prd
                         --project VeriCre/ETL/Profile/.ci
-                        --bundle VeriCre/ETL/Profile.zip
+                        --bundle VeriCre/ETL/Profile/.ci.zip
+
 
         #   - parallel: (This section is commented out as instructed. If you need to uncomment it in the future, please remove the '#' at the beginning of each line.)
         #       - step:
