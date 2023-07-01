@@ -35,20 +35,13 @@ class TaskWrapperTests {
     }
 
     @Test
-    @DisplayName("Test that extractCacheParameters separates cache parameters from task parameters")
+    @DisplayName("Test that extractCacheParameters extracts cache parameters from task parameters")
     void extractCacheParametersDoes() {
+        Assertions.assertEquals(5, TaskWrapperTests.PARAMETER_MAP.size());
         Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
-            = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
-                put(TaskDataCache.Direction.INPUT, null);
-                put(TaskDataCache.Direction.OUTPUT, null);
-            }};
+            = new TaskWrapper(null, null).extractCacheParameters(TaskWrapperTests.PARAMETER_MAP);
 
         Assertions.assertEquals(5, TaskWrapperTests.PARAMETER_MAP.size());
-        TaskWrapper.extractCacheParameters(TaskWrapperTests.PARAMETER_MAP, cacheParameters);
-
-        Assertions.assertEquals(2, TaskWrapperTests.PARAMETER_MAP.size());
-        Assertions.assertTrue(TaskWrapperTests.PARAMETER_MAP.containsKey("SOME_TASK_PARAMETER"));
-        Assertions.assertTrue(TaskWrapperTests.PARAMETER_MAP.containsKey("EXECUTION_TIME"));
 
         Map<String, String> inputCacheParameters = cacheParameters.get(TaskDataCache.Direction.INPUT);
         Assertions.assertEquals(2, inputCacheParameters.size());

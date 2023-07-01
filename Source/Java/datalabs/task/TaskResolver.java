@@ -4,7 +4,7 @@ import java.util.Map;
 
 
 public interface TaskResolver {
-    public static Class getTaskClass(Map<String, String> environment, Map<String, String> runtimeParameters) {
+    public static Class getTaskClass(Map<String, String> environment, Map<String, String> taskParameters) {
         return null;
     }
 }
