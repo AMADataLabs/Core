@@ -58,6 +58,7 @@ class AuthorizerTask(Task):
 
     def _authorize(self, entitlements):
         active_subscriptions = self._get_active_subscriptions(entitlements)
+
         customer_number = self._parameters.customer if self._parameters.customer else entitlements.get("customerNumber")
         policy = None
         context = dict(
@@ -80,12 +81,11 @@ class AuthorizerTask(Task):
     @classmethod
     def _get_active_subscriptions(cls, entitlements):
         subscriptions = entitlements.get('subscriptionsList')
-        active_subscriptions = None
 
         if subscriptions:
-            active_subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
+            subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
 
-        return active_subscriptions
+        return subscriptions
 
 
     def _generate_policy(self, effect):
