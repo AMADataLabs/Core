@@ -146,9 +146,7 @@ class TaskWrapper(ABC):
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
-        parameters.update(new_parameters)
-
-        return parameters
+        return {**parameters, **new_parameters}
 
     # pylint: disable=unused-argument
     @abstractmethod
