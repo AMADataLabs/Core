@@ -40,15 +40,19 @@ public class TaskWrapper {
 
         try {
             this.taskParameters = this.getTaskParameters();
+            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             this.cacheParameters = extractCacheParameters(this.taskParameters);
             LOGGER.debug("Cache Parameters: " + cacheParameters);
 
             ArrayList<byte[]> taskData = this.getTaskInputData();
+            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             Class taskClass = this.getTaskClass();
+            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             this.task = TaskWrapper.createTask(taskClass, this.taskParameters, taskData);
+            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             this.preRun();
 
@@ -94,7 +98,6 @@ public class TaskWrapper {
         try {
             Class taskResolverClass = this.getTaskResolverClass();
             Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
-            LOGGER.debug("Task Parameters: " + this.taskParameters);
             LOGGER.debug("Task Resolver Class: " + taskResolverClass);
 
             taskClass = (Class) getTaskClass.invoke(null, this.environment, this.taskParameters);
