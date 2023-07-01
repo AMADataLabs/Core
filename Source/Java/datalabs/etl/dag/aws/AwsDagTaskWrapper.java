@@ -53,6 +53,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     }
 
     protected void preRun() throws TaskException {
+        LOGGER.info("Task Parameters: " + this.taskParameters);
         try {
             setTaskStatus(Status.RUNNING);
         } catch (Exception exception) {
@@ -173,6 +174,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     {
         Class stateClass = null;
         Map<String, String> stateParameters = null;
+        LOGGER.info("Task Parameters: " + this.taskParameters);
 
         if (this.taskParameters.containsKey("DAG_STATE")) {
             stateParameters = new Gson().fromJson(this.taskParameters.get("DAG_STATE"), HashMap.class);

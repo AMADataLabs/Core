@@ -94,7 +94,7 @@ public class TaskWrapper {
         try {
             Class taskResolverClass = this.getTaskResolverClass();
             Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
-            LOGGER.debug("Runtime Parameters: " + this.taskParameters);
+            LOGGER.debug("Task Parameters: " + this.taskParameters);
             LOGGER.debug("Task Resolver Class: " + taskResolverClass);
 
             taskClass = (Class) getTaskClass.invoke(null, this.environment, this.taskParameters);
