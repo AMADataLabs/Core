@@ -52,7 +52,6 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     }
 
     protected void preRun() throws TaskException {
-        LOGGER.info("Task Parameters: " + this.taskParameters);
         try {
             setTaskStatus(Status.RUNNING);
         } catch (Exception exception) {
@@ -115,6 +114,8 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     protected Map<String, String> getDagParameters(String dag) {
         Map<String, String> dagParameters = getDagTaskParametersFromDynamoDb(getDagId(), "DAG");
 
+        dagParameters.put("CACHE_EXECUTION_TIME", getExecutionTime());
+
         return dagParameters;
     }
 
@@ -131,7 +132,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     void setTaskStatus(Status status)
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException,
                    InvocationTargetException {
-        DagState state = getDagStatePlugin();
+        DagState state = getDagStatePlugin(this.taskParameters);
 
         state.setTaskStatus(getDagId(), getTaskId(), getExecutionTime(), status);
     }
@@ -164,7 +165,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         return loader.load(parameters);
     }
 
-    DagState getDagStatePlugin()
+    static DagState getDagStatePlugin(Map<String, String> taskParameters)
         throws ClassNotFoundException,
                NoSuchMethodException,
                InstantiationException,
@@ -173,10 +174,9 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     {
         Class stateClass = null;
         Map<String, String> stateParameters = null;
-        LOGGER.info("Task Parameters: " + this.taskParameters);
 
-        if (this.taskParameters.containsKey("DAG_STATE")) {
-            stateParameters = new Gson().fromJson(this.taskParameters.get("DAG_STATE"), HashMap.class);
+        if (taskParameters.containsKey("DAG_STATE")) {
+            stateParameters = new Gson().fromJson(taskParameters.get("DAG_STATE"), HashMap.class);
             stateClass = PluginImporter.importPlugin(stateParameters.get("CLASS"));
         } else {
             throw new IllegalArgumentException("Missing value for DAG parameter 'DAG_STATE_CLASS'");
