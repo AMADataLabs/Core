@@ -31,7 +31,6 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
      * ("dag", "task", and "execution_time" items respectively).
      */
     static final Logger LOGGER = LoggerFactory.getLogger(AwsDagTaskWrapper.class);
-    Map<String, String> taskParameters;
 
     protected AwsDagTaskWrapper() { }
 
