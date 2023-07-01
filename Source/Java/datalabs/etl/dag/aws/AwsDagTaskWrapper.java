@@ -111,7 +111,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         return parameters;
     }
 
-    protected Map<String, String> getDagParameters(String dag) {
+    protected Map<String, String> getDagParameters() {
         Map<String, String> dagParameters = getDagTaskParametersFromDynamoDb(getDagId(), "DAG");
 
         dagParameters.put("CACHE_EXECUTION_TIME", getExecutionTime());
