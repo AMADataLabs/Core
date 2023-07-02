@@ -68,19 +68,12 @@ public class DagTaskWrapper extends TaskWrapper {
 
         return PluginImporter.importPlugin(taskResolverClassName);
     }
-
-    protected Map<TaskDataCache.Direction, Map<String, String>> extractCacheParameters(Map<String, String> taskParameters) {
-        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters = super.extractCacheParameters(taskParameters);
-
-        cacheParameters.get(TaskDataCache.Direction.INPUT).put("EXECUTION_TIME", getExecutionTime());
-
-        cacheParameters.get(TaskDataCache.Direction.OUTPUT).put("EXECUTION_TIME", getExecutionTime());
-
-        return cacheParameters;
-    }
-
     protected Map<String, String> getDagParameters() {
-        return this.parameters;
+        Map<String, String> dagParameters = this.parameters;
+
+        dagParameters.put("CACHE_EXECUTION_TIME", getExecutionTime());
+
+        return dagParameters;
     }
 
     protected Map<String, String> getDagTaskParameters() {

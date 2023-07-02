@@ -52,15 +52,7 @@ class AwsDagTaskWrapperTests {
     @Test
     @DisplayName("Test Getting DAG State Plugin")
     void getDagStatePluginSucceeds() {
-        Map<String, String> environment = new HashMap<String, String>() {{
-            put("DYNAMODB_CONFIG_TABLE", "DataLake-bogus-config");
-        }};
-        Map<String, String> parameters = new HashMap<String, String>() {{
-            put("args", "createTaskWrapperSucceeds {}");
-        }};
-        AwsDagTaskWrapper taskWrapper = new AwsDagTaskWrapper(environment, parameters);
-
-        taskWrapper.taskParameters = new HashMap<String, String>() {{
+        Map<String, String> taskParameters = new HashMap<String, String>() {{
             put(
                 "DAG_STATE",
                 "{\"CLASS\":\"datalabs.etl.dag.state.dynamodb.DagState\",\"stateTable\":\"Fu\",\"lockTable\":\"Bar\"}"
@@ -68,7 +60,8 @@ class AwsDagTaskWrapperTests {
         }};
 
         try {
-            taskWrapper.getDagStatePlugin();
+            AwsDagTaskWrapper.getDagStatePlugin(taskParameters);
+
             Assertions.assertTrue(true);
         } catch (Exception exception) {
             Assertions.assertTrue(false);

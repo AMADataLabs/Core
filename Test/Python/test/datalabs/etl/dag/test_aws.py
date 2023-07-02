@@ -40,8 +40,7 @@ def test_dynamic_parameter_substitutions(args_parameters, environment, dag_param
 
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
-        _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
-        _get_dag_task_parameters_from_dynamodb.return_value = task_parameters
+        _get_dag_task_parameters_from_dynamodb.return_value = {**dag_parameters, **task_parameters}
         task_wrapper = DAGTaskWrapper(args_parameters)
         task_wrapper._task_parameters = task_wrapper._get_task_parameters()
 

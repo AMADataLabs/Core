@@ -46,13 +46,10 @@ public class TaskWrapper {
             LOGGER.debug("Cache Parameters: " + cacheParameters);
 
             ArrayList<byte[]> taskData = this.getTaskInputData();
-            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             Class taskClass = this.getTaskClass();
-            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             this.task = TaskWrapper.createTask(taskClass, this.taskParameters, taskData);
-            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
             this.preRun();
 
@@ -80,7 +77,7 @@ public class TaskWrapper {
         ArrayList<byte[]> inputData = new ArrayList<byte[]>();
 
         try {
-            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
+            TaskDataCache cachePlugin = TaskWrapper.getCachePlugin(this.cacheParameters.get(TaskDataCache.Direction.INPUT));
 
             if (cachePlugin != null) {
                 inputData = cachePlugin.extractData();
@@ -131,7 +128,7 @@ public class TaskWrapper {
         TaskDataCache cachePlugin = null;
 
         try {
-            cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
+            cachePlugin = TaskWrapper.getCachePlugin(this.cacheParameters.get(TaskDataCache.Direction.OUTPUT));
 
             if (cachePlugin != null) {
                 cachePlugin.loadData(output);
@@ -160,7 +157,7 @@ public class TaskWrapper {
         return PluginImporter.importPlugin(taskResolverClassName);
     }
 
-    protected Map<TaskDataCache.Direction, Map<String, String>> extractCacheParameters(Map<String, String> taskParameters) {
+    static Map<TaskDataCache.Direction, Map<String, String>> extractCacheParameters(Map<String, String> taskParameters) {
         Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
             = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
             put(TaskDataCache.Direction.INPUT, getCacheParameters(taskParameters, TaskDataCache.Direction.INPUT));
@@ -207,18 +204,13 @@ public class TaskWrapper {
         }
     }
 
-    TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
+    static TaskDataCache getCachePlugin(Map<String, String> cacheParameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
         TaskDataCache plugin = null;
-        Map<String, String> cacheParameters = this.cacheParameters.get(direction);
 
         if (cacheParameters.size() > 1) {
-            String pluginName = null;
-
-            if (!cacheParameters.containsKey("CLASS")) {
-                throw new ClassNotFoundException("Cache class '" + pluginName + "' not found.");
-            }
+            String pluginName = cacheParameters.get("CLASS");
 
             Class pluginClass = PluginImporter.importPlugin(pluginName);
 

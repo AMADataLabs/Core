@@ -53,7 +53,7 @@ public class AirflowDagTaskWrapper extends DagTaskWrapper {
                 put("execution_time", parameterValues[2]);
             }};
         } catch (Exception exception) {
-            throw new RuntimeException("Unable to parse command-line parameters.", exception);
+            throw new IllegalArgumentException("Unable to parse command-line parameters.", exception);
         }
 
         return parameters;
