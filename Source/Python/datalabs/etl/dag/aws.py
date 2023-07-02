@@ -105,7 +105,6 @@ class DAGTaskWrapper(
 
     def _set_dag_status_to_running(self):
         dag = self._get_dag_id()
-        task = self._get_task_id()
         execution_time = self._get_execution_time()
         state = self._get_state_plugin(self._task_parameters)
 
