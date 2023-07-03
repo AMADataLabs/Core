@@ -116,7 +116,8 @@ def get_ppd_date():
 def create_ppd_csv():
     ppd_folder = os.environ.get('PPD_DIR')
     scorecard_folder = os.environ.get('LOCAL')
-    ppd_date = get_ppd_date()
+    # ppd_date = get_ppd_date()
+    ppd_date = '20230527'
     ppd_filename = f'PhysicianProfessionalDataFile_{ppd_date}'
     LOGGER.info(f'Scorecard PPD is {ppd_filename}...')
     files = os.listdir(ppd_folder)
