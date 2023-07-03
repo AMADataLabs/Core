@@ -28,6 +28,7 @@ class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
         self._data = data
         self._log_parameters(parameters)
 
+
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 

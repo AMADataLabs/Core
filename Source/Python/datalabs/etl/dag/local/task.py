@@ -119,3 +119,5 @@ class TaskProcessorTaskWrapper(DAGProcessorTaskWrapper):
         task_parameters = self._merge_parameters(dag_parameters, task_parameters)
 
         task_parameters["DAG_STATE"] = dag_parameters["DAG_STATE"]
+
+        return task_parameters
