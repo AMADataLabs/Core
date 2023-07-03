@@ -57,8 +57,8 @@ class MedicalLicensesCleanerTask(TransformerTask):
     @classmethod
     def _standardize_timestamps(cls, medical_licenses):
         medical_licenses.issue_date = pandas.to_datetime(medical_licenses.issue_date).astype(str).replace("NaT", "")
-        # medical_licenses.expiry_date = pandas.to_datetime(medical_licenses.expiry_date).astype(str).replace("NaT", "")
-        # medical_licenses.renew_date = pandas.to_datetime(medical_licenses.renew_date).astype(str).replace("NaT", "")
+        medical_licenses.expiry_date = pandas.to_datetime(medical_licenses.expiry_date).astype(str).replace("NaT", "")
+        medical_licenses.renew_date = pandas.to_datetime(medical_licenses.renew_date).astype(str).replace("NaT", "")
 
         return medical_licenses
 
