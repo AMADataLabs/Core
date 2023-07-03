@@ -10,6 +10,21 @@ from   datalabs.plugin import import_plugin
 
 
 class ParameterExtractorMixin:
+    def _get_parameters_from_file(self, config_file, dag, task):
+        dag_from_file, variables = self._extract_variables_from_config([config_file])
+
+        parameters = self._parse_variables(variables)
+
+        if dag != dag_from_file:
+            raise ValueError("Requested DAG " + dag + " does not match the config file DAG " + dag_from_file)
+
+        parameters = self._expand_macros(parameters)
+
+        if "GLOBAL" in parameters:
+            ReferenceEnvironmentLoader(parameters["GLOBAL"]).load(environment=parameters[task])
+
+        return parameters[task]
+
     @classmethod
     def _extract_variables_from_config(cls, filenames):
         config = {}
@@ -21,10 +36,6 @@ class ParameterExtractorMixin:
                 dag = list(document)[0]
 
                 config.update(document[dag])
-
-        for key, value in config.items():
-            if not key.endswith('__MACRO_COUNT__') and not isinstance(value, (str, dict)):
-                raise ValueError(f'The value for parameter {key} is not a string, but is {type(value)}: {value}.')
 
         return dag, config
 
@@ -158,20 +169,6 @@ class FileEnvironmentLoader(ParameterExtractorMixin, ParameterValidatorMixin):
         )
 
         environment.update(task_parameters)
-
-    def _get_parameters_from_file(self, config_file, dag, task):
-        dag_from_file, variables = self._extract_variables_from_config([config_file])
-
-        parameters = self._parse_variables(variables)
-
-        if dag != dag_from_file:
-            raise ValueError("Requested DAG " + dag + " does not match the config file DAG " + dag_from_file)
-
-        parameters = self._expand_macros(parameters)
-
-        ReferenceEnvironmentLoader(parameters["GLOBAL"]).load(environment=parameters[task])
-
-        return parameters[task]
 
 
 class FileTaskParameterGetterMixin:

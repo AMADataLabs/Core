@@ -8,7 +8,7 @@ from   datalabs.task import Task, TaskException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -46,6 +46,7 @@ class AuthorizerTask(Task):
             self._parameters.passport_url,
             headers=headers
         )
+        LOGGER.debug("Passport Response: \n%s", response)
 
         if response.status_code in (200, 401):
             entitlements = json.loads(response.text)
@@ -57,6 +58,7 @@ class AuthorizerTask(Task):
 
     def _authorize(self, entitlements):
         active_subscriptions = self._get_active_subscriptions(entitlements)
+
         customer_number = self._parameters.customer if self._parameters.customer else entitlements.get("customerNumber")
         policy = None
         context = dict(
@@ -79,12 +81,11 @@ class AuthorizerTask(Task):
     @classmethod
     def _get_active_subscriptions(cls, entitlements):
         subscriptions = entitlements.get('subscriptionsList')
-        active_subscriptions = None
 
         if subscriptions:
-            active_subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
+            subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
 
-        return active_subscriptions
+        return subscriptions
 
 
     def _generate_policy(self, effect):

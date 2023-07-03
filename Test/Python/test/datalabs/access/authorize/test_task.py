@@ -8,11 +8,22 @@ from   datalabs.access.authorize.task import AuthorizerTask, AuthorizerParameter
 
 
 # pylint: disable=redefined-outer-name
-def test_authorized(authorized_passport_response, parameters):
+def test_authorized_with_active_subscriptions(active_subscriptions_passport_response, parameters):
     authorizer = AuthorizerTask(parameters)
 
     with mock.patch('requests.Session.post') as post:
-        post.return_value = authorized_passport_response
+        post.return_value = active_subscriptions_passport_response
+        authorizer.run()
+
+        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+
+
+# pylint: disable=redefined-outer-name
+def test_authorized_with_no_subscriptions(no_subscriptions_passport_response, parameters):
+    authorizer = AuthorizerTask(parameters)
+
+    with mock.patch('requests.Session.post') as post:
+        post.return_value = no_subscriptions_passport_response
         authorizer.run()
 
         assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
@@ -36,12 +47,12 @@ def test_not_authorized(unauthorized_passport_response, parameters):
 
 
 # pylint: disable=redefined-outer-name
-def test_authorization_contains_subscriptions(authorized_passport_response, parameters):
+def test_authorization_contains_subscriptions(active_subscriptions_passport_response, parameters):
     parameters.customer = "000003570997"
     authorizer = AuthorizerTask(parameters)
 
     with mock.patch('requests.Session.post') as post:
-        post.return_value = authorized_passport_response
+        post.return_value = active_subscriptions_passport_response
         authorizer.run()
 
         context = authorizer.authorization.get('context')
@@ -96,7 +107,7 @@ def unauthorized_passport_response():
 
 
 @pytest.fixture
-def authorized_passport_response():
+def active_subscriptions_passport_response():
     return PassportResponse(
         status_code=200,
         text='''
@@ -126,6 +137,23 @@ def authorized_passport_response():
                         "startDate": "2020-06-20-05:00"
                     }
                 ]
+            }
+        '''
+    )
+
+
+@pytest.fixture
+def no_subscriptions_passport_response():
+    return PassportResponse(
+        status_code=200,
+        text='''
+            {
+                "returnCode": 0,
+                "returnMessage": "SUCCESS",
+                "customerNumber": "000003570997",
+                "customerName": "Chelsea Village Medical Office",
+                "responseId": "421c3e7e-843c-4846-8b4b-a0093b1762f7",
+                "subscriptionsList": []
             }
         '''
     )

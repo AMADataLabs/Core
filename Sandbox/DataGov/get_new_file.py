@@ -5,11 +5,11 @@ from enum import Enum
 import logging
 import time
 import settings
-from datalabs.access.edw import EDW
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.common.by import By
+import pyodbc
 
 
 logging.basicConfig()
@@ -27,10 +27,18 @@ class Path(Enum):
 def wait(browser):
     return WebDriverWait(browser, 60)
 
+def get_npi_to_me():
+    password = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+    username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+    query = os.environ.get('QUERY')
+    w = "DSN=PRDDW; UID={}; PWD={}".format(username, password)
+    AMAEDW = pyodbc.connect(w)
+    npi_to_me = pd.read_sql(con=AMAEDW, sql=query)
+    return npi_to_me
+
 def append_me(new_download):
     LOGGER.info('Appending ME numbers')
-    with EDW() as edw:
-        me_npi = edw.get_me_npi_map()
+    me_npi = get_npi_to_me()
     new_download['NPI_NBR'] = [str(int(x)) for x in new_download.NPI]
     with_mes = pd.merge(new_download, me_npi, on='NPI_NBR', how='left')
     with_mes.drop(columns = ['NPI_NBR'])
@@ -48,7 +56,7 @@ def get_previous_release_date():
     return previous_release_date
 
 def get_current_release_date(driver):
-    release_xpath = '//*[@id="root"]/div/div/main/div[2]/div[2]/div[1]/header/div[2]/div[2]'
+    release_xpath = '//*[@id="main-content"]/div/div[2]/div[1]/header/div[2]/div[2]'
     current_release_info = wait(driver).until(presence_of_element_located((By.XPATH, release_xpath))).text
     current_release_date = current_release_info.split(': ')[1]
     current_release_date = datetime.strptime(current_release_date, '%b %d, %Y')

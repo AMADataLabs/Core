@@ -14,9 +14,8 @@ CPT_CORE:
 
         CORE_OUTPUT_ZIP: output.zip
 
-
     DAG:
-        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-BuilderDAG'
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-Builder-DAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.files.core.CPTCoreDAG'
         DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'

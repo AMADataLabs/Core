@@ -35,7 +35,6 @@ def get_do_counts(ppd):
     LOGGER.info('Getting DO physician count...')
     phys_count = len(ppd[ppd.MD_DO_CODE==2])
     LOGGER.info(f'{phys_count} DO physicians on ppd')
-    phys_count += 13091
     student_query = os.environ.get('STUDENT_QUERY')
     username = os.environ.get('CREDENTIALS_EDW_USERNAME')
     password_edw = os.environ.get('CREDENTIALS_EDW_PASSWORD')
@@ -43,7 +42,7 @@ def get_do_counts(ppd):
     AMAEDW = pyodbc.connect(w)
     LOGGER.info('Getting DO student count...')
     stu = pd.read_sql(con=AMAEDW, sql=student_query)
-    stu_count = len(stu)
+    stu_count = len(stu.drop_duplicates())
     LOGGER.info(f'{stu_count} DO students in EDW')
     return phys_count, stu_count
 
