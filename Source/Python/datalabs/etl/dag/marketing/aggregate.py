@@ -14,16 +14,11 @@ class DAG(dag.DAG):
     MERGE_INPUTS: "datalabs.etl.marketing.aggregate.transform.InputsMergerTask"
     VALIDATE_NEW_EMAILS: "datalabs.etl.marketing.aggregate.transform.EmailValidatorTask"
     UPDATE_FLATFILE: "datalabs.etl.marketing.aggregate.transform.FlatfileUpdaterTask"
-    PRUNE_DUPLICATES: "datalabs.etl.marketing.aggregate.transform.DuplicatePrunerTask"
     PRUNE_SFMC_ITEMS: "datalabs.etl.marketing.aggregate.transform.SFMCPrunerTask"
     LOAD_FLATFILE: "datalabs.etl.sftp.load.SFTPFileLoaderTask"
-    UPDATE_CONTACTS: "datalabs.etl.orm.load.ORMLoaderTask"
+    UPDATE_CONTACT_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
 # pylint: disable=pointless-statement
-DAG.EXTRACT_ADVANTAGE
-
-DAG.EXTRACT_ORG_MANAGER
-
 DAG.EXTRACT_FLATFILE >> DAG.CLEAN_INPUTS
 DAG.EXTRACT_INPUTS >> DAG.CLEAN_INPUTS
 
@@ -40,5 +35,5 @@ DAG.MERGE_INPUTS >> DAG.VALIDATE_NEW_EMAILS
 
 DAG.VALIDATE_NEW_EMAILS >> DAG.UPDATE_FLATFILE
 
-DAG.UPDATE_FLATFILE >> DAG.PRUNE_DUPLICATES >> DAG.LOAD_FLATFILE
-DAG.UPDATE_FLATFILE >> DAG.PRUNE_SFMC_ITEMS >> DAG.UPDATE_CONTACTS
+DAG.UPDATE_FLATFILE >> DAG.LOAD_FLATFILE
+DAG.UPDATE_FLATFILE >> DAG.PRUNE_SFMC_ITEMS >> DAG.UPDATE_CONTACT_TABLE

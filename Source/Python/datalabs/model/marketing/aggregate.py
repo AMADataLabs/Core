@@ -13,6 +13,6 @@ class Contact(Base):
     __tablename__ = 'contact'
     __table_args__ = {"schema": SCHEMA}
 
-    id = sa.Column(sa.BigInteger, primary_key=True)
+    email = sa.Column(sa.String, primary_key=True)
     hs_contact_id = sa.Column(sa.String(length=15), nullable=False)
     email_last_validated = sa.Column(sa.Date)
