@@ -1,0 +1,46 @@
+---
+DAG_SCHEDULER:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
+        TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
+        S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
+    DAG:
+        DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.file.DAGState
+            BASE_PATH: ./DAG State
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+    EXTRACT_SCHEDULE:
+        BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
+        BASE_PATH: ''
+        FILES: 'schedule.csv'
+        INCLUDE_DATESTAMP: 'False'
+
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_OUTPUT_FILES: 'schedule-%H_%M.csv'
+    SCHEDULE_DAGS:
+        CACHE_CLASS: '${TASK_CACHE_CLASS}'
+
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_INPUT_FILES: 'schedule-%H_%M.csv'
+
+        INTERVAL_MINUTES: '15'
+
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_OUTPUT_FILES: 'scheduled_dags-%H_%M.csv'
+    NOTIFY_DAG_PROCESSOR:
+        TOPIC_ARN: '${DAG_TOPIC_ARN}'
+
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        CACHE_INPUT_FILES: 'scheduled_dags-%H_%M.csv'
