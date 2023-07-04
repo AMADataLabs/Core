@@ -89,8 +89,8 @@ class DynamoDBLoaderTask(Task):
         new_keywords = self._get_new_keywords(new_hashes, incoming_mappings)
 
         for mapping in new_mappings:
-            key = ":".join((mapping["pk"], mapping["sk"]))
-            items = [mapping, new_hashes[key]] + new_keywords[key]
+            pk = ":".join((mapping["pk"], mapping["sk"]))
+            items = [mapping, new_hashes[pk]] + new_keywords[pk]
 
             self._add_to_table(items)
 
@@ -165,16 +165,16 @@ class DynamoDBLoaderTask(Task):
     def _get_new_mappings(cls, new_hashes, incoming_mappings):
         incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
 
-        return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in new_hashes]
+        return [incoming_mappings_lookup_table[hash_pk] for hash_pk in new_hashes]
 
     @classmethod
     def _get_new_keywords(cls, new_hashes, incoming_mappings):
         keywords = defaultdict(list)
 
-        for hash_item in new_hashes:
+        for pk in new_hashes:
             for item in incoming_mappings:
-                if hash_item["pk"] == item['pk']:
-                    keywords[item["pk"]].append(item)
+                if pk == item['pk']:
+                    keywords[pk].append(item)
 
         return keywords
 
