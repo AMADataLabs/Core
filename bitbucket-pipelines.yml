@@ -2387,7 +2387,7 @@ pipelines:
                    --environment tst
                    --project CPT/SNOMED/ETL
                    --bundle CPT/SNOMED/ETL.zip
-           - step:
+            - step:
                 name: Update Production Lambda Bundle
                 caches:
                    - environment-prod
@@ -2401,7 +2401,7 @@ pipelines:
                     --project CPT/SNOMED/ETL
                     --bundle CPT/SNOMED/ETL.zip
         - parallel:
-             - step:
+            - step:
                 name: Reload Sandbox Lambda Functions
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
