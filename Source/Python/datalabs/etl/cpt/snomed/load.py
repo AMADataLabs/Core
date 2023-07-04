@@ -88,9 +88,12 @@ class DynamoDBLoaderTask(Task):
             self._delete_from_table(deleted_hashes)
 
     def _add_data(self, incoming_hashes, current_hashes, incoming_mappings):
-        new_hashes = self._select_new_hashes(incoming_hashes, current_hashes)
-        new_mappings = self._get_new_mappings(new_hashes, incoming_mappings)
-        new_keywords = self._get_new_keywords(new_hashes, incoming_mappings)
+        new_hashes = incoming_hashes
+
+        if len(current_hashes) > 0:
+            new_hashes = self._select_new_hashes(incoming_hashes, current_hashes)
+            new_mappings = self._get_new_mappings(new_hashes, incoming_mappings)
+            new_keywords = self._get_new_keywords(new_hashes, incoming_mappings)
 
         if len(new_hashes) > 0:
             self._add_to_table(new_mappings)
