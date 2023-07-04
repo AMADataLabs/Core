@@ -73,9 +73,12 @@ class DynamoDBLoaderTask(Task):
         return current_hashes
 
     def _delete_data(self, incoming_hashes, current_hashes):
-        deleted_hashes = self._select_deleted_hashes(incoming_hashes, current_hashes)
-        deleted_mappings = self._get_deleted_mappings(deleted_hashes)
-        deleted_keywords = self._get_deleted_keywords(deleted_hashes)
+        deleted_hashes = []
+
+        if len(current_hashes) > 0:
+            deleted_hashes = self._select_deleted_hashes(incoming_hashes, current_hashes)
+            deleted_mappings = self._get_deleted_mappings(deleted_hashes)
+            deleted_keywords = self._get_deleted_keywords(deleted_hashes)
 
         if len(deleted_hashes) > 0:
             self._delete_from_table(deleted_mappings)
@@ -97,11 +100,14 @@ class DynamoDBLoaderTask(Task):
             self._add_to_table(new_hashes)
 
     def _update_data(self, incoming_hashes, current_hashes, incoming_mappings):
-        updated_hashes = self._select_updated_hashes(incoming_hashes, current_hashes)
-        updated_mappings = self._get_updated_mappings(updated_hashes, incoming_mappings)
-        updated_keywords = self._get_updated_keywords(updated_hashes, incoming_mappings)
-        old_keywords = self._get_old_keywords(updated_hashes)
-        old_hashes = self._get_old_hashes(updated_hashes, current_hashes)
+        updated_hashes = []
+
+        if len(current_hashes) > 0:
+            updated_hashes = self._select_updated_hashes(incoming_hashes, current_hashes)
+            updated_mappings = self._get_updated_mappings(updated_hashes, incoming_mappings)
+            updated_keywords = self._get_updated_keywords(updated_hashes, incoming_mappings)
+            old_keywords = self._get_old_keywords(updated_hashes)
+            old_hashes = self._get_old_hashes(updated_hashes, current_hashes)
 
         if len(updated_hashes) > 0:
             self._update_mappings_in_table(updated_mappings)
