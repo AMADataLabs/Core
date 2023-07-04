@@ -92,6 +92,7 @@ class DynamoDBLoaderTask(Task):
             pk = ":".join((mapping["pk"], mapping["sk"]))
             items = [mapping, new_hashes[pk]] + new_keywords[pk]
 
+            LOGGER.debug("Adding items for mapping %s", mapping)
             self._add_to_table(items)
 
     def _update_data(self, incoming_hashes, current_hashes, incoming_mappings):
@@ -175,6 +176,8 @@ class DynamoDBLoaderTask(Task):
             for item in incoming_mappings:
                 if pk == item['pk']:
                     keywords[pk].append(item)
+
+        LOGGER.debug("New Keywords: %s", )
 
         return keywords
 
