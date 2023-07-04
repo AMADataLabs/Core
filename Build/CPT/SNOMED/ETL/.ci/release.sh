@@ -9,7 +9,7 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.0.1
+        [tst]=dev
         [prd]=1.0.1
     )
 
