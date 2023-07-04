@@ -32,8 +32,10 @@ class DynamoDBLoaderTask(Task):
         incoming_mappings = json.loads(self._data[0])
 
         incoming_hashes = self._create_hash_entries(incoming_mappings)
+        LOGGER.debug("Incoming Hashes:\n%s", incoming_hashes)
 
         current_hashes = self._get_current_hashes()
+        LOGGER.debug("Current Hashes:\n%s", current_hashes)
 
         self._delete_data(incoming_hashes, current_hashes)
 
