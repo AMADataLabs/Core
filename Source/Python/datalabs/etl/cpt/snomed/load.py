@@ -59,7 +59,7 @@ class DynamoDBLoaderTask(Task):
         with AWSClient("dynamodb") as dynamodb:
             results = self._paginate(
                 dynamodb,
-                "SELECT * FROM \"CPT-API-snomed-sbx\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')"
+                f"SELECT * FROM \"{self._parameters.table}\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')"
             )
 
             for result in results:
@@ -128,15 +128,14 @@ class DynamoDBLoaderTask(Task):
 
         return deleted_mappings
 
-    @classmethod
-    def _get_deleted_keywords(cls, deleted_hashes):
+    def _get_deleted_keywords(self, deleted_hashes):
         keyword_data = []
 
         with AWSClient("dynamodb") as dynamodb:
             for item in deleted_hashes:
-                results = cls._paginate(
+                results = self._paginate(
                     dynamodb,
-                    f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'KEYWORD:')"
+                    f"SELECT * FROM \"{self._parameters.table}\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'KEYWORD:')"
                 )
                 keyword_data.extend(list(results))
 
@@ -216,8 +215,10 @@ class DynamoDBLoaderTask(Task):
 
         with AWSClient("dynamodb") as dynamodb:
             for item in updated_hashes:
-                results = self._paginate(dynamodb, f"SELECT * FROM \"CPT-API-snomed-sbx\" WHERE pk='{item['pk']}' "
-                                                   f"and begins_with(\"sk\", 'KEYWORD:')")
+                results = self._paginate(
+                    dynamodb,
+                    f"SELECT * FROM \"{self._parameters.table}\" WHERE pk='{item['pk']}' and begins_with(\"sk\", 'KEYWORD:')"
+                )
                 updated_old_keywords.extend(list(results))
 
         return updated_old_keywords
