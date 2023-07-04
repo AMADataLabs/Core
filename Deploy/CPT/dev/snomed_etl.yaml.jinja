@@ -19,7 +19,7 @@ SNOMED_CPT_ETL:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-       DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
@@ -30,24 +30,25 @@ SNOMED_CPT_ETL:
         FILES: snomed_cpt_map_fsn_descr_20230131.xlsx
         INCLUDE_DATESTAMP: 'False'
 
-        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_FILES: 'snomed_mapping.xlsx'
 
     CREATE_SNOMED_MAPPINGS:
-        CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_CLASS: ${S3_CACHE_CLASS}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
 
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_INPUT_FILES: 'snomed_mapping.xlsx'
+
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: 'snomed_mapping.json'
 
     LOAD_SNOMED_MAPPINGS:
         TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
 
-        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        CACHE_INPUT_FILES: 'snomed_mapping.xlsx'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'snomed_mapping.json'

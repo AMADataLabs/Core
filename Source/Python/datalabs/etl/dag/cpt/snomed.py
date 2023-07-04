@@ -2,7 +2,7 @@
 from   datalabs.etl.dag import dag
 
 
-@dag.register(name="SNOMED_CPT")
+@dag.register(name="SNOMED_CPT_ETL")
 class DAG(dag.DAG):
     EXTRACT_SNOMED_FILE: "datalabs.etl.s3.extract.S3FileExtractorTask"
     CREATE_SNOMED_MAPPINGS: "datalabs.etl.cpt.snomed.transform.SNOMEDMappingTransformerTask"
