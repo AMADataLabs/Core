@@ -20,9 +20,15 @@ CPT_ZIP_API:
 
     FILES:
         TASK_CLASS: 'datalabs.access.cpt.api.bulk.FilesEndpointTask'
-        BUCKET: ${S3_DOWNLOADS_BUCKET}
-        BASE_PATH: ''
-        URL_DURATION: '600'
+        BUCKET_NAME: ${S3_DOWNLOADS_BUCKET}
+        BUCKET_BASE_PATH: ''
+        BUCKET_URL_DURATION: '600'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     RELEASES:
         TASK_CLASS: 'datalabs.access.cpt.api.release.ReleasesEndpointTask'

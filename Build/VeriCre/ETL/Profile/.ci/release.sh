@@ -9,8 +9,9 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.0.1
-        [prd]=1.0.1
+        [tst]=0.1.0.dev0
+        [itg]=0.1.0.dev0
+        [prd]=0.1.0.dev0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -18,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-snomed-cpt-etl"
-    export RELEASE_DESCRIPTION="SNOMED-CPT API ETL DAG definition and tasks"
+    export RELEASE_NAME="datalabs-vericre-profiles-etl"
+    export RELEASE_DESCRIPTION="VeriCre Profiles ETL DAG Plugin"
 }
 
 

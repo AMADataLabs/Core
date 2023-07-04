@@ -21,10 +21,11 @@ def test_process_wrapper_dag_event_parsed_correctly(dag_event, get_dag_task_para
     ):
         parameters = wrapper._get_task_parameters()
 
-    assert len(parameters) == 3
+    assert len(parameters) == 4
     assert parameters.get("dag") == "DAG_SCHEDULER"
     assert parameters.get("DAG_CLASS") == "SOME_DAG"
     assert parameters.get("execution_time") == "2021-07-13T16:18:54.663464"
+    assert parameters.get("DAG_STATE") == '{"CLASS": "foo"}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -38,12 +39,11 @@ def test_process_wrapper_task_event_parsed_correctly(task_event, get_dag_task_pa
     ):
         parameters = wrapper._get_task_parameters()
 
-    assert len(parameters) == 5
+    assert len(parameters) == 6
     assert parameters.get("dag") == "DAG_SCHEDULER"
-    assert "task" in parameters
-    assert parameters["task"] == "EXTRACT_SCHEDULE"
-    assert "execution_time" in parameters
-    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
+    assert parameters.get("task") == "EXTRACT_SCHEDULE"
+    assert parameters.get("execution_time") == "2021-07-13T16:18:54.663464"
+    assert parameters.get("DAG_STATE") == '{"CLASS": "foo"}'
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -120,7 +120,8 @@ def environment():
 @pytest.fixture
 def dag_parameters():
     return dict(
-        DAG_CLASS="SOME_DAG"
+        DAG_CLASS="SOME_DAG",
+        DAG_STATE='{"CLASS": "foo"}'
     )
 
 
@@ -128,6 +129,7 @@ def dag_parameters():
 def task_parameters():
     return dict(
         TASK_CLASS='test.datalabs.etl.dag.test_awslambda.MockTask',
+        DAG_STATE='{"CLASS": "bar"}'
     )
 
 

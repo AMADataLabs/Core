@@ -41,6 +41,7 @@ class DAGTaskWrapper(
 ):
     def _pre_run(self):
         super()._pre_run()
+
         LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', self._task_parameters)
 
         self._task_parameters = self._resolve_dynamic_parameters(self._task_parameters)
@@ -48,7 +49,9 @@ class DAGTaskWrapper(
         LOGGER.debug('Final DAG Task Parameters: %s', self._task_parameters)
 
         if self._get_task_id() == 'DAG':
-            self._start_dag_run()
+            self._set_dag_status_to_running()
+        else:
+            self._set_task_status_to_running()
 
     def _get_task_resolver_class(self):
         task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.etl.dag.resolve.TaskResolver')
@@ -100,14 +103,23 @@ class DAGTaskWrapper(
 
         return task_parameters
 
-    def _start_dag_run(self):
+    def _set_dag_status_to_running(self):
         dag = self._get_dag_id()
-        task = self._get_task_id()
         execution_time = self._get_execution_time()
         state = self._get_state_plugin(self._task_parameters)
 
         success = state.set_dag_status(dag, execution_time, Status.RUNNING)
 
+        if not success:
+            LOGGER.error('Unable to set status of dag %s to Running', dag)
+
+    def _set_task_status_to_running(self):
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
+        state = self._get_state_plugin(self._task_parameters)
+
+        success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
         if not success:
             LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)

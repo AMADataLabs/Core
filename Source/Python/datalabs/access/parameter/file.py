@@ -20,7 +20,8 @@ class ParameterExtractorMixin:
 
         parameters = self._expand_macros(parameters)
 
-        ReferenceEnvironmentLoader(parameters["GLOBAL"]).load(environment=parameters[task])
+        if "GLOBAL" in parameters:
+            ReferenceEnvironmentLoader(parameters["GLOBAL"]).load(environment=parameters[task])
 
         return parameters[task]
 

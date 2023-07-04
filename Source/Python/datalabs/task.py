@@ -28,6 +28,7 @@ class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
         self._data = data
         self._log_parameters(parameters)
 
+
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 
@@ -146,9 +147,7 @@ class TaskWrapper(ABC):
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
-        parameters.update(new_parameters)
-
-        return parameters
+        return {**parameters, **new_parameters}
 
     # pylint: disable=unused-argument
     @abstractmethod

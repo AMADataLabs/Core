@@ -251,7 +251,7 @@ ONEVIEW:
     EXTRACT_TYPE_OF_PRACTICE:
         LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-Extract'
         DAG_STATE:
-            STATE_CLASS: datalabs.etl.dag.state.dynamodb.DagState
+            CLASS: datalabs.etl.dag.state.dynamodb.DagState
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
 
@@ -300,7 +300,6 @@ ONEVIEW:
         DRIVER_TYPE: ${DB2_DRIVER_TYPE}
         JAR_PATH: ${DB2_JAR_PATH}
 
-    EXTRACT_PRESENT_EMPLOYMENT:
         CACHE_OUTPUT_CLASS: ${S3_CACHE_JAVA_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}

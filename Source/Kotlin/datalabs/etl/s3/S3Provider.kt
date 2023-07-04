@@ -17,11 +17,10 @@ open class S3Parameters(parameters: Map<String, String>) : KParameters(parameter
     public lateinit var bucket: String
     public lateinit var basePath: String
     public lateinit var files: String
+    public lateinit var executionTime: String
 
     @Optional("True")
     public lateinit var includeDatestamp: String
-    @Optional
-    public lateinit var executionTime: String
 
     public lateinit var unknowns: Map<String, String>
 }
