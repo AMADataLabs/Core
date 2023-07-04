@@ -7,9 +7,9 @@ SNOMED_CPT_API:
         DATABASE_TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
 
     ROUTE:
-    ROUTE MAP: '/snomed/map/cpt/*'
-    ROUTE MAPS: '/snomed/maps/cpt'
-    ROUTE DEFAULT: '/*'
+        MAP: '/snomed/map/cpt/*'
+        MAPS: '/snomed/maps/cpt'
+        DEFAULT: '/*'
 
     MAP:
         TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapLookupEndpointTask'
