@@ -541,7 +541,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
-                    ETL=ETL.zip
+                    JSON-DAG=ETL.zip
             - step:
                 name: Update Staging Lambda Functions
                 script:
@@ -550,7 +550,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API
-                    ETL=ETL.zip
+                    JSON-DAG=ETL.zip
             - step:
                 name: Update Production Lambda Functions
                 script:
@@ -559,7 +559,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
-                    ETL=ETL.zip
+                    JSON-DAG=ETL.zip
 
         CPT-API-Endpoint:
         - step:
