@@ -159,7 +159,7 @@ class DynamoDBLoaderTask(Task):
 
         LOGGER.debug('New Hashes: %s', new_hashes)
 
-        return {hash["pk"]:hash for hash in new_hashes.to_dict(orient='records').items()}
+        return {hash["pk"]:hash for hash in new_hashes.to_dict(orient='records')}
 
     @classmethod
     def _get_new_mappings(cls, new_hashes, incoming_mappings):
