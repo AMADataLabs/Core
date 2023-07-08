@@ -1,7 +1,6 @@
 """Transformer task for running marketing aggregator"""
 from   dataclasses import dataclass
 from   datetime import datetime
-from bisect import bisect_left
 import io
 import logging
 import os
@@ -10,13 +9,14 @@ import random
 import string
 
 import pandas
+import numpy as np
 
 from   datalabs.access.atdata import AtData
 from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
 from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
-from   datalabs.task import Task
+from   datalabs.task import Task, TaskException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -123,6 +123,8 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         adhoc.BEST_EMAIL = adhoc.BEST_EMAIL.str.lower()
 
+        adhoc.File_Name = adhoc["File_Name"].apply(lambda x: os.path.splitext(x)[0])
+
         return adhoc.dropna(subset=["BEST_EMAIL"])
 
     @classmethod
@@ -166,8 +168,8 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _read_input_data(cls, input_files: []) -> MarketingData:
         adhoc = InputDataParser.parse(input_files[0])
         aims =  InputDataParser.parse(input_files[1])
-        list_of_lists = InputDataParser.parse(input_files[2])
-        flatfile = InputDataParser.parse(input_files[3])
+        flatfile = InputDataParser.parse(input_files[2])
+        list_of_lists = InputDataParser.parse(input_files[3])
 
         return MarketingData(adhoc, aims, list_of_lists, flatfile)
 
@@ -177,6 +179,7 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         list_of_lists = input_data.list_of_lists
 
         merged_inputs = self._merge_aims(adhoc, aims)
+
         merged_inputs = self._merge_list_of_lists(merged_inputs, list_of_lists)
 
         return self._join_listkeys(merged_inputs)
@@ -189,7 +192,7 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return data.merge(aims, left_on='BEST_EMAIL', right_on='BEST_EMAIL', how='left')
 
     @classmethod
-    def _merge_list_of_lists(cls, data, list_of_lists):
+    def _merge_list_of_lists(cls, data, list_of_lists) -> pandas.DataFrame:
         data = data.merge(list_of_lists, left_on='File_Name', right_on='LIST NAME', how='left')
 
         data = data.drop(columns=column.MERGE_LIST_OF_LISTS_COLUMNS)
@@ -206,17 +209,9 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return data.rename(columns=column.JOIN_LISTKEYS_COLUMNS)
 
 
-@add_schema
-@dataclass
-class FlatfileUpdaterTaskParameters:
-    left_merge_key: str
-    right_merge_key: str
-    execution_time: str = None
-
-
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
 class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    PARAMETER_CLASS = FlatfileUpdaterTaskParameters
+    PARAMETER_CLASS = InputDataCleanerTaskParameters
     MAX_ID_ATTEMPTS = 20
 
     def run(self):
@@ -226,14 +221,13 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         matched_inputs, unmatched_inputs = self._assign_emppids_to_inputs(inputs, flatfile)
 
-        updated_flatfile = self._update_flatfile_listkeys(flatfile, matched_inputs)
+        flatfile = self._add_new_records_to_flatfile(flatfile, unmatched_inputs)
 
-        updated_flatfile = self._add_new_records_to_flatfile(updated_flatfile, unmatched_inputs)
+        flatfile = self._update_flatfile_listkeys(flatfile, matched_inputs)
 
-        updated_flatfile = self._assign_new_contactid_to_updated_flatfile(updated_flatfile, contacts)
+        flatfile = self._assign_new_contact_ids_to_flatfile(flatfile, contacts)
 
-        return [self._dataframe_to_csv(updated_flatfile)]
-
+        return [self._dataframe_to_csv(flatfile)]
 
     @classmethod
     def _read_input_data(cls, input_files: []):
@@ -254,7 +248,7 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         new_emails = self._get_new_emails(emails, flatfile).BEST_EMAIL
 
-        matched_inputs = self._assign_emppids_to_known_inputs(inputs, new_emails,flatfile)
+        matched_inputs = self._assign_emppids_to_known_inputs(inputs, new_emails, flatfile)
 
         unmatched_inputs = self._assign_emppids_to_new_inputs(inputs, new_emails, flatfile)
 
@@ -280,22 +274,19 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         return updated_flatfile.fillna('').drop(columns=["LISTKEY_COMBINED"])
 
-    def _assign_new_contactid_to_updated_flatfile(self, updated_flatfile, contacts):
-        old_contact_ids = self._select_contactids_and_empids(contacts)
+    @classmethod
+    def _assign_new_contact_ids_to_flatfile(cls, flatfile, contacts):
+        merged_flatfile = cls._merge_contacts(flatfile, contacts)
 
-        merged_flatfile = self._merge_contacts(updated_flatfile, old_contact_ids)
+        merged_flatfile = cls._reposition_contact_id_column(merged_flatfile)
 
-        merged_flatfile = self._insert_contactid_column(merged_flatfile)
+        duplicated_merged_df = cls._get_contacts_with_duplicate_emails(merged_flatfile)
 
-        merged_flatfile = self._drop_old_contactid_column(merged_flatfile)
+        listkey_df = cls._get_listkeys_for_contacts_with_same_emails(duplicated_merged_df)
 
-        merged_flatfile = self._rename_columns(merged_flatfile)
+        merged_flatfile = cls._remove_duplicate_contacts(merged_flatfile, duplicated_merged_df, listkey_df)
 
-        merged_flatfile = self._assign_contactid_to_new_contacts(merged_flatfile)
-
-        merged_flatfile = self._remove_spaces_from_dataframe(merged_flatfile)
-
-        merged_flatfile = self._assign_listkeys_to_updated_flatfile(merged_flatfile)
+        merged_flatfile = cls._assign_contact_ids_to_new_contacts(merged_flatfile)
 
         return merged_flatfile
 
@@ -316,9 +307,9 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
     def _assign_emppids_to_new_inputs(cls, inputs, new_emails, flatfile):
         new_inputs = inputs.loc[inputs.BEST_EMAIL.isin(new_emails), :].copy()
         last_emppid = max(flatfile["EMPPID"])
-        new_emppids = range(int(last_emppid)+1, int(last_emppid)+ len(new_inputs)+1)
+        new_emppids = list(range(int(last_emppid)+1, int(last_emppid)+ len(new_inputs)+1))
 
-        new_inputs["EMPPID"] = pandas.Series(new_emppids)
+        new_inputs["EMPPID"] = new_emppids
 
         return new_inputs
 
@@ -344,80 +335,64 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return merged_flatfile
 
     @classmethod
-    def _select_contactids_and_empids(cls, contacts):
+    def _merge_contacts(cls, flatfile, contacts):
         contact_ids = contacts.loc[:, ['id', 'hs_contact_id']]
 
-        return contact_ids
+        flatfile = pandas.merge(flatfile, contact_ids, left_on='id', right_on='id', how='left', suffixes=('', '_y'))
 
-    def _merge_contacts(self, updated_flatfile, contacts_old_id):
-        merged_df = pandas.merge(updated_flatfile.drop(columns=['hs_contact_id']), contacts_old_id, left_on=self._parameters.left_merge_key, right_on=self._parameters.right_merge_key, how='left')
-
-        return merged_df
-
-    @classmethod
-    def _insert_contactid_column(cls, merged_df):
-        merged_df.insert(1, 'hs_contact_idd', merged_df.hs_contact_id)
-
-        return merged_df
-
-    @classmethod
-    def _drop_old_contactid_column(cls, merged_df):
-        merged_df = merged_df.drop(columns=['hs_contact_id'])
-
-        return merged_df
-
-    @classmethod
-    def _rename_columns(cls, merged_df):
-        merged_df.rename(columns={'hs_contact_idd': 'hs_contact_id'}, inplace=True)
-
-        return merged_df
-
-    @classmethod
-    def _assign_contactid_to_new_contacts(cls, flatfile):
-        id_list = []
-        for index in flatfile.index:
-            if flatfile['hs_contact_id'][index] != flatfile['hs_contact_id'][index]:
-                contact_id = cls._generate_unique_contact_id(id_list, flatfile['hs_contact_id'])
-                flatfile['hs_contact_id'][index] = contact_id
+        flatfile.drop(flatfile.filter(regex='_y$').columns, axis=1, inplace=True)
 
         return flatfile
 
     @classmethod
-    def _remove_spaces_from_dataframe(cls, merged_df):
-        merged_df = merged_df.apply(lambda x: x.str.strip())
+    def _reposition_contact_id_column(cls, flatfile):
+        flatfile.insert(1, 'hs_contact_idd', flatfile.hs_contact_id)
 
-        return merged_df
+        flatfile = flatfile.drop(columns=['hs_contact_id'])
 
-    #@classmethod
-    def _assign_listkeys_to_updated_flatfile(self, merged_df):
-        duplicated_merged_df = self._get_contacts_with_duplicate_emails(merged_df)
+        flatfile.rename(columns={'hs_contact_idd': 'hs_contact_id'}, inplace=True)
 
-        listkey_df = self._get_listkeys_for_contacts_with_same_emails(duplicated_merged_df)
+        return flatfile
 
-        merged_df = self._remove_duplicate_contacts(merged_df, duplicated_merged_df, listkey_df)
-
-        merged_df = self._assign_liskeys(merged_df, listkey_df)
-
-        return merged_df
-
+    # pylint: disable=anomalous-backslash-in-string
     @classmethod
-    def _generate_unique_contact_id(cls, id_list, existing_ids):
-        found_contact_id = False
-        contact_id = None
-        attempts = 0
+    def _assign_contact_ids_to_new_contacts(cls, flatfile):
+        flatfile.hs_contact_id = flatfile.hs_contact_id.replace(["^\s*$"], np.NaN, regex=True)
 
-        while not found_contact_id and attempts <= cls.MAX_ID_ATTEMPTS:
-            contact_id = cls._generate_contact_id()
-            found_contact_id = cls._is_contact_id_unique(id_list, contact_id, existing_ids)
-            attempts += 1
+        new_record_count = len(flatfile[flatfile.hs_contact_id.isna()])
 
-        if attempts > cls.MAX_ID_ATTEMPTS:
-            raise ValueError(
-                f'The maximum number of attempts ({cls.MAX_ID_ATTEMPTS}) to '
-                f'generate a new, unique contact ID was exceeded.',
-            )
+        contact_ids = cls._generate_unique_contact_ids(new_record_count, flatfile['hs_contact_id'])
 
-        return contact_id
+        if len(contact_ids) != 0:
+            flatfile.loc[flatfile.hs_contact_id.isna(), "hs_contact_id"] = contact_ids
+
+        return flatfile
+
+    # pylint: disable=comparison-with-itself
+    @classmethod
+    def _generate_unique_contact_ids(cls, count, existing_contact_ids):
+        existing_contact_ids = set(ids for ids in existing_contact_ids.unique() if ids == ids)
+        unique_contact_ids = existing_contact_ids.copy()
+        start_count = len(unique_contact_ids)
+        current_count = start_count
+        iterations = 0
+
+        while (current_count - start_count) < count:
+            unique_contact_ids.add(cls._generate_contact_id())
+
+            new_count = len(unique_contact_ids)
+
+            if new_count > current_count:
+                iterations = 0
+            else:
+                iterations += 1
+
+            if iterations > cls.MAX_ID_ATTEMPTS:
+                raise TaskException("Exceeded max Contact ID generation attempts.")
+
+            current_count = new_count
+
+        return list(unique_contact_ids.difference(existing_contact_ids))
 
     @classmethod
     def _generate_contact_id(cls, size=15, chars=None):
@@ -425,16 +400,6 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
             chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
 
         return ''.join(random.choice(chars) for _ in range(size))
-
-    @classmethod
-    def _is_contact_id_unique(cls, id_list, contact_id, existing_ids):
-        index = bisect_left(id_list, contact_id)
-        found_contact_id = False
-
-        if not (index != len(id_list) and id_list[index] == contact_id) and (contact_id not in existing_ids):
-            found_contact_id = True
-
-        return found_contact_id
 
     @classmethod
     def _get_contacts_with_duplicate_emails(cls, flatfile):
@@ -466,16 +431,6 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         duplicated = duplicated_flatfile[~duplicated_flatfile['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
 
         return flatfile[~flatfile['hs_contact_id'].isin(duplicated['hs_contact_id'])]
-
-    @classmethod
-    def _assign_liskeys(cls, flatfile, listkey_df):
-        listkey_dict = listkey_df.to_dict('records')
-
-        for row in listkey_dict:
-            idx = flatfile.index[flatfile['hs_contact_id'] == row['hs_contact_id']]
-            flatfile.loc[idx,'LISTKEY'] = row['LISTKEY']
-
-        return flatfile
 
 
 @add_schema
