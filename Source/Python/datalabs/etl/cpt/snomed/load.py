@@ -64,7 +64,6 @@ class DynamoDBLoaderTask(Task):
                 f"SELECT sk, pk FROM \"{self._parameters.table}\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')"
             )
 
-
             current_hashes_rows = [(x["sk"]["S"], x["pk"]["S"]) for x in results]
 
         current_hashes = pandas.DataFrame(current_hashes_rows, columns=["sk", "pk"])
@@ -160,11 +159,11 @@ class DynamoDBLoaderTask(Task):
 
         LOGGER.debug('New Hashes: %s', new_hashes)
 
-        return {hash["pk"]:hash for hash in new_hashes.to_dict(orient='records')}
+        return {hash["pk"]: hash for hash in new_hashes.to_dict(orient='records')}
 
     @classmethod
     def _get_new_mappings(cls, new_hashes, incoming_mappings):
-        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
+        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])): m for m in incoming_mappings}
 
         return [incoming_mappings_lookup_table[hash_pk] for hash_pk in new_hashes]
 
@@ -199,7 +198,7 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _get_updated_mappings(cls, updated_hashes, incoming_mappings):
-        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
+        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])): m for m in incoming_mappings}
 
         return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in updated_hashes]
 
