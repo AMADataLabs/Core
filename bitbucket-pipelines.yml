@@ -2509,7 +2509,10 @@ pipelines:
                 name: Update sandbox Lambda Functions
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/API Profile-API=Profile.zip
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/API
+                    Profile-API=Profile.zip
+                    Authorizer=Profile.zip
             - step:
                 name: Update Development Lambda Functions
                 script:
@@ -2519,6 +2522,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/API
                     Profile-API=Profile.zip
+                    Authorizer=Profile.zip
             - step:
                 name: Update Test Lambda Functions
                 script:
@@ -2528,6 +2532,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/API
                     Profile-API=Profile.zip
+                    Authorizer=Profile.zip
 
 
         VeriCre-ETL:
