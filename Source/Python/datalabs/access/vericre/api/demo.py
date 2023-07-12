@@ -21,7 +21,7 @@ class DemoEndpointParameters:
     path: dict
     query: dict
     authorization: dict
-    backend_domain: str
+    vericre_alb_domain: str
     unknowns: dict=None
 
 
@@ -34,7 +34,7 @@ class DemoEndpointTask(APIEndpointTask):
         thread = threading.Thread(target=self._demo_for_threading)
         thread.start()
 
-        response_result = f"---{self._parameters.backend_domain}"
+        response_result = f"---{self._parameters.vericre_alb_domain}"
         LOGGER.info('do something with response_result')
 
         self._response_body = self._generate_response_body(response_result)
