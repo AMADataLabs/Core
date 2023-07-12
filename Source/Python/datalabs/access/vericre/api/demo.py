@@ -34,7 +34,6 @@ class DemoEndpointTask(APIEndpointTask):
 
         thread = threading.Thread(target=self._demo_for_threading)
         thread.start()
-        thread.join()
 
         response_result = f"---{self._parameters.backend_domain}"
         LOGGER.info('do something with response_result')
