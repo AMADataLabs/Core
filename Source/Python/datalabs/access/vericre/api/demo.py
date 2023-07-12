@@ -41,7 +41,6 @@ class DemoEndpointTask(APIEndpointTask):
 
     def _demo_for_threading(self):
         LOGGER.info('Demo for threading start...')
-        time.sleep(5)
         api_invoke_result = requests.get(f'https://{self._parameters.backend_domain}')
         LOGGER.info('API invoke result: %s', api_invoke_result.content)
 
