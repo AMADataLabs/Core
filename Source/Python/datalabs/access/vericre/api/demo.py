@@ -1,9 +1,9 @@
 """ Release endpoint classes."""
 from   dataclasses import dataclass
 import logging
-import threading
 
 import requests
+import urllib3
 
 from   datalabs.access.api.task import APIEndpointTask
 from   datalabs.parameter import add_schema
@@ -12,6 +12,9 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+
+class HttpClient:
+    HTTP = urllib3.PoolManager()
 
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
@@ -42,8 +45,12 @@ class DemoEndpointTask(APIEndpointTask):
         LOGGER.info('Demo for threading start...')
         
         try:
-            requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False, timeout=0.1)
-        except requests.exceptions.ReadTimeout:
+            self.HTTP.request(
+                'GET',
+                f'https://{self._parameters.vericre_alb_domain}',
+                timeout=urllib3.Timeout(0.01)
+            )
+        except:
             LOGGER.info('Timeout as expected')
 
     @classmethod
