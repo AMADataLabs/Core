@@ -42,8 +42,11 @@ class DemoEndpointTask(APIEndpointTask):
 
     def _demo_for_threading(self):
         LOGGER.info('Demo for threading start...')
-        api_invoke_result = requests.get(f'https://{self._parameters.backend_domain}', verify=False)
-        LOGGER.info('API invoke result: %s', api_invoke_result.content)
+        for i in range(1000):
+            LOGGER.info('Demo for threading: %s', i)
+            
+        # api_invoke_result = requests.get(f'https://{self._parameters.backend_domain}', verify=False)
+        # LOGGER.info('API invoke result: %s', api_invoke_result.content)
 
     @classmethod
     def _generate_response_body(cls, response_result):
