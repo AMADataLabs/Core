@@ -1,6 +1,7 @@
 """ Release endpoint classes."""
 from   dataclasses import dataclass
 import logging
+import threading
 
 import requests
 
@@ -30,12 +31,20 @@ class DemoEndpointTask(APIEndpointTask):
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False, timeout=0.1)
+        self._demo_for_threading()
 
         response_result = f"---{self._parameters.vericre_alb_domain}"
         LOGGER.info('do something with response_result')
 
         self._response_body = self._generate_response_body(response_result)
+
+    def _demo_for_threading(self):
+        LOGGER.info('Demo for threading start...')
+        
+        try:
+            requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False, timeout=0.1)
+        except requests.exceptions.ReadTimeout:
+            LOGGER.info('Timeout as expected')
 
     @classmethod
     def _generate_response_body(cls, response_result):
