@@ -48,7 +48,7 @@ class DemoEndpointTask(APIEndpointTask):
             self.HTTP.request(
                 'GET',
                 f'https://{self._parameters.vericre_alb_domain}',
-                timeout=urllib3.Timeout(0.01)
+                timeout=urllib3.Timeout(connect=2.0, read=0.1)
             )
         except:
             LOGGER.info('Timeout as expected')
