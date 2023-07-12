@@ -31,22 +31,24 @@ class DemoEndpointTask(APIEndpointTask):
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        thread = threading.Thread(target=self._demo_for_threading)
-        thread.start()
+        # thread = threading.Thread(target=self._demo_for_threading)
+        # thread.start()
+
+        requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False)
 
         response_result = f"---{self._parameters.vericre_alb_domain}"
         LOGGER.info('do something with response_result')
 
         self._response_body = self._generate_response_body(response_result)
 
-    def _demo_for_threading(self):
-        LOGGER.info('Demo for threading start...')
+    # def _demo_for_threading(self):
+    #     LOGGER.info('Demo for threading start...')
         
-        api_invoke_result = requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False)
-        LOGGER.info('API invoke result: %s', api_invoke_result.content)
+    #     api_invoke_result = requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False)
+    #     LOGGER.info('API invoke result: %s', api_invoke_result.content)
 
-        for num in range(100):
-            LOGGER.info('Demo for threading counter: %s', num)
+    #     for num in range(100):
+    #         LOGGER.info('Demo for threading counter: %s', num)
 
     @classmethod
     def _generate_response_body(cls, response_result):
