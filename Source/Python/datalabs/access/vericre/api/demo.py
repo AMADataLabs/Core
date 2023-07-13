@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 import logging
 
 import requests
+import threading
 
 from   datalabs.access.api.task import APIEndpointTask
 from   datalabs.parameter import add_schema
@@ -40,10 +41,21 @@ class DemoEndpointTask(APIEndpointTask):
     def _demo_for_threading(self):
         LOGGER.info('Demo for threading start...')
         
+        physicians = ['physician1', 'physician2', 'physician3']
+
+        for physician in physicians:
+            self._create_thread_for_physician(physician)
+            
+
+    def _create_thread_for_physician(self, physician):
+        thread = threading.Thread(target=self._request_caqh_sync, args=(physician))
+        thread.start()
+
+    def _request_caqh_sync(self, physician):
         try:
-            requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False, timeout=(2, 0.1))
+            requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician}', verify=False, timeout=(2, 0.1))
         except requests.exceptions.ReadTimeout:
-            LOGGER.info('Timeout as expected')
+            LOGGER.info('CAQH sync request sent: %s', physician)
 
     @classmethod
     def _generate_response_body(cls, response_result):

@@ -30,7 +30,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DOMAIN: 'wsinttest'
+        AMA_DOMAIN: 'wsinttest'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-sbx-backend-api-alb-946986500.us-east-1.elb.amazonaws.com/demo/xx2'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
@@ -101,7 +102,7 @@ VERICRE_API:
 
     DEMO:
         TASK_CLASS:  'datalabs.access.vericre.api.demo.DemoEndpointTask'
-        VERICRE_ALB_DOMAIN: 'internal-vericre-sbx-backend-api-alb-946986500.us-east-1.elb.amazonaws.com/demo/xx2'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-sbx-backend-api-alb-946986500.us-east-1.elb.amazonaws.com/demo'
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
