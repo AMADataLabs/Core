@@ -60,8 +60,7 @@ class DemoEndpointTask(APIEndpointTask):
 
     def _request_caqh_sync(self, physician):
         try:
-            requests.get(f'https://localhost:4443/demo/{physician}', verify=False, timeout=(2, 0.1))
-            # requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician}', verify=False, timeout=(2, 0.1))
+            requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician}', verify=False, timeout=(2, 0.1))
         except requests.exceptions.ReadTimeout:
             LOGGER.info('CAQH sync request sent: %s', physician)
 
