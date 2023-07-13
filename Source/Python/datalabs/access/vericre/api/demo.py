@@ -3,7 +3,6 @@ from   dataclasses import dataclass
 import logging
 
 import requests
-import urllib3
 
 from   datalabs.access.api.task import APIEndpointTask
 from   datalabs.parameter import add_schema
@@ -12,9 +11,6 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-
-class HttpClient:
-    HTTP = urllib3.PoolManager()
 
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
@@ -45,12 +41,8 @@ class DemoEndpointTask(APIEndpointTask):
         LOGGER.info('Demo for threading start...')
         
         try:
-            self.HTTP.request(
-                'GET',
-                f'https://{self._parameters.vericre_alb_domain}',
-                timeout=urllib3.Timeout(connect=2.0, read=0.1)
-            )
-        except:
+            requests.get(f'https://{self._parameters.vericre_alb_domain}', verify=False, timeout=(2, None))
+        except requests.exceptions.ReadTimeout:
             LOGGER.info('Timeout as expected')
 
     @classmethod
