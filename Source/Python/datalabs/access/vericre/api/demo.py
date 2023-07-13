@@ -48,7 +48,7 @@ class DemoEndpointTask(APIEndpointTask):
             
 
     def _create_thread_for_physician(self, physician):
-        thread = threading.Thread(target=self._request_caqh_sync, args=(physician))
+        thread = threading.Thread(target=self._request_caqh_sync, args=(physician,))
         thread.start()
 
     def _request_caqh_sync(self, physician):

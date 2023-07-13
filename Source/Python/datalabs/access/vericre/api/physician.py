@@ -4,7 +4,9 @@ from   datetime import datetime
 from   io import BytesIO
 import logging
 
+import requests
 from   sqlalchemy.exc import OperationalError, MultipleResultsFound
+import threading
 from   zeep import Client
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError, InvalidRequest
@@ -31,7 +33,8 @@ class PhysiciansSearchEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    domain: str
+    ama_domain: str
+    vericre_alb_domain: str
     payload: dict
     unknowns: dict=None
 
@@ -47,10 +50,12 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         with Database.from_parameters(self._parameters) as database:
             physicians = self._get_matching_physicians(database, search_results)
 
+        self._proceed_caqh_sync(physicians)
+
         return self._generate_response(physicians)
 
     def _search_physicians(self, payload):
-        url = f'https://{self._parameters.domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
+        url = f'https://{self._parameters.ama_domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
         search_request = self._generate_search_request(payload)
 
         return self._submit_search_request(search_request, url)
@@ -190,3 +195,18 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             LOGGER.error("Exception in formatting the date : %s",error)
 
         return formatted_date
+
+    def _proceed_caqh_sync(self, physicians):
+        for physician in physicians:
+            self._create_thread_for_physician(physician)
+            
+
+    def _create_thread_for_physician(self, physician):
+        thread = threading.Thread(target=self._request_caqh_sync, args=(physician,))
+        thread.start()
+
+    def _request_caqh_sync(self, physician):
+        try:
+            requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician.entity_id}', verify=False, timeout=(2, 0.1))
+        except requests.exceptions.ReadTimeout:
+            LOGGER.info('CAQH sync request sent: %s', physician.entity_id)
