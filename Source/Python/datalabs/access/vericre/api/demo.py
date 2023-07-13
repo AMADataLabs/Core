@@ -43,17 +43,25 @@ class DemoEndpointTask(APIEndpointTask):
         
         physicians = ['physician1', 'physician2', 'physician3']
 
+        threads = []
+
         for physician in physicians:
-            self._create_thread_for_physician(physician)
-            
+            thread = self._create_thread_for_physician(physician)
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join()
 
     def _create_thread_for_physician(self, physician):
         thread = threading.Thread(target=self._request_caqh_sync, args=(physician,))
         thread.start()
 
+        return thread
+
     def _request_caqh_sync(self, physician):
         try:
-            requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician}', verify=False, timeout=(2, 0.1))
+            requests.get(f'https://localhost:4443/demo/{physician}', verify=False, timeout=(2, 0.1))
+            # requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician}', verify=False, timeout=(2, 0.1))
         except requests.exceptions.ReadTimeout:
             LOGGER.info('CAQH sync request sent: %s', physician)
 
