@@ -41,28 +41,23 @@ class DemoEndpointTask(APIEndpointTask):
     def _demo_for_threading(self):
         LOGGER.info('Demo for threading start...')
         
-        physicians = ['physician1', 'physician2', 'physician3']
+        physicians = [
+            {"entityId":"1689898","npiNumber":"1275562779"},
+            {"entityId":"1689899","npiNumber":"1275562778"}
+        ]
 
-        threads = []
+        self._request_caqh_sync(physicians)
 
-        for physician in physicians:
-            thread = self._create_thread_for_physician(physician)
-            threads.append(thread)
-
-        for thread in threads:
-            thread.join()
-
-    def _create_thread_for_physician(self, physician):
-        thread = threading.Thread(target=self._request_caqh_sync, args=(physician,))
-        thread.start()
-
-        return thread
-
-    def _request_caqh_sync(self, physician):
+    def _request_caqh_sync(self, physicians):
         try:
-            requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician}', verify=False, timeout=(2, 0.1))
+            requests.post(
+                f'https://{self._parameters.vericre_alb_domain}',
+                verify=False,
+                timeout=(None, 0.1),
+                json=physicians
+            )
         except requests.exceptions.ReadTimeout:
-            LOGGER.info('CAQH sync request sent: %s', physician)
+            LOGGER.info('CAQH sync request sent: %s', len(physicians))
 
     @classmethod
     def _generate_response_body(cls, response_result):
