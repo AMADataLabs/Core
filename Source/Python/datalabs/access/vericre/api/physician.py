@@ -6,7 +6,6 @@ import logging
 
 import requests
 from   sqlalchemy.exc import OperationalError, MultipleResultsFound
-import threading
 from   zeep import Client
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError, InvalidRequest
