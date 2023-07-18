@@ -19,7 +19,6 @@ VERICRE_API:
         PROFILE_DOCUMENTS: '/profile/*/documents'
         PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
         PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
-        DEMO:              '/demo'
         DEFAULT:           '/*'
 
     PHYSICIANS_SEARCH:
@@ -31,7 +30,7 @@ VERICRE_API:
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         AMA_DOMAIN: 'wsinttest'
-        VERICRE_ALB_DOMAIN: 'internal-vericre-sbx-backend-api-alb-946986500.us-east-1.elb.amazonaws.com/demo/xx2'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-sbx-backend-api-alb-946986500.us-east-1.elb.amazonaws.com'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
@@ -99,10 +98,6 @@ VERICRE_API:
         CLIENT_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
         CLIENT_SECRET: '{{client_secret}}'
         CLIENT_ENV: 'wsextstage'
-
-    DEMO:
-        TASK_CLASS:  'datalabs.access.vericre.api.demo.DemoEndpointTask'
-        VERICRE_ALB_DOMAIN: 'internal-vericre-sbx-backend-api-alb-946986500.us-east-1.elb.amazonaws.com/demo'
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

@@ -70,6 +70,16 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return [physician for physician in physicians if physician is not None]
 
     def _generate_response(self, physicians):
+        physicians = [
+            {
+                "entity_id": physician["entity_id"],
+                "first_name": physician["first_name"],
+                "last_name": physician["last_name"],
+                "date_of_birth": physician["date_of_birth"]
+            }
+            for physician in physicians
+        ]
+
         self._response_body = self._generate_response_body(physicians)
 
         self._headers = self._generate_headers()
@@ -132,7 +142,8 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
                 entity_id=physician.entityId,
                 first_name=physician.legalFirstName,
                 last_name=physician.legalLastName,
-                date_of_birth=cls._get_date(physician.birthDate)
+                date_of_birth=cls._get_date(physician.birthDate),
+                npi_number=physician.npiNumber.NPI[0].npiNumber
             )
 
         return physician_data
@@ -197,16 +208,18 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return formatted_date
 
     def _proceed_caqh_sync(self, physicians):
-        for physician in physicians:
-            self._create_thread_for_physician(physician)
-            
 
-    def _create_thread_for_physician(self, physician):
-        thread = threading.Thread(target=self._request_caqh_sync, args=(physician,))
-        thread.start()
+        physicians_payload = [
+            {"entityId": physician["entity_id"], "npiNumber": physician["npi_number"]}
+            for physician in physicians
+        ]
 
-    def _request_caqh_sync(self, physician):
         try:
-            requests.get(f'https://{self._parameters.vericre_alb_domain}/{physician.entity_id}', verify=False, timeout=(2, 0.1))
+            requests.post(
+                f'https://{self._parameters.vericre_alb_domain}/users/physicians/search/onCAQHSync',
+                verify=False,
+                timeout=(None, 0.1),
+                json=physicians_payload
+            )
         except requests.exceptions.ReadTimeout:
-            LOGGER.info('CAQH sync request sent: %s', physician.entity_id)
+            LOGGER.info('CAQH sync request sent for %s physician(s)', len(physicians))
