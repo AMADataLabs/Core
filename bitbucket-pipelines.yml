@@ -672,7 +672,7 @@ pipelines:
                     ZIP-API=Endpoint.zip
                     ZIP-API-Authorizer=Endpoint.zip
                     SNOMED-API-Authorizer=Endpoint.zip
-           - step:
+            - step:
                 name: Update Staging Lambda Functions
                 script:
                 - >-
