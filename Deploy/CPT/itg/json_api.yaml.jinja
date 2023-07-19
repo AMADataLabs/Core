@@ -1,12 +1,12 @@
 ---
 CPT_JSON_API:
     GLOBAL:
-        ENVIRONMENT: prd
+        ENVIRONMENT: itg
         ACCOUNT: '285887636563'
 
         S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
 
-        DATABASE_HOST: ccpt-api-prd-db.cxgp9osuwqi3.us-east-1.rds.amazonaws.com
+        DATABASE_HOST: cpt-api-itg-db.cxgp9osuwqi3.us-east-1.rds.amazonaws.com
         DATABASE_PORT: '5432'
         DATABASE_BACKEND: 'postgresql+psycopg2'
         DATABASE_NAME: 'cpt'
