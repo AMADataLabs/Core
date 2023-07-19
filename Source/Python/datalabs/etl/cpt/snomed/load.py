@@ -22,6 +22,7 @@ LOGGER.setLevel(logging.DEBUG)
 class DynamoDBLoaderParameters:
     table: str = None
     execution_time: str = None
+    append: str = None
 
 
 class DynamoDBLoaderTask(Task):
@@ -37,7 +38,8 @@ class DynamoDBLoaderTask(Task):
         current_hashes = self._get_current_hashes()
         LOGGER.debug("Current Hashes:\n%s", current_hashes)
 
-        self._delete_data(incoming_hashes, current_hashes)
+        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
+            self._delete_data(incoming_hashes, current_hashes)
 
         self._add_data(incoming_hashes, current_hashes, incoming_mappings)
 

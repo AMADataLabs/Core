@@ -46,18 +46,19 @@ SNOMED_CPT_ETL:
         CACHE_OUTPUT_FILES: 'snomed_mappings.json'
 
     SPLIT_MAPPINGS:
-        COUNT: '4'
+        COUNT: '10'
         CACHE_CLASS: ${S3_CACHE_CLASS}
         CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_FILES: 'snomed_mappings.json'
-        CACHE_OUTPUT_FILES: 'snomed_mappings_0.json,snomed_mappings_1.json,snomed_mappings_2.json,snomed_mappings_3.json'
+        CACHE_OUTPUT_FILES: 'snomed_mappings_0.json,snomed_mappings_1.json,snomed_mappings_2.json,snomed_mappings_3.json,snomed_mappings_4.json,snomed_mappings_5.json,snomed_mappings_6.json,snomed_mappings_7.json,snomed_mappings_8.json,snomed_mappings_9.json'
 
 
 
     LOAD_SNOMED_MAPPINGS:
-        __MACRO_COUNT__: 4
+        __MACRO_COUNT__: 10
         TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
+        APPEND: 'TRUE'
 
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
