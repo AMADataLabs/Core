@@ -1,126 +1,116 @@
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "VERICRE_DATA_STEWARD"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+---
+VERICRE_DATA_STEWARD:
+    GLOBAL:
+        ACCOUNT: '191296302136'
+        ENVIRONMENT: dev
 
+        PLATFORM_DB_BACKEND: postgresql+psycopg2
+        PLATFORM_DB_HOST: vericre-dev-au-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+        PLATFORM_DB_NAME: vericre
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_PORT: '5432'
+        PLATFORM_DB_USERNAME: vericreadmin
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+        S3_BASE_PATH: AMA/VeriCre/DataSteward
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
-    S3_VERICRE_DATA_BUCKET: ama-${ENVIRONMENT}-vericre-us-east-1
+        S3_CACHE_CLASS: datalabs.etl.dag.cache.s3.S3TaskDataCache
 
-    PLATFORM_DB_HOST: vericre-dev-au-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
-    PLATFORM_DB_PORT: '5432'
-    PLATFORM_DB_BACKEND: 'postgresql+psycopg2'
-    PLATFORM_DB_NAME: 'vericre'
-    PLATFORM_DB_USERNAME:  'vericreadmin'
-    PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_VERICRE_DATA_BUCKET: ama-${ENVIRONMENT}-vericre-us-east-1
+    DAG:
+        DAG_CLASS: datalabs.etl.dag.vericre.data_steward.DAG
+        DAG_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DAGState
+            LOCK_TABLE: DataLake-scheduler-locks-${ENVIRONMENT}
+            STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
+        DAG_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor
+        ENVIRONMENT: ${ENVIRONMENT}
+        LAMBDA_FUNCTION: VeriCre-${ENVIRONMENT}-DataStewardDAG
+        STATUS_NOTIFICATION_WEB_HOOK: https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908
+        TASK_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask
+        TASK_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor
+    EXTRACT_NEW_APPLICATION_PATHS_TODAY:
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${PLATFORM_DB_NAME}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        SQL: "
+            SELECT d.user || '/' || document_path || '/' || document_name AS path FROM (
+                SELECT document_path,document_name,a.user,updated_datetime FROM (
+                    SELECT document_id,application.user,to_timestamp(updated_at / 1000) AS updated_datetime
+                    FROM application
+                    JOIN application_document_mapping ON application.id = application_id
+                    WHERE status IN ('CREATED_N_SUBMITTED', 'RESUBMITTED_TO_DS')
+                ORDER BY updated_datetime DESC
+                ) AS a
+                JOIN document ON a.document_id = document.id
+            ) AS d
+            WHERE updated_datetime
+            BETWEEN timestamp '%Y-%m-%d %H:%M:%S' - interval '1 day'
+            AND timestamp '%Y-%m-%d %H:%M:%S'
+            ORDER BY path;
+            SELECT d.user,me_number,name FROM (
+                SELECT a.user,ama_me_number AS me_number,ama_name AS name,updated_datetime FROM (
+                SELECT application.user,to_timestamp(updated_at / 1000) AS updated_datetime
+                FROM application
+                JOIN application_document_mapping ON application.id = application_id
+                WHERE status IN ('CREATED_N_SUBMITTED', 'RESUBMITTED_TO_DS')
+                ORDER BY updated_datetime DESC
+            ) AS a
+            JOIN \"user\" as u ON a.user = u.id
+            ) AS d
+            WHERE updated_datetime
+            BETWEEN timestamp '%Y-%m-%d %H:%M:%S' - interval '1 day'
+            AND timestamp '%Y-%m-%d %H:%M:%S'
+            ORDER BY d.user;
+        "
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/VeriCre/DataSteward'
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: new_application_paths.csv,user_id_me_number_name_map.csv
+    EXTRACT_USER_UPLOADS:
+        CACHE_CLASS: ${S3_CACHE_CLASS}
 
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        CACHE_INPUT_FILES: new_application_paths.csv
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "VERICRE_DATA_STEWARD"}, "Task": {"S": "DAG"}})
-    #######################################################################
+        BASE_PATH: ''
+        BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        IGNORE_FILES_HEADER: 'True'
+        INCLUDE_DATESTAMP: 'False'
+        INCLUDE_NAMES: 'True'
 
-    VERICRE_DATA_STEWARD__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    VERICRE_DATA_STEWARD__DAG__LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-DataStewardDAG'
-    VERICRE_DATA_STEWARD__DAG__DAG_CLASS: 'datalabs.etl.dag.vericre.data_steward.DAG'
-    VERICRE_DATA_STEWARD__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    VERICRE_DATA_STEWARD__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    VERICRE_DATA_STEWARD__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    VERICRE_DATA_STEWARD__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    VERICRE_DATA_STEWARD__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    VERICRE_DATA_STEWARD__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    VERICRE_DATA_STEWARD__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    VERICRE_DATA_STEWARD__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: new_application_data.pkl
+    SEND_USER_UPLOADS:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        CACHE_INPUT_FILES: new_application_data.zip,user_id_me_number_name_map.csv
 
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "VERICRE_DATA_STEWARD"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
+        FILES: new_application_data.zip,user_id_me_number_name_map.csv
+        MESSAGE: "
+            This is an automated email from DataLabs.
 
-    # Extract New Application Paths Today
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__DATABASE_HOST: ${PLATFORM_DB_HOST}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__DATABASE_PORT: ${PLATFORM_DB_PORT}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__DATABASE_NAME: ${PLATFORM_DB_NAME}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__SQL: "
-    SELECT d.user || '/' || document_path || '/' || document_name AS path FROM (
-        SELECT document_path,document_name,a.user,updated_datetime FROM (
-            SELECT document_id,application.user,to_timestamp(updated_at / 1000) AS updated_datetime
-            FROM application
-            JOIN application_document_mapping ON application.id = application_id
-            WHERE status IN ('CREATED_N_SUBMITTED', 'RESUBMITTED_TO_DS')
-        ORDER BY updated_datetime DESC
-        ) AS a
-        JOIN document ON a.document_id = document.id
-    ) AS d
-    WHERE updated_datetime
-    BETWEEN timestamp '%Y-%m-%d %H:%M:%S' - interval '1 day'
-    AND timestamp '%Y-%m-%d %H:%M:%S'
-    ORDER BY path;
-    SELECT d.user,me_number,name FROM (
-        SELECT a.user,ama_me_number AS me_number,ama_name AS name,updated_datetime FROM (
-	    SELECT application.user,to_timestamp(updated_at / 1000) AS updated_datetime
-	    FROM application
-	    JOIN application_document_mapping ON application.id = application_id
-	    WHERE status IN ('CREATED_N_SUBMITTED', 'RESUBMITTED_TO_DS')
-	    ORDER BY updated_datetime DESC
-	) AS a
-	JOIN \"user\" as u ON a.user = u.id
-    ) AS d
-    WHERE updated_datetime
-    BETWEEN timestamp '%Y-%m-%d %H:%M:%S' - interval '1 day'
-    AND timestamp '%Y-%m-%d %H:%M:%S'
-    ORDER BY d.user;
-    "
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_FILES: new_application_paths.csv,user_id_me_number_name_map.csv
+            Attached are the user uploads for new or resubmitted Serf-Service Licensing
+            applications for the past 24 hours.
+        "
+        SUBJECT: Self-Service Licensing New User Uploads - %Y-%m-%d
+        TO_ADDRESSES: datalabs@ama-assn.org
+    ZIP_USER_UPLOADS:
+        CACHE_CLASS: ${S3_CACHE_CLASS}
 
-    # Extract User Uploads
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_CLASS: ${S3_CACHE_CLASS}
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_INPUT_FILES: 'new_application_paths.csv'
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        CACHE_INPUT_FILES: new_application_data.pkl
 
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__BASE_PATH: ''
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__INCLUDE_DATESTAMP: 'False'
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__IGNORE_FILES_HEADER: 'True'
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__INCLUDE_NAMES: 'True'
-
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_OUTPUT_FILES: 'new_application_data.pkl'
-
-    # ZIP User Uploads
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_CLASS: ${S3_CACHE_CLASS}
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_INPUT_FILES: 'new_application_data.pkl'
-
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__ZIP_USER_UPLOADS__CACHE_OUTPUT_FILES: 'new_application_data.zip'
-
-    # Send User Uploads
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_FILES: 'new_application_data.zip,user_id_me_number_name_map.csv'
-
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__TO_ADDRESSES: 'datalabs@ama-assn.org'
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__SUBJECT: 'Self-Service Licensing New User Uploads - %Y-%m-%d'
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__MESSAGE: "
-    This is an automated email from DataLabs.
-
-    Attached are the user uploads for new or resubmitted Serf-Service Licensing applications for the past 24 hours.
-"
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__FILES: 'new_application_data.zip,user_id_me_number_name_map.csv'
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: new_application_data.zip

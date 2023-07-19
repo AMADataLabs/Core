@@ -132,8 +132,8 @@ def match_missing_ids(no_id, all_students):
     all_students = all_students.fillna('None')
     no_id = no_id.fillna('None')
     us_state_abbrev = get_states()
-    no_id['first_middle'] = [x.split(', ')[1] for x in no_id.Name]
-    no_id['last_nm'] = [x.split(', ')[0] for x in no_id.Name]
+    no_id['first_middle'] = [x.split(',')[1] for x in no_id.Name]
+    no_id['last_nm'] = [x.split(',')[0] for x in no_id.Name]
     no_id['birth_state_cd'] = [us_state_abbrev[x] if x in us_state_abbrev.keys() else x for x in no_id['Birth State']]
     no_id['birth'] = pd.to_datetime(no_id['Date of Birth']) 
     with_birth = all_students[all_students.birth_dt!='None']
@@ -143,7 +143,7 @@ def match_missing_ids(no_id, all_students):
     all_students = pd.concat([with_birth, without_birth])
     all_students['birth'] = pd.to_datetime(all_students.birth)
     all_students = merge_name(all_students)
-    no_id['gender'] = no_id.Sex
+    no_id['gender'] = no_id.Gender
     get_full_names(all_students)
     get_full_names(no_id)
     parse_names(all_students)

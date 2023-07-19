@@ -2,7 +2,7 @@
 from   dataclasses import dataclass
 import logging
 
-from   datalabs.etl.dag.task import StatefulDAGMixin
+from   datalabs.etl.dag.state import StatefulDAGMixin
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.dag.plugin import PluginExecutorMixin
 from   datalabs.parameter import add_schema
@@ -19,7 +19,7 @@ class DAGProcessorParameters:
     dag: str
     execution_time: str
     dag_class: str
-    dag_state_parameters: str
+    dag_state: dict
     dag_executor_class: str
     unknowns: dict=None
 
@@ -52,7 +52,7 @@ class TaskProcessorParameters:
     task: str
     execution_time: str
     dag_class: str
-    dag_state_parameters: str
+    dag_state: dict
     task_executor_class: str
     unknowns: dict=None
 

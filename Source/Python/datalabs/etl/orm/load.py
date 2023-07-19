@@ -15,7 +15,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -92,8 +92,8 @@ class ORMLoaderTask(CSVReaderMixin, CSVWriterMixin, Task):
         else:
             data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = provider.get_current_row_hashes(database, schema, table, primary_key, hash_columns)
         incoming_hashes = provider.generate_row_hashes(data, primary_key, hash_columns)
+        current_hashes = provider.get_current_row_hashes(database, schema, table, primary_key, hash_columns)
 
         return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes, autoincrement)
 
@@ -197,7 +197,7 @@ class ORMLoaderTask(CSVReaderMixin, CSVWriterMixin, Task):
                     table_parameters.data[table_parameters.primary_key]
                 )
             ].reset_index(drop=True)
-        LOGGER.debug('Deleted Data: %s', deleted_data)
+        LOGGER.info('Deleted Data: %s', deleted_data)
 
         return deleted_data
 
@@ -251,7 +251,7 @@ class ORMLoaderTask(CSVReaderMixin, CSVWriterMixin, Task):
                 updated_hashes[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
-        LOGGER.debug('Updated Data: %s', updated_data)
+        LOGGER.info('Updated Data: %s', updated_data)
 
         return updated_data
 
@@ -283,7 +283,7 @@ class ORMLoaderTask(CSVReaderMixin, CSVWriterMixin, Task):
                     table_parameters.current_hashes[table_parameters.primary_key]
                 )
             ].reset_index(drop=True)
-        LOGGER.debug('New Data: %s', selected_data)
+        LOGGER.info('New Data: %s', selected_data)
         LOGGER.info('Incoming Data Size: %d', len(table_parameters.data))
         LOGGER.info('New Data Size: %d', len(selected_data))
 

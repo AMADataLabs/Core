@@ -5,7 +5,7 @@ import logging
 
 from   sqlalchemy import case, literal
 
-from   datalabs.access.api.task import APIEndpointTask
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api import Form, FormField, FormSection, FormSubSection, Physician, User
 from   datalabs.parameter import add_schema
@@ -57,6 +57,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
         query = self._sort(query)
 
         query_result = [row._asdict() for row in query.all()]
+
+        self._verify_query_result(query_result)
 
         response_result = self._format_query_result(query_result)
 
@@ -114,6 +116,11 @@ class BaseProfileEndpointTask(APIEndpointTask):
     @classmethod
     def _sort(cls, query):
         return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
+
+    @classmethod
+    def _verify_query_result(cls, query_result):
+        if len(query_result) == 0:
+            raise ResourceNotFound("The profile was not found for the provided Entity Id")
 
     def _format_query_result(self, query_result):
         response_result = {}
@@ -207,8 +214,14 @@ class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     def _filter_by_entity_id(self, query):
         entity_id = self._parameters.payload.get("entity_id")
 
+        self._verify_entity_id_count(entity_id)
+
         return query.filter(User.ama_entity_id.in_(entity_id))
 
+    @classmethod
+    def _verify_entity_id_count(cls, entity_id):
+        if len(entity_id) > 1000:
+            raise APIEndpointException("Bad Request. The request should have a limit of 1000 Entity Ids")
 
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)

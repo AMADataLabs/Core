@@ -1,51 +1,37 @@
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "DEVELOPER_TOKENS"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+---
+PLATFORM_USER_TOKENS:
+    GLOBAL:
+        ACCOUNT: '191296302136'
+        ENVIRONMENT: dev
 
+        PLATFORM_DB_BACKEND: mysql+pymysql
+        PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+        PLATFORM_DB_NAME: usermgmt
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_PORT: '3306'
+        PLATFORM_DB_USERNAME: platform
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
-
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
-
-    PLATFORM_DB_BACKEND: 'mysql+pymysql'
-    PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
-    PLATFORM_DB_PORT: '3306'
-    PLATFORM_DB_USERNAME:  platform
-    PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
-    PLATFORM_DB_NAME: 'usermgmt'
-
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/IntelligentPlatform'
-
-
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "DEVELOPER_TOKENS"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    PLATFORM_USER_TOKENS__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    PLATFORM_USER_TOKENS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-DAG'
-    PLATFORM_USER_TOKENS__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.token.DAG'
-    PLATFORM_USER_TOKENS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    PLATFORM_USER_TOKENS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    PLATFORM_USER_TOKENS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    PLATFORM_USER_TOKENS__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    PLATFORM_USER_TOKENS__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    PLATFORM_USER_TOKENS__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    PLATFORM_USER_TOKENS__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    PLATFORM_USER_TOKENS__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
-
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "DEVELOPER_TOKENS"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
-
-    # Email Notifier
-    PLATFORM_USER_TOKENS__DELETE_EXPIRED_TOKENS__BACKEND: ${PLATFORM_DB_BACKEND}
-    PLATFORM_USER_TOKENS__DELETE_EXPIRED_TOKENS__HOST: ${PLATFORM_DB_HOST}
-    PLATFORM_USER_TOKENS__DELETE_EXPIRED_TOKENS__PORT: ${PLATFORM_DB_PORT}
-    PLATFORM_USER_TOKENS__DELETE_EXPIRED_TOKENS__USERNAME: ${PLATFORM_DB_USERNAME}
-    PLATFORM_USER_TOKENS__DELETE_EXPIRED_TOKENS__PASSWORD: ${PLATFORM_DB_PASSWORD}
-    PLATFORM_USER_TOKENS__DELETE_EXPIRED_TOKENS__DATABASE: ${PLATFORM_DB_NAME}
+        S3_BASE_PATH: AMA/IntelligentPlatform
+        S3_CACHE_CLASS: datalabs.etl.dag.cache.s3.S3TaskDataCache
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+    DAG:
+        DAG_CLASS: datalabs.etl.dag.intelligent_platform.token.DAG
+        DAG_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DAGState
+            LOCK_TABLE: DataLake-scheduler-locks-${ENVIRONMENT}
+            STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
+        DAG_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor
+        TASK_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor
+        TASK_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask
+        ENVIRONMENT: ${ENVIRONMENT}
+        LAMBDA_FUNCTION: AIP-${ENVIRONMENT}-DAG
+        STATUS_NOTIFICATION_WEB_HOOK: https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908
+    DELETE_EXPIRED_TOKENS:
+        BACKEND: ${PLATFORM_DB_BACKEND}
+        HOST: ${PLATFORM_DB_HOST}
+        PORT: ${PLATFORM_DB_PORT}
+        DATABASE: ${PLATFORM_DB_NAME}
+        USERNAME: ${PLATFORM_DB_USERNAME}
+        PASSWORD: ${PLATFORM_DB_PASSWORD}

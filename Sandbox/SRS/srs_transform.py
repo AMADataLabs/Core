@@ -29,15 +29,16 @@ def get_old_scrape():
     return srs_old
 
 def remove_dental(scraped):
-    no_dental = scraped[scraped['Curr Status']!='Adv-Std From Dental']
+    no_dental = scraped[scraped['Student Status']!='Adv-Std From Dental']
     return no_dental, scraped
 
 #scraped new
 def find_updates(srs_old, srs_new):
-    srs_old['Curr Status Date'] = pd.to_datetime(srs_old['Curr Status Date'])
-    srs_new['Curr Status Date'] = pd.to_datetime(srs_new['Curr Status Date'])
+    print(srs_old.columns)
+    srs_old['Status Effective Date'] = pd.to_datetime(srs_old['Status Effective Date'])
+    srs_new['Status Effective Date'] = pd.to_datetime(srs_new['Status Effective Date'])
     all_scraped = pd.merge(srs_old, srs_new, on='AAMC ID', suffixes = ['_old', ''], how = 'right')
-    all_scraped['Time_Diff'] = all_scraped['Curr Status Date'] - all_scraped['Curr Status Date_old']
+    all_scraped['Time_Diff'] = all_scraped['Status Effective Date'] - all_scraped['Status Effective Date_old']
     updated = all_scraped[all_scraped['Time_Diff']!='0 days'][srs_new.columns]
     new = srs_new[srs_new['AAMC ID'].isin(srs_old['AAMC ID']==False)]
     updates = pd.concat([updated, new]).drop_duplicates()
@@ -96,23 +97,23 @@ def add_details(aamc_found, all_students, me_entity):
     school_crosswalk = pd.read_excel(school_crosswalk_file)
     status_crosswalk_file = os.environ.get('STATUS_CROSSWALK')
     status_crosswalk = pd.read_excel(status_crosswalk_file)
-    found_students = pd.merge(found_info , status_crosswalk, left_on='Curr Status', right_on='STATUS_DESC', how='left')
+    found_students = pd.merge(found_info , status_crosswalk, left_on='Student Status', right_on='STATUS_DESC', how='left')
     found_students  = pd.merge(found_students , school_crosswalk, on='INST_ID', how='left')
     found_students['AMA_ID'] = [fix_id(x) for x in found_students.AMA_ID]
     found_students = pd.merge(found_students, me_entity, on='entity_id', how='left')
     found_students['ama_status'] = found_students['AMA Status']
-    founded = found_students[found_students['Curr Exp Grad Date']!='None']
-    unfounded = found_students[found_students['Curr Exp Grad Date']=='None']
-    founded['CURRENT_GRAD_YEAR'] = [x.year for x in pd.to_datetime(founded['Curr Exp Grad Date'])]
+    founded = found_students[found_students['Expected Graduation Date']!='None']
+    unfounded = found_students[found_students['Expected Graduation Date']=='None']
+    founded['CURRENT_GRAD_YEAR'] = [x.year for x in pd.to_datetime(founded['Expected Graduation Date'])]
     unfounded['CURRENT_GRAD_YEAR'] = 'None'
     found_students = pd.concat([founded, unfounded]).drop_duplicates()
     return found_students
 
 #grad_year
 def find_grad_year_updates(found_students):
-    founded = found_students[found_students['Curr Exp Grad Date']!='None']
-    unfounded = found_students[found_students['Curr Exp Grad Date']=='None']
-    founded['CURRENT_GRAD_YEAR'] = [x.year for x in pd.to_datetime(founded['Curr Exp Grad Date'])]
+    founded = found_students[found_students['Expected Graduation Date']!='None']
+    unfounded = found_students[found_students['Expected Graduation Date']=='None']
+    founded['CURRENT_GRAD_YEAR'] = [x.year for x in pd.to_datetime(founded['Expected Graduation Date'])]
     unfounded['CURRENT_GRAD_YEAR'] = 'None'
     found_students = pd.concat([founded, unfounded])
     grad_match = []
@@ -141,9 +142,9 @@ def find_status_updates(found_students, grad_year):
 def process(grad_year, status_update):
     processing_rules_file = os.environ.get('PROCESSING_RULES')
     processing_rules = pd.read_excel(processing_rules_file)
-    stats = pd.merge(processing_rules, status_update, left_on = ['Curr Status', 'edu_status'], right_on =['Curr Status', 'edu_sts'])
+    stats = pd.merge(processing_rules, status_update, left_on = ['Curr Status', 'edu_status'], right_on =['Student Status', 'edu_sts'])
     manual = stats[(stats['PROCESS?']=='N')&(stats['NEW EDU_STS/ACTION']=='Flag for Manual Review')]
-    auto = stats[(stats['PROCESS?']=='Y')][['aamc_id','NEW EDU_STS/ACTION','NEW STS REASON','NEW CATEGORY CODE','Curr Status Date','Curr Exp Grad Date']]
+    auto = stats[(stats['PROCESS?']=='Y')][['aamc_id','NEW EDU_STS/ACTION','NEW STS REASON','NEW CATEGORY CODE','Status Effective Date','Expected Graduation Date']]
     other_sts = status_update[status_update.aamc_id.isin(stats.aamc_id)==False]
     manual = pd.concat([manual, other_sts], sort=True)
     unprocessed = stats[(stats['PROCESS?']=='N')&(stats['NEW EDU_STS/ACTION']!='Flag for Manual Review')]
@@ -161,16 +162,16 @@ def get_columns():
                     'middle_nm',
                     'last_nm',
                     'gender',
-                    'Sex', 'Birth State', 'birth_state_cd',
+                    'Gender', 'Birth State', 'birth_state_cd',
                     'grad_yr',
                     'degree_cd',
                     'Current Degree Program',
-                    'Curr Class Level',
-                    'Curr Exp Grad Date',
-                    'Curr Med School Campus',
-                    'Curr Status',
-                    'Curr Status AcadYear',
-                    'Curr Status Date'
+                    'Class Level',
+                    'Expected Graduation Date',
+                    'Medical School Campus',
+                    'Student Status',
+                    'Status Academic Year',
+                    'Status Effective Date'
                     ],
         'STATUS_UPDATE': ['me','aamc_id',
                         'stud_id',
@@ -192,27 +193,27 @@ def get_columns():
                         'Birth Country',
                         'Birth County',
                         'Birth State',
-                        'Citizen Country',
-                        'Curr Class Level',
-                        'Curr Class Level Eff Date',
-                        'Curr Exp Grad Date',
-                        'Curr Med School Campus',
-                        'Curr Status',
-                        'Curr Status AcadYear',
-                        'Curr Status Date',
+                        'Citizenship Country',
+                        'Class Level',
+                        'Class Level Effective Date',
+                        'Expected Graduation Date',
+                        'Medical School Campus',
+                        'Student Status',
+                        'Status Academic Year',
+                        'Status Effective Date',
                         'Current Degree Program',
                         'Date of Birth',
                         'Email',
                         'INST_ID',
-                        'Legal Country',
-                        'Legal County',
-                        'Legal State',
+                        'Legal Residence Country',
+                        'Legal Residence County',
+                        'Legal Residence State',
                         'Matriculation Degree Program',
                         'Name',
-                        'Preferred USMLE ID',
-                        'RaceEthnicity',
-                        'Sex',
-                        'Visa Desc'],
+                        'USMLE ID',
+                        'Race and Ethnicity',
+                        'Gender',
+                        'Visa Description'],
         'GRAD_YEAR': ['me','aamc_id',
                     'stud_id',
                     'grad_yr',
@@ -233,51 +234,51 @@ def get_columns():
                     'Birth Country',
                     'Birth County',
                     'Birth State',
-                    'Citizen Country',
-                    'Curr Class Level',
-                    'Curr Class Level Eff Date',
-                    'Curr Exp Grad Date',
-                    'Curr Med School Campus',
-                    'Curr Status',
-                    'Curr Status AcadYear',
-                    'Curr Status Date',
+                    'Citizenship Country',
+                    'Class Level',
+                    'Class Level Effective Date',
+                    'Expected Graduation Date',
+                    'Medical School Campus',
+                    'Student Status',
+                    'Status Academic Year',
+                    'Status Effective Date',
                     'Current Degree Program',
                     'Date of Birth',
                     'Email',
                     'INST_ID',
-                    'Legal Country',
-                    'Legal County',
-                    'Legal State',
+                    'Legal Residence Country',
+                    'Legal Residence County',
+                    'Legal Residence State',
                     'Matriculation Degree Program',
                     'Name',
-                    'Preferred USMLE ID',
-                    'RaceEthnicity',
-                    'Sex',
-                    'Visa Desc'],
+                    'USMLE ID',
+                    'Race and Ethnicity',
+                    'Gender',
+                    'Visa Description'],
         'MISSING': ['aamc_id',
                     'Birth Country',
                     'Birth County',
                     'Birth State',
-                    'Citizen Country',
-                    'Curr Class Level',
-                    'Curr Class Level Eff Date',
-                    'Curr Exp Grad Date',
-                    'Curr Med School Campus',
-                    'Curr Status',
-                    'Curr Status AcadYear',
-                    'Curr Status Date',
+                    'Citizenship Country',
+                    'Class Level',
+                    'Class Level Effective Date',
+                    'Expected Graduation Date',
+                    'Medical School Campus',
+                    'Student Status',
+                    'Status Academic Year',
+                    'Status Effective Date',
                     'Current Degree Program',
                     'Date of Birth',
                     'Email',
-                    'Legal Country',
-                    'Legal County',
-                    'Legal State',
+                    'Legal Residence Country',
+                    'Legal Residence County',
+                    'Legal Residence State',
                     'Matriculation Degree Program',
                     'Name',
-                    'Preferred USMLE ID',
-                    'RaceEthnicity',
-                    'Sex',
-                    'Visa Desc']
+                    'USMLE ID',
+                    'Race and Ethnicity',
+                    'Gender',
+                    'Visa Description']
     }
     return column_dict
 
@@ -314,13 +315,13 @@ def create_it_file(grad_year):
               'stud_id':'STUD_ID',
               'school_id':'SCHOOL_ID',
               'edu_sts' : 'RECENT_AMA_EDU_STS',
-              'Curr Status':'CURRENT_AAMC_STATUS',
+              'Student Status':'CURRENT_AAMC_STATUS',
               'STATUS_CD':'CURRENT_AAMC_STATUS_CD',
-              'Curr Status Date':'AAMC_CURRENT_STATUS_DATE',
-              'Curr Exp Grad Date':'AAMC_CURRENT_EXP_GRAD_DATE',
+              'Status Effective Date':'AAMC_CURRENT_STATUS_DATE',
+              'Expected Graduation Date':'AAMC_CURRENT_EXP_GRAD_DATE',
               'grad_yr':'AMA_GRAD_YEAR',
               'CURRENT_GRAD_YEAR':'AAMC_CURRENT_GRAD_YEAR', 
-              'Curr Class Level':'AAMC_CURRENT_CLASS_LEVEL'
+              'Class Level':'AAMC_CURRENT_CLASS_LEVEL'
     }
     grad_test = grad_year.rename(columns = col_rename)[columns]
     grad_test['CURRENT_AAMC_STATUS_CD'] = [str(x).split('.')[0] for x in grad_test['CURRENT_AAMC_STATUS_CD']]
@@ -341,6 +342,7 @@ def whole_shebang():
     # srs_old = pd.read_csv(f'{out}/SRS_Scrape_2021-08-24.csv', low_memory = False)
     LOGGER.info("Scraping...")
     srs_new = scrape_srs()
+    # srs_new = pd.read_csv(f'{out}/SRS_Scrape_{today}.csv')
     srs_new.to_csv(f'{out}/SRS_Scrape_Backup_{today}.csv', index=False)
     srs_new.to_excel(f'{out}/SRS_Scrape_{today}.xlsx', index=False)
     # srs_new = pd.read_csv(f'{out}/SRS_Scrape_2021-09-27.csv', low_memory = False)

@@ -9,8 +9,10 @@ CPT/Files/Build
 CPT/Files/Legacy
 CPT/Files/Ingest
 CPT/Files/Watermark
+CPT/SNOMED/API
 CPT/SNOMED/ETL
 DBL
+HelloWorld
 HelloWorldJava/DAG
 HelloWorldJava/Task
 HelloWorldVault
@@ -27,4 +29,4 @@ OneView/API
 Scheduler
 VeriCre/DataSteward
 VeriCre/API/Profile
-HelloWorld
+VeriCre/ETL/Profile

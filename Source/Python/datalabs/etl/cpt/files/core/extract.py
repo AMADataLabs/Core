@@ -92,6 +92,9 @@ class InputFilesListExtractorTask(Task):
 
         run_paths = [path for path in all_run_paths if path.startswith(year) and min_date < path < max_date]
 
+        if not run_paths:
+            raise IOError(f"Unable to find any run paths between {min_date}/ and {max_date}/.")
+
         return run_paths[-1]
 
     def _generate_annual_files(self, core_path):

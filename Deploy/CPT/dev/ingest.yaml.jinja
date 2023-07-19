@@ -13,9 +13,10 @@ CPT_FILES_INGESTION:
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-IngestionDAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.files.ingest.CPTFilesIngestionDAG'
-        DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-        DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-        STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         DAG_TOPIC_ARN: ${DAG_TOPIC_ARN}
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'

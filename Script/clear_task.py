@@ -10,6 +10,7 @@ import datalabs.etl.dag.cpt.files.core
 import datalabs.etl.dag.cpt.files.hcpcs
 import datalabs.etl.dag.cpt.files.ingest
 import datalabs.etl.dag.cpt.files.watermark
+import datalabs.etl.dag.cpt.snomed
 import datalabs.etl.dag.intelligent_platform.developer.email
 import datalabs.etl.dag.intelligent_platform.licensing.reminders
 import datalabs.etl.dag.intelligent_platform.licensing.sync
@@ -29,8 +30,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 def main(args):
     parameters = dict(
-        STATE_LOCK_TABLE='N/A',
-        DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
+        LOCK_TABLE='N/A',
+        STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
     )
     state = DAGState(parameters)
     dag_class = DAG.CLASSES[args["dag"]]
