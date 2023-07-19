@@ -29,7 +29,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DOMAIN: 'wsinttest'
+        AMA_DOMAIN: 'wsinttest'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-tst-backend-api-alb-139444344.us-east-1.elb.amazonaws.com'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
