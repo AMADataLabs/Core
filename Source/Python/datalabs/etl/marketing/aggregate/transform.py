@@ -211,7 +211,6 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
 class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
-    PARAMETER_CLASS = InputDataCleanerTaskParameters
     MAX_ID_ATTEMPTS = 20
 
     def run(self):
@@ -363,7 +362,7 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
         contact_ids = cls._generate_unique_contact_ids(new_record_count, flatfile['hs_contact_id'])
 
-        if len(contact_ids) != 0:
+        if len(contact_ids) > 0:
             flatfile.loc[flatfile.hs_contact_id.isna(), "hs_contact_id"] = contact_ids
 
         return flatfile
