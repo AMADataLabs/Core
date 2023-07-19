@@ -175,7 +175,7 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _is_cpt_product(self, product):
-        return product.startswith(PRODUCT_CODE) or product.statswith(OLD_PRODUCT_CODE)
+        return product.startswith(PRODUCT_CODE) or product.startswith(OLD_PRODUCT_CODE)
 
     @classmethod
     def _parse_authorization_year(cls, name, current_time):
