@@ -667,10 +667,11 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i
                     Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
-                    Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
+                    JSON-API=Endpoint.zip
+                    JSON-API-Authorizer=Endpoint.zip
+                    ZIP-API=Endpoint.zip
+                    ZIP-API-Authorizer=Endpoint.zip
+                    SNOMED-API-Authorizer=Endpoint.zip
             - step:
                 name: Update Staging Lambda Functions
                 script:
@@ -692,10 +693,11 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
-                    Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
+                    JSON-API=Endpoint.zip
+                    JSON-API-Authorizer=Endpoint.zip
+                    ZIP-API=Endpoint.zip
+                    ZIP-API-Authorizer=Endpoint.zip
+                    SNOMED-API-Authorizer=Endpoint.zip
 
         CPT-Files-Ingest:
         - step:
