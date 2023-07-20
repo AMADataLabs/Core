@@ -74,7 +74,8 @@ def physician_event():
         database_username='',
         database_password='',
         document_bucket_name='',
-        domain='',
+        ama_domain='',
+        vericre_alb_domain='',
         payload={}
     )
 

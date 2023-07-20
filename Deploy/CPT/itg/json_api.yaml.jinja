@@ -1,0 +1,137 @@
+---
+CPT_JSON_API:
+    GLOBAL:
+        ENVIRONMENT: itg
+        ACCOUNT: '285887636563'
+
+        S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
+
+        DATABASE_HOST: cpt-api-itg-db.cxgp9osuwqi3.us-east-1.rds.amazonaws.com
+        DATABASE_PORT: '5432'
+        DATABASE_BACKEND: 'postgresql+psycopg2'
+        DATABASE_NAME: 'cpt'
+        DATABASE_USERNAME:  cptadmin
+        DATABASE_PASSWORD:  '{{database_password}}'
+
+    ROUTE:
+        DESCRIPTOR: '/descriptor/*'
+        DESCRIPTORS: '/descriptors'
+        CONSUMER_DESCRIPTOR: '/consumer/descriptor/*'
+        CONSUMER_DESCRIPTORS: '/consumer/descriptors'
+        CLINICIAN_DESCRIPTORS: '/clinician/descriptors/*'
+        ALL_CLINICIAN_DESCRIPTORS: '/clinician/descriptors'
+        PLA_DETAILS: '/pla/details/*'
+        ALL_PLA_DETAILS: '/pla/details'
+        MODIFIER: '/modifier/*'
+        MODIFIERS: '/modifiers'
+        PDFS: '/pdfs'
+        RELEASES: '/releases'
+        DEFAULT: '/*'
+
+    DESCRIPTOR:
+        TASK_CLASS:  'datalabs.access.cpt.api.descriptor.DescriptorEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    DESCRIPTORS:
+        TASK_CLASS:  'datalabs.access.cpt.api.descriptor.AllDescriptorsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    CONSUMER_DESCRIPTOR:
+        TASK_CLASS:  'datalabs.access.cpt.api.consumer_descriptor.ConsumerDescriptorEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    CONSUMER_DESCRIPTORS:
+        TASK_CLASS:  'datalabs.access.cpt.api.consumer_descriptor.AllConsumerDescriptorsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    CLINICIAN_DESCRIPTORS:
+        TASK_CLASS:  'datalabs.access.cpt.api.clinician_descriptor.ClinicianDescriptorsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    ALL_CLINICIAN_DESCRIPTORS:
+        TASK_CLASS:  'datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    PLA_DETAILS:
+        TASK_CLASS:  'datalabs.access.cpt.api.pla.PLADetailsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    ALL_PLA_DETAILS:
+        TASK_CLASS:  'datalabs.access.cpt.api.pla.ALlPLADetailsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    MODIFIER:
+        TASK_CLASS:  'datalabs.access.cpt.api.modifier.ModifierEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    MODIFIERS:
+        TASK_CLASS:  'datalabs.access.cpt.api.modifier.AllModifierEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    PDFS:
+        TASK_CLASS:  'datalabs.access.cpt.api.pdf.LatestPDFsEndpointTask'
+        BUCKET: ${S3_DOWNLOADS_BUCKET}
+        BASE_PATH: ''
+        URL_DURATION: '600'
+
+    RELEASES:
+        TASK_CLASS:  'datalabs.access.cpt.api.release.ReleasesEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'
