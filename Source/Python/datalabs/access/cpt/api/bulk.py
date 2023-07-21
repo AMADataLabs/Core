@@ -174,7 +174,7 @@ class FilesEndpointTask(APIEndpointTask):
         return archive_path
 
     @classmethod
-    def _is_cpt_product(self, product):
+    def _is_cpt_product(cls, product):
         return product.startswith(PRODUCT_CODE) or product.startswith(OLD_PRODUCT_CODE)
 
     @classmethod
