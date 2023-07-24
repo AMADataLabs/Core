@@ -12,3 +12,4 @@ class DAG(dag.DAG):
 
 # pylint: disable=pointless-statement
 DAG.EXTRACT_SNOMED_FILE >> DAG.CREATE_SNOMED_MAPPINGS >> DAG.SPLIT_MAPPINGS >> DAG.first('LOAD_SNOMED_MAPPINGS')
+DAG.sequence('LOAD_SNOMED_MAPPINGS')
