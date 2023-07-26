@@ -43,11 +43,12 @@ class DynamoDBLoaderTask(Task):
 
         self._add_data(incoming_hashes, current_hashes, incoming_mappings)
 
-        self._update_data(incoming_hashes, current_hashes, incoming_mappings)
+        # self._update_data(incoming_hashes, current_hashes, incoming_mappings)
 
     @classmethod
     def _create_hash_entries(cls, data):
         incoming_hashes = []
+        hash_entries = pandas.DataFrame(columns=["pk", "sk"])
 
         for item in data:
             if item["sk"].startswith("UNMAPPABLE:") or item["sk"].startswith("CPT:"):
@@ -55,7 +56,10 @@ class DynamoDBLoaderTask(Task):
 
                 incoming_hashes.append(dict(pk=f'{item["pk"]}:{item["sk"]}', sk=f"MD5:{md5}"))
 
-        return pandas.DataFrame(incoming_hashes)
+        if incoming_hashes:
+            hash_entries = pandas.DataFrame(incoming_hashes)
+
+        return hash_entries
 
     def _get_current_hashes(self):
         current_hashes_rows = []
@@ -91,10 +95,13 @@ class DynamoDBLoaderTask(Task):
 
         for mapping in new_mappings:
             pk = ":".join((mapping["pk"], mapping["sk"]))
-            items = [mapping, new_hashes[pk]] + new_keywords[pk]
+            items = [mapping, new_hashes[pk]] # + new_keywords[pk]
 
             LOGGER.debug("Adding items for mapping %s", mapping)
             self._add_to_table(items)
+
+        for keywords in new_keywords.values():
+            self._add_to_table(keywords)
 
     def _update_data(self, incoming_hashes, current_hashes, incoming_mappings):
         updated_hashes = self._select_updated_hashes(incoming_hashes, current_hashes)
@@ -172,13 +179,17 @@ class DynamoDBLoaderTask(Task):
     @classmethod
     def _get_new_keywords(cls, new_hashes, incoming_mappings):
         keywords = defaultdict(list)
+        #
+        # for pk in new_hashes:
+        #     for item in incoming_mappings:
+        #         if pk == item['pk']:
+        #             keywords[pk].append(item)
+        #
+        # LOGGER.debug("New Keywords: %s", )
 
-        for pk in new_hashes:
-            for item in incoming_mappings:
-                if pk == item['pk']:
-                    keywords[pk].append(item)
-
-        LOGGER.debug("New Keywords: %s", )
+        for item in incoming_mappings:
+            if item["sk"].startswith("KEYWORD:"):
+                keywords[item["pk"]].append({"pk": item['pk'], "sk": item['sk']})
 
         return keywords
 
