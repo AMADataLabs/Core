@@ -224,5 +224,5 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             LOGGER.info('CAQH sync request finished for %s physician(s)', len(physicians))
         except requests.exceptions.ReadTimeout:
             LOGGER.info('CAQH sync request sent for %s physician(s)', len(physicians))
-        except Exception as exception:
+        except requests.exceptions.RequestException as exception:
             LOGGER.error('CAQH sync request failed: %s', exception)
