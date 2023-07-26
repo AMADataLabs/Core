@@ -12,13 +12,14 @@ LOGGER.setLevel(logging.DEBUG)
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _get_task_parameters(self):
+        self._parameters["headers"] = {key.lower():value for key, value in self._parameters["headers"].items()}
         token = self._get_authorization_token()
         LOGGER.info('Bearer token: %s', token)
 
         return self._get_authorization_parameters(token)
 
     def _get_authorization_token(self):
-        token = self._parameters["headers"].get("Authorization").strip()
+        token = self._parameters["headers"].get("authorization").strip()
 
         if not token.startswith('Bearer '):
             raise AuthorizerTaskException('Invalid bearer token: "{token}"')
