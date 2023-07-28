@@ -2608,7 +2608,6 @@ pipelines:
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
 
-
         #   - parallel: (This section is commented out as instructed. If you need to uncomment it in the future, please remove the '#' at the beginning of each line.)
         #       - step:
         #           name: Lambda reload development
@@ -2629,6 +2628,84 @@ pipelines:
         #           name: Lambda reload production
         #           script:
         #           - '...'
+
+        DEUS-API:
+            - step:
+                name: Dev Build and Test
+                caches:
+                - build-dependencies
+                - test-dependencies
+                script:
+                - python -m venv venv
+                - source venv/bin/activate
+                - pip install -r requirements.txt
+                - pytest tests/
+                artifacts:
+                - Build/DEUS/API/**  # Add any specific artifacts to be saved after the build
+
+            # Dev deployment step
+            - step:
+                name: Deploy to dev Environment
+                deployment: dev
+                caches:
+                    - environment-dev
+                script:
+                    - echo "Deploying to dev Environment"
+
+            # tst, itg, and prd deployment steps are commented out as requested
+            # Uncomment and configure the deployment steps when needed
+
+            # tst:
+            #   - step:
+            #       name: Deploy to tst Environment
+            #       deployment: tst
+            #       caches:
+            #         - environment-test
+            #       script:
+            #         - echo "Deploying to tst Environment"
+
+            # itg:
+            #   - step:
+            #       name: Deploy to itg Environment
+            #       deployment: itg
+            #       caches:
+            #         - environment-stage
+            #       script:
+            #         - echo "Deploying to itg Environment"
+
+            # prd:
+            #   - step:
+            #       name: Deploy to prd Environment
+            #       deployment: prd
+            #       caches:
+            #         - environment-prod
+            #       script:
+            #         - echo "Deploying to prd Environment"
+
+        # Commented-out Lambda reload steps
+        # Uncomment and configure the Lambda reload steps when needed
+
+        # - parallel:
+        #     - step:
+        #         name: Lambda reload development
+        #         script:
+        #           - '...'
+
+        #     - step:
+        #         name: Lambda reload test
+        #         script:
+        #           - '...'
+
+        #     - step:
+        #         name: Lambda reload integration
+        #         script:
+        #           - '...'
+
+        #     - step:
+        #         name: Lambda reload production
+        #         script:
+        #           - '...'
+
 
 
 definitions:
