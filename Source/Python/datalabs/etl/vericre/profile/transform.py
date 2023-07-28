@@ -35,8 +35,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
     def run(self):
         print('start')
         documents = [self._csv_to_dataframe(d, sep='|') for d in self._data]
-        print('flag 1 done')
-        documents[2] = documents[2][documents[2]["END_DT"].isnull()]
+        print('flag 1 done...')
 
         ama_masterfile = self.create_demographics(documents[2])
         print(len(ama_masterfile))
@@ -72,15 +71,17 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         print(len(aggregated_medical_training.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
 
-        aggregated_licenses = self.create_licenses(documents[3])
-        print(len(aggregated_licenses))
-        print(len(aggregated_licenses.drop_duplicates(subset=["entityId"])))
-        ama_masterfile = ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
+        # Breaks AMA Mastefile
+        # aggregated_licenses = self.create_licenses(documents[3])
+        # print(len(aggregated_licenses))
+        # print(len(aggregated_licenses.drop_duplicates(subset=["entityId"])))
+        # ama_masterfile = ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
 
-        aggregated_sanctions = self.create_sanctions(documents[7])
-        print(len(aggregated_sanctions))
-        print(len(aggregated_sanctions.drop_duplicates(subset=["entityId"])))
-        ama_masterfile = ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
+        # aggregated_sanctions = self.create_sanctions(documents[7])
+        # print('sanctions')
+        # print(len(aggregated_sanctions))
+        # print(len(aggregated_sanctions.drop_duplicates(subset=["entityId"])))
+        # ama_masterfile = ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
 
         aggregated_mpa = self.create_mpa(documents[2])
         print(len(aggregated_mpa))
@@ -218,7 +219,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
             "DEA_EXPR_DT": "expirationDate",
             "BUSINESS_ACTIVITY": "businessActivity",
             "DEA_STATUS_DESC": "activityStatus",
-            "PAYMENT_IND,,,,,": "paymentInd" # TODO - FIXME - This change needs to be made in the CSV, I think
+            "PAYMENT_IND": "paymentInd"
         }
 
         ADDRESS_COLUMNS = {
@@ -245,9 +246,25 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         aggregated_dea["dea"] = dea.to_dict(orient="records")
         aggregated_dea = aggregated_dea.groupby("entityId")["dea"].apply(list).reset_index()
 
-        # TODO: Sorting
-        # aggregated_dea['lastReportedDate'] = pandas.to_datetime(aggregated_dea['dea'].apply(lambda x: x[0]['lastReportedDate']))
-        # aggregated_dea_sorted = aggregated_dea.sort_values('lastReportedDate')
+        aggregated_dea.sort_values('entityId')
+
+        # Testing
+        # e = aggregated_dea.head(5)
+        # with open('five_entries_aggregated_dea1.psv', 'w') as file:
+        #     file.write(e.to_string())
+
+        # # Convert the 'lastReportedDate' strings to datetime objects for correct sorting
+        # e['dea'] = e['dea'].apply(lambda x: x[0])  # Unpack the list (assuming each list contains only one dictionary)
+        # e['lastReportedDate'] = pandas.to_datetime(e['dea'].apply(lambda x: x['lastReportedDate']))
+
+        # # Sort the DataFrame by 'lastReportedDate' in ascending order
+        # sorted_data = e.sort_values(by='lastReportedDate', ascending=True)
+        # with open('five_entries_aggregated_dea-sorted1.psv', 'w') as file:
+        #     file.write(sorted_data.to_string())
+
+        # End testing
+
+        print('done!')
 
         return aggregated_dea
 
@@ -273,7 +290,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
             "REACTIVATION_DT": "reactivationDate",
             "REP_NPI_CD": "repNPICode",
             "RPTD_DT": "lastReportedDate",
-            "END_DT": "endDate"
         }
 
         npi = npi_data[NPI_COLUMNS.keys()].rename(columns=NPI_COLUMNS)
@@ -393,6 +409,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_sanctions(cls, sanctions):
+        print("flag 2")
+
         SANCTIONS_COLUMNS = [
             "medicareMedicaidSanction",
             "federalSanctions",
