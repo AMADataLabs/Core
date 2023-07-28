@@ -2,9 +2,10 @@
 from   dataclasses import dataclass
 from   datetime import datetime
 from   io import BytesIO
-import logging
+from   logging import basicConfig, getLogger, DEBUG
 
-import requests
+from   requests import post
+from   requests.exceptions import RequestException, ReadTimeout
 from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 from   zeep import Client
 
@@ -14,9 +15,9 @@ from   datalabs.access.vericre.api.wsdl import ENTERPRISE_SEARCH_WSDL
 from   datalabs.model.vericre.api import User
 from   datalabs.parameter import add_schema
 
-logging.basicConfig()
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+basicConfig()
+LOGGER = getLogger(__name__)
+LOGGER.setLevel(DEBUG)
 
 @add_schema(unknowns=True)
 @dataclass
@@ -214,7 +215,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         ]
 
         try:
-            requests.post(
+            post(
                 f'https://{self._parameters.vericre_alb_domain}/users/physicians/search/onCAQHSync',
                 verify=False,
                 timeout=(None, 0.1),
@@ -222,7 +223,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             )
 
             LOGGER.info('CAQH sync request finished for %s physician(s)', len(physicians))
-        except requests.exceptions.ReadTimeout:
+        except ReadTimeout:
             LOGGER.info('CAQH sync request sent for %s physician(s)', len(physicians))
-        except requests.exceptions.RequestException as exception:
+        except RequestException as exception:
             LOGGER.error('CAQH sync request failed: %s', exception)
