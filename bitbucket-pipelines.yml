@@ -2631,26 +2631,111 @@ pipelines:
 
         DEUS-API:
             - step:
-                name: Dev Build and Test
-                caches:
-                - build-dependencies
-                - test-dependencies
-                script:
-                - python -m venv venv
-                - source venv/bin/activate
-                - pip install -r requirements.txt
-                - pytest tests/
-                artifacts:
-                - Build/DEUS/API/**  # Add any specific artifacts to be saved after the build
-
-            # Dev deployment step
-            - step:
-                name: Deploy to dev Environment
-                deployment: dev
-                caches:
-                    - environment-dev
-                script:
-                    - echo "Deploying to dev Environment"
+                    name: Create Development Component Package
+                    caches:
+                    - environment-master
+                    script:
+                    - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    - bash Deploy/Master/deploy-package --project DEUS/API
+            - parallel:
+                - step:
+                    name: Update sandbox Bundle
+                    caches:
+                    - environment-master
+                    script:
+                    - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    - >-
+                        bash Deploy/Master/deploy-lambda-function
+                        --environment sbx
+                        --project DEUS/API
+                        --bundle DEUS/API.zip
+                # - step:
+                #     name: Update development Bundle
+                #     caches:
+                #     - environment-dev
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                #         --environment dev
+                #         --project DEUS/API
+                #         --bundle DEUS/API.zip
+                # - step:
+                #     name: Update test Bundle
+                #     caches:
+                #     - environment-test
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                #         --environment tst
+                #         --project DEUS/API
+                #         --bundle DEUS/API.zip
+                # - step:
+                #     name: Update production Bundle
+                #     caches:
+                #     - environment-prod
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                #         --environment prd
+                #         --project DEUS/API
+                #         --bundle DEUS/API.zip    
+            
+            # - parallel:
+                # - step:
+                #     name: Reload Sandbox Lambda Functions
+                #     script:
+                #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #     - >-
+                #         bash Deploy/Master/update-functions -e sbx -s DEUS-API -p DEUS/API
+                #         DEUS-API=Deus.zip
+                # - step:
+                #     name: Update Development Lambda Functions
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DEUS-API -p DEUS/API
+                #         DEUS-API=Deus.zip
+                # - step:
+                #     name: Update Test Lambda Functions
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i
+                #         Deploy/Master/update-functions -e tst -s DEUS-API -p DEUS/API
+                #         DEUS-API=Deus.zip
+                # - step:
+                #     name: Update Staging Lambda Functions
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i
+                #         Deploy/Master/update-functions -e itg -s DEUS-API -p DEUS/API
+                #         DEUS-API=Deus.zip
+                # - step:
+                #     name: Update Production Lambda Functions
+                #     script:
+                #     - >-
+                #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                #     - >-
+                #         bash --rcfile assume_role.rc -i
+                #         Deploy/Master/update-functions -e prd -s DEUS-API -p DEUS/API -p DEUS/API
+                #         DEUS-API=Deus.zip
 
             # tst, itg, and prd deployment steps are commented out as requested
             # Uncomment and configure the deployment steps when needed
