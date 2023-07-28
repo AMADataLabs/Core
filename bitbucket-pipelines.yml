@@ -2696,7 +2696,7 @@ pipelines:
                 #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 #     - >-
                 #         bash Deploy/Master/update-functions -e sbx -s DEUS-API -p DEUS/API
-                #         DEUS-API=Deus.zip
+                #         DEUS-API=DEUS.zip
                 # - step:
                 #     name: Update Development Lambda Functions
                 #     script:
@@ -2705,7 +2705,7 @@ pipelines:
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
                 #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DEUS-API -p DEUS/API
-                #         DEUS-API=Deus.zip
+                #         DEUS-API=DEUS.zip
                 # - step:
                 #     name: Update Test Lambda Functions
                 #     script:
@@ -2715,7 +2715,7 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i
                 #         Deploy/Master/update-functions -e tst -s DEUS-API -p DEUS/API
-                #         DEUS-API=Deus.zip
+                #         DEUS-API=DEUS.zip
                 # - step:
                 #     name: Update Staging Lambda Functions
                 #     script:
@@ -2725,7 +2725,7 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i
                 #         Deploy/Master/update-functions -e itg -s DEUS-API -p DEUS/API
-                #         DEUS-API=Deus.zip
+                #         DEUS-API=DEUS.zip
                 # - step:
                 #     name: Update Production Lambda Functions
                 #     script:
@@ -2735,7 +2735,7 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i
                 #         Deploy/Master/update-functions -e prd -s DEUS-API -p DEUS/API -p DEUS/API
-                #         DEUS-API=Deus.zip
+                #         DEUS-API=DEUS.zip
 
             # tst, itg, and prd deployment steps are commented out as requested
             # Uncomment and configure the deployment steps when needed
