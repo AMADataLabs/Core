@@ -10,6 +10,7 @@ modspec:
       - task
   - package: datalabs.access
     include:
+      - atdata
       - aws
       - credentials
       - database
