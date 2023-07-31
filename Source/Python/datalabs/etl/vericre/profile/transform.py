@@ -10,8 +10,11 @@ from   typing import List
 
 import xmltodict
 
-from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.vericre.profile.column import AMA_PROFILE_COLUMNS
+from   datalabs.etl.csv import CSVReaderMixin
+from   datalabs.etl.vericre.profile.column import DEMOG_DATA_COLUMNS, DEA_COLUMNS, ADDRESS_COLUMNS, DEMOGRAPHICS_COLUMNS, MAILING_ADDRESS_COLUMNS
+from   datalabs.etl.vericre.profile.column import OFFICE_ADDRESS_COLUMNS, PHONE_COLUMNS, PRACTICE_SPECIALTIES_COLUMNS, NPI_COLUMNS, MEDICAL_SCHOOL_COLUMNS
+from   datalabs.etl.vericre.profile.column import ABMS_COLUMNS, MEDICAL_TRAINING_COLUMNS, LICENSES_COLUMNS, LICENSE_NAME_COLUMNS, SANCTIONS_COLUMNS
+from   datalabs.etl.vericre.profile.column import MPA_COLUMNS, ECFMG_COLUMNS
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -69,90 +72,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_demographics(cls, demog_data):
-        DEMOG_DATA_COLUMNS = [
-            "ENTITY_ID",
-            "PRIMARY_SPECIALTY",
-            "SECONDARY_SPECIALTY",
-            "NAME_PREFIX",
-            "FIRST_NAME",
-            "MIDDLE_NAME",
-            "LAST_NAME",
-            "NAME_SUFFIX",
-            "BIRTH_DT",
-            "EMAIL_ADDRESS",
-            "DEATH_DT",
-            "STUDENT_IND",
-            "CUT_IND",
-            "STATUS_DESC",
-            "PRA_EXPR_DT",
-            "DEGREE_CD",
-            "NAT_BRD_YEAR",
-            "MAILING_ADDRESS_LINE_1",
-            "MAILING_ADDRESS_LINE_2",
-            "MAILING_ADDRESS_LINE_3",
-            "MAILING_CITY_NM",
-            "MAILING_STATE_ID",
-            "MAILING_ZIP",
-            "ADDR_UNDELIVERABLE_IND",
-            "POLO_ADDRESS_LINE_1",
-            "POLO_ADDRESS_LINE_2",
-            "POLO_ADDRESS_LINE_3",
-            "POLO_CITY_NM",
-            "POLO_STATE_ID",
-            "POLO_ZIP",
-            "PHONE_PREFIX",
-            "PHONE_AREA_CD",
-            "PHONE_EXCHANGE",
-            "PHONE_NUMBER",
-            "PHONE_EXTENSION",
-            "MPA_DESC",
-            "ECFMG_NBR"
-        ]
-
-        DEMOGRAPHICS_COLUMNS = {
-            "NAME_PREFIX": "prefix",
-            "FIRST_NAME": "firstName",
-            "MIDDLE_NAME": "middleName",
-            "LAST_NAME": "lastName",
-            "NAME_SUFFIX": "suffix",
-            "BIRTH_DT": "birthDate",
-            "EMAIL_ADDRESS": "emailAddress",
-            "DEATH_DT": "deathDate",
-            "STUDENT_IND": "studentIndicator",
-            "CUT_IND": "cutIndicator",
-            "STATUS_DESC": "amaMembershipStatus",
-            "PRA_EXPR_DT": "praExpirationDate",
-            "DEGREE_CD": "degreeCode",
-            "NAT_BRD_YEAR": "nbmeYear"
-        }
-
-        MAILING_ADDRESS_COLUMNS = {
-            "MAILING_ADDRESS_LINE_1": "line1",
-            "MAILING_ADDRESS_LINE_2": "line2",
-            "MAILING_ADDRESS_LINE_3": "line3",
-            "MAILING_CITY_NM": "city",
-            "MAILING_STATE_ID": "state",
-            "MAILING_ZIP": "zip",
-            "ADDR_UNDELIVERABLE_IND": "addressUndeliverable"
-        }
-
-        OFFICE_ADDRESS_COLUMNS = {
-            "POLO_ADDRESS_LINE_1": "line1",
-            "POLO_ADDRESS_LINE_2": "line2",
-            "POLO_ADDRESS_LINE_3": "line3",
-            "POLO_CITY_NM": "city",
-            "POLO_STATE_ID": "state",
-            "POLO_ZIP": "zip",
-        }
-
-        PHONE_COLUMNS = {
-            "PHONE_PREFIX": "prefix",
-            "PHONE_AREA_CD": "areaCode",
-            "PHONE_EXCHANGE": "exchange",
-            "PHONE_NUMBER": "number",
-            "PHONE_EXTENSION": "extension",
-        }
-
         demog_data.FIRST_NAME = demog_data.FIRST_NAME.str.strip()
         demog_data.MIDDLE_NAME = demog_data.MIDDLE_NAME.str.strip()
         demog_data.CUT_IND = demog_data.CUT_IND.str.strip()
@@ -184,25 +103,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_dea(cls, dea_data):
-        DEA_COLUMNS = {
-            "DEA_NBR": "deaNumber",
-            "DEA_SCHEDULE": "schedule",
-            "DEA_AS_OF_DT": "lastReportedDate",
-            "DEA_EXPR_DT": "expirationDate",
-            "BUSINESS_ACTIVITY": "businessActivity",
-            "DEA_STATUS_DESC": "activityStatus",
-            "PAYMENT_IND": "paymentInd"
-        }
-
-        ADDRESS_COLUMNS = {
-            "ADDRESS_LINE_1": "line1",
-            "ADDRESS_LINE_2": "line2",
-            "ADDRESS_LINE_3": "line3",
-            "CITY_NM": "city",
-            "STATE_ID": "state",
-            "ZIP": "zip"
-        }
-
         dea_data["DEA_NBR"] = dea_data.DEA_NBR.str.strip()
         dea_data["DEA_SCHEDULE"] = dea_data.DEA_SCHEDULE.str.strip()
         dea_data["CITY_NM"] = dea_data.CITY_NM.str.strip()
@@ -220,19 +120,12 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
         aggregated_dea.sort_values('entityId')
 
-        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: x[0])
-        aggregated_dea.sort_values(by='dea', key=lambda col: col.map(lambda x: pandas.to_datetime(x['lastReportedDate'], format='%m/%d/%Y')), inplace=True)
-        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: [x])
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['lastReportedDate'], format='%m/%d/%Y')))
 
         return aggregated_dea
 
     @classmethod
     def create_practice_specialties(cls, demog_data):
-        PRACTICE_SPECIALTIES_COLUMNS = {
-            "PRIMARY_SPECIALTY": "primarySpecialty",
-            "SECONDARY_SPECIALTY": "secondarySpecialty",
-        }
-
         practice_specialties = demog_data[PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=PRACTICE_SPECIALTIES_COLUMNS)
         aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
@@ -241,15 +134,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_npi(cls, npi_data):
-        NPI_COLUMNS = {
-            "NPI_CD": "npiCode",
-            "ENUMERATION_DT": "enumerationDate",
-            "DEACTIVATION_DT": "deactivationDate",
-            "REACTIVATION_DT": "reactivationDate",
-            "REP_NPI_CD": "repNPICode",
-            "RPTD_DT": "lastReportedDate",
-        }
-
         npi = npi_data[NPI_COLUMNS.keys()].rename(columns=NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -260,15 +144,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_medical_schools(cls, med_sch_data):
-        MEDICAL_SCHOOL_COLUMNS = {
-            "GRAD_STATUS": "degreeAwarded",
-            "SCHOOL_NAME": "schoolName",
-            "GRAD_DT": "graduateDate",
-            "MATRICULATION_DT": "matriculationDate",
-            "DEGREE_CD": "degreeCode",
-            "NSC_IND": "nscIndicator"
-        }
-
         med_sch_data.GRAD_STATUS = med_sch_data.GRAD_STATUS.str.strip()
         med_sch_data.GRAD_DT = med_sch_data.GRAD_DT.str.strip()
         med_sch_data.SCHOOL_CD = med_sch_data.SCHOOL_CD.str.strip()
@@ -283,20 +158,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_abms(cls, abms_data):
-        ABMS_COLUMNS = {
-            "CERT_BOARD": "certificateBoard",
-            "CERTIFICATE": "certificate",
-            "CERTIFICATE_TYPE": "certificateType",
-            "EFFECTIVE_DT": "effectiveDate",
-            "EXPIRATION_DT": "expirationDate",
-            "LAST_REPORTED_DT": "lastReportedDate",
-            "REACTIVATION_DT": "reverificationDate",
-            "CERT_STAT_DESC": "certificateStatusDescription",
-            "DURATION_TYPE_DESC": "durationTypeDescription",
-            "MOC_MET_RQT": "meetingMOC",
-            "ABMS_RECORD_TYPE": "status"
-        }
-
         abms = abms_data[ABMS_COLUMNS.keys()].rename(columns=ABMS_COLUMNS)
         abms["disclaimer"] = "ABMS information is proprietary data maintained in a copyright database compilation owned by the American Board of Medical Specialties.  Copyright (2022) American Board of Medical Specialties.  All rights reserved."
         aggregated_abms = abms_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -309,18 +170,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_medical_training(cls, med_train):
-        MEDICAL_TRAINING_COLUMNS = {
-            "PRIMARY_SPECIALITY": "primarySpecialty",
-            "INST_NAME": "institutionName",
-            "INST_STATE": "institutionState",
-            "BEGIN_DT": "beginDate",
-            "END_DT": "endDate",
-            "CONFIRM_STATUS": "confirmStatus",
-            "INC_MSG": "incMsg",
-            "PROGRAM_NM": "programName",
-            "TRAINING_TYPE": "trainingType"
-        }
-
         medical_training = med_train[MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
@@ -332,26 +181,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_licenses(cls, license_data):
-        LICENSES_COLUMNS = {
-            "LIC_ISSUE_DT": "issueDate",
-            "LIC_EXP_DT": "expirationDate",
-            "LIC_AS_OF_DT": "lastReportedDate",
-            "LIC_TYPE_DESC": "typeDescription",
-            "LIC_STATE_DESC": "stateDescription",
-            "DEGREE_CD": "degreeCode",
-            "LIC_STATUS_DESC": "licenseStatusDescription",
-            "LIC_NBR": "licenseNumber",
-            "LIC_RNW_DT": "renewalDate",
-        }
-
-        LICENSE_NAME_COLUMNS ={
-            "FIRST_NAME": "firstName",
-            "MIDDLE_NAME": "middleName",
-            "LAST_NAME": "lastName",
-            "RPTD_SFX_NM": "suffix",
-            "RPTD_FULL_NM": "fullReportedName"
-        }
-
         licenses = license_data[LICENSES_COLUMNS.keys()].rename(columns=LICENSES_COLUMNS)
         license_name = license_data[LICENSE_NAME_COLUMNS.keys()].rename(columns=LICENSE_NAME_COLUMNS)
         licenses["licenseName"] = license_name.to_dict(orient="records")
@@ -362,19 +191,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         return aggregated_licenses
 
     def create_sanctions(self, sanctions):
-        SANCTIONS_COLUMNS = [
-            "medicareMedicaidSanction",
-            "federalSanctions",
-            "additionalSanction",
-            "stateSanctions",
-            "deaSanction",
-            "dodSanction",
-            "airforceSanction",
-            "armySanction",
-            "navySanction",
-            "vaSanction",
-        ]
-
         sanctions = sanctions[["ENTITY_ID", "BOARD_CD"]]
 
         non_state_sanctions = sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].drop_duplicates().copy()
@@ -409,10 +225,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_mpa(cls, demog_data):
-        MPA_COLUMNS = {
-            "MPA_DESC": "description"
-        }
-
         mpa = demog_data[MPA_COLUMNS.keys()].rename(columns=MPA_COLUMNS)
 
         aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -422,10 +234,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_ecfmg(cls, demog_data):
-        ECFMG_COLUMNS = {
-            "ECFMG_NBR": "applicantNumber"
-        }
-
         ecfmg = demog_data[ECFMG_COLUMNS.keys()].rename(columns=ECFMG_COLUMNS)
 
         aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
