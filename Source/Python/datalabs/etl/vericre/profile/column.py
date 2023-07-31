@@ -65,7 +65,8 @@ DEMOG_DATA_COLUMNS = [
     "PHONE_NUMBER",
     "PHONE_EXTENSION",
     "MPA_DESC",
-    "ECFMG_NBR"
+    "ECFMG_NBR",
+    "ME_NBR"
 ]
 
 DEA_COLUMNS = {
@@ -219,4 +220,9 @@ MPA_COLUMNS = {
 
 ECFMG_COLUMNS = {
     "ECFMG_NBR": "applicantNumber"
+}
+
+ME_NUMBER_COLUMNS = {
+    "ENTITY_ID": "entityId",
+    "ME_NBR": "meNumber"
 }

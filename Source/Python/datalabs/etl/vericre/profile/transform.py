@@ -14,7 +14,7 @@ from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.etl.vericre.profile.column import DEMOG_DATA_COLUMNS, DEA_COLUMNS, ADDRESS_COLUMNS, DEMOGRAPHICS_COLUMNS, MAILING_ADDRESS_COLUMNS
 from   datalabs.etl.vericre.profile.column import OFFICE_ADDRESS_COLUMNS, PHONE_COLUMNS, PRACTICE_SPECIALTIES_COLUMNS, NPI_COLUMNS, MEDICAL_SCHOOL_COLUMNS
 from   datalabs.etl.vericre.profile.column import ABMS_COLUMNS, MEDICAL_TRAINING_COLUMNS, LICENSES_COLUMNS, LICENSE_NAME_COLUMNS, SANCTIONS_COLUMNS
-from   datalabs.etl.vericre.profile.column import MPA_COLUMNS, ECFMG_COLUMNS
+from   datalabs.etl.vericre.profile.column import MPA_COLUMNS, ECFMG_COLUMNS, ME_NUMBER_COLUMNS
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -39,7 +39,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         practice_specialties = demog_data[["ENTITY_ID"] + list(PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
         mpa = demog_data[["ENTITY_ID"] + list(MPA_COLUMNS.keys())].copy()
         ecfmg = demog_data[["ENTITY_ID"] + list(ECFMG_COLUMNS.keys())].copy()
-
+        me_number = demog_data[ME_NUMBER_COLUMNS.keys()].rename(columns=ME_NUMBER_COLUMNS).copy()
 
         LOGGER.info("Creating demographics...")
         ama_masterfile = self.create_demographics(demog_data)
@@ -95,8 +95,12 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
         del ecfmg
 
+        LOGGER.info("Creating meNumber...")
+        ama_masterfile = ama_masterfile.merge(me_number, on="entityId", how="left")
+        del me_number
+
         LOGGER.info("Generating JSON...")
-        return [ama_masterfile.to_json(orient="records").encode()]
+        return [ama_masterfile.iloc[:1000].to_json(orient="records").encode()]
 
     @classmethod
     def create_demographics(cls, demog_data):
