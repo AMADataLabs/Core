@@ -36,35 +36,46 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
     def run(self):
         documents = [self._csv_to_dataframe(d, sep='|') for d in self._data]
 
+        LOGGER.info("Creating demographics...")
         ama_masterfile = self.create_demographics(documents[2])
 
+        LOGGER.info("Creating dea...")
         aggregated_dea = self.create_dea(documents[1])
         ama_masterfile = ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
 
+        LOGGER.info("Creating practiceSpecialties...")
         aggregated_practice_specialities = self.create_practice_specialties(documents[2])
         ama_masterfile = ama_masterfile.merge(aggregated_practice_specialities, on="entityId", how="left")
 
+        LOGGER.info("Creating npi...")
         aggregated_npi = self.create_npi(documents[6])
         ama_masterfile = ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
 
+        LOGGER.info("Creating medicalSchools...")
         aggregated_medical_schools = self.create_medical_schools(documents[4])
         ama_masterfile = ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
 
+        LOGGER.info("Creating abms...")
         aggregated_abms = self.create_abms(documents[0])
         ama_masterfile = ama_masterfile.merge(aggregated_abms, on="entityId", how="left")
 
+        LOGGER.info("Creating medicalTraining...")
         aggregated_medical_training = self.create_medical_training(documents[5])
         ama_masterfile = ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
 
+        LOGGER.info("Creating licenses...")
         aggregated_licenses = self.create_licenses(documents[3])
         ama_masterfile = ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
 
+        LOGGER.info("Creating sanctions...")
         aggregated_sanctions = self.create_sanctions(documents[7])
         ama_masterfile = ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
 
+        LOGGER.info("Creating mpa...")
         aggregated_mpa = self.create_mpa(documents[2])
         ama_masterfile = ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
 
+        LOGGER.info("Creating ecfmg...")
         aggregated_ecfmg = self.create_ecfmg(documents[2])
         ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
 
@@ -120,7 +131,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
         aggregated_dea.sort_values('entityId')
 
-        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['lastReportedDate'], format='%m/%d/%Y')))
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: sorted(x, key=lambda item: item['lastReportedDate']))
 
         return aggregated_dea
 
@@ -134,6 +145,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def create_npi(cls, npi_data):
+        # Stop gap for missing END_DT column
+        npi_data["END_DT"] = "12/31/2024"
+
         npi = npi_data[NPI_COLUMNS.keys()].rename(columns=NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -164,18 +178,23 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         aggregated_abms["abms"] = abms.to_dict(orient="records")
         aggregated_abms = aggregated_abms.groupby("entityId")["abms"].apply(list).reset_index()
 
-        aggregated_abms['abms'] = aggregated_abms['abms'].apply(lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['effectiveDate'], format='%m/%d/%Y'), reverse=True))
+        aggregated_abms['abms'] = aggregated_abms['abms'].apply(lambda x: sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True))
 
         return aggregated_abms
 
     @classmethod
     def create_medical_training(cls, med_train):
+        # Stop gap for missing END_DT column
+        med_train["END_DT"] = "12/31/2024"
+
         medical_training = med_train[MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
         aggregated_medical_training = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
 
-        aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['beginDate'], format='%m/%d/%Y')))
+
+
+        aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(lambda x: sorted(x, key=lambda item: item['beginDate']))
 
         return aggregated_medical_training
 
