@@ -20,8 +20,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-import pdb
-
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
@@ -33,64 +31,38 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
     PARAMETER_CLASS = AMAProfileTransformerParameters
 
     def run(self):
-        print('start')
         documents = [self._csv_to_dataframe(d, sep='|') for d in self._data]
-        print('flag 1 done...')
 
         ama_masterfile = self.create_demographics(documents[2])
-        print(len(ama_masterfile))
-        print(len(ama_masterfile.drop_duplicates(subset=["entityId"])))
 
         aggregated_dea = self.create_dea(documents[1])
-        print(len(aggregated_dea))
-        print(len(aggregated_dea.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
 
         aggregated_practice_specialities = self.create_practice_specialties(documents[2])
-        print(len(aggregated_practice_specialities))
-        print(len(aggregated_practice_specialities.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_practice_specialities, on="entityId", how="left")
 
         aggregated_npi = self.create_npi(documents[6])
-        print(len(aggregated_npi))
-        print(len(aggregated_npi.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
 
         aggregated_medical_schools = self.create_medical_schools(documents[4])
-        print(len(aggregated_medical_schools))
-        print(len(aggregated_medical_schools.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
 
         aggregated_abms = self.create_abms(documents[0])
-        print(len(aggregated_abms))
-        print(len(aggregated_abms.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_abms, on="entityId", how="left")
 
         aggregated_medical_training = self.create_medical_training(documents[5])
-        print(len(aggregated_medical_training))
-        print(len(aggregated_medical_training.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
 
-        # Breaks AMA Mastefile
-        # aggregated_licenses = self.create_licenses(documents[3])
-        # print(len(aggregated_licenses))
-        # print(len(aggregated_licenses.drop_duplicates(subset=["entityId"])))
-        # ama_masterfile = ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
+        aggregated_licenses = self.create_licenses(documents[3])
+        ama_masterfile = ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
 
-        # aggregated_sanctions = self.create_sanctions(documents[7])
-        # print('sanctions')
-        # print(len(aggregated_sanctions))
-        # print(len(aggregated_sanctions.drop_duplicates(subset=["entityId"])))
-        # ama_masterfile = ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
+        aggregated_sanctions = self.create_sanctions(documents[7])
+        ama_masterfile = ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
 
         aggregated_mpa = self.create_mpa(documents[2])
-        print(len(aggregated_mpa))
-        print(len(aggregated_mpa.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
 
         aggregated_ecfmg = self.create_ecfmg(documents[2])
-        print(len(aggregated_ecfmg))
-        print(len(aggregated_ecfmg.drop_duplicates(subset=["entityId"])))
         ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
 
         return [ama_masterfile.to_json(orient="records").encode()]
@@ -248,23 +220,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
         aggregated_dea.sort_values('entityId')
 
-        # Testing
-        # e = aggregated_dea.head(5)
-        # with open('five_entries_aggregated_dea1.psv', 'w') as file:
-        #     file.write(e.to_string())
-
-        # # Convert the 'lastReportedDate' strings to datetime objects for correct sorting
-        # e['dea'] = e['dea'].apply(lambda x: x[0])  # Unpack the list (assuming each list contains only one dictionary)
-        # e['lastReportedDate'] = pandas.to_datetime(e['dea'].apply(lambda x: x['lastReportedDate']))
-
-        # # Sort the DataFrame by 'lastReportedDate' in ascending order
-        # sorted_data = e.sort_values(by='lastReportedDate', ascending=True)
-        # with open('five_entries_aggregated_dea-sorted1.psv', 'w') as file:
-        #     file.write(sorted_data.to_string())
-
-        # End testing
-
-        print('done!')
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: x[0])
+        aggregated_dea.sort_values(by='dea', key=lambda col: col.map(lambda x: pandas.to_datetime(x['lastReportedDate'], format='%m/%d/%Y')), inplace=True)
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(lambda x: [x])
 
         return aggregated_dea
 
@@ -345,9 +303,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         aggregated_abms["abms"] = abms.to_dict(orient="records")
         aggregated_abms = aggregated_abms.groupby("entityId")["abms"].apply(list).reset_index()
 
-        # TODO: Sorting
-        # aggregated_abms['effectiveDate'] = pandas.to_datetime(aggregated_abms['abms'].apply(lambda x: x[0]['effectiveDate']))
-        # aggregated_abms_sorted = aggregated_abms.sort_values('effectiveDate', ascending=False)
+        aggregated_abms['abms'] = aggregated_abms['abms'].apply(lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['effectiveDate'], format='%m/%d/%Y'), reverse=True))
 
         return aggregated_abms
 
@@ -370,9 +326,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
         aggregated_medical_training = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
 
-        # TODO: Sorting
-        # aggregated_medical_training['beginDate'] = pandas.to_datetime(aggregated_medical_training['medicalTraining'].apply(lambda x: x[0]['beginDate']))
-        # aggregated_medical_training_sorted = aggregated_medical_training.sort_values('beginDate')
+        aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['beginDate'], format='%m/%d/%Y')))
 
         return aggregated_medical_training
 
@@ -407,10 +361,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
         return aggregated_licenses
 
-    @classmethod
-    def create_sanctions(cls, sanctions):
-        print("flag 2")
-
+    def create_sanctions(self, sanctions):
         SANCTIONS_COLUMNS = [
             "medicareMedicaidSanction",
             "federalSanctions",
@@ -425,31 +376,36 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         ]
 
         sanctions = sanctions[["ENTITY_ID", "BOARD_CD"]]
-        non_state_sanctions = sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].copy()
-        non_state_sanctions.loc[:, "medicareMedicaidSanction"] = (non_state_sanctions.BOARD_CD == "M0").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "additionalSanction"] = (non_state_sanctions.BOARD_CD == "00").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "deaSanction"] = (non_state_sanctions.BOARD_CD == "ZD").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "dodSanction"] = (non_state_sanctions.BOARD_CD == "DD").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "airforceSanction"] = (non_state_sanctions.BOARD_CD == "ZF").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "armySanction"] = (non_state_sanctions.BOARD_CD == "ZA").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "navySanction"] = (non_state_sanctions.BOARD_CD == "ZN").map({True: "Y", False: "N"})
-        non_state_sanctions.loc[:, "vaSanction"] = (non_state_sanctions.BOARD_CD == "ZV").map({True: "Y", False: "N"})
-        non_state_sanctions["federalSanctions"] = None
-        non_state_sanctions.drop(columns="BOARD_CD", inplace=True)
+
+        non_state_sanctions = sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].drop_duplicates().copy()
+        aggregated_non_state_sanctions = pandas.DataFrame()
+        aggregated_non_state_sanctions["ENTITY_ID"] = non_state_sanctions.ENTITY_ID.unique()
+
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "M0", "medicareMedicaidSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "00", "additionalSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "ZD", "deaSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "DD", "dodSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "ZF", "airforceSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "ZA", "armySanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "ZN", "navySanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(aggregated_non_state_sanctions, non_state_sanctions, "ZV", "vaSanction")
+        aggregated_non_state_sanctions["federalSanctions"] = None
+        aggregated_non_state_sanctions = aggregated_non_state_sanctions.fillna("N")
 
         state_sanctions = sanctions[~sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].copy()
-        state_sanctions.loc[:, "state"] = state_sanctions.groupby("ENTITY_ID")["BOARD_CD"].apply(list).reset_index().BOARD_CD
+        aggregated_state_sanctions = pandas.DataFrame()
+        aggregated_state_sanctions["ENTITY_ID"] = state_sanctions.ENTITY_ID.unique()
+        aggregated_state_sanctions["state"] = state_sanctions.groupby("ENTITY_ID")["BOARD_CD"].apply(list).reset_index().BOARD_CD
+        aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()] = aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()].apply(lambda x: [])
+        aggregated_state_sanctions["stateSanctions"] = aggregated_state_sanctions.state.apply(lambda x: {"state": x})
+        aggregated_state_sanctions.drop(columns=["state"], inplace=True)
 
-        state_sanctions.state[state_sanctions.state.isnull()] = state_sanctions.state[state_sanctions.state.isnull()].apply(lambda x: [])
-        state_sanctions.loc[:, "stateSanctions"] = state_sanctions.state.apply(lambda x: {"state": x})
-        state_sanctions.drop(columns=["BOARD_CD", "state"], inplace=True)
+        aggregated_sanctions = aggregated_state_sanctions.merge(aggregated_non_state_sanctions, on="ENTITY_ID")
+        aggregated_sanctions["sanctions"] = aggregated_sanctions[SANCTIONS_COLUMNS].to_dict(orient="records")
+        aggregated_sanctions.drop(columns=SANCTIONS_COLUMNS, inplace=True)
+        aggregated_sanctions.rename(columns={"ENTITY_ID": "entityId"}, inplace=True)
 
-        flat_sanctions = state_sanctions.merge(non_state_sanctions, on="ENTITY_ID")
-        flat_sanctions["sanctions"] = flat_sanctions[SANCTIONS_COLUMNS].to_dict(orient="records")
-        flat_sanctions.drop(columns=SANCTIONS_COLUMNS, inplace=True)
-        flat_sanctions.rename(columns={"ENTITY_ID": "entityId"}, inplace=True)
-
-        return flat_sanctions
+        return aggregated_sanctions
 
     @classmethod
     def create_mpa(cls, demog_data):
@@ -477,6 +433,14 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
 
         return aggregated_ecfmg
 
+    @classmethod
+    def aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column):
+        sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
+        sanction[column] = "Y"
+
+        aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
+
+        return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
 
 @add_schema
 @dataclass
