@@ -9,6 +9,7 @@ CPT/Files/Build
 CPT/Files/Legacy
 CPT/Files/Ingest
 CPT/Files/Watermark
+CPT/SNOMED/API
 CPT/SNOMED/ETL
 DEUS/API
 DBL

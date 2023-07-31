@@ -1,4 +1,4 @@
-bitbucket-pipelines.yml#!/usr/bin/env bash
+#!/usr/bin/env bash
 
 set -u
 
