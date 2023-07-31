@@ -34,52 +34,69 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
     PARAMETER_CLASS = AMAProfileTransformerParameters
 
     def run(self):
-        documents = [self._csv_to_dataframe(d, sep='|') for d in self._data]
+        abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
+            = [self._csv_to_dataframe(d, sep='|') for d in self._data]
+        practice_specialties = demog_data[["ENTITY_ID"] + list(PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
+        mpa = demog_data[["ENTITY_ID"] + list(MPA_COLUMNS.keys())].copy()
+        ecfmg = demog_data[["ENTITY_ID"] + list(ECFMG_COLUMNS.keys())].copy()
+
 
         LOGGER.info("Creating demographics...")
-        ama_masterfile = self.create_demographics(documents[2])
+        ama_masterfile = self.create_demographics(demog_data)
+        del demog_data
 
         LOGGER.info("Creating dea...")
-        aggregated_dea = self.create_dea(documents[1])
+        aggregated_dea = self.create_dea(dea_data)
         ama_masterfile = ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
+        del dea_data
 
         LOGGER.info("Creating practiceSpecialties...")
-        aggregated_practice_specialities = self.create_practice_specialties(documents[2])
+        aggregated_practice_specialities = self.create_practice_specialties(practice_specialties)
         ama_masterfile = ama_masterfile.merge(aggregated_practice_specialities, on="entityId", how="left")
+        del practice_specialties
 
         LOGGER.info("Creating npi...")
-        aggregated_npi = self.create_npi(documents[6])
+        aggregated_npi = self.create_npi(npi_data)
         ama_masterfile = ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
+        del npi_data
 
         LOGGER.info("Creating medicalSchools...")
-        aggregated_medical_schools = self.create_medical_schools(documents[4])
+        aggregated_medical_schools = self.create_medical_schools(med_sch_data)
         ama_masterfile = ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
+        del med_sch_data
 
         LOGGER.info("Creating abms...")
-        aggregated_abms = self.create_abms(documents[0])
+        aggregated_abms = self.create_abms(abms_data)
         ama_masterfile = ama_masterfile.merge(aggregated_abms, on="entityId", how="left")
+        del abms_data
 
         LOGGER.info("Creating medicalTraining...")
-        aggregated_medical_training = self.create_medical_training(documents[5])
+        aggregated_medical_training = self.create_medical_training(med_train_data)
         ama_masterfile = ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
+        del med_train_data
 
         LOGGER.info("Creating licenses...")
-        aggregated_licenses = self.create_licenses(documents[3])
+        aggregated_licenses = self.create_licenses(license_data)
         ama_masterfile = ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
+        del license_data
 
         LOGGER.info("Creating sanctions...")
-        aggregated_sanctions = self.create_sanctions(documents[7])
+        aggregated_sanctions = self.create_sanctions(sanctions_data)
         ama_masterfile = ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
+        del sanctions_data
 
         LOGGER.info("Creating mpa...")
-        aggregated_mpa = self.create_mpa(documents[2])
+        aggregated_mpa = self.create_mpa(mpa)
         ama_masterfile = ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
+        del mpa
 
         LOGGER.info("Creating ecfmg...")
-        aggregated_ecfmg = self.create_ecfmg(documents[2])
+        aggregated_ecfmg = self.create_ecfmg(ecfmg)
         ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
+        del ecfmg
 
-        return [ama_masterfile.to_json(orient="records").encode()]
+        LOGGER.info("Generating JSON...")
+        return [ama_masterfile.iloc[:1000].to_json(orient="records").encode()]
 
     @classmethod
     def create_demographics(cls, demog_data):
@@ -191,8 +208,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
         aggregated_medical_training = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
-
-
 
         aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(lambda x: sorted(x, key=lambda item: item['beginDate']))
 
