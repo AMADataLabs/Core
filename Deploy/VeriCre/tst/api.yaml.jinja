@@ -4,7 +4,7 @@ VERICRE_API:
         ENVIRONMENT: tst
         ACCOUNT: '194221139997'
 
-        DATABASE_HOST: vericre-sbx-au-aurora-cluster.cluster-c3mn4zysffxi.us-east-1.rds.amazonaws.com
+        DATABASE_HOST: vericre-tst-au-aurora-cluster.cluster-cvo5zwdixjdr.us-east-1.rds.amazonaws.com
         DATABASE_PORT: '5432'
         DATABASE_BACKEND: 'postgresql+psycopg2'
         DATABASE_NAME: 'vericre'
@@ -29,7 +29,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DOMAIN: 'wsinttest'
+        AMA_DOMAIN: 'wsinttest'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-tst-backend-api-alb-139444344.us-east-1.elb.amazonaws.com'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'

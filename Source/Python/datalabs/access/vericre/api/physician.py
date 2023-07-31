@@ -4,6 +4,7 @@ from   datetime import datetime
 from   io import BytesIO
 import logging
 
+import requests
 from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 from   zeep import Client
 
@@ -31,7 +32,8 @@ class PhysiciansSearchEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    domain: str
+    ama_domain: str
+    vericre_alb_domain: str
     payload: dict
     unknowns: dict=None
 
@@ -47,10 +49,12 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         with Database.from_parameters(self._parameters) as database:
             physicians = self._get_matching_physicians(database, search_results)
 
+        self._proceed_caqh_sync(physicians)
+
         return self._generate_response(physicians)
 
     def _search_physicians(self, payload):
-        url = f'https://{self._parameters.domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
+        url = f'https://{self._parameters.ama_domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
         search_request = self._generate_search_request(payload)
 
         return self._submit_search_request(search_request, url)
@@ -65,6 +69,16 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return [physician for physician in physicians if physician is not None]
 
     def _generate_response(self, physicians):
+        physicians = [
+            {
+                "entity_id": physician["entity_id"],
+                "first_name": physician["first_name"],
+                "last_name": physician["last_name"],
+                "date_of_birth": physician["date_of_birth"]
+            }
+            for physician in physicians
+        ]
+
         self._response_body = self._generate_response_body(physicians)
 
         self._headers = self._generate_headers()
@@ -127,7 +141,8 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
                 entity_id=physician.entityId,
                 first_name=physician.legalFirstName,
                 last_name=physician.legalLastName,
-                date_of_birth=cls._get_date(physician.birthDate)
+                date_of_birth=cls._get_date(physician.birthDate),
+                npi_number=physician.npiNumber.NPI[0].npiNumber
             )
 
         return physician_data
@@ -190,3 +205,24 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             LOGGER.error("Exception in formatting the date : %s",error)
 
         return formatted_date
+
+    def _proceed_caqh_sync(self, physicians):
+
+        physicians_payload = [
+            {"entityId": physician["entity_id"], "npiNumber": physician["npi_number"]}
+            for physician in physicians
+        ]
+
+        try:
+            requests.post(
+                f'https://{self._parameters.vericre_alb_domain}/users/physicians/search/onCAQHSync',
+                verify=False,
+                timeout=(None, 0.1),
+                json=physicians_payload
+            )
+
+            LOGGER.info('CAQH sync request finished for %s physician(s)', len(physicians))
+        except requests.exceptions.ReadTimeout:
+            LOGGER.info('CAQH sync request sent for %s physician(s)', len(physicians))
+        except requests.exceptions.RequestException as exception:
+            LOGGER.error('CAQH sync request failed: %s', exception)
