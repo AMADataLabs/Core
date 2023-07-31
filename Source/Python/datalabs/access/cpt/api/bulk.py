@@ -7,6 +7,7 @@ import boto3
 from   botocore.exceptions import ClientError
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError
+from   datalabs.access.cpt.api.authorize import PRODUCT_CODE, OLD_PRODUCT_CODE
 from   datalabs.access.orm import Database
 from   datalabs.model.cpt.api import Release
 from   datalabs.parameter import add_schema
@@ -119,11 +120,11 @@ class FilesEndpointTask(APIEndpointTask):
     @classmethod
     def _get_authorized_years(cls, authorizations):
         '''Get year from authorizations which are of one of the form:
-            CPTAPIYY: ISO-8601 Timestamp
+            {PRODUCT_CODE}YY: ISO-8601 Timestamp
            For example,
-            CPTAPI23: 2023-10-11T00:00:00-05:00
+            {PRODUCT_CODE}23: 2023-10-11T00:00:00-05:00
         '''
-        cpt_api_authorizations = {key:value for key, value in authorizations.items() if key.startswith('CPTAPI')}
+        cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_product(key)}
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
@@ -173,11 +174,17 @@ class FilesEndpointTask(APIEndpointTask):
         return archive_path
 
     @classmethod
+    def _is_cpt_product(cls, product):
+        return product.startswith(PRODUCT_CODE) or product.startswith(OLD_PRODUCT_CODE)
+
+    @classmethod
     def _parse_authorization_year(cls, name, current_time):
         year = current_time.year
 
-        if len(name) > len("CPTAPI"):
-            year = int('20' + name[len('CPTAPI'):])
+        if name.startswith(PRODUCT_CODE) and len(name) > len(PRODUCT_CODE):
+            year = int('20' + name[len(PRODUCT_CODE):])
+        elif name.startswith(OLD_PRODUCT_CODE) and len(name) > len(OLD_PRODUCT_CODE):
+            year = int('20' + name[len(OLD_PRODUCT_CODE):])
 
         return year
 

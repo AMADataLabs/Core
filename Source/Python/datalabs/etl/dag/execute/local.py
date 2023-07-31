@@ -15,12 +15,11 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-@add_schema(unknowns=True)
+@add_schema
 @dataclass
 class LocalDAGExecutorParameters:
     dag_class: str
     task_statuses: dict
-    unknowns: dict=None
 
 
 class LocalDAGExecutorTask(Task):

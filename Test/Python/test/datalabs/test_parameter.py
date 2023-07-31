@@ -134,7 +134,7 @@ def model_dataclass():
 
 @pytest.fixture
 def model_class():
-    @add_schema
+    @add_schema(unknowns=False)
     class Model:
         foozie = None
         barnacle = 'Bar'
@@ -143,7 +143,7 @@ def model_class():
 
 @pytest.fixture
 def model_dataclass_parent():
-    @add_schema(unknowns=True)
+    @add_schema
     @dataclass
     class Model:
         foozie: str
@@ -155,7 +155,7 @@ def model_dataclass_parent():
 
 @pytest.fixture
 def model_class_parent():
-    @add_schema(unknowns=True)
+    @add_schema
     class Model:
         foozie = None
         barnacle = 'Bar'

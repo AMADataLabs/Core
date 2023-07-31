@@ -28,6 +28,7 @@ class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
         self._data = data
         self._log_parameters(parameters)
 
+
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 
@@ -83,7 +84,6 @@ class TaskWrapper(ABC):
         self.task = None
         self.task_class = None
         self._parameters = parameters or {}
-        self._runtime_parameters = None
         self._task_parameters = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
@@ -93,8 +93,6 @@ class TaskWrapper(ABC):
 
         try:
             self._setup_environment()
-
-            self._runtime_parameters = self._get_runtime_parameters(self._parameters)
 
             self._task_parameters = self._get_task_parameters()
 
@@ -125,7 +123,7 @@ class TaskWrapper(ABC):
     def _get_task_class(self):
         task_resolver_class = self._get_task_resolver_class()
 
-        task_class = task_resolver_class.get_task_class(self._runtime_parameters)
+        task_class = task_resolver_class.get_task_class(self._task_parameters)
 
         if not hasattr(task_class, 'run'):
             raise TypeError('Task class does not have a "run" method.')
@@ -136,28 +134,27 @@ class TaskWrapper(ABC):
     def _pre_run(self):
         pass
 
-    def _get_runtime_parameters(self, parameters):
-        return parameters
-
     def _get_task_parameters(self):
         return self._parameters
 
+    # pylint: disable=unused-argument
     def _get_task_input_data(self):
         return []
 
+    # pylint: disable=unused-argument
     def _put_task_output_data(self, data):
         LOGGER.info("Output Data:\n %s", data)
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
-        parameters.update(new_parameters)
+        return {**parameters, **new_parameters}
 
-        return parameters
-
+    # pylint: disable=unused-argument
     @abstractmethod
     def _handle_success(self) -> (int, dict):
         pass
 
+    # pylint: disable=unused-argument
     @abstractmethod
     def _handle_exception(self, exception: Exception) -> (int, dict):
         pass
@@ -174,14 +171,14 @@ class TaskWrapper(ABC):
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
-    def get_task_class(cls, runtime_parameters):
+    def get_task_class(cls, task_parameters):
         pass
 
 
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
-    def get_task_class(cls, runtime_parameters):
+    def get_task_class(cls, task_parameters):
         task_class_name = os.environ["TASK_CLASS"]
 
         return import_plugin(task_class_name)
@@ -189,7 +186,7 @@ class EnvironmentTaskResolver(TaskResolver):
 
 class RuntimeTaskResolver(TaskResolver):
     @classmethod
-    def get_task_class(cls, runtime_parameters):
-        task_class_name = runtime_parameters["TASK_CLASS"]
+    def get_task_class(cls, task_parameters):
+        task_class_name = task_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)

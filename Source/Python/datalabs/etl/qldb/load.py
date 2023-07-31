@@ -55,7 +55,7 @@ class QLDBLoaderTask(Task):
             f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table}"
         )
 
-        return {doc[self._parameters.primary_key]:doc['md5'] for doc in cursor}
+        return {doc[self._parameters.primary_key]:doc.get('md5') for doc in cursor}
 
     def _delete_data(self, incoming_documents, current_hashes):
         deleted_primary_keys = self._get_deleted_primary_keys(incoming_documents, current_hashes)

@@ -1,11 +1,13 @@
 from datetime import date
+import warnings
+warnings.simplefilter(action='ignore')
 import pandas as pd
 import settings
 import os
 import json
-from datalabs.access.edw import EDW, PartyKeyType
 from fuzzywuzzy import fuzz
 import logging
+import pyodbc
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -41,12 +43,22 @@ def get_humach_results():
     humach['ME'] = fix_me(humach.PHYSICIAN_ME_NUMBER)
     return humach
 
+# def get_edw():
+#     password = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+#     username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+#     w = "DSN=PRDDW; UID={}; PWD={}".format(username, password)
+#     AMAEDW = pyodbc.connect(w)
+#     return AMAEDW
+
 def get_key_table():
     LOGGER.info('Getting key tables')
-    with EDW() as edw:
-        entity_to_party = edw.get_party_keys_by_type(PartyKeyType.ENTITY)
-        me_to_party = edw.get_party_keys_by_type(PartyKeyType.ME)
-    key_table = pd.merge(entity_to_party, me_to_party, on='PARTY_ID')
+    password = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+    username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+    w = "DSN=prddw; UID={}; PWD={}".format(username, password)
+    AMAEDW = pyodbc.connect(w)
+    entity_query = os.environ.get('ENTITY_QUERY')
+    key_table = pd.read_sql(con=AMAEDW, sql=entity_query)
+    LOGGER.info(f'{len(key_table)}')
     return key_table
 
 def fix_zipcodes(zipcode_list):
@@ -63,13 +75,20 @@ def fix_zipcodes(zipcode_list):
 
 def get_addresses():
     LOGGER.info('Getting POLO and PPMA addresses')
-    with EDW() as edw:
-        LOGGER.info('Getting PPMA addresses')
-        ppma = edw.read(os.environ.get('PPMA_QUERY'))
-        LOGGER.info('Getting POLO addresses')
-        polo = edw.read(os.environ.get('POLO_QUERY'))
+    password = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+    username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+    w = "DSN=PRDDW; UID={}; PWD={}".format(username, password)
+    AMAEDW = pyodbc.connect(w)
+    LOGGER.info('Getting PPMA addresses')
+    ppma_query = os.environ.get('PPMA_QUERY')
+    ppma = pd.read_sql(con=AMAEDW, sql=ppma_query)
+    LOGGER.info(f'{len(ppma)}')
+    LOGGER.info('Getting POLO addresses')
+    polo = pd.read_sql(con=AMAEDW, sql=os.environ.get('POLO_QUERY'))
+    LOGGER.info(f'{len(polo)}')
     addresses = pd.merge(polo, ppma, on='PARTY_ID', suffixes = ['_POLO','_PPMA'])
     addresses = addresses.fillna('None')
+    LOGGER.info(f'{len(addresses)}')
     return addresses
 
 def get_ppd():
@@ -82,8 +101,8 @@ def get_ppd():
     return ppd
 
 def filter_polos():
-    addresses = get_addresses()
     ppd = get_ppd()
+    addresses = get_addresses()
     LOGGER.info('Finding filtered POLOs')
     no_polo = ppd[(ppd.POLO_MAILING_LINE_1=='None')&(ppd.POLO_MAILING_LINE_2=='None')]
     filtered_polos = pd.merge(no_polo, addresses, on='PARTY_ID')
@@ -144,8 +163,11 @@ def find_humach_matches(newer_dpc):
 
 def get_license():
     LOGGER.info('Getting state license info')
-    with EDW() as edw:
-        license = edw.read(os.environ.get('LICENSE_QUERY'))
+    password = os.environ.get('CREDENTIALS_EDW_PASSWORD')
+    username = os.environ.get('CREDENTIALS_EDW_USERNAME')
+    w = "DSN=PRDDW; UID={}; PWD={}".format(username, password)
+    AMAEDW = pyodbc.connect(w)
+    license = pd.read_sql(con=AMAEDW, sql=os.environ.get('LICENSE_QUERY'))
     return license
 
 def concatenate_licenses(newer_validated_dpc):

@@ -8,6 +8,7 @@ from   dateutil.parser import isoparse
 
 from   datalabs.access.environment import VariableTree
 from   datalabs.task import Task, TaskException, TaskWrapper
+from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
@@ -18,6 +19,7 @@ LOGGER.setLevel(logging.INFO)
 ETLAggregate = namedtuple("ETLAggregate", "extractor transformer loader")  # pylint: disable=too-many-function-args
 
 
+@add_schema
 @dataclass
 class ETLParameters:
     extractor: dict
@@ -26,6 +28,8 @@ class ETLParameters:
 
 
 class ETLTask(Task):
+    PARAMETER_CLASS = ETLParameters
+
     def __init__(self, parameters: dict, data: "list<bytes>"=None):
         super().__init__(parameters, data)
 
@@ -103,7 +107,7 @@ class ETLTaskParametersGetterMixin(TaskWrapper):
     def _get_task_parameters(self):
         var_tree = VariableTree.from_environment()
 
-        return ETLParameters(
+        return dict(
             extractor=self._get_component_parameters(var_tree, "EXTRACTOR"),
             transformer=self._get_component_parameters(var_tree, "TRANSFORMER"),
             loader=self._get_component_parameters(var_tree, "LOADER")

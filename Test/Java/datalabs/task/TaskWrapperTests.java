@@ -27,6 +27,7 @@ class TaskWrapperTests {
     void beforeEach() {
         TaskWrapperTests.PARAMETER_MAP = new HashMap<String, String>() {{
             put("SOME_TASK_PARAMETER", "hoodoo");
+            put("CACHE_CLASS", "datalabs.task.cache.S3TaskDataCache");
             put("CACHE_INPUT_THIS_CACHE_PARAMETER", "voodoo");
             put("CACHE_OUTPUT_THAT_CACHE_PARAMETER", "voodoo");
             put("EXECUTION_TIME", "O dark thirty");
@@ -35,29 +36,42 @@ class TaskWrapperTests {
     }
 
     @Test
-    @DisplayName("Test that extractCacheParameters separates cache parameters from task parameters")
+    @DisplayName("Test that extractCacheParameters extracts cache parameters from task parameters")
     void extractCacheParametersDoes() {
+        Assertions.assertEquals(6, TaskWrapperTests.PARAMETER_MAP.size());
         Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
-            = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
-                put(TaskDataCache.Direction.INPUT, null);
-                put(TaskDataCache.Direction.OUTPUT, null);
-            }};
+            = TaskWrapper.extractCacheParameters(TaskWrapperTests.PARAMETER_MAP);
 
-        Assertions.assertEquals(5, TaskWrapperTests.PARAMETER_MAP.size());
-        TaskWrapper.extractCacheParameters(TaskWrapperTests.PARAMETER_MAP, cacheParameters);
-
-        Assertions.assertEquals(2, TaskWrapperTests.PARAMETER_MAP.size());
-        Assertions.assertTrue(TaskWrapperTests.PARAMETER_MAP.containsKey("SOME_TASK_PARAMETER"));
-        Assertions.assertTrue(TaskWrapperTests.PARAMETER_MAP.containsKey("EXECUTION_TIME"));
+        Assertions.assertEquals(6, TaskWrapperTests.PARAMETER_MAP.size());
 
         Map<String, String> inputCacheParameters = cacheParameters.get(TaskDataCache.Direction.INPUT);
-        Assertions.assertEquals(2, inputCacheParameters.size());
+        Assertions.assertEquals(3, inputCacheParameters.size());
         Assertions.assertTrue(inputCacheParameters.containsKey("THIS_CACHE_PARAMETER"));
         Assertions.assertTrue(inputCacheParameters.containsKey("EXECUTION_TIME"));
 
         Map<String, String> outputCacheParameters = cacheParameters.get(TaskDataCache.Direction.OUTPUT);
-        Assertions.assertEquals(2, outputCacheParameters.size());
+        Assertions.assertEquals(3, outputCacheParameters.size());
         Assertions.assertTrue(outputCacheParameters.containsKey("THAT_CACHE_PARAMETER"));
         Assertions.assertTrue(outputCacheParameters.containsKey("EXECUTION_TIME"));
+    }
+
+
+
+    @Test
+    @DisplayName("Test that extractCacheParameters extracts cache parameters from task parameters")
+    void getCachePluginDoes() {
+        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
+            = TaskWrapper.extractCacheParameters(TaskWrapperTests.PARAMETER_MAP);
+
+        try {
+            TaskDataCache cachePlugin = TaskWrapper.getCachePlugin(cacheParameters.get(TaskDataCache.Direction.INPUT));
+
+            Assertions.assertNotNull(cachePlugin);
+
+            cachePlugin = TaskWrapper.getCachePlugin(cacheParameters.get(TaskDataCache.Direction.OUTPUT));
+
+        } catch (Exception exception) {
+            Assertions.assertTrue(false);
+        }
     }
 }

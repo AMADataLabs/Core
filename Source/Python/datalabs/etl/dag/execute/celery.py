@@ -10,7 +10,7 @@ from   datalabs.etl.dag.celery import DAGTaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema(unknowns=True)
@@ -36,7 +36,7 @@ class CeleryDAGExecutorTask(Task):
         if self._parameters.parameters:
             parameters["parameters"] = self._parameters.parameters
 
-        LOGGER.debug('Final batch DAG parameters: %s', parameters)
+        LOGGER.debug('Final Celery DAG parameters: %s', parameters)
         task_wrapper = DAGTaskWrapper(parameters)
 
         os.environ["TASK_RESOLVER_CLASS"] = "datalabs.etl.dag.resolve.TaskResolver"
@@ -69,7 +69,8 @@ class CeleryPythonTaskExecutorTask(Task):
         if self._parameters.parameters:
             parameters["parameters"] = self._parameters.parameters
 
-        LOGGER.debug('Final batch DAG parameters: %s', parameters)
+
+        LOGGER.debug('Final Celery DAG task parameters: %s', parameters)
 
         task_wrapper = DAGTaskWrapper(parameters)
 
@@ -80,7 +81,7 @@ class CeleryPythonTaskExecutorTask(Task):
 
 @add_schema(unknowns=True)
 @dataclass
-class BatchJavaTaskExecutorParameters:
+class CeleryJavaTaskExecutorParameters:
     dag: str
     execution_time: str
     task: str
@@ -89,8 +90,8 @@ class BatchJavaTaskExecutorParameters:
     unknowns: dict = None
 
 
-class BatchJavaTaskExecutorTask(Task):
-    PARAMETER_CLASS = BatchJavaTaskExecutorParameters
+class CeleryJavaTaskExecutorTask(Task):
+    PARAMETER_CLASS = CeleryJavaTaskExecutorParameters
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")

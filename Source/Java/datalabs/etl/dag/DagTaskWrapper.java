@@ -15,39 +15,18 @@ import datalabs.task.TaskWrapper;
 
 
 public class DagTaskWrapper extends TaskWrapper {
+    /* The base DAG task wrapper where the task parameters comprise DAG parameters
+     * plus the DAG task parameters.
+     *
+     * The DAG parameters are just the task wrapper parameters, while the DAG task parameters are any
+     * environment variables of the form DAG__TASK__PARAMETER.
+     */
     static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
+
+    protected DagTaskWrapper() { }
 
     public DagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         super(environment, parameters);
-    }
-
-    @Override
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws TaskException {
-        HashMap<String, String> runtimeParameters = null;
-
-        try {
-            if (!parameters.containsKey("args")) {
-                throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
-            }
-            String[] commandLineArguments = parameters.get("args").split(" ", 2);
-
-            if (commandLineArguments.length != 2) {
-                throw new IllegalArgumentException(
-                    "Expecting two command-line arguments (<executable name>, <DAG run ID>)."
-                );
-            }
-            String[] runtimeParameterValues = commandLineArguments[1].split("__", 3);
-
-            runtimeParameters = new HashMap<String, String>() {{
-                put("dag", runtimeParameterValues[0]);
-                put("task", runtimeParameterValues[1]);
-                put("execution_time", runtimeParameterValues[2]);
-            }};
-        } catch (Exception exception) {
-            throw new TaskException("Unable to get runtime parameters.", exception);
-        }
-
-        return runtimeParameters;
     }
 
     @Override
@@ -55,16 +34,11 @@ public class DagTaskWrapper extends TaskWrapper {
         Map<String, String> taskParameters = null;
 
         try {
-            Map<String, String> defaultParameters = this.getDefaultParameters();
-            Map<String, String> dagTaskParameters = this.getDagTaskParameters();
-            taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
-            LOGGER.debug("Raw Task Parameters: " + dagTaskParameters);
+            Map<String, String> dagParameters = this.getDagParameters();
 
-            LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
-            taskParameters.forEach(
-                (key, value) -> overrideParameter(this.runtimeParameters, key, value)
-            );
-            LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
+            Map<String, String> dagTaskParameters = this.getDagTaskParameters();
+
+            taskParameters = this.mergeParameters(dagParameters, dagTaskParameters);
         } catch (Exception exception) {
             throw new TaskException("Unable to get task parameters.", exception);
         }
@@ -94,13 +68,10 @@ public class DagTaskWrapper extends TaskWrapper {
 
         return PluginImporter.importPlugin(taskResolverClassName);
     }
+    protected Map<String, String> getDagParameters() {
+        Map<String, String> dagParameters = this.parameters;
 
-    protected Map<String, String> getDefaultParameters() {
-        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagId());
-        String execution_time = getExecutionTime();
-
-        dagParameters.put("EXECUTION_TIME", execution_time);
-        dagParameters.put("CACHE_EXECUTION_TIME", execution_time);
+        dagParameters.put("CACHE_EXECUTION_TIME", getExecutionTime());
 
         return dagParameters;
     }
@@ -126,15 +97,15 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     protected String getDagId() {
-        return this.runtimeParameters.get("dag").toUpperCase();
+        return this.parameters.get("dag").toUpperCase();
     }
 
     protected String getTaskId() {
-        return this.runtimeParameters.get("task").toUpperCase();
+        return this.parameters.get("task").toUpperCase();
     }
 
     protected String getExecutionTime() {
-        return this.runtimeParameters.get("execution_time").toUpperCase();
+        return this.parameters.get("execution_time").toUpperCase();
     }
 
     static Map<String, String> getDefaultParametersFromEnvironment(String dagID) {

@@ -10,6 +10,7 @@ modspec:
       - task
   - package: datalabs.access
     include:
+      - atdata
       - aws
       - credentials
       - database
@@ -30,6 +31,8 @@ modspec:
       - aggregate
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.marketing
+  - package: datalabs.etl.marketing.aggregate 
   - package: datalabs.etl.orm
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.sqlalchemy
