@@ -96,7 +96,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         del ecfmg
 
         LOGGER.info("Generating JSON...")
-        return [ama_masterfile.iloc[:1000].to_json(orient="records").encode()]
+        return [ama_masterfile.to_json(orient="records").encode()]
 
     @classmethod
     def create_demographics(cls, demog_data):
