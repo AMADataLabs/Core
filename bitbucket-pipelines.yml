@@ -1794,13 +1794,13 @@ pipelines:
                     --project Marketing/Aggregator
                     --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
         - parallel:
-            - step:
-                name: Reload Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/update-functions -e sbx -s DataLake
-                    MarketingAggregator-DAG=MarketingAggregatorDAG.zip
+#            - step:
+#                name: Reload Sandbox Lambda Functions
+#                script:
+#                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                - >-
+#                    bash Deploy/Master/update-functions -e sbx -s DataLake
+#                    MarketingAggregator-DAG=MarketingAggregatorDAG.zip
             - step:
                 name: Update Development Lambda Functions
                 script:
