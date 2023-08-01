@@ -27,6 +27,4 @@ class VeriCreProfileSynchronizerTask(Task):
 
         payload = [{"entityId":x["entityId"]} for x in ama_masterfile]
 
-        # TODO: call sync API endpoint
-
         return [json.dumps(payload).encode()]
