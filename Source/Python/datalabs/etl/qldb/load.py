@@ -111,7 +111,7 @@ class QLDBLoaderTask(Task):
             qldb = self._get_qldb_client()
             placeholders = ", ".join("?" * len(batch))
 
-            qldb.execute_lambda(lambda transaction_executor:
+            qldb.execute_lambda(lambda transaction_executor, placeholders=placeholders, batch=batch:
                 transaction_executor.execute_statement(
                     f"DELETE FROM {self._parameters.table} "
                     f"WHERE {self._parameters.table}.{self._parameters.primary_key} IN ({placeholders})",
@@ -150,7 +150,7 @@ class QLDBLoaderTask(Task):
             if index % 40 == 0:
                 qldb = self._get_qldb_client()
 
-            qldb.execute_lambda(lambda transaction_executor:
+            qldb.execute_lambda(lambda transaction_executor, document=document:
                 transaction_executor.execute_statement(
                     f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?",
                     document, document[self._parameters.primary_key]
