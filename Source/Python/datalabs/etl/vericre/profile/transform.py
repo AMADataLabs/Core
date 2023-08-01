@@ -167,7 +167,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
     @classmethod
     def create_npi(cls, npi_data):
         # Stop gap for missing END_DT column
-        npi_data["END_DT"] = "12/31/2024"
+        npi_data["END_DT"] = "2024-12-31"
 
         npi = npi_data[NPI_COLUMNS.keys()].rename(columns=NPI_COLUMNS)
 
@@ -206,7 +206,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
     @classmethod
     def create_medical_training(cls, med_train):
         # Stop gap for missing END_DT column
-        med_train["END_DT"] = "12/31/2024"
+        med_train["END_DT"] = "2024-12-31"
 
         medical_training = med_train[MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
