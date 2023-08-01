@@ -34,11 +34,13 @@ class QLDBLoaderTask(Task):
         incoming_documents = self._add_hash_to_documents(json.loads(self._data[0]))
         current_hashes = qldb.execute_lambda(self._get_current_hashes)
 
-        qldb.execute_lambda(lambda executor: self._delete_data(executor, incoming_documents, current_hashes))
+        return [
+            json.dumps([self._delete_data(incoming_documents, current_hashes)]).encode(),
 
-        qldb.execute_lambda(lambda executor: self._add_data(executor, incoming_documents, current_hashes))
+            json.dumps([self._add_data(incoming_documents, current_hashes)]).encode(),
 
-        qldb.execute_lambda(lambda executor: self._update_data(executor, incoming_documents, current_hashes))
+            json.dumps([self._update_data(incoming_documents, current_hashes)]).encode()
+        ]
 
     def _get_qldb_client(self):
         retry_config = RetryConfig(retry_limit=3), json.loads(self._data[0])
@@ -55,20 +57,27 @@ class QLDBLoaderTask(Task):
 
         return {doc[self._parameters.primary_key]:doc.get('md5') for doc in cursor}
 
-    def _delete_data(self, transaction_executor, incoming_documents, current_hashes):
+    def _delete_data(self, incoming_documents, current_hashes):
         deleted_primary_keys = self._get_deleted_primary_keys(incoming_documents, current_hashes)
 
-        self._delete_documents_from_qldb(deleted_primary_keys, transaction_executor)
+        if deleted_primary_keys:
+            self._delete_documents_from_qldb(deleted_primary_keys)
 
-    def _add_data(self, transaction_executor, incoming_documents, current_hashes):
+        return deleted_primary_keys
+
+    def _add_data(self, incoming_documents, current_hashes):
         added_documents = self._get_added_data(incoming_documents, current_hashes)
 
-        self._add_documents_to_qldb(added_documents, transaction_executor)
+        self._add_documents_to_qldb(added_documents)
 
-    def _update_data(self, transaction_executor, incoming_documents, current_hashes):
+        return added_documents
+
+    def _update_data(self, incoming_documents, current_hashes):
         updated_documents = self._get_updated_documents(incoming_documents, current_hashes)
 
-        self._update_documents_in_qldb(updated_documents, transaction_executor)
+        self._update_documents_in_qldb(updated_documents)
+
+        return updated_documents
 
     @classmethod
     def _add_hash_to_document(cls, document):
@@ -94,11 +103,20 @@ class QLDBLoaderTask(Task):
 
         return [key for key in current_hashes.keys() if key not in incoming_primary_keys]
 
-    def _delete_documents_from_qldb(self, deleted_primary_keys, transaction_executor):
-        for key in deleted_primary_keys:
-            transaction_executor.execute_statement(
-                f"DELETE FROM {self._parameters.table} "
-                f"WHERE {self._parameters.table}.{self._parameters.primary_key} = {key}"
+    def _delete_documents_from_qldb(self, deleted_primary_keys):
+        batch_size = 30
+
+        for index in range(0, len(deleted_primary_keys), batch_size):
+            batch = deleted_primary_keys[index:index + batch_size]
+            qldb = self._get_qldb_client()
+            placeholders = ", ".join("?" * len(batch))
+
+            qldb.execute_lambda(lambda transaction_executor, placeholders=placeholders, batch=batch:
+                transaction_executor.execute_statement(
+                    f"DELETE FROM {self._parameters.table} "
+                    f"WHERE {self._parameters.table}.{self._parameters.primary_key} IN ({placeholders})",
+                    *batch
+                )
             )
 
     def _get_added_data(self, incoming_documents, current_hashes):
@@ -106,9 +124,20 @@ class QLDBLoaderTask(Task):
 
         return [d for d in incoming_documents if d[self._parameters.primary_key] not in current_primary_keys]
 
-    def _add_documents_to_qldb(self, added_documents, transaction_executor):
-        for document in added_documents:
-            transaction_executor.execute_statement("INSERT INTO " + self._parameters.table + " ?", document)
+    def _add_documents_to_qldb(self, added_documents):
+        qldb = self._get_qldb_client()
+
+        while added_documents:
+            batch = added_documents[:40]
+            added_documents = added_documents[40:]
+            sql = "INSERT INTO " + self._parameters.table + " <<" + ", ".join(["?"] * len(batch)) + ">>"
+            current_batch = batch if len(batch) <= 40 else batch[:40]
+
+            qldb.execute_lambda(lambda transaction_executor:
+                transaction_executor.execute_statement(
+                    sql, *current_batch
+                )
+            )
 
     def _get_updated_documents(self, incoming_documents, current_hashes):
         current_primary_keys = list(current_hashes.keys())
@@ -116,11 +145,16 @@ class QLDBLoaderTask(Task):
 
         return [d for d in existing_documents if d["md5"] != current_hashes[d[self._parameters.primary_key]]]
 
-    def _update_documents_in_qldb(self, updated_documents, transaction_executor):
-        for document in updated_documents:
-            transaction_executor.execute_statement(
-                f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?",
-                document, document[self._parameters.primary_key]
+    def _update_documents_in_qldb(self, updated_documents):
+        for index, document in enumerate(updated_documents):
+            if index % 40 == 0:
+                qldb = self._get_qldb_client()
+
+            qldb.execute_lambda(lambda transaction_executor, document=document:
+                transaction_executor.execute_statement(
+                    f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?",
+                    document, document[self._parameters.primary_key]
+                )
             )
 
     @classmethod

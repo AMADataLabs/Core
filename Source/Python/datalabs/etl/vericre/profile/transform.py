@@ -5,10 +5,14 @@ import json
 import logging
 import pickle
 from   typing import List
-from   dateutil.parser import isoparse
 
+from   dateutil.parser import isoparse
+import numpy
+import pandas
 import xmltodict
 
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.etl.vericre.profile import column
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -16,6 +20,287 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class AMAProfileTransformerParameters:
+    execution_time: str = None
+
+
+class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = AMAProfileTransformerParameters
+
+    def run(self):
+        LOGGER.info("Reading physician profile PSV files...")
+        abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
+            = [self._csv_to_dataframe(d, sep='|') for d in self._data]
+        practice_specialties = demog_data[["ENTITY_ID"] + list(column.PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
+        mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
+        ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
+        me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
+
+        LOGGER.info("Creating demographics...")
+        ama_masterfile = self.create_demographics(demog_data)
+        del demog_data
+
+        LOGGER.info("Creating dea...")
+        ama_masterfile = self.create_dea(ama_masterfile, dea_data)
+        del dea_data
+
+        LOGGER.info("Creating practiceSpecialties...")
+        ama_masterfile = self.create_practice_specialties(ama_masterfile, practice_specialties)
+        del practice_specialties
+
+        LOGGER.info("Creating npi...")
+        ama_masterfile = self.create_npi(ama_masterfile, npi_data)
+        del npi_data
+
+        LOGGER.info("Creating medicalSchools...")
+        ama_masterfile = self.create_medical_schools(ama_masterfile, med_sch_data)
+        del med_sch_data
+
+        LOGGER.info("Creating abms...")
+        ama_masterfile = self.create_abms(ama_masterfile, abms_data)
+        del abms_data
+
+        LOGGER.info("Creating medicalTraining...")
+        ama_masterfile = self.create_medical_training(ama_masterfile, med_train_data)
+        del med_train_data
+
+        LOGGER.info("Creating licenses...")
+        ama_masterfile = self.create_licenses(ama_masterfile, license_data)
+        del license_data
+
+        LOGGER.info("Creating sanctions...")
+        ama_masterfile = self.create_sanctions(ama_masterfile, sanctions_data)
+        del sanctions_data
+
+        LOGGER.info("Creating mpa...")
+        ama_masterfile = self.create_mpa(ama_masterfile, mpa)
+        del mpa
+
+        LOGGER.info("Creating ecfmg...")
+        ama_masterfile = self.create_ecfmg(ama_masterfile, ecfmg)
+        del ecfmg
+
+        LOGGER.info("Creating meNumber...")
+        ama_masterfile = ama_masterfile.merge(me_number, on="entityId", how="left")
+        del me_number
+
+        LOGGER.info("Writing ama_masterfile table CSV file...")
+        return [self._dataframe_to_csv(ama_masterfile)]
+
+    @classmethod
+    def create_demographics(cls, demog_data):
+        demog_data.FIRST_NAME = demog_data.FIRST_NAME.str.strip()
+        demog_data.MIDDLE_NAME = demog_data.MIDDLE_NAME.str.strip()
+        demog_data.CUT_IND = demog_data.CUT_IND.str.strip()
+        demog_data.DEGREE_CD = demog_data.DEGREE_CD.str.strip()
+        demog_data.NAT_BRD_YEAR = demog_data.NAT_BRD_YEAR.str.strip()
+        demog_data.MAILING_CITY_NM = demog_data.MAILING_CITY_NM.str.strip()
+        demog_data.POLO_CITY_NM = demog_data.POLO_CITY_NM.str.strip()
+        demog_data.PHONE_PREFIX = demog_data.PHONE_PREFIX.str.strip()
+        demog_data.PHONE_EXTENSION = demog_data.PHONE_EXTENSION.str.strip()
+        demog_data.PHONE_AREA_CD = demog_data.PHONE_AREA_CD.str.strip()
+        demog_data.MPA_DESC = demog_data.MPA_DESC.str.strip()
+        demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
+        demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
+        demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
+        demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
+
+        aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
+        mailing_address = \
+            demog_data[column.MAILING_ADDRESS_COLUMNS.keys()].rename(columns=column.MAILING_ADDRESS_COLUMNS)
+        demographics["mailingAddress"] = mailing_address.to_dict(orient="records")
+        office_address = demog_data[column.OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=column.OFFICE_ADDRESS_COLUMNS)
+        office_address["addressUndeliverable"] = None
+        demographics["officeAddress"] = office_address.to_dict(orient="records")
+        phone = demog_data[column.PHONE_COLUMNS.keys()].rename(columns=column.PHONE_COLUMNS)
+        demographics["phone"] = phone.to_dict(orient="records")
+        aggregated_demographics["demographics"] = demographics.to_dict(orient="records")
+
+        return aggregated_demographics
+
+    @classmethod
+    def create_dea(cls, ama_masterfile, dea_data):
+        dea_data["DEA_NBR"] = dea_data.DEA_NBR.str.strip()
+        dea_data["DEA_SCHEDULE"] = dea_data.DEA_SCHEDULE.str.strip()
+        dea_data["CITY_NM"] = dea_data.CITY_NM.str.strip()
+        dea_data["BUSINESS_ACTIVITY"] \
+            = dea_data[["BUSINESS_ACTIVITY_CODE", "BUSINESS_ACTIVITY_SUBCODE"]].astype(str).agg('-'.join, axis=1)
+
+        dea = dea_data[column.DEA_COLUMNS.keys()].rename(columns=column.DEA_COLUMNS)
+
+        address = dea_data[column.ADDRESS_COLUMNS.keys()].rename(columns=column.ADDRESS_COLUMNS)
+        address["addressUndeliverable"] = None
+        dea["address"] = address.to_dict(orient="records")
+
+        aggregated_dea = dea_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_dea["dea"] = dea.to_dict(orient="records")
+        aggregated_dea = aggregated_dea.groupby("entityId")["dea"].apply(list).reset_index()
+
+        aggregated_dea.sort_values('entityId')
+
+        aggregated_dea['dea'] \
+            = aggregated_dea['dea'].apply(lambda x: sorted(x, key=lambda item: item['lastReportedDate']))
+
+        return ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
+
+    @classmethod
+    def create_practice_specialties(cls, ama_masterfile, demog_data):
+        practice_specialties \
+            = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
+        aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
+
+        return ama_masterfile.merge(aggregated_practice_specialties, on="entityId", how="left")
+
+    @classmethod
+    def create_npi(cls, ama_masterfile, npi_data):
+        # Stop gap for missing END_DT column
+        npi_data["END_DT"] = "2024-12-31"
+
+        npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
+
+        aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_npi["npi"] = npi.to_dict(orient="records")
+        aggregated_npi = aggregated_npi.groupby("entityId")["npi"].apply(list).reset_index()
+
+        return ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
+
+    @classmethod
+    def create_medical_schools(cls, ama_masterfile, med_sch_data):
+        med_sch_data.GRAD_STATUS = med_sch_data.GRAD_STATUS.str.strip()
+        med_sch_data.GRAD_DT = med_sch_data.GRAD_DT.str.strip()
+        med_sch_data.SCHOOL_CD = med_sch_data.SCHOOL_CD.str.strip()
+        med_sch_data.GRAD_STATUS[med_sch_data.GRAD_STATUS != "Yes"] = "No"
+        medical_schools = \
+            med_sch_data[column.MEDICAL_SCHOOL_COLUMNS.keys()].rename(columns=column.MEDICAL_SCHOOL_COLUMNS)
+        medical_schools["medicalEducationType"] = None
+        aggregated_medical_schools = med_sch_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_medical_schools["medicalSchools"] = medical_schools.to_dict(orient="records")
+        aggregated_medical_schools \
+            = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
+
+        return ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
+
+    @classmethod
+    def create_abms(cls, ama_masterfile, abms_data):
+        abms = abms_data[column.ABMS_COLUMNS.keys()].rename(columns=column.ABMS_COLUMNS)
+        abms["disclaimer"] = "ABMS information is proprietary data maintained in a copyright database "
+        abms["disclaimer"] += "compilation owned by the American Board of Medical Specialties.  "
+        abms["disclaimer"] += "Copyright (2022) American Board of Medical Specialties.  All rights reserved."
+        aggregated_abms = abms_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_abms["abms"] = abms.to_dict(orient="records")
+        aggregated_abms = aggregated_abms.groupby("entityId")["abms"].apply(list).reset_index()
+
+        aggregated_abms['abms'] = aggregated_abms['abms'].apply(
+            lambda x: sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True)
+        )
+
+        return ama_masterfile.merge(aggregated_abms, on="entityId", how="left")
+
+    @classmethod
+    def create_medical_training(cls, ama_masterfile, med_train):
+        # Stop gap for missing END_DT column
+        med_train["END_DT"] = "2024-12-31"
+
+        medical_training = \
+            med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
+        aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
+        aggregated_medical_training \
+            = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
+
+        aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(
+            lambda x: sorted(x, key=lambda item: item['beginDate'])
+        )
+
+        return ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
+
+    @classmethod
+    def create_licenses(cls, ama_masterfile, license_data):
+        licenses = license_data[column.LICENSES_COLUMNS.keys()].rename(columns=column.LICENSES_COLUMNS)
+        license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
+        licenses["licenseName"] = license_name.to_dict(orient="records")
+        aggregated_licenses = license_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
+        aggregated_licenses = aggregated_licenses.groupby("entityId")["licenses"].apply(list).reset_index()
+
+        return ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
+
+    def create_sanctions(self, ama_masterfile, sanctions):
+        sanctions = sanctions[["ENTITY_ID", "BOARD_CD"]]
+
+        non_state_sanctions = (sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])]
+            .drop_duplicates().copy())
+        aggregated_non_state_sanctions = pandas.DataFrame()
+        aggregated_non_state_sanctions["ENTITY_ID"] = non_state_sanctions.ENTITY_ID.unique()
+
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "M0", "medicareMedicaidSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "00", "additionalSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZD", "deaSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "DD", "dodSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZF", "airforceSanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZA", "armySanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZN", "navySanction")
+        aggregated_non_state_sanctions = self.aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZV", "vaSanction")
+        aggregated_non_state_sanctions["federalSanctions"] = None
+        aggregated_non_state_sanctions = aggregated_non_state_sanctions.fillna("N")
+
+        state_sanctions = sanctions[~sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].copy()
+        aggregated_state_sanctions = pandas.DataFrame()
+        aggregated_state_sanctions["ENTITY_ID"] = state_sanctions.ENTITY_ID.unique()
+        aggregated_state_sanctions["state"] \
+            = state_sanctions.groupby("ENTITY_ID")["BOARD_CD"].apply(list).reset_index().BOARD_CD
+        aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()] \
+            = aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()].apply(lambda x: [])
+        aggregated_state_sanctions["stateSanctions"] = aggregated_state_sanctions.state.apply(lambda x: {"state": x})
+        aggregated_state_sanctions.drop(columns=["state"], inplace=True)
+
+        aggregated_sanctions = aggregated_state_sanctions.merge(aggregated_non_state_sanctions, on="ENTITY_ID")
+        aggregated_sanctions["sanctions"] = aggregated_sanctions[column.SANCTIONS_COLUMNS].to_dict(orient="records")
+        aggregated_sanctions.drop(columns=column.SANCTIONS_COLUMNS, inplace=True)
+        aggregated_sanctions.rename(columns={"ENTITY_ID": "entityId"}, inplace=True)
+
+        return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
+
+    @classmethod
+    def create_mpa(cls, ama_masterfile, demog_data):
+        mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
+
+        aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_mpa["mpa"] = mpa.to_dict(orient="records")
+
+        return ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
+
+    @classmethod
+    def create_ecfmg(cls, ama_masterfile, demog_data):
+        ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
+
+        aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_ecfmg["ecfmg"] = ecfmg.to_dict(orient="records")
+
+        return ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
+
+    @classmethod
+    def aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
+        sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
+        sanction[column_name] = "Y"
+
+        aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
+
+        return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
 
 @add_schema
 @dataclass
@@ -210,3 +495,22 @@ class CAQHProfileTransformerTask(Task):
         modified_all_provider_cds = sorted(all_provider_cds, key=lambda x: x["IssueDate"])
 
         return modified_all_provider_cds
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class JSONTransformerParameters:
+    split_count: str = None
+    execution_time: str = None
+
+
+class JSONTransformerTask(CSVReaderMixin, Task):
+    PARAMETER_CLASS = JSONTransformerParameters
+
+    def run(self):
+        split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
+        ama_masterfile = self._csv_to_dataframe(self._data[0])
+
+        LOGGER.info("Generating %d JSON files...", split_count)
+        return [x.to_json(orient="records").encode() for x in numpy.array_split(ama_masterfile, split_count)]
