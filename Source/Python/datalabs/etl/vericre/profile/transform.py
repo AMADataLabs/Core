@@ -41,58 +41,60 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
 
         LOGGER.info("Creating demographics...")
-        ama_masterfile = self.create_demographics(demog_data)
+        ama_masterfile = self._create_demographics(demog_data)
         del demog_data
 
         LOGGER.info("Creating dea...")
-        ama_masterfile = self.create_dea(ama_masterfile, dea_data)
+        ama_masterfile = self._create_dea(ama_masterfile, dea_data)
         del dea_data
 
         LOGGER.info("Creating practiceSpecialties...")
-        ama_masterfile = self.create_practice_specialties(ama_masterfile, practice_specialties)
+        ama_masterfile = self._create_practice_specialties(ama_masterfile, practice_specialties)
         del practice_specialties
 
         LOGGER.info("Creating npi...")
-        ama_masterfile = self.create_npi(ama_masterfile, npi_data)
+        ama_masterfile = self._create_npi(ama_masterfile, npi_data)
         del npi_data
 
         LOGGER.info("Creating medicalSchools...")
-        ama_masterfile = self.create_medical_schools(ama_masterfile, med_sch_data)
+        ama_masterfile = self._create_medical_schools(ama_masterfile, med_sch_data)
         del med_sch_data
 
         LOGGER.info("Creating abms...")
-        ama_masterfile = self.create_abms(ama_masterfile, abms_data)
+        ama_masterfile = self._create_abms(ama_masterfile, abms_data)
         del abms_data
 
         LOGGER.info("Creating medicalTraining...")
-        ama_masterfile = self.create_medical_training(ama_masterfile, med_train_data)
+        ama_masterfile = self._create_medical_training(ama_masterfile, med_train_data)
         del med_train_data
 
         LOGGER.info("Creating licenses...")
-        ama_masterfile = self.create_licenses(ama_masterfile, license_data)
+        ama_masterfile = self._create_licenses(ama_masterfile, license_data)
         del license_data
 
         LOGGER.info("Creating sanctions...")
-        ama_masterfile = self.create_sanctions(ama_masterfile, sanctions_data)
+        ama_masterfile = self._create_sanctions(ama_masterfile, sanctions_data)
         del sanctions_data
 
         LOGGER.info("Creating mpa...")
-        ama_masterfile = self.create_mpa(ama_masterfile, mpa)
+        ama_masterfile = self._create_mpa(ama_masterfile, mpa)
         del mpa
 
         LOGGER.info("Creating ecfmg...")
-        ama_masterfile = self.create_ecfmg(ama_masterfile, ecfmg)
+        ama_masterfile = self._create_ecfmg(ama_masterfile, ecfmg)
         del ecfmg
 
         LOGGER.info("Creating meNumber...")
-        ama_masterfile = ama_masterfile.merge(me_number, on="entityId", how="left")
+        ama_masterfile = self._create_me_number(ama_masterfile, me_number)
         del me_number
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
 
         LOGGER.info("Writing ama_masterfile table CSV file...")
         return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
-    def create_demographics(cls, demog_data):
+    def _create_demographics(cls, demog_data):
         demog_data.FIRST_NAME = demog_data.FIRST_NAME.str.strip()
         demog_data.MIDDLE_NAME = demog_data.MIDDLE_NAME.str.strip()
         demog_data.CUT_IND = demog_data.CUT_IND.str.strip()
@@ -124,7 +126,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return aggregated_demographics
 
     @classmethod
-    def create_dea(cls, ama_masterfile, dea_data):
+    def _create_dea(cls, ama_masterfile, dea_data):
         dea_data["DEA_NBR"] = dea_data.DEA_NBR.str.strip()
         dea_data["DEA_SCHEDULE"] = dea_data.DEA_SCHEDULE.str.strip()
         dea_data["CITY_NM"] = dea_data.CITY_NM.str.strip()
@@ -149,7 +151,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
 
     @classmethod
-    def create_practice_specialties(cls, ama_masterfile, demog_data):
+    def _create_practice_specialties(cls, ama_masterfile, demog_data):
         practice_specialties \
             = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
         aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -158,7 +160,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_practice_specialties, on="entityId", how="left")
 
     @classmethod
-    def create_npi(cls, ama_masterfile, npi_data):
+    def _create_npi(cls, ama_masterfile, npi_data):
         # Stop gap for missing END_DT column
         npi_data["END_DT"] = "2024-12-31"
 
@@ -171,7 +173,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
 
     @classmethod
-    def create_medical_schools(cls, ama_masterfile, med_sch_data):
+    def _create_medical_schools(cls, ama_masterfile, med_sch_data):
         med_sch_data.GRAD_STATUS = med_sch_data.GRAD_STATUS.str.strip()
         med_sch_data.GRAD_DT = med_sch_data.GRAD_DT.str.strip()
         med_sch_data.SCHOOL_CD = med_sch_data.SCHOOL_CD.str.strip()
@@ -187,7 +189,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
 
     @classmethod
-    def create_abms(cls, ama_masterfile, abms_data):
+    def _create_abms(cls, ama_masterfile, abms_data):
         abms = abms_data[column.ABMS_COLUMNS.keys()].rename(columns=column.ABMS_COLUMNS)
         abms["disclaimer"] = "ABMS information is proprietary data maintained in a copyright database "
         abms["disclaimer"] += "compilation owned by the American Board of Medical Specialties.  "
@@ -203,7 +205,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_abms, on="entityId", how="left")
 
     @classmethod
-    def create_medical_training(cls, ama_masterfile, med_train):
+    def _create_medical_training(cls, ama_masterfile, med_train):
         # Stop gap for missing END_DT column
         med_train["END_DT"] = "2024-12-31"
 
@@ -221,7 +223,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
 
     @classmethod
-    def create_licenses(cls, ama_masterfile, license_data):
+    def _create_licenses(cls, ama_masterfile, license_data):
         licenses = license_data[column.LICENSES_COLUMNS.keys()].rename(columns=column.LICENSES_COLUMNS)
         license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
         licenses["licenseName"] = license_name.to_dict(orient="records")
@@ -231,7 +233,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
 
-    def create_sanctions(self, ama_masterfile, sanctions):
+    def _create_sanctions(self, ama_masterfile, sanctions):
         sanctions = sanctions[["ENTITY_ID", "BOARD_CD"]]
 
         non_state_sanctions = (sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])]
@@ -239,21 +241,21 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         aggregated_non_state_sanctions = pandas.DataFrame()
         aggregated_non_state_sanctions["ENTITY_ID"] = non_state_sanctions.ENTITY_ID.unique()
 
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "M0", "medicareMedicaidSanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "00", "additionalSanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "ZD", "deaSanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "DD", "dodSanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "ZF", "airforceSanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "ZA", "armySanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "ZN", "navySanction")
-        aggregated_non_state_sanctions = self.aggregate_sanction(
+        aggregated_non_state_sanctions = self._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "ZV", "vaSanction")
         aggregated_non_state_sanctions["federalSanctions"] = None
         aggregated_non_state_sanctions = aggregated_non_state_sanctions.fillna("N")
@@ -276,7 +278,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
 
     @classmethod
-    def create_mpa(cls, ama_masterfile, demog_data):
+    def _create_mpa(cls, ama_masterfile, demog_data):
         mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
 
         aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -285,7 +287,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
 
     @classmethod
-    def create_ecfmg(cls, ama_masterfile, demog_data):
+    def _create_ecfmg(cls, ama_masterfile, demog_data):
         ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
 
         aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -294,13 +296,44 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
 
     @classmethod
-    def aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
+    def _create_me_number(cls, ama_masterfile, me_number):
+        return ama_masterfile.merge(me_number, on="entityId", how="left")
+
+    @classmethod
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile = cls._fill_null_sanctions(ama_masterfile)
+
+        ama_masterfile = cls._fill_null_list_sections(ama_masterfile)
+
+        return ama_masterfile
+
+    @classmethod
+    def _aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
         sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
         sanction[column_name] = "Y"
 
         aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
 
         return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
+
+    @classmethod
+    def _fill_null_sanctions(cls, ama_masterfile):
+        null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
+
+        ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [null_sanctions]
+
+        return ama_masterfile
+
+    @classmethod
+    def _fill_null_list_sections(cls, ama_masterfile):
+        ama_masterfile.abms = ama_masterfile.abms.fillna("").apply(list)
+        ama_masterfile.dea = ama_masterfile.dea.fillna("").apply(list)
+        ama_masterfile.medicalSchools = ama_masterfile.medicalSchools.fillna("").apply(list)
+        ama_masterfile.medicalTraining = ama_masterfile.medicalTraining.fillna("").apply(list)
+        ama_masterfile.licenses = ama_masterfile.licenses.fillna("").apply(list)
+
+        return ama_masterfile
+
 
 @add_schema
 @dataclass
@@ -369,34 +402,34 @@ class CAQHProfileTransformerTask(Task):
         profiles = [x[1] for x in pickle.loads(self._data[0])]
         current_date = isoparse(self._parameters.execution_time)
 
-        qldb_profiles = self.create_vericre_profile_from_caqh_profile(profiles, current_date)
+        qldb_profiles = self._create_vericre_profile_from_caqh_profile(profiles, current_date)
 
         return [json.dumps(qldb_profiles).encode()]
 
-    def create_vericre_profile_from_caqh_profile(self, profiles, current_date):
-        return [self.create_qldb_profile(profile, current_date) for profile in profiles]
+    def _create_vericre_profile_from_caqh_profile(self, profiles, current_date):
+        return [self._create_qldb_profile(profile, current_date) for profile in profiles]
 
-    def create_qldb_profile(self, raw_profile, current_date):
+    def _create_qldb_profile(self, raw_profile, current_date):
         profile = xmltodict.parse(raw_profile)['Provider']
 
         transformed_profile = {
-            'FutureBoardExamDate': self.create_future_board_exam_date(profile["Specialty"]),
-            'TaxID': self.create_tax_id(profile["Practice"]["Tax"]),
-            'WorkHistory': self.create_work_history(profile["WorkHistory"]),
+            'FutureBoardExamDate': self._create_future_board_exam_date(profile["Specialty"]),
+            'TaxID': self._create_tax_id(profile["Practice"]["Tax"]),
+            'WorkHistory': self._create_work_history(profile["WorkHistory"]),
             'FirstName': profile.get("FirstName"),
-            'OtherName': self.create_other_name(profile["OtherName"]),
-            'PreviousInsurance': self.create_previous_insurance(profile["Insurance"], current_date),
-            'Languages': self.create_languages(profile["Language"]),
-            'ProviderMedicaid': self.create_provider_medicaid(profile["ProviderMedicare"]),
-            'TimeGap': self.create_time_gap(profile["TimeGap"]),
+            'OtherName': self._create_other_name(profile["OtherName"]),
+            'PreviousInsurance': self._create_previous_insurance(profile["Insurance"], current_date),
+            'Languages': self._create_languages(profile["Language"]),
+            'ProviderMedicaid': self._create_provider_medicaid(profile["ProviderMedicare"]),
+            'TimeGap': self._create_time_gap(profile["TimeGap"]),
             'SSN': profile.get("SSN"),
             'MedicareProviderFlag': profile.get("MedicareProviderFlag"),
             'OtherNameFlag': profile.get("OtherNameFlag"),
             'ProviderMedicare': profile.get("ProviderMedicare"),
-            'Insurance': self.create_insurance(profile["Insurance"], current_date),
+            'Insurance': self._create_insurance(profile["Insurance"], current_date),
             'MedicaidProviderFlag': profile.get("MedicaidProviderFlag"),
-            'ProviderAddress': self.create_provider_address(profile["ProviderAddress"]),
-            'ProviderCDS': self.create_provider_cds(profile["ProviderCDS"]),
+            'ProviderAddress': self._create_provider_address(profile["ProviderAddress"]),
+            'ProviderCDS': self._create_provider_cds(profile["ProviderCDS"]),
             'LastName': profile.get("LastName"),
             'ProviderType': profile.get("ProviderType"),
             'ECFMGIssueDate': profile.get("ECFMGIssueDate")
@@ -405,7 +438,7 @@ class CAQHProfileTransformerTask(Task):
         return transformed_profile
 
     @classmethod
-    def create_future_board_exam_date(cls, specialties):
+    def _create_future_board_exam_date(cls, specialties):
         future_board_exam_date = ''
 
         for specialty in specialties:
@@ -416,7 +449,7 @@ class CAQHProfileTransformerTask(Task):
         return future_board_exam_date
 
     @classmethod
-    def create_tax_id(cls, taxes):
+    def _create_tax_id(cls, taxes):
         tax_id = ""
 
         for tax in taxes:
@@ -427,20 +460,20 @@ class CAQHProfileTransformerTask(Task):
         return tax_id
 
     @classmethod
-    def create_work_history(cls, work_histories):
+    def _create_work_history(cls, work_histories):
         for work_history in work_histories:
             work_history.pop("@ID")
 
         return sorted(work_histories, key=lambda x: x["StartDate"])
 
     @classmethod
-    def create_other_name(cls, other_name):
+    def _create_other_name(cls, other_name):
         other_name.pop("@ID")
 
         return other_name
 
     @classmethod
-    def create_previous_insurance(cls, insurances, current_date):
+    def _create_previous_insurance(cls, insurances, current_date):
         for insurance in insurances:
             insurance.pop("@ID")
 
@@ -452,17 +485,17 @@ class CAQHProfileTransformerTask(Task):
         return sorted(previous_insurances, key=lambda x: x["StartDate"])
 
     @classmethod
-    def create_languages(cls, languages):
+    def _create_languages(cls, languages):
         return [lang["Language"]["LanguageName"] for lang in languages]
 
     @classmethod
-    def create_provider_medicaid(cls, provider_medicare):
+    def _create_provider_medicaid(cls, provider_medicare):
         provider_medicare.pop("@ID")
 
         return provider_medicare
 
     @classmethod
-    def create_time_gap(cls, time_gaps):
+    def _create_time_gap(cls, time_gaps):
         for time_gap in time_gaps:
             time_gap.pop("@ID")
 
@@ -471,7 +504,7 @@ class CAQHProfileTransformerTask(Task):
         return sorted(time_gaps, key=lambda x: x["StartDate"])
 
     @classmethod
-    def create_insurance(cls, insurances, current_date):
+    def _create_insurance(cls, insurances, current_date):
         insurances = [
             insurance for insurance in insurances
             if datetime.fromisoformat(insurance["EndDate"]) > current_date
@@ -480,13 +513,13 @@ class CAQHProfileTransformerTask(Task):
         return sorted(insurances, key=lambda x: x["StartDate"])
 
     @classmethod
-    def create_provider_address(cls, provider_address):
+    def _create_provider_address(cls, provider_address):
         provider_address.pop("@ID")
 
         return provider_address
 
     @classmethod
-    def create_provider_cds(cls, all_provider_cds):
+    def _create_provider_cds(cls, all_provider_cds):
         if isinstance(all_provider_cds, dict):
             all_provider_cds = [all_provider_cds]
 
@@ -511,6 +544,7 @@ class JSONTransformerTask(CSVReaderMixin, Task):
     def run(self):
         split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
         ama_masterfile = self._csv_to_dataframe(self._data[0])
+        import pdb; pdb.set_trace()
 
         LOGGER.info("Generating %d JSON files...", split_count)
         return [x.to_json(orient="records").encode() for x in numpy.array_split(ama_masterfile, split_count)]
