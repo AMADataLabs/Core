@@ -7,10 +7,11 @@ import pickle
 from   typing import List
 
 from   dateutil.parser import isoparse
+import numpy
 import pandas
 import xmltodict
 
-from   datalabs.etl.csv import CSVReaderMixin
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.vericre.profile.column import DEMOG_DATA_COLUMNS, DEA_COLUMNS, ADDRESS_COLUMNS, DEMOGRAPHICS_COLUMNS, MAILING_ADDRESS_COLUMNS
 from   datalabs.etl.vericre.profile.column import OFFICE_ADDRESS_COLUMNS, PHONE_COLUMNS, PRACTICE_SPECIALTIES_COLUMNS, NPI_COLUMNS, MEDICAL_SCHOOL_COLUMNS
 from   datalabs.etl.vericre.profile.column import ABMS_COLUMNS, MEDICAL_TRAINING_COLUMNS, LICENSES_COLUMNS, LICENSE_NAME_COLUMNS, SANCTIONS_COLUMNS
@@ -30,10 +31,11 @@ class AMAProfileTransformerParameters:
     execution_time: str = None
 
 
-class AMAProfileTransformerTask(CSVReaderMixin, Task):
+class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = AMAProfileTransformerParameters
 
     def run(self):
+        LOGGER.info("Reading physician profile PSV files...")
         abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
             = [self._csv_to_dataframe(d, sep='|') for d in self._data]
         practice_specialties = demog_data[["ENTITY_ID"] + list(PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
@@ -99,8 +101,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, Task):
         ama_masterfile = ama_masterfile.merge(me_number, on="entityId", how="left")
         del me_number
 
-        LOGGER.info("Generating JSON...")
-        return [ama_masterfile.iloc[:1000].to_json(orient="records").encode()]
+        LOGGER.info("Writing ama_masterfile table CSV file...")
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def create_demographics(cls, demog_data):
@@ -481,3 +483,22 @@ class CAQHProfileTransformerTask(Task):
         modified_all_provider_cds = sorted(all_provider_cds, key=lambda x: x["IssueDate"])
 
         return modified_all_provider_cds
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class JSONTransformerParameters:
+    split_count: str = None
+    execution_time: str = None
+
+
+class JSONTransformerTask(CSVReaderMixin, Task):
+    PARAMETER_CLASS = JSONTransformerParameters
+
+    def run(self):
+        split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
+        ama_masterfile = self._csv_to_dataframe(self._data[0])
+
+        LOGGER.info("Generating %d JSON files...", split_count)
+        return [x.to_json(orient="records").encode() for x in numpy.array_split(ama_masterfile, split_count)]
