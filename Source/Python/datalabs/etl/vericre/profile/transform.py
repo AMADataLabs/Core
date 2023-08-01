@@ -12,11 +12,7 @@ import pandas
 import xmltodict
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.vericre.profile.column import \
-    DEMOG_DATA_COLUMNS, DEA_COLUMNS, ADDRESS_COLUMNS, DEMOGRAPHICS_COLUMNS, MAILING_ADDRESS_COLUMNS,
-    OFFICE_ADDRESS_COLUMNS, PHONE_COLUMNS, PRACTICE_SPECIALTIES_COLUMNS, NPI_COLUMNS, MEDICAL_SCHOOL_COLUMNS
-    ABMS_COLUMNS, MEDICAL_TRAINING_COLUMNS, LICENSES_COLUMNS, LICENSE_NAME_COLUMNS, SANCTIONS_COLUMNS
-    MPA_COLUMNS, ECFMG_COLUMNS, ME_NUMBER_COLUMNS
+from   datalabs.etl.vericre.profile import column
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -39,10 +35,10 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         LOGGER.info("Reading physician profile PSV files...")
         abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
             = [self._csv_to_dataframe(d, sep='|') for d in self._data]
-        practice_specialties = demog_data[["ENTITY_ID"] + list(PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
-        mpa = demog_data[["ENTITY_ID"] + list(MPA_COLUMNS.keys())].copy()
-        ecfmg = demog_data[["ENTITY_ID"] + list(ECFMG_COLUMNS.keys())].copy()
-        me_number = demog_data[ME_NUMBER_COLUMNS.keys()].rename(columns=ME_NUMBER_COLUMNS).copy()
+        practice_specialties = demog_data[["ENTITY_ID"] + list(column.PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
+        mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
+        ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
+        me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
 
         LOGGER.info("Creating demographics...")
         ama_masterfile = self.create_demographics(demog_data)
@@ -111,16 +107,17 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
         demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
         demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
-        demog_data = demog_data[DEMOG_DATA_COLUMNS].copy()
+        demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
         aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        demographics = demog_data[DEMOGRAPHICS_COLUMNS.keys()].rename(columns=DEMOGRAPHICS_COLUMNS)
-        mailing_address = demog_data[MAILING_ADDRESS_COLUMNS.keys()].rename(columns=MAILING_ADDRESS_COLUMNS)
+        demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
+        mailing_address = \
+            demog_data[column.MAILING_ADDRESS_COLUMNS.keys()].rename(columns=column.MAILING_ADDRESS_COLUMNS)
         demographics["mailingAddress"] = mailing_address.to_dict(orient="records")
-        office_address = demog_data[OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=OFFICE_ADDRESS_COLUMNS)
+        office_address = demog_data[column.OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=column.OFFICE_ADDRESS_COLUMNS)
         office_address["addressUndeliverable"] = None
         demographics["officeAddress"] = office_address.to_dict(orient="records")
-        phone = demog_data[PHONE_COLUMNS.keys()].rename(columns=PHONE_COLUMNS)
+        phone = demog_data[column.PHONE_COLUMNS.keys()].rename(columns=column.PHONE_COLUMNS)
         demographics["phone"] = phone.to_dict(orient="records")
         aggregated_demographics["demographics"] = demographics.to_dict(orient="records")
 
@@ -134,9 +131,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         dea_data["BUSINESS_ACTIVITY"] \
             = dea_data[["BUSINESS_ACTIVITY_CODE", "BUSINESS_ACTIVITY_SUBCODE"]].astype(str).agg('-'.join, axis=1)
 
-        dea = dea_data[DEA_COLUMNS.keys()].rename(columns=DEA_COLUMNS)
+        dea = dea_data[column.DEA_COLUMNS.keys()].rename(columns=column.DEA_COLUMNS)
 
-        address = dea_data[ADDRESS_COLUMNS.keys()].rename(columns=ADDRESS_COLUMNS)
+        address = dea_data[column.ADDRESS_COLUMNS.keys()].rename(columns=column.ADDRESS_COLUMNS)
         address["addressUndeliverable"] = None
         dea["address"] = address.to_dict(orient="records")
 
@@ -154,7 +151,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     @classmethod
     def create_practice_specialties(cls, ama_masterfile, demog_data):
         practice_specialties \
-            = demog_data[PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=PRACTICE_SPECIALTIES_COLUMNS)
+            = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
         aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
 
@@ -165,7 +162,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         # Stop gap for missing END_DT column
         npi_data["END_DT"] = "2024-12-31"
 
-        npi = npi_data[NPI_COLUMNS.keys()].rename(columns=NPI_COLUMNS)
+        npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_npi["npi"] = npi.to_dict(orient="records")
@@ -179,7 +176,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         med_sch_data.GRAD_DT = med_sch_data.GRAD_DT.str.strip()
         med_sch_data.SCHOOL_CD = med_sch_data.SCHOOL_CD.str.strip()
         med_sch_data.GRAD_STATUS[med_sch_data.GRAD_STATUS != "Yes"] = "No"
-        medical_schools = med_sch_data[MEDICAL_SCHOOL_COLUMNS.keys()].rename(columns=MEDICAL_SCHOOL_COLUMNS)
+        medical_schools = \
+            med_sch_data[column.MEDICAL_SCHOOL_COLUMNS.keys()].rename(columns=column.MEDICAL_SCHOOL_COLUMNS)
         medical_schools["medicalEducationType"] = None
         aggregated_medical_schools = med_sch_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_medical_schools["medicalSchools"] = medical_schools.to_dict(orient="records")
@@ -190,7 +188,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
     @classmethod
     def create_abms(cls, ama_masterfile, abms_data):
-        abms = abms_data[ABMS_COLUMNS.keys()].rename(columns=ABMS_COLUMNS)
+        abms = abms_data[column.ABMS_COLUMNS.keys()].rename(columns=column.ABMS_COLUMNS)
         abms["disclaimer"] = "ABMS information is proprietary data maintained in a copyright database "
         abms["disclaimer"] += "compilation owned by the American Board of Medical Specialties.  "
         abms["disclaimer"] += "Copyright (2022) American Board of Medical Specialties.  All rights reserved."
@@ -209,7 +207,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         # Stop gap for missing END_DT column
         med_train["END_DT"] = "2024-12-31"
 
-        medical_training = med_train[MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=MEDICAL_TRAINING_COLUMNS)
+        medical_training = \
+            med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
         aggregated_medical_training \
@@ -223,8 +222,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
     @classmethod
     def create_licenses(cls, ama_masterfile, license_data):
-        licenses = license_data[LICENSES_COLUMNS.keys()].rename(columns=LICENSES_COLUMNS)
-        license_name = license_data[LICENSE_NAME_COLUMNS.keys()].rename(columns=LICENSE_NAME_COLUMNS)
+        licenses = license_data[column.LICENSES_COLUMNS.keys()].rename(columns=column.LICENSES_COLUMNS)
+        license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
         licenses["licenseName"] = license_name.to_dict(orient="records")
         aggregated_licenses = license_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
@@ -270,15 +269,15 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         aggregated_state_sanctions.drop(columns=["state"], inplace=True)
 
         aggregated_sanctions = aggregated_state_sanctions.merge(aggregated_non_state_sanctions, on="ENTITY_ID")
-        aggregated_sanctions["sanctions"] = aggregated_sanctions[SANCTIONS_COLUMNS].to_dict(orient="records")
-        aggregated_sanctions.drop(columns=SANCTIONS_COLUMNS, inplace=True)
+        aggregated_sanctions["sanctions"] = aggregated_sanctions[column.SANCTIONS_COLUMNS].to_dict(orient="records")
+        aggregated_sanctions.drop(columns=column.SANCTIONS_COLUMNS, inplace=True)
         aggregated_sanctions.rename(columns={"ENTITY_ID": "entityId"}, inplace=True)
 
         return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
 
     @classmethod
     def create_mpa(cls, ama_masterfile, demog_data):
-        mpa = demog_data[MPA_COLUMNS.keys()].rename(columns=MPA_COLUMNS)
+        mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
 
         aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_mpa["mpa"] = mpa.to_dict(orient="records")
@@ -287,7 +286,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
     @classmethod
     def create_ecfmg(cls, ama_masterfile, demog_data):
-        ecfmg = demog_data[ECFMG_COLUMNS.keys()].rename(columns=ECFMG_COLUMNS)
+        ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
 
         aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_ecfmg["ecfmg"] = ecfmg.to_dict(orient="records")
@@ -295,9 +294,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
 
     @classmethod
-    def aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column):
+    def aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
         sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
-        sanction[column] = "Y"
+        sanction[column_name] = "Y"
 
         aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
 
