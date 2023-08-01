@@ -222,9 +222,11 @@ class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     def _verify_entity_id_count(cls, entity_id):
         if not isinstance(entity_id, list):
             raise APIEndpointException("Bad Request. \"entity_id\" is not found in the request body")
-        elif len(entity_id) == 0:
+
+        if len(entity_id) == 0:
             raise APIEndpointException("Bad Request. Please provide at least 1 Entity Id")
-        elif len(entity_id) > 1000:
+
+        if len(entity_id) > 1000:
             raise APIEndpointException("Bad Request. The request should have a limit of 1000 Entity Ids")
 
 # pylint: disable=too-many-instance-attributes
