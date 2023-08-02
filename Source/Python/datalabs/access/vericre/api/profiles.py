@@ -4,6 +4,7 @@ from   dataclasses import dataclass, asdict
 import logging
 
 from   sqlalchemy import case, literal
+from   sqlalchemy.orm import joinedload
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
@@ -97,6 +98,13 @@ class BaseProfileEndpointTask(APIEndpointTask):
             Physician, Physician.form == Form.id
         ).join(
             User, User.id == Physician.user
+        ).options(
+            joinedload(User.physician),
+            joinedload(Physician.form),
+            joinedload(Form.form_sections),
+            joinedload(FormSection.form_sub_sections),
+            joinedload(FormSubSection.form_fields),
+            joinedload(FormField.values)
         )
 
     def _filter(self, query):
