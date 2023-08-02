@@ -73,6 +73,7 @@ class ConcatenateTransformerTask(Task):
 class DateFormatTransformerParameters:
     columns: str
     input_format: str = None
+    separator: str = None
     execution_time: str = None
 
 
@@ -80,12 +81,13 @@ class DateFormatTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = DateFormatTransformerParameters
 
     def run(self):
+        separator = self._parameters.separator if self._parameters.separator else ","
         columns = [column.strip() for column in self._parameters.columns.split(',')]
-        datasets = [self._csv_to_dataframe(data) for data in self._data]
+        datasets = [self._csv_to_dataframe(data, sep=separator) for data in self._data]
 
         reformatted_datasets = [self._reformat_dates(d, columns, self._parameters.input_format) for d in datasets]
 
-        return [self._dataframe_to_csv(dataset) for dataset in reformatted_datasets]
+        return [self._dataframe_to_csv(dataset, sep=separator) for dataset in reformatted_datasets]
 
     @classmethod
     def _reformat_dates(cls, dataset, columns, input_format):
@@ -96,8 +98,12 @@ class DateFormatTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
     @classmethod
     def _reformat_date_column(cls, dataset, column, input_format):
+        condition = ~dataset[column].isna()
+
         if column in dataset.columns:
-            dataset.loc[:, column] = dataset[column].apply(lambda x: cls._reformat_date(x, input_format))
+            dataset.loc[condition, column] = dataset.loc[condition, column].apply(
+                lambda x: cls._reformat_date(x, input_format)
+            )
 
     @classmethod
     def _reformat_date(cls, datestamp, input_format):

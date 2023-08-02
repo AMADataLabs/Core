@@ -61,7 +61,7 @@ def split_unindexed_data():
 def nonstandard_date_data():
     return [
         b'COLUMN1,COLUMN2,COLUMN3\n12/29/1977,foo,01/22/2002\n06/11/2254,bar,11/09/1999\n',
-        b'COLUMN1,COLUMN2,COLUMN3\n10/27/1975,foo,11/20/2000\n04/09/2252,bar,09/07/1997\n',
+        b'COLUMN1,COLUMN2,COLUMN3\n,foo,11/20/2000\n04/09/2252,bar,09/07/1997\n',
     ]
 
 
@@ -69,5 +69,5 @@ def nonstandard_date_data():
 def standard_date_data():
     return [
         b'COLUMN1,COLUMN2,COLUMN3\n1977-12-29,foo,2002-01-22\n2254-06-11,bar,1999-11-09\n',
-        b'COLUMN1,COLUMN2,COLUMN3\n1975-10-27,foo,2000-11-20\n2252-04-09,bar,1997-09-07\n',
+        b'COLUMN1,COLUMN2,COLUMN3\n,foo,2000-11-20\n2252-04-09,bar,1997-09-07\n',
     ]
