@@ -96,7 +96,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
                 "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
                 "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
             )
-        
+
         for key, value in search_request.items():
             if "" == value:
                 raise InvalidRequest(
