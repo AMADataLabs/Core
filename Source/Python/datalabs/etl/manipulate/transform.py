@@ -91,16 +91,18 @@ class DateFormatTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
     @classmethod
     def _reformat_dates(cls, dataset, columns, input_format):
+        LOGGER.debug("Reformatting dataset with columns %s", dataset.columns)
         for column in columns:
+            LOGGER.debug("Reformatting date column %s", column)
             cls._reformat_date_column(dataset, column, input_format)
 
         return dataset
 
     @classmethod
     def _reformat_date_column(cls, dataset, column, input_format):
-        condition = ~dataset[column].isna()
-
         if column in dataset.columns:
+            condition = ~dataset[column].isna()
+
             dataset.loc[condition, column] = dataset.loc[condition, column].apply(
                 lambda x: cls._reformat_date(x, input_format)
             )
