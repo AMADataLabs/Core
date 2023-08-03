@@ -157,22 +157,39 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         return {key:value for key, value in search_request.items() if value}
 
-    @classmethod
-    def _generate_name_search_request(cls, payload):
+    def _generate_name_search_request(self, payload):
         first_name = payload.get("first_name")
         last_name = payload.get("last_name")
         date_of_birth = payload.get("date_of_birth")
         state_of_practice = payload.get("state_of_practice")
         search_request = {}
 
-        if first_name and last_name and date_of_birth:
-            search_request["fullName"] = f"{first_name} {last_name}"
-            search_request["birthDate"] = date_of_birth
+        self._validate_payload(first_name, last_name, date_of_birth)
 
-            if state_of_practice:
-                search_request["stateCd"] = state_of_practice
+        search_request["fullName"] = f"{first_name} {last_name}"
+        search_request["birthDate"] = date_of_birth
+
+        if state_of_practice:
+            search_request["stateCd"] = state_of_practice
 
         return search_request
+
+    @classmethod
+    def _validate_payload(cls, first_name, last_name, date_of_birth):
+        if not first_name:
+            raise InvalidRequest(
+                f"Invalid input parameters. first_name cannot be empty."
+            )
+
+        if not last_name:
+            raise InvalidRequest(
+                f"Invalid input parameters. last_name cannot be empty."
+            )
+
+        if not date_of_birth:
+            raise InvalidRequest(
+                f"Invalid input parameters. date_of_birth cannot be empty."
+            )
 
     @classmethod
     def _get_entity_id(cls,entity_id, database):
