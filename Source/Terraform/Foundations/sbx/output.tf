@@ -15,7 +15,7 @@ output "vpc_endpoint_execapi_id" {
 }
 
 
-output "vpc_endpoint_opensearch" {
+output "vpc_endpoint_opensearch_id" {
     value = aws_vpc_endpoint.opensearch.id
 }
 
