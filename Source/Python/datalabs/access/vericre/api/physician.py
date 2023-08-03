@@ -91,12 +91,6 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         if not search_request:
             search_request = self._generate_name_search_request(payload)
 
-        if not search_request:
-            raise InvalidRequest(
-                "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
-                "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
-            )
-
         search_request["applicationId"] = "vericre"
         LOGGER.debug('Search Request: %s', search_request)
 
@@ -164,7 +158,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         state_of_practice = payload.get("state_of_practice")
         search_request = {}
 
-        self._validate_payload(first_name, last_name, date_of_birth)
+        self._validate_payload(payload)
 
         search_request["fullName"] = f"{first_name} {last_name}"
         search_request["birthDate"] = date_of_birth
@@ -175,7 +169,17 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return search_request
 
     @classmethod
-    def _validate_payload(cls, first_name, last_name, date_of_birth):
+    def _validate_payload(cls, payload):
+        if "first_name" not in payload or "last_name" not in payload or "date_of_birth" not in payload:
+            raise InvalidRequest(
+                "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
+                "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
+            )
+
+        first_name = payload.get("first_name")
+        last_name = payload.get("last_name")
+        date_of_birth = payload.get("date_of_birth")
+
         if not first_name:
             raise InvalidRequest(
                 f"Invalid input parameters. first_name cannot be empty."
