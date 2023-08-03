@@ -181,19 +181,13 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         date_of_birth = payload.get("date_of_birth")
 
         if not first_name:
-            raise InvalidRequest(
-                f"Invalid input parameters. first_name cannot be empty."
-            )
+            raise InvalidRequest("Invalid input parameters. first_name cannot be empty.")
 
         if not last_name:
-            raise InvalidRequest(
-                f"Invalid input parameters. last_name cannot be empty."
-            )
+            raise InvalidRequest("Invalid input parameters. last_name cannot be empty.")
 
         if not date_of_birth:
-            raise InvalidRequest(
-                f"Invalid input parameters. date_of_birth cannot be empty."
-            )
+            raise InvalidRequest("Invalid input parameters. date_of_birth cannot be empty.")
 
     @classmethod
     def _get_entity_id(cls,entity_id, database):
