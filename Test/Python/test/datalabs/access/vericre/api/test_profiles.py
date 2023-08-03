@@ -25,7 +25,7 @@ def test_verify_entity_id_count(multi_profile_lookup_event, over_size_entity_ids
         task._verify_entity_id_count(task._parameters.payload.get('entity_id'))
 
     assert except_info.type == APIEndpointException
-    assert str(except_info.value) == 'Bad Request. The request should have a limit of 1000 Entity Ids'
+    assert str(except_info.value) == 'Invalid input parameters. The request should have a limit of 1000 Entity Ids'
 
 
 # pylint: disable=redefined-outer-name, protected-access

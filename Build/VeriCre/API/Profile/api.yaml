@@ -85,7 +85,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileData'
         '400':
-          description: Bad Request. The request should have a limit of 100 Entity IDs
+          description: Invalid input parameters. The request should have a limit of 100 Entity IDs
         '500':
           description: Internal Server Error
     patch:
@@ -123,7 +123,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileData'
         '400':
-          description: Bad Request. The request should have a limit of 100 Entity IDs
+          description: Invalid input parameters. The request should have a limit of 100 Entity IDs
         '404':
           description: The profile was not found for the provided Entity IDs
         '500':
