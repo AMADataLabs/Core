@@ -4,7 +4,6 @@ from   dataclasses import dataclass, asdict
 import logging
 
 from   sqlalchemy import case, literal
-from   sqlalchemy.orm import joinedload
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
