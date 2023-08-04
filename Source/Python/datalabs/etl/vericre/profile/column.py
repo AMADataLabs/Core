@@ -226,3 +226,18 @@ ME_NUMBER_COLUMNS = {
     "ENTITY_ID": "entityId",
     "ME_NBR": "meNumber"
 }
+
+AGGREGATED_COLUMNS = [
+    "demographics",
+    "dea",
+    "practiceSpecialties",
+    "npi",
+    "medicalSchools",
+    "abms",
+    "medicalTraining",
+    "licenses",
+    "sanctions",
+    "mpa",
+    "ecfmg",
+    "meNumber"
+]
