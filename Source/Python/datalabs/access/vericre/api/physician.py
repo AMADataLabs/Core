@@ -91,12 +91,6 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         if not search_request:
             search_request = self._generate_name_search_request(payload)
 
-        if not search_request:
-            raise InvalidRequest(
-                "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
-                "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
-            )
-
         search_request["applicationId"] = "vericre"
         LOGGER.debug('Search Request: %s', search_request)
 
@@ -157,22 +151,43 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         return {key:value for key, value in search_request.items() if value}
 
-    @classmethod
-    def _generate_name_search_request(cls, payload):
+    def _generate_name_search_request(self, payload):
         first_name = payload.get("first_name")
         last_name = payload.get("last_name")
         date_of_birth = payload.get("date_of_birth")
         state_of_practice = payload.get("state_of_practice")
         search_request = {}
 
-        if first_name and last_name and date_of_birth:
-            search_request["fullName"] = f"{first_name} {last_name}"
-            search_request["birthDate"] = date_of_birth
+        self._validate_payload(payload)
 
-            if state_of_practice:
-                search_request["stateCd"] = state_of_practice
+        search_request["fullName"] = f"{first_name} {last_name}"
+        search_request["birthDate"] = date_of_birth
+
+        if state_of_practice:
+            search_request["stateCd"] = state_of_practice
 
         return search_request
+
+    @classmethod
+    def _validate_payload(cls, payload):
+        if "first_name" not in payload or "last_name" not in payload or "date_of_birth" not in payload:
+            raise InvalidRequest(
+                "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
+                "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
+            )
+
+        first_name = payload.get("first_name")
+        last_name = payload.get("last_name")
+        date_of_birth = payload.get("date_of_birth")
+
+        if not first_name:
+            raise InvalidRequest("Invalid input parameters. first_name cannot be empty.")
+
+        if not last_name:
+            raise InvalidRequest("Invalid input parameters. last_name cannot be empty.")
+
+        if not date_of_birth:
+            raise InvalidRequest("Invalid input parameters. date_of_birth cannot be empty.")
 
     @classmethod
     def _get_entity_id(cls,entity_id, database):
