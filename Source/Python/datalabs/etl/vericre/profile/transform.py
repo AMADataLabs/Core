@@ -330,6 +330,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
     @classmethod
     def _fill_null_sanctions(cls, ama_masterfile):
         null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
+        null_sanctions["stateSanctions"] = {"state": []}
 
         ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [null_sanctions]
 

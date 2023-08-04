@@ -1,6 +1,7 @@
 """AWS DynamoDB Loader"""
 from   dataclasses import dataclass
 import hashlib
+from   itertools import chain
 import json
 import logging
 
@@ -12,7 +13,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -30,32 +31,46 @@ class QLDBLoaderTask(Task):
 
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
-        qldb = self._get_qldb_client()
+        LOGGER.info("Reading JSON data...")
         incoming_documents = self._add_hash_to_documents(json.loads(self._data[0]))
-        current_hashes = qldb.execute_lambda(self._get_current_hashes)
+        current_hashes = self._get_current_hashes(incoming_documents)
 
         return [
-            json.dumps([self._delete_data(incoming_documents, current_hashes)]).encode(),
+            # json.dumps(self._delete_data(incoming_documents, current_hashes)).encode(),
 
-            json.dumps([self._add_data(incoming_documents, current_hashes)]).encode(),
+            json.dumps(self._add_data(incoming_documents, current_hashes)).encode(),
 
-            json.dumps([self._update_data(incoming_documents, current_hashes)]).encode()
+            json.dumps(self._update_data(incoming_documents, current_hashes)).encode()
         ]
 
     def _get_qldb_client(self):
         retry_config = RetryConfig(retry_limit=3), json.loads(self._data[0])
+
         return QldbDriver(self._parameters.ledger, retry_config=retry_config[0])
 
     @classmethod
     def _add_hash_to_documents(cls, documents):
         return [cls._add_hash_to_document(document) for document in documents]
 
-    def _get_current_hashes(self, transaction_executor):
-        cursor = transaction_executor.execute_statement(
-            f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table}"
-        )
+    def _get_current_hashes(self, incoming_documents):
+        qldb = self._get_qldb_client()
+        entity_ids = [doc["entityId"] for doc in incoming_documents]
+        document_count = len(incoming_documents)
+        end_indexes = chain(range(750, document_count, 750), [document_count])
+        start_index = 0
+        current_hashes = {}
 
-        return {doc[self._parameters.primary_key]:doc.get('md5') for doc in cursor}
+        for end_index in end_indexes:
+            LOGGER.info("Getting QLDB hashes (%d to %d of %d)...", start_index, end_index-1, document_count)
+            batch = entity_ids[start_index:end_index]
+
+            qldb.execute_lambda(lambda transaction_executor:
+                self._get_current_hashes_from_qldb(transaction_executor, batch, current_hashes)
+            )
+
+            start_index = end_index
+
+        return current_hashes
 
     def _delete_data(self, incoming_documents, current_hashes):
         deleted_primary_keys = self._get_deleted_primary_keys(incoming_documents, current_hashes)
@@ -103,21 +118,36 @@ class QLDBLoaderTask(Task):
 
         return [key for key in current_hashes.keys() if key not in incoming_primary_keys]
 
-    def _delete_documents_from_qldb(self, deleted_primary_keys):
-        batch_size = 30
+    def _get_current_hashes_from_qldb(self, transaction_executor, entity_ids, current_hashes):
+        entity_id_list = ",".join(entity_ids)
+        cursor = transaction_executor.execute_statement(
+            f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table} "
+            f"WHERE entityId in ({entity_id_list})"
+        )
 
-        for index in range(0, len(deleted_primary_keys), batch_size):
-            batch = deleted_primary_keys[index:index + batch_size]
-            qldb = self._get_qldb_client()
+        current_hashes.update({doc[self._parameters.primary_key]:doc.get('md5') for doc in cursor})
+
+    def _delete_documents_from_qldb(self, deleted_primary_keys):
+        qldb = self._get_qldb_client()
+        document_count = len(deleted_primary_keys)
+        end_indexes = chain(range(30, document_count, 30), [document_count])
+        start_index = 0
+
+        for end_index in end_indexes:
+            LOGGER.info("Deleting QLDB records (%d to %d of %d)...", start_index, end_index-1, document_count)
+            batch = deleted_primary_keys[start_index:end_index]
             placeholders = ", ".join("?" * len(batch))
 
-            qldb.execute_lambda(lambda transaction_executor, placeholders=placeholders, batch=batch:
-                transaction_executor.execute_statement(
-                    f"DELETE FROM {self._parameters.table} "
-                    f"WHERE {self._parameters.table}.{self._parameters.primary_key} IN ({placeholders})",
-                    *batch
+            if batch:
+                qldb.execute_lambda(lambda transaction_executor, placeholders=placeholders, batch=batch:
+                    transaction_executor.execute_statement(
+                        f"DELETE FROM {self._parameters.table} "
+                        f"WHERE {self._parameters.table}.{self._parameters.primary_key} IN ({placeholders})",
+                        *batch
+                    )
                 )
-            )
+
+            start_index = end_index
 
     def _get_added_data(self, incoming_documents, current_hashes):
         current_primary_keys = list(current_hashes.keys())
@@ -126,18 +156,23 @@ class QLDBLoaderTask(Task):
 
     def _add_documents_to_qldb(self, added_documents):
         qldb = self._get_qldb_client()
+        document_count = len(added_documents)
+        end_indexes = chain(range(40, document_count, 40), [document_count])
+        start_index = 0
 
-        while added_documents:
-            batch = added_documents[:40]
-            added_documents = added_documents[40:]
+        for end_index in end_indexes:
+            LOGGER.info("Inserting QLDB records (%d to %d of %d)...", start_index, end_index-1, document_count)
+            batch = added_documents[start_index:end_index]
             sql = "INSERT INTO " + self._parameters.table + " <<" + ", ".join(["?"] * len(batch)) + ">>"
-            current_batch = batch if len(batch) <= 40 else batch[:40]
 
-            qldb.execute_lambda(lambda transaction_executor:
-                transaction_executor.execute_statement(
-                    sql, *current_batch
+            if batch:
+                qldb.execute_lambda(lambda transaction_executor:
+                    transaction_executor.execute_statement(
+                        sql, *batch
+                    )
                 )
-            )
+
+            start_index = end_index
 
     def _get_updated_documents(self, incoming_documents, current_hashes):
         current_primary_keys = list(current_hashes.keys())
@@ -146,6 +181,7 @@ class QLDBLoaderTask(Task):
         return [d for d in existing_documents if d["md5"] != current_hashes[d[self._parameters.primary_key]]]
 
     def _update_documents_in_qldb(self, updated_documents):
+        LOGGER.info("Updating %d documents...", len(updated_documents))
         for index, document in enumerate(updated_documents):
             if index % 40 == 0:
                 qldb = self._get_qldb_client()
