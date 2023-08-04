@@ -14,11 +14,11 @@ LOGGER.setLevel(logging.INFO)
 
 @add_schema
 @dataclass
-# pylint: disable=too-many-instance-attribucleartes
 class VeriCreProfileSynchronizerParameters:
     host: str
     port: str = None
     execution_time: str = None
+    ssl_verification: str = None
 
 
 class VeriCreProfileSynchronizerTask(Task):
@@ -28,6 +28,7 @@ class VeriCreProfileSynchronizerTask(Task):
         for item in self._data:
             ama_masterfile = json.loads(item.decode())
             payload = [{"entityId":x["entityId"]} for x in ama_masterfile]
+
             self._make_request(payload)
 
     def _make_request(self, payload):
@@ -38,9 +39,8 @@ class VeriCreProfileSynchronizerTask(Task):
         url = f'https://{self._parameters.host}{port}/users/physicians/onETLSync'
         headers = {'Content-Type': 'application/json'}
 
-        try:
-            requests.post(
-                url, data=json.dumps(payload), headers=headers, verify=False
-            )
-        except requests.exceptions.RequestException as request_exception:
-            print("Error making the API call:", request_exception)
+        ssl_status = bool(self._parameters.ssl_verification and self._parameters.ssl_verification.upper() == "TRUE")
+
+        requests.post(
+            url, data=json.dumps(payload), headers=headers, verify=ssl_status
+        )
