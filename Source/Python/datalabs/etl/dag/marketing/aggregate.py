@@ -15,7 +15,6 @@ from   datalabs.etl.sql.extract import SQLExtractorTask
 
 @dag.register(name='MARKETING_AGGREGATOR')
 class DAG(dag.DAG):
-    EXTRACT_FLATFILE: S3FileExtractorTask
     EXTRACT_INPUTS: S3FileExtractorTask
     EXTRACT_CONTACTS: SQLExtractorTask
     CLEAN_INPUTS: InputDataCleanerTask
@@ -28,7 +27,6 @@ class DAG(dag.DAG):
     UPDATE_CONTACT_TABLE: ORMLoaderTask
 
 # pylint: disable=pointless-statement
-DAG.EXTRACT_FLATFILE >> DAG.CLEAN_INPUTS
 DAG.EXTRACT_INPUTS >> DAG.CLEAN_INPUTS
 
 DAG.EXTRACT_CONTACTS >> DAG.VALIDATE_EXISTING_EMAILS
