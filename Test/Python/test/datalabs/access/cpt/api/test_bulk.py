@@ -16,26 +16,26 @@ def test_get_authorized_years_with_explicit_cptapi_year():
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_get_authorized_years_with_cpt_code_set_product_code():
-    start_time = datetime.now(timezone.utc) - timedelta(seconds=10)
+    start_time = datetime.now(timezone.utc) - timedelta(days=1)
     start_timestamp = start_time.isoformat(sep='T')
     authorizations = dict(CPTCS=dict(start=start_timestamp, end=f"{start_time.year}-12-31T23:59:59"))
 
     authorized_years = FilesEndpointTask._get_authorized_years(authorizations)
 
     assert len(authorized_years) == 1
-    assert authorized_years[0] == current_time.year
+    assert authorized_years[0] == start_time.year
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_get_authorized_years_with_implicit_cptapi_year():
-    start_time = datetime.now(timezone.utc) - timedelta(seconds=10)
+    start_time = datetime.now(timezone.utc) - timedelta(days=1)
     start_timestamp = start_time.isoformat(sep='T')
     authorizations = dict(CPTAPI=dict(start=start_timestamp, end=f"{start_time.year}-12-31T23:59:59"))
 
     authorized_years = FilesEndpointTask._get_authorized_years(authorizations)
 
     assert len(authorized_years) == 1
-    assert authorized_years[0] == current_time.year
+    assert authorized_years[0] == start_time.year
 
 
 # pylint: disable=redefined-outer-name, protected-access
