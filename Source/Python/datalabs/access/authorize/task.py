@@ -108,7 +108,10 @@ class AuthorizerTask(Task):
         context = {}
 
         for subscription in subscriptions:
-            context[subscription.get("productCode")] = subscription.get("accessEndDt")
+            context[subscription.get("productCode")] = {
+                "start": subscription.get("startDate"),
+                "end": subscription.get("accessEndDt")
+            }
 
         return context
 

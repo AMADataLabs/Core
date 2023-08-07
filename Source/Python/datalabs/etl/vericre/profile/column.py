@@ -20,8 +20,8 @@ NPI_COLUMNS = {
     "REACTIVATION_DT": "reactivationDate",
     "REP_NPI_CD": "repNpiCode",
     "RPTD_DT": "rptdDate",
-    "INSERT_DTM": "insertDtm",
-    "INSERT_USER_ID": "insertUserId",
+    # "INSERT_DTM": "insertDtm",
+    # "INSERT_USER_ID": "insertUserId",
     "END_DT": "endDate",
     "FIRST_NAME": "firstName",
     "MIDDLE_NAME": "middleName",
@@ -226,3 +226,18 @@ ME_NUMBER_COLUMNS = {
     "ENTITY_ID": "entityId",
     "ME_NBR": "meNumber"
 }
+
+AGGREGATED_COLUMNS = [
+    "demographics",
+    "dea",
+    "practiceSpecialties",
+    "npi",
+    "medicalSchools",
+    "abms",
+    "medicalTraining",
+    "licenses",
+    "sanctions",
+    "mpa",
+    "ecfmg",
+    "meNumber"
+]
