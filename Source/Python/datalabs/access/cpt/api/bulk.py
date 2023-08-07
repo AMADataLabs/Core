@@ -132,7 +132,7 @@ class FilesEndpointTask(APIEndpointTask):
             period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
             period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
 
-            if name == PRODUCT_CODE or name == OLD_PRODUCT_CODE:
+            if name in (PRODUCT_CODE, OLD_PRODUCT_CODE):
                 authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
             elif name.startswith(OLD_PRODUCT_CODE) and current_time <= period_of_validity["end"]:
                 authorized_years.append(cls._parse_authorization_year(name))
