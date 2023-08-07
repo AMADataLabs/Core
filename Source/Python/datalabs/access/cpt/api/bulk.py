@@ -181,7 +181,7 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_years_from_period(cls, period, current_time):
-        years = list(range(period["start"].year, period["end"].year))
+        years = list(range(period["start"].year, current_time.year + 1))
 
         if period["end"] <= current_time:
             years.pop()

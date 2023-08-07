@@ -18,7 +18,7 @@ def test_get_authorized_years_with_explicit_cptapi_year():
 def test_get_authorized_years_with_cpt_code_set_product_code():
     start_time = datetime.now(timezone.utc) - timedelta(days=1)
     start_timestamp = start_time.isoformat(sep='T')
-    authorizations = dict(CPTCS=dict(start=start_timestamp, end=f"{start_time.year}-12-31T23:59:59"))
+    authorizations = dict(CPTCS=dict(start=start_timestamp, end=f"2468-12-31T23:59:59"))
 
     authorized_years = FilesEndpointTask._get_authorized_years(authorizations)
 
@@ -30,7 +30,7 @@ def test_get_authorized_years_with_cpt_code_set_product_code():
 def test_get_authorized_years_with_implicit_cptapi_year():
     start_time = datetime.now(timezone.utc) - timedelta(days=1)
     start_timestamp = start_time.isoformat(sep='T')
-    authorizations = dict(CPTAPI=dict(start=start_timestamp, end=f"{start_time.year}-12-31T23:59:59"))
+    authorizations = dict(CPTAPI=dict(start=start_timestamp, end=f"2468-12-31T23:59:59"))
 
     authorized_years = FilesEndpointTask._get_authorized_years(authorizations)
 
