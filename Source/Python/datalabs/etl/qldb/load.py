@@ -1,5 +1,6 @@
 """AWS DynamoDB Loader"""
 from   dataclasses import dataclass
+from   functools import partial
 import hashlib
 from   itertools import chain
 import json
@@ -64,8 +65,8 @@ class QLDBLoaderTask(Task):
             LOGGER.info("Getting QLDB hashes (%d to %d of %d)...", start_index, end_index-1, document_count)
             batch = entity_ids[start_index:end_index]
 
-            qldb.execute_lambda(lambda transaction_executor:
-                self._get_current_hashes_from_qldb(transaction_executor, batch, current_hashes)
+            qldb.execute_lambda(
+                partial(self._get_current_hashes_from_qldb, entity_ids=batch, current_hashes=current_hashes)
             )
 
             start_index = end_index
@@ -82,6 +83,7 @@ class QLDBLoaderTask(Task):
 
     def _add_data(self, incoming_documents, current_hashes):
         added_documents = self._get_added_data(incoming_documents, current_hashes)
+        LOGGER.info("Identified %d out of %d records to be added...", len(added_documents), len(incoming_documents))
 
         self._add_documents_to_qldb(added_documents)
 
@@ -89,6 +91,7 @@ class QLDBLoaderTask(Task):
 
     def _update_data(self, incoming_documents, current_hashes):
         updated_documents = self._get_updated_documents(incoming_documents, current_hashes)
+        LOGGER.info("Identified %d out of %d records to be updated...", len(updated_documents), len(incoming_documents))
 
         self._update_documents_in_qldb(updated_documents)
 
@@ -119,13 +122,15 @@ class QLDBLoaderTask(Task):
         return [key for key in current_hashes.keys() if key not in incoming_primary_keys]
 
     def _get_current_hashes_from_qldb(self, transaction_executor, entity_ids, current_hashes):
-        entity_id_list = ",".join(entity_ids)
-        cursor = transaction_executor.execute_statement(
-            f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table} "
-            f"WHERE entityId in ({entity_id_list})"
-        )
+        entity_id_list = "'" + "','".join(entity_ids) + "'"
+        sql = f"SELECT {self._parameters.primary_key}, md5 FROM {self._parameters.table} " \
+              f"WHERE entityId in ({entity_id_list})"
 
-        current_hashes.update({doc[self._parameters.primary_key]:doc.get('md5') for doc in cursor})
+        cursor = transaction_executor.execute_statement(sql)
+
+        hashes = {doc[self._parameters.primary_key]:doc.get('md5') for doc in cursor}
+
+        current_hashes.update(hashes)
 
     def _delete_documents_from_qldb(self, deleted_primary_keys):
         qldb = self._get_qldb_client()
@@ -166,10 +171,8 @@ class QLDBLoaderTask(Task):
             sql = "INSERT INTO " + self._parameters.table + " <<" + ", ".join(["?"] * len(batch)) + ">>"
 
             if batch:
-                qldb.execute_lambda(lambda transaction_executor:
-                    transaction_executor.execute_statement(
-                        sql, *batch
-                    )
+                qldb.execute_lambda(
+                    partial(self._execute_statement, statement=sql, parameters=batch)
                 )
 
             start_index = end_index
@@ -183,17 +186,19 @@ class QLDBLoaderTask(Task):
     def _update_documents_in_qldb(self, updated_documents):
         LOGGER.info("Updating %d documents...", len(updated_documents))
         for index, document in enumerate(updated_documents):
+            sql = f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?"
             if index % 40 == 0:
                 qldb = self._get_qldb_client()
 
-            qldb.execute_lambda(lambda transaction_executor, document=document:
-                transaction_executor.execute_statement(
-                    f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?",
-                    document, document[self._parameters.primary_key]
-                )
+            qldb.execute_lambda(
+                partial(self._execute_statement, statement=sql, parameters=document[self._parameters.primary_key])
             )
 
     @classmethod
     def _sort_inner_keys_if_dict(cls, element):
         sorted_element = {key: cls._sort_inner_keys(value) for key, value in element.items()}
         return dict(sorted(sorted_element.items()))
+
+    @classmethod
+    def _execute_statement(cls, transaction_executor, statement, parameters):
+        transaction_executor.execute_statement(statement, *parameters)

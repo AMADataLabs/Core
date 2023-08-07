@@ -11,8 +11,7 @@ import numpy
 import pandas
 import xmltodict
 
-from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.parquet import ParquetReaderMixin, ParquetWriterMixin
+from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.etl.feather import FeatherReaderMixin, FeatherWriterMixin
 from   datalabs.etl.vericre.profile import column
 from   datalabs.parameter import add_schema
@@ -97,10 +96,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         for column_name in column.AGGREGATED_COLUMNS:
             ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
 
-        # LOGGER.info("Writing ama_masterfile table CSV file...")
-        # return [self._dataframe_to_csv(ama_masterfile)]
-        # LOGGER.info("Writing ama_masterfile table Parquet file...")
-        # return [self._dataframe_to_parquet(ama_masterfile)]
         LOGGER.info("Writing ama_masterfile table Feather file...")
         return [self._dataframe_to_feather(ama_masterfile)]
 
@@ -556,12 +551,10 @@ class JSONTransformerTask(FeatherReaderMixin, Task):
     def run(self):
         split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
         ama_masterfile = self._feather_to_dataframe(self._data[0])
-        import pdb; pdb.set_trace()
 
         LOGGER.info("Unpickling column values...")
         for column_name in column.AGGREGATED_COLUMNS:
             ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.loads)
-        import pdb; pdb.set_trace()
 
         LOGGER.info("Generating %d JSON files...", split_count)
         return [x.to_json(orient="records").encode() for x in numpy.array_split(ama_masterfile, split_count)]

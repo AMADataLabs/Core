@@ -59,7 +59,7 @@ def test_authorization_contains_subscriptions(active_subscriptions_passport_resp
         assert len(context) == 3
         assert context.get("customerNumber") == "000003570997"
         assert context.get("customerName") == "Chelsea Village Medical Office"
-        assert context.get("CPTAPI") == "2021-06-19-05:00"
+        assert context.get("CPTAPI") == dict(start="2020-06-20-05:00", end="2021-06-19-05:00")
 
 
 # pylint: disable=redefined-outer-name
