@@ -33,5 +33,6 @@ WHERE
     ecu.src_cat_code = 'AMC' AND
     ecu.end_dt is null       AND
     eke.key_type ='ME'       AND
-    pn.name_type = 'LN'
+    pn.name_type = 'LN'       AND
+    pn.end_dt is null
 """.strip()
