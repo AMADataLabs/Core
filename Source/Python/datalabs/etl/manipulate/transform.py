@@ -5,6 +5,7 @@ import itertools
 import logging
 
 import json
+import pandas
 import numpy
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
@@ -73,7 +74,7 @@ class JSONSplitTransformerParameters:
     execution_time: str = None
 
 
-class JSONSplitTransformerTask(DataFrameTransformerMixin, Task):
+class JSONSplitTransformerTask(Task):
     PARAMETER_CLASS = JSONSplitTransformerParameters
 
     def run(self):
@@ -86,6 +87,8 @@ class JSONSplitTransformerTask(DataFrameTransformerMixin, Task):
         return [json.dumps(dataset.to_dict(orient='records'),  ensure_ascii=False).encode() for dataset in split_datasets]
 
 
+@add_schema
+@dataclass
 class DateFormatTransformerParameters:
     columns: str
     input_format: str = None
