@@ -149,7 +149,7 @@ def test_verify_query_result_multi(caqh_profile_pdf_event, provider_id_query_res
         task._verify_query_result(provider_id_query_result_multi)
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == 'Multiple records found for the given Entity ID in VeriCre'
+    assert str(except_info.value) == 'Multiple records found for the given Entity ID in VeriCre.'
 
 
 @pytest.mark.usefixtures("caqh_profile_pdf_event")
