@@ -31,6 +31,7 @@ modspec:
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.manipulate
   - package: datalabs.etl.s3
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.jdbc

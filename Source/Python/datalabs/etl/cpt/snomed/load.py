@@ -22,6 +22,7 @@ LOGGER.setLevel(logging.DEBUG)
 class DynamoDBLoaderParameters:
     table: str = None
     execution_time: str = None
+    append: str = None
 
 
 class DynamoDBLoaderTask(Task):
@@ -32,18 +33,22 @@ class DynamoDBLoaderTask(Task):
         incoming_mappings = json.loads(self._data[0])
 
         incoming_hashes = self._create_hash_entries(incoming_mappings)
+        LOGGER.debug("Incoming Hashes:\n%s", incoming_hashes)
 
         current_hashes = self._get_current_hashes()
+        LOGGER.debug("Current Hashes:\n%s", current_hashes)
 
-        self._delete_data(incoming_hashes, current_hashes)
+        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
+            self._delete_data(incoming_hashes, current_hashes)
 
         self._add_data(incoming_hashes, current_hashes, incoming_mappings)
 
-        self._update_data(incoming_hashes, current_hashes, incoming_mappings)
+        # self._update_data(incoming_hashes, current_hashes, incoming_mappings)
 
     @classmethod
     def _create_hash_entries(cls, data):
         incoming_hashes = []
+        hash_entries = pandas.DataFrame(columns=["pk", "sk"])
 
         for item in data:
             if item["sk"].startswith("UNMAPPABLE:") or item["sk"].startswith("CPT:"):
@@ -51,22 +56,23 @@ class DynamoDBLoaderTask(Task):
 
                 incoming_hashes.append(dict(pk=f'{item["pk"]}:{item["sk"]}', sk=f"MD5:{md5}"))
 
-        return pandas.DataFrame(incoming_hashes)
+        if incoming_hashes:
+            hash_entries = pandas.DataFrame(incoming_hashes)
+
+        return hash_entries
 
     def _get_current_hashes(self):
-        current_hashes_columns = defaultdict(list)
+        current_hashes_rows = []
 
         with AWSClient("dynamodb") as dynamodb:
             results = self._paginate(
                 dynamodb,
-                f"SELECT * FROM \"{self._parameters.table}\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')"
+                f"SELECT sk, pk FROM \"{self._parameters.table}\".\"SearchIndex\" WHERE begins_with(\"sk\", 'MD5:')"
             )
 
-            for result in results:
-                for key, value in result.items():
-                    current_hashes_columns[key].append(value["S"])
+            current_hashes_rows = [(x["sk"]["S"], x["pk"]["S"]) for x in results]
 
-        current_hashes = pandas.DataFrame(current_hashes_columns)
+        current_hashes = pandas.DataFrame(current_hashes_rows, columns=["sk", "pk"])
 
         return current_hashes
 
@@ -87,12 +93,15 @@ class DynamoDBLoaderTask(Task):
         new_mappings = self._get_new_mappings(new_hashes, incoming_mappings)
         new_keywords = self._get_new_keywords(new_hashes, incoming_mappings)
 
-        if len(new_hashes) > 0:
-            self._add_to_table(new_mappings)
+        for mapping in new_mappings:
+            pk = ":".join((mapping["pk"], mapping["sk"]))
+            items = [mapping, new_hashes[pk]] # + new_keywords[pk]
 
-            self._add_to_table(new_keywords)
+            LOGGER.debug("Adding items for mapping %s", mapping)
+            self._add_to_table(items)
 
-            self._add_to_table(new_hashes)
+        for keywords in new_keywords.values():
+            self._add_to_table(keywords)
 
     def _update_data(self, incoming_hashes, current_hashes, incoming_mappings):
         updated_hashes = self._select_updated_hashes(incoming_hashes, current_hashes)
@@ -157,24 +166,30 @@ class DynamoDBLoaderTask(Task):
 
         new_hashes = new_or_updated_hashes[~new_or_updated_hashes.pk.isin(current_hashes.pk)].reset_index(drop=True)
 
-        LOGGER.debug('Added Data: %s', new_hashes)
+        LOGGER.debug('New Hashes: %s', new_hashes)
 
-        return new_hashes.to_dict(orient='records')
+        return {hash["pk"]: hash for hash in new_hashes.to_dict(orient='records')}
 
     @classmethod
     def _get_new_mappings(cls, new_hashes, incoming_mappings):
-        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
+        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])): m for m in incoming_mappings}
 
-        return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in new_hashes]
+        return [incoming_mappings_lookup_table[hash_pk] for hash_pk in new_hashes]
 
     @classmethod
     def _get_new_keywords(cls, new_hashes, incoming_mappings):
-        keywords = []
+        keywords = defaultdict(list)
+        #
+        # for pk in new_hashes:
+        #     for item in incoming_mappings:
+        #         if pk == item['pk']:
+        #             keywords[pk].append(item)
+        #
+        # LOGGER.debug("New Keywords: %s", )
 
-        for item in new_hashes:
-            for data in incoming_mappings:
-                if item["pk"] == data['pk']:
-                    keywords.append(data)
+        for item in incoming_mappings:
+            if item["sk"].startswith("KEYWORD:"):
+                keywords[item["pk"]].append({"pk": item['pk'], "sk": item['sk']})
 
         return keywords
 
@@ -196,7 +211,7 @@ class DynamoDBLoaderTask(Task):
 
     @classmethod
     def _get_updated_mappings(cls, updated_hashes, incoming_mappings):
-        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])):m for m in incoming_mappings}
+        incoming_mappings_lookup_table = {':'.join((m["pk"], m["sk"])): m for m in incoming_mappings}
 
         return [incoming_mappings_lookup_table[hash_item["pk"]] for hash_item in updated_hashes]
 

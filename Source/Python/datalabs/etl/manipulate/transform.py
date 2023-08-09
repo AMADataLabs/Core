@@ -4,6 +4,7 @@ from   datetime import datetime
 import itertools
 import logging
 
+import json
 import numpy
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
@@ -67,6 +68,24 @@ class ConcatenateTransformerTask(Task):
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
+class JSONSplitTransformerParameters:
+    count: str
+    execution_time: str = None
+
+
+class JSONSplitTransformerTask(DataFrameTransformerMixin, Task):
+    PARAMETER_CLASS = JSONSplitTransformerParameters
+
+    def run(self):
+        count = int(self._parameters.count)
+        datasets = pandas.DataFrame(json.loads(self._data[0]))
+        split_datasets = []
+
+        split_datasets += numpy.array_split(datasets, count)
+
+        return [json.dumps(dataset.to_dict(orient='records'),  ensure_ascii=False).encode() for dataset in split_datasets]
+
+
 class DateFormatTransformerParameters:
     columns: str
     input_format: str = None
