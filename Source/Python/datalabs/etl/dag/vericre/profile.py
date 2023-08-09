@@ -2,14 +2,16 @@
 from datalabs import feature
 from datalabs.etl.dag import dag
 from datalabs.etl.http.extract import HTTPFileListExtractorTask
+from datalabs.etl.manipulate.transform import DateFormatTransformerTask
 from datalabs.etl.qldb.load import QLDBLoaderTask
 from datalabs.etl.vericre.profile.transform import CAQHProfileURLListTranformerTask
 from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
+from datalabs.etl.vericre.profile.transform import JSONTransformerTask
 from datalabs.etl.sftp.extract import SFTPFileExtractorTask
 
+
 # pylint: disable=no-name-in-module
-if feature.enabled("DL_3460"):
-    from datalabs.etl.vericre.profile.transform import AMAProfilesTransformerTask
+from datalabs.etl.vericre.profile.transform import AMAProfilesTransformerTask
 
 if feature.enabled("DL_3462"):
     from datalabs.etl.vericre.profile.transform import CAQHProfileTransformerTask
@@ -18,12 +20,13 @@ if feature.enabled("DL_3436"):
     from datalabs.etl.vericre.profile.transform import VeriCreProfileSynchronizerTask
 
 
-@dag.register(name="VERICRE_PROFILES")
+@dag.register(name="VERICRE_PROFILES_ETL")
 class DAG(dag.DAG):
     EXTRACT_AMA_PHYSICIAN_PROFILES: SFTPFileExtractorTask
-    if feature.enabled("DL_3460"):
-        CREATE_AMA_PROFILE_TABLE: AMAProfilesTransformerTask
-    LOAD_AMA_MASTERFILE_TABLE: QLDBLoaderTask
+    STANDARDIZE_DATES: DateFormatTransformerTask
+    CREATE_AMA_PROFILE_TABLE: AMAProfilesTransformerTask
+    CONVERT_AMA_MASTERFILE_TO_JSON: JSONTransformerTask
+    LOAD_AMA_MASTERFILE_TABLE: dag.Repeat(QLDBLoaderTask, 20)
 
     if feature.enabled("CAQH_PROFILES"):
         CREATE_CAQH_STATUS_URLS: CAQHStatusURLListTransformerTask
@@ -41,9 +44,22 @@ class DAG(dag.DAG):
 # pylint: disable=expression-not-assigned, pointless-statement
 if feature.enabled("DL_3436"):
     DAG.EXTRACT_AMA_PHYSICIAN_PROFILES \
+        >> DAG.STANDARDIZE_DATES \
         >> DAG.CREATE_AMA_PROFILE_TABLE \
-        >> DAG.LOAD_AMA_PROFILES_TO_LEDGER \
-        >> DAG.SYNC_PROFILES_TO_DATABASE
+        >> DAG.CONVERT_AMA_MASTERFILE_TO_JSON \
+        >> DAG.first('LOAD_AMA_MASTERFILE_TABLE')
+
+    DAG.sequence('LOAD_AMA_MASTERFILE_TABLE')
+
+    DAG.last('LOAD_AMA_MASTERFILE_TABLE') >> DAG.SYNC_PROFILES_TO_DATABASE
+else:
+    DAG.EXTRACT_AMA_PHYSICIAN_PROFILES \
+        >> DAG.STANDARDIZE_DATES \
+        >> DAG.CREATE_AMA_PROFILE_TABLE \
+        >> DAG.CONVERT_AMA_MASTERFILE_TO_JSON \
+        >> DAG.first('LOAD_AMA_MASTERFILE_TABLE')
+
+    DAG.sequence('LOAD_AMA_MASTERFILE_TABLE')
 
 if feature.enabled("CAQH_PROFILES"):
     DAG.CREATE_AMA_PROFILE_TABLE \
