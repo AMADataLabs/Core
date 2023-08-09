@@ -198,7 +198,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             query = cls._filter_by_active_user(query)
             response = query.one_or_none()
         except OperationalError as error:
-            raise InternalServerError("Vericre connection error. Please try again later.") from error
+            raise InternalServerError("VeriCre connection error. Please try again later.") from error
         except MultipleResultsFound:
             LOGGER.error("Multiple results found for entity id : %s", entity_id)
             response = None
