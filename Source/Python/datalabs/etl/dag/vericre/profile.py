@@ -7,24 +7,17 @@ from datalabs.etl.qldb.load import QLDBLoaderTask
 from datalabs.etl.vericre.profile.transform import CAQHProfileURLListTranformerTask
 from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
 from datalabs.etl.vericre.profile.transform import JSONTransformerTask
+from datalabs.etl.vericre.profile.transform import AMAProfileTransformerTask
+from datalabs.etl.vericre.profile.transform import CAQHProfileTransformerTask
+from datalabs.etl.vericre.profile.load import VeriCreProfileSynchronizerTask
 from datalabs.etl.sftp.extract import SFTPFileExtractorTask
-
-
-# pylint: disable=no-name-in-module
-from datalabs.etl.vericre.profile.transform import AMAProfilesTransformerTask
-
-if feature.enabled("DL_3462"):
-    from datalabs.etl.vericre.profile.transform import CAQHProfileTransformerTask
-
-if feature.enabled("DL_3436"):
-    from datalabs.etl.vericre.profile.transform import VeriCreProfileSynchronizerTask
 
 
 @dag.register(name="VERICRE_PROFILES_ETL")
 class DAG(dag.DAG):
     EXTRACT_AMA_PHYSICIAN_PROFILES: SFTPFileExtractorTask
     STANDARDIZE_DATES: DateFormatTransformerTask
-    CREATE_AMA_PROFILE_TABLE: AMAProfilesTransformerTask
+    CREATE_AMA_PROFILE_TABLE: AMAProfileTransformerTask
     CONVERT_AMA_MASTERFILE_TO_JSON: JSONTransformerTask
     LOAD_AMA_MASTERFILE_TABLE: dag.Repeat(QLDBLoaderTask, 20)
 
@@ -33,16 +26,15 @@ class DAG(dag.DAG):
         EXTRACT_CAQH_PROFILE_STATUSES: HTTPFileListExtractorTask
         CREATE_CAQH_PROFILE_URLS: CAQHProfileURLListTranformerTask
         EXTRACT_CAQH_PHYSICIAN_PROFILES: HTTPFileListExtractorTask
-        if feature.enabled("DL_3462"):
-            CREATE_CAQH_PROFILE_TABLE: CAQHProfileTransformerTask
+        CREATE_CAQH_PROFILE_TABLE: CAQHProfileTransformerTask
         LOAD_CAQH_PROFILES_TO_LEDGER: QLDBLoaderTask
 
-    if feature.enabled("DL_3436"):
+    if feature.enabled("SYNC_PROFILES"):
         SYNC_PROFILES_TO_DATABASE: VeriCreProfileSynchronizerTask
 
 
 # pylint: disable=expression-not-assigned, pointless-statement
-if feature.enabled("DL_3436"):
+if feature.enabled("SYNC_PROFILES"):
     DAG.EXTRACT_AMA_PHYSICIAN_PROFILES \
         >> DAG.STANDARDIZE_DATES \
         >> DAG.CREATE_AMA_PROFILE_TABLE \
