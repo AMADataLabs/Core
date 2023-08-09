@@ -259,7 +259,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     def _download_files_for_profile(self, query_result, entity_id):
         if len(query_result) == 0:
-            raise ResourceNotFound('No file found for the given entity ID')
+            raise ResourceNotFound('Document for the given entity ID is not found in VeriCre.')
 
         self._create_folder_for_downloaded_files(entity_id)
 
@@ -554,11 +554,11 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _verify_query_result(cls, query_result):
         exception = None
         if len(query_result) == 0:
-            exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
+            exception = ResourceNotFound("Provider ID from the given entity ID is not found in VeriCre.")
         elif len(query_result) > 1:
-            exception = InternalServerError("Multiple records found for the given Entity ID in Vericre")
+            exception = InternalServerError("Multiple records found for the given Entity ID in VeriCre.")
         elif isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
-            exception = ResourceNotFound("Provider ID from Entity ID in Vericre not found")
+            exception = ResourceNotFound("Provider ID from the given entity ID is not found in VeriCre.")
 
         if exception:
             raise exception
@@ -646,7 +646,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         if provider_data['provider_found_flag'] != "Y":
             raise ResourceNotFound(
-                'CAQH Provider ID from NPI ID in CAQH ProView not found'
+                'CAQH Provider ID from the given NPI ID is not found in CAQH ProView.'
             )
 
         return provider_data['caqh_provider_id']

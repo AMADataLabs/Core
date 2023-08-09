@@ -45,7 +45,7 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
         task._download_files_for_profile(empty_document_query_result, task._parameters.path.get('entityId'))
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'No file found for the given entity ID'
+    assert str(except_info.value) == 'Document for the given entity ID is not found in VeriCre.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -134,7 +134,7 @@ def test_verify_query_result_zero(caqh_profile_pdf_event, provider_id_query_resu
         task._verify_query_result(provider_id_query_result_empty)
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'Provider ID from Entity ID in Vericre not found'
+    assert str(except_info.value) == 'Provider ID from the given entity ID is not found in VeriCre.'
 
 
 ### query_result > 1
@@ -149,7 +149,7 @@ def test_verify_query_result_multi(caqh_profile_pdf_event, provider_id_query_res
         task._verify_query_result(provider_id_query_result_multi)
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == 'Multiple records found for the given Entity ID in Vericre'
+    assert str(except_info.value) == 'Multiple records found for the given Entity ID in VeriCre.'
 
 
 @pytest.mark.usefixtures("caqh_profile_pdf_event")
@@ -204,7 +204,7 @@ def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_even
         task._get_caqh_provider_id_from_npi('npi-11223344')
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'CAQH Provider ID from NPI ID in CAQH ProView not found'
+    assert str(except_info.value) == 'CAQH Provider ID from the given NPI ID is not found in CAQH ProView.'
 
 
 @pytest.fixture

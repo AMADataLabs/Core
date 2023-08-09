@@ -166,7 +166,7 @@ resource "aws_security_group" "datalake_bastion" {
 
 resource "aws_instance" "datalake_bastion" {
     ami                             = data.aws_ami.datalake_bastion.id
-    instance_type                   = "t2.micro"
+    instance_type                   = "t3.large"
     key_name                        = aws_key_pair.bastion_key.key_name
     subnet_id                       = aws_subnet.datalake_public1.id
     vpc_security_group_ids          = [aws_security_group.datalake_bastion.id]
@@ -198,7 +198,8 @@ data "aws_ami" "datalake_bastion" {
 
 module "apigw_sg" {
   source  = "app.terraform.io/AMA/security-group/aws"
-  version = "1.0.0"
+  version = "3.0.0"
+
   name        = "${local.project}-${local.environment}-apigw-sg"
   description = "Security group for API Gateway VPC interfaces"
   vpc_id      = aws_vpc.datalake.id
@@ -223,7 +224,18 @@ module "apigw_sg" {
     }
   ]
 
-  tags = merge(local.tags, {Name = "${local.project}-${local.environment}-datalake-sg"})
+  tag_name                          = "${local.project}-${local.environment}-apigw-sg"
+  tag_environment                   = local.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = local.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
 }
 
 
@@ -241,4 +253,67 @@ resource "aws_vpc_endpoint" "apigw" {
   private_dns_enabled = true
 
   tags = merge(local.tags, {Name = "${local.environment}-execute-api_vpc_endpoint"})
+}
+
+
+### OpenSearch ###
+
+
+module "opensearch_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "3.0.0"
+  name        = "${local.project}-${local.environment}-opensearch-sg"
+  description = "Security group for OpenSearch Serverless VPC interfaces"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "Secure HTTP"
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    }
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tag_name                          = "${local.project}-${local.environment}-opensearch-sg"
+  tag_environment                   = local.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = local.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+}
+
+
+
+resource "aws_vpc_endpoint" "opensearch" {
+  vpc_id            = aws_vpc.datalake.id
+  service_name      = "com.amazonaws.vpce.us-east-1.vpce-svc-0d108ae1e78cacc6c"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids = [
+    module.apigw_sg.security_group_id
+  ]
+
+  subnet_ids        = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+
+  private_dns_enabled = true
+
+  tags = merge(local.tags, {Name = "${lower(local.project)}-${local.environment}-opensearch-vpce"})
 }

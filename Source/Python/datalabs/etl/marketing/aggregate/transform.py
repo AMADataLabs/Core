@@ -12,7 +12,7 @@ import pandas
 import numpy as np
 
 from   datalabs.access.atdata import AtData
-from   datalabs.etl.manipulate.transform import DataFrameTransformerMixin
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
@@ -64,7 +64,7 @@ class InputDataCleanerTaskParameters:
     execution_time: str = None
 
 
-class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+class InputDataCleanerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = InputDataCleanerTaskParameters
 
     def run(self):
@@ -154,7 +154,7 @@ class InputDataCleanerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return flatfile.fillna('')
 
 
-class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+class InputsMergerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = InputDataCleanerTaskParameters
 
     def run(self):
@@ -210,7 +210,7 @@ class InputsMergerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
 
 
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
-class FlatfileUpdaterTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+class FlatfileUpdaterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
     MAX_ID_ATTEMPTS = 20
 
     def run(self):
@@ -444,7 +444,7 @@ class EmailValidatorTaskParameters:
     right_merge_key: str
 
 # pylint: disable=consider-using-with, line-too-long
-class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+class EmailValidatorTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = EmailValidatorTaskParameters
 
     def run(self):
@@ -537,7 +537,7 @@ class EmailValidatorTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
         return dated_dataset_with_emails
 
 
-class SFMCPrunerTask(ExecutionTimeMixin, DataFrameTransformerMixin, Task):
+class SFMCPrunerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
     Parameter_class = InputDataCleanerTaskParameters
 
     def run(self):

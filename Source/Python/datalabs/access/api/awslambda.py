@@ -130,7 +130,9 @@ class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
             parameters = dict(
                 user_id=authorization_context.get("customerNumber"),
                 user_name=authorization_context.get("customerName"),
-                authorizations={key:value for key, value in authorization_context.items() if key not in known_keys}
+                authorizations={
+                    key:json.loads(value) for key, value in authorization_context.items() if key not in known_keys
+                }
             )
 
         return parameters

@@ -1245,33 +1245,33 @@ pipelines:
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - bash Deploy/Master/update-functions -e sbx -s DataLake HelloWorld=HelloWorld.zip
-            - step:
-                name: Update Development Lambda Function
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
-                    HelloWorld=HelloWorld.zip
-            - step:
-                name: Update Test Lambda Function
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
-                    HelloWorld=HelloWorld.zip
-            - step:
-                name: Update Staging Lambda Function
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
-                    HelloWorld=HelloWorld.zip
+            # - step:
+            #     name: Update Development Lambda Function
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
+            #         HelloWorld=HelloWorld.zip
+            # - step:
+            #     name: Update Test Lambda Function
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
+            #         HelloWorld=HelloWorld.zip
+            # - step:
+            #     name: Update Staging Lambda Function
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
+            #         HelloWorld=HelloWorld.zip
             # - step:
             #     name: Update Production Lambda Function
             #     script:
@@ -1793,16 +1793,23 @@ pipelines:
                     --environment prd
                     --project Marketing/Aggregator
                     --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
-#        - parallel:
-#             - step:
-#                 name: Update Development Lambda Functions
-#                 script:
+        - parallel:
+#            - step:
+#                name: Reload Sandbox Lambda Functions
+#                script:
+#                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                - >-
-#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CustomerIntelligence -p CustomerIntelligence
-#                    MarketingAggregatorDAG=MarketingAggregatorDAG.zip
+#                    bash Deploy/Master/update-functions -e sbx -s DataLake
+#                    MarketingAggregator-DAG=MarketingAggregatorDAG.zip
+            - step:
+                name: Update Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake -p CustomerIntelligence
+                    MarketingAggregator-DAG=MarketingAggregatorDAG.zip
 #            - step:
 #                name: Update Test Lambda Function
 #                script:
@@ -1810,7 +1817,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CustomerIntelligence -p CustomerIntelligence
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake -p CustomerIntelligence
 #                    MarketingAggregatorDAG=MarketingAggregatorDAG.zip
 #            - step:
 #                name: Update Production Lambda Function
@@ -1819,7 +1826,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CustomerIntelligence -p CustomerIntelligence
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake -p CustomerIntelligence
 #                    AggregatorDAG=MarketingAggregatorDAG.zip
 
         OneView-API:
@@ -2505,6 +2512,19 @@ pipelines:
                     --project VeriCre/API/Profile
                     --bundle VeriCre/API/Profile.zip
             - step:
+                name: Update staging Bundle
+                caches:
+                - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project VeriCre/API/Profile
+                    --bundle VeriCre/API/Profile.zip
+            - step:
                 name: Update production Bundle
                 caches:
                 - environment-prod
@@ -2546,6 +2566,26 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/API
                     Profile-API=Profile.zip
                     Authorizer=Profile.zip
+            # - step:
+            #     name: Update Staging Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s VeriCre -p VeriCre/API
+            #         Profile-API=Profile.zip
+            #         Authorizer=Profile.zip
+            # - step:
+            #     name: Update Production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/API
+            #         Profile-API=Profile.zip
+            #         Authorizer=Profile.zip
 
 
         VeriCre-ETL:
@@ -2595,6 +2635,19 @@ pipelines:
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
                 - step:
+                    name: Update staging Bundle
+                    caches:
+                    - environment-stage
+                    script:
+                    - >-
+                        bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                    - >-
+                        bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                        --environment itg
+                        --project VeriCre/ETL/Profile
+                        --bundle VeriCre/ETL/Profile.zip
+                - step:
                     name: Update production Bundle
                     caches:
                     - environment-prod
@@ -2607,27 +2660,6 @@ pipelines:
                         --environment prd
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
-
-        #   - parallel: (This section is commented out as instructed. If you need to uncomment it in the future, please remove the '#' at the beginning of each line.)
-        #       - step:
-        #           name: Lambda reload development
-        #           script:
-        #           - '...'
-
-        #       - step:
-        #           name: Lambda reload test
-        #           script:
-        #           - '...'
-
-        #       - step:
-        #           name: Lambda reload integration
-        #           script:
-        #           - '...'
-
-        #       - step:
-        #           name: Lambda reload production
-        #           script:
-        #           - '...'
 
         DEUS-API:
             - step:
@@ -2687,8 +2719,8 @@ pipelines:
                 #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 #         --environment prd
                 #         --project DEUS/API
-                #         --bundle DEUS/API.zip    
-            
+                #         --bundle DEUS/API.zip
+
             # - parallel:
                 # - step:
                 #     name: Reload Sandbox Lambda Functions
@@ -2736,61 +2768,6 @@ pipelines:
                 #         bash --rcfile assume_role.rc -i
                 #         Deploy/Master/update-functions -e prd -s DEUS-API -p DEUS/API -p DEUS/API
                 #         DEUS-API=DEUS.zip
-
-            # tst, itg, and prd deployment steps are commented out as requested
-            # Uncomment and configure the deployment steps when needed
-
-            # tst:
-            #   - step:
-            #       name: Deploy to tst Environment
-            #       deployment: tst
-            #       caches:
-            #         - environment-test
-            #       script:
-            #         - echo "Deploying to tst Environment"
-
-            # itg:
-            #   - step:
-            #       name: Deploy to itg Environment
-            #       deployment: itg
-            #       caches:
-            #         - environment-stage
-            #       script:
-            #         - echo "Deploying to itg Environment"
-
-            # prd:
-            #   - step:
-            #       name: Deploy to prd Environment
-            #       deployment: prd
-            #       caches:
-            #         - environment-prod
-            #       script:
-            #         - echo "Deploying to prd Environment"
-
-        # Commented-out Lambda reload steps
-        # Uncomment and configure the Lambda reload steps when needed
-
-        # - parallel:
-        #     - step:
-        #         name: Lambda reload development
-        #         script:
-        #           - '...'
-
-        #     - step:
-        #         name: Lambda reload test
-        #         script:
-        #           - '...'
-
-        #     - step:
-        #         name: Lambda reload integration
-        #         script:
-        #           - '...'
-
-        #     - step:
-        #         name: Lambda reload production
-        #         script:
-        #           - '...'
-
 
 
 definitions:
