@@ -264,12 +264,15 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         self._create_folder_for_downloaded_files(entity_id)
 
         for file in query_result:
-            if not isinstance(file['document_name'], type(None)):
-                self._get_files_from_s3(entity_id, file)
+            self._verify_and_get_files_from_s3(entity_id, file)
 
     @classmethod
     def _create_folder_for_downloaded_files(cls, entity_id):
         os.makedirs(f'{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}')
+
+    def _verify_and_get_files_from_s3(self, entity_id, file):
+        if not isinstance(file['document_name'], type(None)):
+            self._get_files_from_s3(entity_id, file)
 
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
