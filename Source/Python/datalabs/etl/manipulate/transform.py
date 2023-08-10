@@ -84,7 +84,9 @@ class JSONSplitTransformerTask(Task):
 
         split_datasets += numpy.array_split(datasets, count)
 
-        return [json.dumps(dataset.to_dict(orient='records'),  ensure_ascii=False).encode() for dataset in split_datasets]
+        return [
+            json.dumps(dataset.to_dict(orient='records'),  ensure_ascii=False).encode() for dataset in split_datasets
+        ]
 
 
 @add_schema

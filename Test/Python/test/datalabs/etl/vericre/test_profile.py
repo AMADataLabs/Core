@@ -1,9 +1,4 @@
 ''' Source: datalabs.etl.dag.vericre.profile '''
-import importlib
-import os
-import sys
-
-import pytest
 
 
 # pylint: disable=import-outside-toplevel, unused-import

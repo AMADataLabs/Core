@@ -8,6 +8,7 @@ import logging
 import pandas
 
 from   datalabs.access.aws import AWSClient, AWSResource
+from   datalabs import feature
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -43,7 +44,8 @@ class DynamoDBLoaderTask(Task):
 
         self._add_data(incoming_hashes, current_hashes, incoming_mappings)
 
-        # self._update_data(incoming_hashes, current_hashes, incoming_mappings)
+        if not feature.enabled("PARTIAL_LOAD"):
+            self._update_data(incoming_hashes, current_hashes, incoming_mappings)
 
     @classmethod
     def _create_hash_entries(cls, data):
@@ -88,6 +90,7 @@ class DynamoDBLoaderTask(Task):
 
             self._delete_from_table(deleted_hashes)
 
+    # pylint: disable=invalid-name
     def _add_data(self, incoming_hashes, current_hashes, incoming_mappings):
         new_hashes = self._select_new_hashes(incoming_hashes, current_hashes)
         new_mappings = self._get_new_mappings(new_hashes, incoming_mappings)
@@ -95,7 +98,10 @@ class DynamoDBLoaderTask(Task):
 
         for mapping in new_mappings:
             pk = ":".join((mapping["pk"], mapping["sk"]))
-            items = [mapping, new_hashes[pk]] # + new_keywords[pk]
+            items = [mapping, new_hashes[pk]]
+
+            if not feature.enabled("PARTIAL_LOAD"):
+                items += new_keywords[pk]
 
             LOGGER.debug("Adding items for mapping %s", mapping)
             self._add_to_table(items)
@@ -179,13 +185,14 @@ class DynamoDBLoaderTask(Task):
     @classmethod
     def _get_new_keywords(cls, new_hashes, incoming_mappings):
         keywords = defaultdict(list)
-        #
-        # for pk in new_hashes:
-        #     for item in incoming_mappings:
-        #         if pk == item['pk']:
-        #             keywords[pk].append(item)
-        #
-        # LOGGER.debug("New Keywords: %s", )
+
+        if not feature.enabled("PARTIAL_LOAD"):
+            for pk in new_hashes:
+                for item in incoming_mappings:
+                    if pk == item['pk']:
+                        keywords[pk].append(item)
+
+            LOGGER.debug("New Keywords: %s", )
 
         for item in incoming_mappings:
             if item["sk"].startswith("KEYWORD:"):

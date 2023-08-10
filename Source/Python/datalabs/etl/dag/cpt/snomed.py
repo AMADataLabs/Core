@@ -10,6 +10,6 @@ class DAG(dag.DAG):
     LOAD_SNOMED_MAPPINGS: Repeat("datalabs.etl.cpt.snomed.load.DynamoDBLoaderTask", 100)
 
 
-# pylint: disable=pointless-statement
+# pylint: disable=expression-not-assigned
 DAG.EXTRACT_SNOMED_FILE >> DAG.CREATE_SNOMED_MAPPINGS >> DAG.SPLIT_MAPPINGS >> DAG.first('LOAD_SNOMED_MAPPINGS')
 DAG.sequence('LOAD_SNOMED_MAPPINGS')
