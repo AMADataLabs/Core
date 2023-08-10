@@ -264,7 +264,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         self._create_folder_for_downloaded_files(entity_id)
 
         for file in query_result:
-            self._get_files_from_s3(entity_id, file)
+            if not isinstance(file['document_name'], type(None)):
+                self._get_files_from_s3(entity_id, file)
 
     @classmethod
     def _create_folder_for_downloaded_files(cls, entity_id):
