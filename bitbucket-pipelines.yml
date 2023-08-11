@@ -2666,7 +2666,7 @@ pipelines:
                     script:
                     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     - >-
-                        bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/ETL/Profile
+                        bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/ETL
                         Profiles-DAG=Profile.zip
                 - step:
                     name: Reload Development Lambda Functions
@@ -2675,7 +2675,7 @@ pipelines:
                         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                     - >-
-                        bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/ETL/Profile
+                        bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/ETL
                         Profiles-DAG=Profile.zip
 
         DEUS-API:
