@@ -71,6 +71,7 @@ public class DagTaskWrapper extends TaskWrapper {
     protected Map<String, String> getDagParameters() {
         Map<String, String> dagParameters = this.parameters;
 
+        dagParameters.put("EXECUTION_TIME", getExecutionTime());
         dagParameters.put("CACHE_EXECUTION_TIME", getExecutionTime());
 
         return dagParameters;
