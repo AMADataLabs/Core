@@ -54,7 +54,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         query = self._filter(query)
 
-        # query = self._sort(query)
+        query = self._sort(query)
 
         query_result = [row._asdict() for row in query.all()]
 
@@ -113,9 +113,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _filter_by_active_user(cls, query):
         return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
 
-    # @classmethod
-    # def _sort(cls, query):
-    #     return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
+    @classmethod
+    def _sort(cls, query):
+        return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
 
     @classmethod
     def _verify_query_result(cls, query_result):
