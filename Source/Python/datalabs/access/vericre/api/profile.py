@@ -294,7 +294,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             LOGGER.error("document_key: %s", document_key)
             LOGGER.exception(error.response)
 
-    def _encode_document_name(self, file):
+    @classmethod
+    def _encode_document_name(cls, file):
         encoded_document_name = file['document_name']
 
         if file['document_identifier'] != 'Profile Avatar':
