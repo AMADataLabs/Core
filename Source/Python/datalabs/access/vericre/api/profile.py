@@ -276,23 +276,35 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     def _get_files_from_s3(self, entity_id, file):
         document_name = file['document_name']
-        encoded_document_name = urllib.parse.quote(
-            file['document_name'],
-            safe=' '
-        ).replace(" ", "+")
+        encoded_document_name = self._encode_document_name(file)
         document_key = f"{file['document_path']}/{encoded_document_name}"
-
+        download_file_name = document_name if file['document_identifier'] != 'Profile Avatar' else 'Avatar'
+        
         try:
             with AWSClient('s3') as aws_s3:
                 aws_s3.download_file(
                     Bucket=self._parameters.document_bucket_name,
                     Key=document_key,
-                    Filename=f"{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{document_name}"
+                    Filename=f"{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{download_file_name}"
                 )
 
-                LOGGER.info("%s/%s downloaded.", entity_id, document_name)
+                LOGGER.info("%s/%s downloaded.", entity_id, download_file_name)
         except ClientError as error:
+            LOGGER.error("document_name: %s", document_name)
+            LOGGER.error("document_key: %s", document_key)
             LOGGER.exception(error.response)
+
+    def _encode_document_name(self, file):
+        encoded_document_name = file['document_name']
+
+        if file['document_identifier'] != 'Profile Avatar':
+            encoded_document_name = urllib.parse.quote(
+                file['document_name'],
+                safe=' '
+            ).replace(" ", "+")
+
+        return encoded_document_name
+        
 
     def _zip_downloaded_files(self, entity_id):
         folder_to_zip = f'{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}'
