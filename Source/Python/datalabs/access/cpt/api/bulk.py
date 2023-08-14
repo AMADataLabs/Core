@@ -128,12 +128,14 @@ class FilesEndpointTask(APIEndpointTask):
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
-        for name, end_datestamp in cpt_api_authorizations.items():
-            year = cls._parse_authorization_year(name, current_time)
-            end_date = datetime.fromisoformat(end_datestamp).astimezone(timezone.utc)
+        for name, period_of_validity in cpt_api_authorizations.items():
+            period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
+            period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
 
-            if current_time <= end_date:
-                authorized_years.append(year)
+            if name in (PRODUCT_CODE, OLD_PRODUCT_CODE):
+                authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
+            elif name.startswith(OLD_PRODUCT_CODE) and current_time <= period_of_validity["end"]:
+                authorized_years.append(cls._parse_authorization_year(name))
 
         return authorized_years
 
@@ -174,19 +176,21 @@ class FilesEndpointTask(APIEndpointTask):
         return archive_path
 
     @classmethod
-    def _is_cpt_product(self, product):
+    def _is_cpt_product(cls, product):
         return product.startswith(PRODUCT_CODE) or product.startswith(OLD_PRODUCT_CODE)
 
     @classmethod
-    def _parse_authorization_year(cls, name, current_time):
-        year = current_time.year
+    def _generate_years_from_period(cls, period, current_time):
+        years = list(range(period["start"].year, current_time.year + 1))
 
-        if name.startswith(PRODUCT_CODE) and len(name) > len(PRODUCT_CODE):
-            year = int('20' + name[len(PRODUCT_CODE):])
-        elif name.startswith(OLD_PRODUCT_CODE) and len(name) > len(OLD_PRODUCT_CODE):
-            year = int('20' + name[len(OLD_PRODUCT_CODE):])
+        if period["end"] <= current_time:
+            years.pop()
 
-        return year
+        return years
+
+    @classmethod
+    def _parse_authorization_year(cls, name):
+        return int('20' + name[len(OLD_PRODUCT_CODE):])
 
     def _list_files(self, prefix):
         files = []

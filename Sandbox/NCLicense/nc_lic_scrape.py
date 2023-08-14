@@ -51,7 +51,7 @@ def save_it(license_dict_list):
 def scrape():
     today = str(date.today())
     lic_dir = os.environ.get('LICENSE_DIR')
-    lic_loc = f'{lic_dir}NC_FULL_FILE_NUM_ONLY_2023-06-13.csv'
+    lic_loc = f'{lic_dir}NC_FULL_FILE_NUM_ONLY_2023-08-08.csv'
     LOGGER.info(f'Licenses in {lic_loc}')
     nc_lic = pd.read_csv(lic_loc)
     LOGGER.info('File read')

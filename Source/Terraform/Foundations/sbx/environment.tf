@@ -1,10 +1,11 @@
 provider "aws" {
     region = "us-east-1"
-    version = "~> 3.0"
 }
 
 
 terraform {
+    required_version = "= 1.5.3"
+
     backend "s3" {
         bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
         key             = "Foundations/sandbox.tfstate"
@@ -13,6 +14,8 @@ terraform {
     }
 
     required_providers {
-        aws = "3.74.3"
+        aws = {
+            version = "= 5.10.0"
+        }
     }
 }
