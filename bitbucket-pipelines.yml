@@ -561,6 +561,209 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
                     JSON-DAG=ETL.zip
 
+        CPT-KnowledgeBase-API:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project CPT/API/KnowledgeBase
+        - parallel:
+            - step:
+                name: Update Development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/KnowledgeBase/API
+                    --bundle CPT/KnowledgeBase/API.zip
+            - step:
+                name: Update Test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/KnowledgeBase/API
+                    --bundle CPT/KnowledgeBase/API.zip
+            - step:
+                name: Update Staging Bundle
+                caches:
+                    - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project CPT/KnowledgeBase/API
+                    --bundle CPT/KnowledgeBase/API.zip
+            - step:
+                name: Update Production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project CPT/KnowledgeBase/API
+                    --bundle CPT/KnowledgeBase/API.zip
+
+        - parallel:
+            - step:
+                name: Update Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
+                    JSON-DAG=KnowledgeBase.zip
+            - step:
+                name: Update Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
+                    JSON-DAG=KnowledgeBase.zip
+            - step:
+                name: Update Staging Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API
+                    JSON-DAG=KnowledgeBase.zip
+            - step:
+                name: Update Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
+                    JSON-DAG=KnowledgeBase.zip
+
+        CPT-KnowledgeBase-ETL:
+        - step:
+                name: Create Development Component Package
+                caches:
+                    - environment-master
+                script:
+                    - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    - bash Deploy/Master/deploy-package --project CPT/KnowledgeBase/ETL
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/KnowledgeBase/ETL
+                    --bundle CPT/KnowledgeBase/ETL.zip
+            - step:
+                name: Update Development Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/KnowledgeBase/ETL
+                    --bundle CPT/KnowledgeBase/ETL.zip
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                   - environment-test
+                script:
+                - >-
+                   bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                   -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/KnowledgeBase/ETL
+                    --bundle CPT/KnowledgeBase/ETL.zip
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                   - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project CPT/KnowledgeBase/ETL
+                    --bundle CPT/KnowledgeBase/ETL.zip
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/KnowledgeBase
+                    -DAG=ETL.zip
+            #- step:
+            #    name: Reload Development Lambda Functions
+            #    script:
+            #    - >-
+            #        bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #    - >-
+            #        bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/KnowledgeBase
+            #        -DAG=ETL.zip
+            #- step:
+            #    name: Reload Test Lambda Functions
+            #    script:
+            #    - >-
+            #        bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #    - >-
+            #        bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/KnowledgeBase
+            #        -DAG=ETL.zip
+            # - step:
+            #     name: Reload Staging Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/SNOMED
+            #         SNOMED-DAG=ETL.zip
+            #- step:
+            #    name: Reload Production Lambda Functions
+            #    script:
+            #    - >-
+            #        bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #    - >-
+            #        bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/KnowledgeBase
+            #        -DAG=ETL.zip
         CPT-API-Endpoint:
         - step:
             name: Create Development Component Package

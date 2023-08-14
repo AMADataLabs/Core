@@ -1,0 +1,99 @@
+openapi: 3.0.2
+info:
+  title: KnowledgeBase Search API
+  description: KnowledgeBase Search API
+  version: "1.0.0"
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Search
+    description: Provides a list of KnowledgeBase articles which match the input keywords
+    externalDocs:
+      url: 'http://swagger.io'
+paths:
+  /search:
+    get:
+      tags:
+        - Search
+      summary: Provides a list of KnowledgeBase articles which match the input keywords
+      description: Provides a list of KnowledgeBase articles which match the input keywords
+      operationId: search
+      parameters:
+        - name: keywords
+          in: query
+          description: 'List of keywords to search '
+          required: false
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '303':
+          description: List of KnowledgeBase articles
+          headers:
+            Location:
+              schema:
+                type: "string"
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:
+    search:
+      type: object
+      required:
+        - id
+        - section
+        - subsection
+        - question
+        - preview
+        - answer
+        - updated_date
+      properties:
+        id:
+          type: integer
+          format: int64
+        section:
+          type: string
+          format: byte
+        subsection:
+          type: string
+          format: byte
+        question:
+          type: string
+          format: byte
+        preview:
+          type: string
+          format: byte
+        answer:
+          type: string
+          format: byte
+        updated_date:
+          type: string
+          format: byte
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/KB/1.0.0'
