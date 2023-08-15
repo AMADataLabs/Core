@@ -278,7 +278,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         document_name = file['document_name']
         encoded_document_name = self._encode_document_name(file)
         document_key = f"{file['document_path']}/{encoded_document_name}"
-        download_file_name = document_name if file['document_identifier'] != 'Profile Avatar' else 'Avatar'
+        download_file_name = document_name if file['document_identifier'] != 'Profile Avatar' else f'Avatar.{document_name.split(".")[-1]}'
 
         try:
             with AWSClient('s3') as aws_s3:
