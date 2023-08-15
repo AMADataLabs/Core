@@ -9,8 +9,9 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.2.0
-        [prd]=1.2.0
+        [tst]=0.1.0.dev0
+        [itg]=0.1.0.dev0
+        [prd]=0.1.0.dev0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -18,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="knowledge-base"
-    export RELEASE_DESCRIPTION="Knowledge Base Search"
+    export RELEASE_NAME="datalabs-cpt-knowledge-base-api"
+    export RELEASE_DESCRIPTION="Knowledge Base Search API"
 }
 
 
