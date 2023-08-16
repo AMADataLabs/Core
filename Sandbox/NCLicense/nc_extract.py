@@ -14,7 +14,7 @@ def get_raw_filename():
     this_month = date.today().strftime("%B")
     LOGGER.info(f' Licenses from {this_month}')
     folder = os.environ.get('RAW_LICENSE_DIR')
-    raw_filename = f'{folder}{this_month}/License/North Carolina/MD Active.xlsx'
+    raw_filename = f'{folder}{this_month}/License/North Carolina/MD-DO-Active-08-03-2023-NCMB.xlsx'
     return raw_filename
 
 def send_email(attachment, auto_send=True):

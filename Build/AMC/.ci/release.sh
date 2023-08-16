@@ -9,7 +9,7 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.1.0
+        [tst]=dev  # AIMS not available in dev
         [itg]=1.1.0
         [prd]=1.1.0
     )

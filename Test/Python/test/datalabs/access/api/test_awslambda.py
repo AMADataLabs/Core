@@ -97,7 +97,7 @@ def expected_parameters(task_parameters):
             user_id="000002164389",
             user_name="TEST Health Solutions",
             authorizations=dict(
-                CPTAPI="2048-10-06-05:00"
+                CPTAPI={"start": "2020-01-01-05:00", "end": "2048-10-06-05:00"}
             )
         ),
         identity=dict(
@@ -177,7 +177,7 @@ def event():
             "requestContext": {{
                 "resourceId": "zs07zi",
                 "authorizer": {{
-                    "CPTAPI": "2048-10-06-05:00",
+                    "CPTAPI": "{{\\"start\\":\\"2020-01-01-05:00\\",\\"end\\":\\"2048-10-06-05:00\\"}}",
                     "principalId": "username",
                     "integrationLatency": 0,
                     "customerNumber": "000002164389",

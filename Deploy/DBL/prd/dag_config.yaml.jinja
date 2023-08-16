@@ -34,7 +34,7 @@ DBL:
         STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
 
     EXTRACT_DBL:
-        BASE_PATH: '/Data Analytics/Data-Science/Data/DBL/testing'
+        BASE_PATH: ''
         FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
         HOST: ${EFT_HOST}
         USERNAME: ${EFT_USERNAME}
@@ -46,8 +46,8 @@ DBL:
         CACHE_OUTPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv'
 
     GET_LAST_REPORT:
-        BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/testing"
-        FILES: "Weekly DBL Report - %Y-%m-%d.xlsx"
+        BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive"
+        FILES: "Weekly DBL Report - Latest.xlsx"
         HOST: ${UDRIVE_HOST}
         USERNAME: ${UDRIVE_USERNAME}
         PASSWORD: ${UDRIVE_PASSWORD}
@@ -56,7 +56,6 @@ DBL:
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_FILES: "Weekly DBL Report - Latest.xlsx"
-        EXECUTION_OFFSET: '{"weeks": 1}'
 
     CREATE_DBL_REPORT:
         CACHE_CLASS: ${S3_CACHE_CLASS}
@@ -73,10 +72,10 @@ DBL:
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - Previous.xlsx,comparison.pk"
 
-        TO: 'datalabs@ama-assn.org'
-        CC: ''
-        FAIL_TO: 'datalabs@ama-assn.org'
-        FAIL_CC: ''
+        TO: 'Christina.Tennant@ama-assn.org'
+        CC: 'datalabs@ama-assn.org'
+        FAIL_TO: 'Christina.Tennant@ama-assn.org'
+        FAIL_CC: 'datalabs@ama-assn.org'
 
     LOAD_DBL_REPORT:
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
@@ -84,7 +83,7 @@ DBL:
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx"
 
-        BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/testing/"
+        BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive/"
         FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx"
         HOST: ${UDRIVE_HOST}
         USERNAME: ${UDRIVE_USERNAME}

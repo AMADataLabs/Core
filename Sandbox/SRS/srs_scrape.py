@@ -184,11 +184,11 @@ def download_report(driver):
     # time.sleep(30)
     #download
     xpath = '//*[@id="main-content"]/mda-srs-reports-custom-reports/div/div/mat-card/mat-card-content/div[2]/aamc-ui-page-header/mat-toolbar/button/span[1]'
-    time.sleep(30)
+    time.sleep(10)
     download = WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH,xpath)))
     download.click()
     LOGGER.info(f'Starting download...')
-    time.sleep(30)
+    time.sleep(40)
     return driver
 
 def change_school(driver):
@@ -201,12 +201,14 @@ def first_round(driver, school_1):
     #first school
     class_ = "ng-option"
     schools = driver.find_elements(By.CLASS_NAME,class_)
+    print(school_1)
     for school in schools:
         if school.text == school_1:
             school.click()
             break
     class_test = "mat-primary"
     role_select = wait(driver).until(presence_of_element_located((By.CLASS_NAME,class_test)))
+    print(role_select)
     role_select.click()
     #go to custom report
     xpath = '//*[@id="main-content"]/mda-srs-reports-home/div/div/mat-card/ol/li[2]/p/a'
@@ -246,7 +248,7 @@ def iterate_schools(driver, school_list):
             driver = set_preferences(driver)
             LOGGER.info(f'{school_name} downloading...')
             driver = download_report(driver)
-        time.sleep(5)
+        time.sleep(3)
     driver.quit()
     return driver
 
@@ -295,7 +297,7 @@ def scrape_srs():
     driver = get_school_dropdown(driver)
     driver, school_list = get_school_options(driver)
     LOGGER.info(f'Getting first school...')
-    driver = first_round(driver, school_list)
+    driver = first_round(driver, school_list[0])
     LOGGER.info(f'Iterating schools...')
     try:
         driver = iterate_schools(driver, school_list[1:])

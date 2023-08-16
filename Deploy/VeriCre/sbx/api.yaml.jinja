@@ -12,13 +12,13 @@ VERICRE_API:
         DATABASE_PASSWORD:  '{{database_password}}'
 
     ROUTE:
-        PHYSICIANS_SEARCH: '/physicians/search'
-        PROFILES_LOOKUP:   '/profiles/lookup'
-        PROFILES:          '/profiles'
-        PROFILE:           '/profile/*'
-        PROFILE_DOCUMENTS: '/profile/*/documents'
-        PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
-        PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
+        PHYSICIANS_SEARCH: '/profile_api/physicians/search'
+        PROFILES_LOOKUP:   '/profile_api/profiles/lookup'
+        PROFILES:          '/profile_api/profiles'
+        PROFILE:           '/profile_api/profile/*'
+        PROFILE_DOCUMENTS: '/profile_api/profile/*/documents'
+        PROFILE_CAQH_PDF:  '/profile_api/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF:   '/profile_api/profile/*/AMA/pdf'
         DEFAULT:           '/*'
 
     PHYSICIANS_SEARCH:
