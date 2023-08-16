@@ -50,13 +50,15 @@ class BaseProfileEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        query = self._query_for_profile(database)
+        sql_string = self._query_for_profile()
 
-        query = self._filter(query)
+        sql_string = self._filter(sql_string)
 
-        query = self._sort(query)
+        sql_string = self._sort(sql_string)
 
-        query_result = [row._asdict() for row in query.all()]
+        query = database.execute(sql_string)
+
+        query_result = [dict(row) for row in query.fetchall()]
 
         self._verify_query_result(query_result)
 
@@ -65,57 +67,63 @@ class BaseProfileEndpointTask(APIEndpointTask):
         self._response_body = self._generate_response_body(response_result)
 
     @classmethod
-    def _query_for_profile(cls, database):
-        return database.query(
-            User.ama_entity_id,
-            FormSubSection.identifier.label('section_identifier'),
-            FormField.identifier.label('field_identifier'),
-            case(
-                [(((FormField.is_source_field == 'True') & (FormField.is_authoritative == 'True')), literal(True))],
-                else_=literal(False)
-            ).label("is_authoritative"),
-            FormField.is_source_field.label('is_source'),
-            FormField.name,
-            FormField.read_only,
-            FormField.source_key,
-            case(
-                [
-                    (((FormField.is_source_field == 'True') & (FormField.source == 1)), 'AMA'),
-                    (((FormField.is_source_field == 'True') & (FormField.source == 2)), 'CAQH')
-                ],
-                else_='Physician Provided'
-            ).label("source_tag"),
-            FormField.type,
-            FormField.values
-        ).join(
-            FormField, FormField.form_sub_section == FormSubSection.id
-        ).join(
-            FormSection, FormSection.id == FormSubSection.form_section
-        ).join(
-            Form, Form.id == FormSection.form
-        ).join(
-            Physician, Physician.form == Form.id
-        ).join(
-            User, User.id == Physician.user
-        )
+    def _query_for_profile(cls):
+        sql_string = '''
+            select
+                u.ama_entity_id,
+                fss.identifier as section_identifier,
+                ff.identifier as field_identifier,
+                case
+                    when ff.is_source_field = True and ff.is_authoritative = True then True
+                    else False
+                end as is_authoritative,
+                ff.is_source_field as is_source,
+                ff.name,
+                ff.read_only,
+                ff.source_key,
+                case
+                    when ff.is_source_field = True and ff.source = 1 then \'AMA\'
+                    when ff.is_source_field = True and ff.source = 2 then \'CAQH\'
+                    else \'Physician Provided\'
+                end as source_tag,
+                ff.type,
+                ff.values
+            from "user" u
+            join physician p on u.id = p."user"
+            join form f on p.form = f.id
+            join form_section fs on f.id = fs.form
+            join form_sub_section fss on fs.id = fss.form_section
+            join form_field ff on fss.id = ff.form_sub_section
+            where 1=1
+        '''
 
-    def _filter(self, query):
-        query = self._filter_by_entity_id(query)
-        query = self._filter_by_active_user(query)
+        return sql_string
 
-        return query.filter(FormField.is_hidden == 'False')
+    def _filter(self, sql_string):
+        sql_string = self._filter_by_entity_id(sql_string)
+        sql_string = self._filter_by_active_user(sql_string)
+        sql_string = self._filter_by_hidden_form_field(sql_string)
+
+        return sql_string
 
     @abstractmethod
-    def _filter_by_entity_id(self, query):
+    def _filter_by_entity_id(self, sql_string):
         pass
 
     @classmethod
-    def _filter_by_active_user(cls, query):
-        return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
+    def _filter_by_active_user(cls, sql_string):
+        sql_string = f'{sql_string} and u.is_deleted = False and u.status = \'ACTIVE\''
+        return sql_string
 
     @classmethod
-    def _sort(cls, query):
-        return query.order_by(User.ama_entity_id.asc(), FormField.form_sub_section.asc(), FormField.order.asc())
+    def _filter_by_hidden_form_field(cls, sql_string):
+        sql_string = f'{sql_string} and ff.is_hidden = False'
+        return sql_string
+
+    @classmethod
+    def _sort(cls, sql_string):
+        sql_string = f'{sql_string} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
+        return sql_string
 
     @classmethod
     def _verify_query_result(cls, query_result):
@@ -211,12 +219,14 @@ class MultiProfileLookupEndpointParameters:
 class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupEndpointParameters
 
-    def _filter_by_entity_id(self, query):
+    def _filter_by_entity_id(self, sql_string):
         entity_id = self._parameters.payload.get("entity_id")
 
         self._verify_entity_id_count(entity_id)
 
-        return query.filter(User.ama_entity_id.in_(entity_id))
+        sql_string = f'''{sql_string} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
+
+        return sql_string
 
     @classmethod
     def _verify_entity_id_count(cls, entity_id):
@@ -249,7 +259,8 @@ class SingleProfileLookupEndpointParameters:
 class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
-    def _filter_by_entity_id(self, query):
+    def _filter_by_entity_id(self, sql_string):
         entity_id = self._parameters.path.get('entityId')
+        sql_string = f'{sql_string} and u.ama_entity_id = {entity_id}'
 
-        return query.filter(User.ama_entity_id == entity_id)
+        return sql_string
