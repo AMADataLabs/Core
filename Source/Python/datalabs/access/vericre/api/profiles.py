@@ -50,13 +50,13 @@ class BaseProfileEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        sql_string = self._query_for_profile()
+        sql = self._query_for_profile()
 
-        sql_string = self._filter(sql_string)
+        sql = self._filter(sql)
 
-        sql_string = self._sort(sql_string)
+        sql = self._sort(sql)
 
-        query = database.execute(sql_string)
+        query = database.execute(sql)
 
         query_result = [dict(row) for row in query.fetchall()]
 
@@ -68,7 +68,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_profile(cls):
-        sql_string = '''
+        sql = '''
             select
                 u.ama_entity_id,
                 fss.identifier as section_identifier,
@@ -97,33 +97,33 @@ class BaseProfileEndpointTask(APIEndpointTask):
             where 1=1
         '''
 
-        return sql_string
+        return sql
 
-    def _filter(self, sql_string):
-        sql_string = self._filter_by_entity_id(sql_string)
-        sql_string = self._filter_by_active_user(sql_string)
-        sql_string = self._filter_by_hidden_form_field(sql_string)
+    def _filter(self, sql):
+        sql = self._filter_by_entity_id(sql)
+        sql = self._filter_by_active_user(sql)
+        sql = self._filter_by_hidden_form_field(sql)
 
-        return sql_string
+        return sql
 
     @abstractmethod
-    def _filter_by_entity_id(self, sql_string):
+    def _filter_by_entity_id(self, sql):
         pass
 
     @classmethod
-    def _filter_by_active_user(cls, sql_string):
-        sql_string = f'{sql_string} and u.is_deleted = False and u.status = \'ACTIVE\''
-        return sql_string
+    def _filter_by_active_user(cls, sql):
+        sql = f'{sql} and u.is_deleted = False and u.status = \'ACTIVE\''
+        return sql
 
     @classmethod
-    def _filter_by_hidden_form_field(cls, sql_string):
-        sql_string = f'{sql_string} and ff.is_hidden = False'
-        return sql_string
+    def _filter_by_hidden_form_field(cls, sql):
+        sql = f'{sql} and ff.is_hidden = False'
+        return sql
 
     @classmethod
-    def _sort(cls, sql_string):
-        sql_string = f'{sql_string} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
-        return sql_string
+    def _sort(cls, sql):
+        sql = f'{sql} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
+        return sql
 
     @classmethod
     def _verify_query_result(cls, query_result):
@@ -219,14 +219,14 @@ class MultiProfileLookupEndpointParameters:
 class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupEndpointParameters
 
-    def _filter_by_entity_id(self, sql_string):
+    def _filter_by_entity_id(self, sql):
         entity_id = self._parameters.payload.get("entity_id")
 
         self._verify_entity_id_count(entity_id)
 
-        sql_string = f'''{sql_string} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
+        sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
 
-        return sql_string
+        return sql
 
     @classmethod
     def _verify_entity_id_count(cls, entity_id):
@@ -259,8 +259,8 @@ class SingleProfileLookupEndpointParameters:
 class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
-    def _filter_by_entity_id(self, sql_string):
+    def _filter_by_entity_id(self, sql):
         entity_id = self._parameters.path.get('entityId')
-        sql_string = f'{sql_string} and u.ama_entity_id = {entity_id}'
+        sql = f'{sql} and u.ama_entity_id = {entity_id}'
 
-        return sql_string
+        return sql
