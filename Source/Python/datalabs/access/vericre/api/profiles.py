@@ -1,6 +1,7 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
+from   datetime import datetime
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
@@ -10,6 +11,18 @@ from   datalabs.parameter import add_schema
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
+
+def calculate_runtime(func):
+    def wrapper(*args, **kwargs):
+        start = datetime.now().strftime("%Y%m%d%H%M%S")
+        print(f"start: {start} @{func.__name__}")
+        result = func(*args, **kwargs)
+        end = datetime.now().strftime("%Y%m%d%H%M%S")
+        print(f"end: {end} @{func.__name__}")
+        return result
+    return wrapper
+
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
@@ -53,9 +66,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         sql = self._sort(sql)
 
-        query = database.execute(sql)
+        query = self._execute_sql(database, sql)
 
-        query_result = [dict(row) for row in query.fetchall()]
+        query_result = self._convert_query_result_to_list(query)
 
         self._verify_query_result(query_result)
 
@@ -121,6 +134,18 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _sort(cls, sql):
         sql = f'{sql} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
         return sql
+
+    @classmethod
+    @calculate_runtime
+    def _execute_sql(cls, database, sql):
+        query = database.execute(sql)
+        return query
+    
+    @classmethod
+    @calculate_runtime
+    def _convert_query_result_to_list(cls, query):
+        query_result = [dict(row) for row in query.fetchall()]
+        return query_result
 
     @classmethod
     def _verify_query_result(cls, query_result):
