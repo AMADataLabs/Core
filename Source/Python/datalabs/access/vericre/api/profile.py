@@ -397,8 +397,12 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             request_ip=source_ip
         )
 
+        start = CommonEndpointUtilities.get_current_datetime()
+        print(f"start: {start}")
         CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
-
+        end = CommonEndpointUtilities.get_current_datetime()
+        print(f"end: {end}, used time: {end - start}")
+        
         self._generate_response(pdf_response)
 
     def _generate_response(self, response):
