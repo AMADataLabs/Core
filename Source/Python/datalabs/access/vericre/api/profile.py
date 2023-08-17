@@ -444,8 +444,6 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         token_response = self._request_ama_token(token_headers, token_body)
 
-        LOGGER.info("token_response: %s", token_response)
-
         if token_response.status != 200:
             raise InternalServerError(
                 f'Internal Server error caused by: {token_response.data}, status: {token_response.status}'
