@@ -28,7 +28,7 @@ class ProfileRecords:
     work_history: list=None
     insurance: list=None
 
- 
+
 class StaticTaskParameters:
     PROFILE_RECORD_SECTION_MAPPING = {
         'medicalSchools': 'medical_schools',
