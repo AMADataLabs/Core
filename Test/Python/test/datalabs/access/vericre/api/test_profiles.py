@@ -50,12 +50,13 @@ def test_query_for_profile(multi_profile_lookup_event, profile_query_results):
     with mock.patch('datalabs.access.vericre.api.profile.Database'):
         session = mock.MagicMock()
 
-        session.query.return_value.join.return_value.join.return_value \
-            .join.return_value.join.return_value.join.return_value = profile_query_results
+        session.execute.return_value = profile_query_results
 
         task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
 
-        results = task._query_for_profile(session)
+        sql = task._query_for_profile()
+
+        results = session.execute(sql)
 
     assert (hasattr(results[0], attr) for attr in ['ama_entity_id'])
     assert len(results) == 2
