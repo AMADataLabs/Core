@@ -28,7 +28,7 @@ class ProfileRecords:
     work_history: list=None
     insurance: list=None
 
-
+ 
 class StaticTaskParameters:
     PROFILE_RECORD_SECTION_MAPPING = {
         'medicalSchools': 'medical_schools',
@@ -258,6 +258,6 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
 
     def _filter_by_entity_id(self, sql):
         entity_id = self._parameters.path.get('entityId')
-        sql = f'{sql} and u.ama_entity_id = {entity_id}'
+        sql = f"{sql} and u.ama_entity_id = '{entity_id}'"
 
         return sql
