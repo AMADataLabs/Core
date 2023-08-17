@@ -29,6 +29,16 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+def calculate_runtime(func):
+    def wrapper():
+        start = CommonEndpointUtilities.get_current_datetime()
+        print(f"start: {start} @{func.__name__}")
+        func()
+        end = CommonEndpointUtilities.get_current_datetime()
+        print(f"end: {end}, used time: {end - start} @{func.__name__}")
+    return wrapper
+
+
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
@@ -56,6 +66,7 @@ class AuditLogParameters:
 
 class CommonEndpointUtilities:
     @classmethod
+    @calculate_runtime
     def save_audit_log(cls, database, document_data, audit_log_parameters):
         document_bucket_name = audit_log_parameters.document_bucket_name
         document_key = audit_log_parameters.document_key
@@ -76,6 +87,7 @@ class CommonEndpointUtilities:
         return customer_id, customer_name
 
     @classmethod
+    @calculate_runtime
     def _upload_document_onto_s3(cls, document_bucket_name, document_key, data):
         version_id = ''
 
@@ -105,6 +117,7 @@ class CommonEndpointUtilities:
         return put_object_result["VersionId"]
 
     @classmethod
+    @calculate_runtime
     def _add_audit_log_record_in_db(cls, database, audit_log_parameters, user_type):
         entity_id = audit_log_parameters.entity_id
         request_type = audit_log_parameters.request_type
@@ -397,11 +410,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             request_ip=source_ip
         )
 
-        start = CommonEndpointUtilities.get_current_datetime()
-        print(f"start: {start}")
         CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
-        end = CommonEndpointUtilities.get_current_datetime()
-        print(f"end: {end}, used time: {end - start}")
         
         self._generate_response(pdf_response)
 
@@ -420,6 +429,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
+    @calculate_runtime
     def _get_ama_access_token(self):
         token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
@@ -442,6 +452,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return token_json['access_token']
 
+    @calculate_runtime
     def _request_ama_token(self, token_headers, token_body):
         return self.HTTP.request(
             'POST',
@@ -450,6 +461,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             body=token_body
         )
 
+    @calculate_runtime
     def _assert_profile_exists(self, entity_id):
         profile_response = self._request_ama_profile(entity_id)
 
@@ -458,6 +470,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
                 f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
             )
 
+    @calculate_runtime
     def _request_ama_profile(self, entity_id):
         return self.HTTP.request(
             'GET',
@@ -465,6 +478,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             headers=StaticTaskParameters.PROFILE_HEADERS
         )
 
+    @calculate_runtime
     def _get_profile_pdf(self, entity_id):
         pdf_resoponse = self._request_ama_profile_pdf(entity_id)
 
@@ -475,6 +489,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return pdf_resoponse
 
+    @calculate_runtime
     def _request_ama_profile_pdf(self, entity_id):
         return self.HTTP.request(
             'GET',
