@@ -3,11 +3,8 @@ from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import logging
 
-from   sqlalchemy import case, literal
-
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
-from   datalabs.model.vericre.api import Form, FormField, FormSection, FormSubSection, Physician, User
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
