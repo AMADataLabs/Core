@@ -33,9 +33,10 @@ def calculate_runtime(func):
     def wrapper(*args, **kwargs):
         start = CommonEndpointUtilities.get_current_datetime()
         print(f"start: {start} @{func.__name__}")
-        func(*args, **kwargs)
+        result = func(*args, **kwargs)
         end = CommonEndpointUtilities.get_current_datetime()
         print(f"end: {end} @{func.__name__}")
+        return result
     return wrapper
 
 
