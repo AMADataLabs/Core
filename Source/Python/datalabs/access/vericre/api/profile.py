@@ -30,12 +30,12 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def calculate_runtime(func):
-    def wrapper():
+    def wrapper(*args, **kwargs):
         start = CommonEndpointUtilities.get_current_datetime()
         print(f"start: {start} @{func.__name__}")
-        func()
+        func(*args, **kwargs)
         end = CommonEndpointUtilities.get_current_datetime()
-        print(f"end: {end}, used time: {end - start} @{func.__name__}")
+        print(f"end: {end} @{func.__name__}")
     return wrapper
 
 
