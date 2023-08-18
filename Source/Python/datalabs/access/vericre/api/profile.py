@@ -412,7 +412,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         )
 
         CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
-        
+
         self._generate_response(pdf_response)
 
     def _generate_response(self, response):
