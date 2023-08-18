@@ -1,15 +1,18 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
+from   datetime import datetime
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
+from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
@@ -53,9 +56,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         sql = self._sort(sql)
 
-        query = database.execute(sql)
+        query = self._execute_sql(database, sql)
 
-        query_result = [dict(row) for row in query.fetchall()]
+        query_result = self._convert_query_result_to_list(query)
 
         self._verify_query_result(query_result)
 
@@ -121,6 +124,18 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _sort(cls, sql):
         sql = f'{sql} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
         return sql
+
+    @classmethod
+    @run_time_logger
+    def _execute_sql(cls, database, sql):
+        query = database.execute(sql)
+        return query
+
+    @classmethod
+    @run_time_logger
+    def _convert_query_result_to_list(cls, query):
+        query_result = [dict(row) for row in query.fetchall()]
+        return query_result
 
     @classmethod
     def _verify_query_result(cls, query_result):
