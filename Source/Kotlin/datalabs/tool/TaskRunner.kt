@@ -75,7 +75,7 @@ object TaskRunner {
             parameters = Gson().fromJson(args.getOptionValue("event"), Map::class.java) as Map<String, String>
         }
 
-        logger.debug("Parameters: " + parameters)
+        logger.info("Parameters: " + parameters)
 
         return parameters
     }
