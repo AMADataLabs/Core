@@ -7,21 +7,11 @@ import logging
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
+from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-
-def calculate_runtime(func):
-    def wrapper(*args, **kwargs):
-        start = datetime.now().strftime("%Y%m%d%H%M%S")
-        print(f"start: {start} @{func.__name__}")
-        result = func(*args, **kwargs)
-        end = datetime.now().strftime("%Y%m%d%H%M%S")
-        print(f"end: {end} @{func.__name__}")
-        return result
-    return wrapper
 
 
 # pylint: disable=too-many-instance-attributes
@@ -136,13 +126,13 @@ class BaseProfileEndpointTask(APIEndpointTask):
         return sql
 
     @classmethod
-    @calculate_runtime
+    @run_time_logger
     def _execute_sql(cls, database, sql):
         query = database.execute(sql)
         return query
-    
+
     @classmethod
-    @calculate_runtime
+    @run_time_logger
     def _convert_query_result_to_list(cls, query):
         query_result = [dict(row) for row in query.fetchall()]
         return query_result
