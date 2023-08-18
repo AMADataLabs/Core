@@ -23,21 +23,11 @@ from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api \
     import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
 from   datalabs.parameter import add_schema
+from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-
-def calculate_runtime(func):
-    def wrapper(*args, **kwargs):
-        start = CommonEndpointUtilities.get_current_datetime()
-        print(f"start: {start} @{func.__name__}")
-        result = func(*args, **kwargs)
-        end = CommonEndpointUtilities.get_current_datetime()
-        print(f"end: {end} @{func.__name__}")
-        return result
-    return wrapper
 
 
 class HttpClient:
@@ -67,7 +57,7 @@ class AuditLogParameters:
 
 class CommonEndpointUtilities:
     @classmethod
-    @calculate_runtime
+    @run_time_logger
     def save_audit_log(cls, database, document_data, audit_log_parameters):
         document_bucket_name = audit_log_parameters.document_bucket_name
         document_key = audit_log_parameters.document_key
@@ -88,7 +78,7 @@ class CommonEndpointUtilities:
         return customer_id, customer_name
 
     @classmethod
-    @calculate_runtime
+    @run_time_logger
     def _upload_document_onto_s3(cls, document_bucket_name, document_key, data):
         version_id = ''
 
@@ -118,7 +108,7 @@ class CommonEndpointUtilities:
         return put_object_result["VersionId"]
 
     @classmethod
-    @calculate_runtime
+    @run_time_logger
     def _add_audit_log_record_in_db(cls, database, audit_log_parameters, user_type):
         entity_id = audit_log_parameters.entity_id
         request_type = audit_log_parameters.request_type
@@ -430,7 +420,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
-    @calculate_runtime
+    @run_time_logger
     def _get_ama_access_token(self):
         token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
@@ -453,7 +443,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return token_json['access_token']
 
-    @calculate_runtime
+    @run_time_logger
     def _request_ama_token(self, token_headers, token_body):
         return self.HTTP.request(
             'POST',
@@ -462,7 +452,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             body=token_body
         )
 
-    @calculate_runtime
+    @run_time_logger
     def _assert_profile_exists(self, entity_id):
         profile_response = self._request_ama_profile(entity_id)
 
@@ -471,7 +461,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
                 f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
             )
 
-    @calculate_runtime
+    @run_time_logger
     def _request_ama_profile(self, entity_id):
         return self.HTTP.request(
             'GET',
@@ -479,7 +469,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             headers=StaticTaskParameters.PROFILE_HEADERS
         )
 
-    @calculate_runtime
+    @run_time_logger
     def _get_profile_pdf(self, entity_id):
         pdf_resoponse = self._request_ama_profile_pdf(entity_id)
 
@@ -490,7 +480,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         return pdf_resoponse
 
-    @calculate_runtime
+    @run_time_logger
     def _request_ama_profile_pdf(self, entity_id):
         return self.HTTP.request(
             'GET',
@@ -694,4 +684,3 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
             headers=self._parameters.authorization['auth_headers']
         )
-    
