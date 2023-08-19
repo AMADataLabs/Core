@@ -4,7 +4,7 @@ import logging
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.info)
+LOGGER.setLevel(logging.INFO)
 
 
 def run_time_logger(func):
