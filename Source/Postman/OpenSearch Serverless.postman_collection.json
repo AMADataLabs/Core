@@ -1,0 +1,418 @@
+{
+	"info": {
+		"_postman_id": "068dba0f-eddc-464f-bca5-8461f7fcadc9",
+		"name": "OpenSearch Serverless",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7392489"
+	},
+	"item": [
+		{
+			"name": "Get Indices",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/_cat/indices?format=JSON",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"_cat",
+						"indices"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "JSON"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Index",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Bulk",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"create\": {\"_id\": \"0\" } }\n{ \"color\": \"black\", \"category\": \"hue\", \"type\": \"primary\", \"code\": { \"rgba\": [255,255,255,1], \"hex\": \"#000\" } }\n{ \"create\": {\"_id\": \"4095\" } }\n{ \"color\": \"white\", \"category\": \"value\", \"code\": { \"rgba\": [0,0,0,1], \"hex\": \"#FFF\" } }\n{ \"create\": {\"_id\": \"4080\" } }\n{ \"color\": \"red\", \"category\": \"hue\", \"type\": \"primary\", \"code\": { \"rgba\": [255,0,0,1], \"hex\": \"#FF0\" } }\n{ \"create\": {\"_id\": \"15\" } }\n{ \"color\": \"blue\", \"category\": \"hue\", \"type\": \"primary\", \"code\": { \"rgba\": [0,0,255,1], \"hex\": \"#00F\" } }\n{ \"create\": {\"_id\": \"3840\" } }\n{ \"color\": \"yellow\", \"category\": \"hue\", \"type\": \"primary\", \"code\": { \"rgba\": [255,255,0,1], \"hex\": \"#F00\" } }\n{ \"create\": {\"_id\": \"240\" } }\n{ \"color\": \"green\", \"category\": \"hue\", \"type\": \"secondary\", \"code\": { \"rgba\": [0,255,0,1], \"hex\": \"#0F0\" } }\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_bulk",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_bulk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Single",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"color\": \"orange\", \"category\": \"hue\", \"type\": \"secondary\", \"code\": { \"rgba\": [255,165,0,1], \"hex\": \"#FFB\" } }\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_doc/4091",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_doc",
+						"4091"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Single",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"doc\": {\"color\": \"orange\", \"category\": \"hue\", \"type\": \"secondary\", \"code\": { \"rgba\": [255,165,0,1], \"hex\": \"#FFA\" } }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_update/4091",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_update",
+						"4091"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search (Match)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"match\": {\n        \"color\": \"red\"\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search (Fuzzy)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"fuzzy\": {\n      \"color\": {\n        \"value\": \"bleu\",\n        \"fuzziness\": 2\n      }\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search (Boolean)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n          {\n              \"match\": {\"category\": \"hue\"}\n          }\n      ],\n      \"should\": [\n          {\n              \"match\": {\"type\": \"secondary\"}\n          },\n          {\n              \"match\": {\"type\": \"tertiary\"}\n          }\n      ],\n      \"minimum_should_match\": 1\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"match_all\": {}\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Index",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"cloudops-demo"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "awsv4",
+		"awsv4": [
+			{
+				"key": "service",
+				"value": "aoss",
+				"type": "string"
+			},
+			{
+				"key": "region",
+				"value": "us-east-1",
+				"type": "string"
+			},
+			{
+				"key": "secretKey",
+				"value": "{{AWS_SECRET_ACCESS_KEY}}",
+				"type": "string"
+			},
+			{
+				"key": "accessKey",
+				"value": "{{AWS_ACCESS_KEY_ID}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
