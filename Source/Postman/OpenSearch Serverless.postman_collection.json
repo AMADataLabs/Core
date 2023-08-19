@@ -186,7 +186,7 @@
 			"response": []
 		},
 		{
-			"name": "Search (Match)",
+			"name": "Get All (cloudops-demo)",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true,
 				"disabledSystemHeaders": {
@@ -204,124 +204,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": {\n    \"match\": {\n        \"color\": \"red\"\n    }\n  }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
-					"host": [
-						"{{OPENSEARCH_COLLECTION_URL}}"
-					],
-					"path": [
-						"cloudops-demo",
-						"_search"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Search (Fuzzy)",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true,
-				"disabledSystemHeaders": {
-					"host": true
-				}
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Host",
-						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"query\": {\n    \"fuzzy\": {\n      \"color\": {\n        \"value\": \"bleu\",\n        \"fuzziness\": 2\n      }\n    }\n  }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
-					"host": [
-						"{{OPENSEARCH_COLLECTION_URL}}"
-					],
-					"path": [
-						"cloudops-demo",
-						"_search"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Search (Boolean)",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true,
-				"disabledSystemHeaders": {
-					"host": true
-				}
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Host",
-						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n          {\n              \"match\": {\"category\": \"hue\"}\n          }\n      ],\n      \"should\": [\n          {\n              \"match\": {\"type\": \"secondary\"}\n          },\n          {\n              \"match\": {\"type\": \"tertiary\"}\n          }\n      ],\n      \"minimum_should_match\": 1\n    }\n  }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{OPENSEARCH_COLLECTION_URL}}/cloudops-demo/_search",
-					"host": [
-						"{{OPENSEARCH_COLLECTION_URL}}"
-					],
-					"path": [
-						"cloudops-demo",
-						"_search"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get All",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true,
-				"disabledSystemHeaders": {
-					"host": true
-				}
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Host",
-						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"query\": {\n    \"match_all\": {}\n  }\n}",
+					"raw": "{\n  \"query\": {\n    \"match_all\": {}\n  },\n  \"size\": 10\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -364,6 +247,162 @@
 					],
 					"path": [
 						"cloudops-demo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All (fake-data)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"match_all\": {}\n  },\n  \"size\": 10\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/fake-data/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"fake-data",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search (Match)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"match\": {\n        \"country\": \"France\"\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/fake-data/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"fake-data",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search (Fuzzy)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"fuzzy\": {\n      \"country\": {\n        \"value\": \"Franse\",\n        \"fuzziness\": 2\n      }\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/fake-data/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"fake-data",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search (Boolean)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "99m310wnuc55ap09n6p5.us-east-1.aoss.amazonaws.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n          {\n              \"match\": {\"country\": \"United States\"}\n          }\n      ],\n      \"should\": [\n          {\n              \"match\": {\"address\": \"IL\"}\n          },\n          {\n              \"match\": {\"address\": \"CA\"}\n          },\n          {\n              \"match\": {\"address\": \"AZ\"}\n          }\n      ],\n      \"minimum_should_match\": 1\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OPENSEARCH_COLLECTION_URL}}/fake-data/_search",
+					"host": [
+						"{{OPENSEARCH_COLLECTION_URL}}"
+					],
+					"path": [
+						"fake-data",
+						"_search"
 					]
 				}
 			},
