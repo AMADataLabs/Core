@@ -1,7 +1,6 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
-from   datetime import datetime
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
