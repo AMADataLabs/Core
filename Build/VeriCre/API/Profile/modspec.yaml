@@ -23,4 +23,4 @@ modspec:
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
   - package: datalabs.model.vericre
-  - package: datalabs.util.profile
+  - package: datalabs.util
