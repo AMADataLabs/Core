@@ -376,7 +376,7 @@ pipelines:
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
             - step:
-                name: Update development Bundle
+                name: Update Development Bundle
                 caches:
                     - environment-dev
                 script:
@@ -389,7 +389,7 @@ pipelines:
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -402,7 +402,7 @@ pipelines:
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
             - step:
-                name: Update staging Bundle
+                name: Update Staging Bundle
                 caches:
                     - environment-stage
                 script:
@@ -415,7 +415,7 @@ pipelines:
                     --project ContactID
                     --bundle CustomerIntelligence/ContactID.zip
             - step:
-                name: Update production Bundle
+                name: Update Production Bundle
                 caches:
                     - environment-prod
                 script:
@@ -722,7 +722,7 @@ pipelines:
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -808,7 +808,7 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/Files/Watermark
         - parallel:
             - step:
-                name: Update development Bundle
+                name: Update Development Bundle
                 caches:
                     - environment-dev
                 script:
@@ -821,7 +821,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -834,7 +834,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
             - step:
-                name: Update staging Bundle
+                name: Update Staging Bundle
                 caches:
                     - environment-stage
                 script:
@@ -847,7 +847,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
             - step:
-                name: Update production Bundle
+                name: Update Production Bundle
                 caches:
                     - environment-prod
                 script:
@@ -1101,7 +1101,7 @@ pipelines:
             - bash Deploy/Master/deploy-package --project DBL
         - parallel:
             - step:
-                name: Update development Bundle
+                name: Update Development Bundle
                 caches:
                     - environment-dev
                 script:
@@ -1114,7 +1114,7 @@ pipelines:
                     --project DBL
                     --bundle Masterfile/DBLReport.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -1127,7 +1127,7 @@ pipelines:
                     --project DBL
                     --bundle Masterfile/DBLReport.zip
             - step:
-                name: Update production Bundle
+                name: Update Production Bundle
                 caches:
                     - environment-prod
                 script:
@@ -1602,7 +1602,7 @@ pipelines:
 #                    --project LicenseMovement
 #                    --bundle Masterfile/LicenseMovementDAG.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -1755,7 +1755,7 @@ pipelines:
                     --project Marketing/Aggregator
                     --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
             - step:
-                name: Update development Bundle
+                name: Update Development Bundle
                 caches:
                     - environment-dev
                 script:
@@ -1768,7 +1768,7 @@ pipelines:
                     --project Marketing/Aggregator
                     --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -1781,7 +1781,20 @@ pipelines:
                     --project Marketing/Aggregator
                     --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
             - step:
-                name: Update production Bundle
+                name: Update Staging Bundle
+                caches:
+                    - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project Marketing/Aggregator
+                    --bundle CustomerIntelligence/MarketingAggregatorDAG.zip
+            - step:
+                name: Update Production Bundle
                 caches:
                     - environment-prod
                 script:
@@ -1819,6 +1832,15 @@ pipelines:
 #                - >-
 #                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake -p CustomerIntelligence
 #                    MarketingAggregatorDAG=MarketingAggregatorDAG.zip
+#            - step:
+#                name: Reload Staging Lambda Function
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake -p CustomerIntelligence
+#                    AggregatorDAG=MarketingAggregatorDAG.zip
 #            - step:
 #                name: Reload Production Lambda Function
 #                script:
@@ -2486,7 +2508,7 @@ pipelines:
                     --project VeriCre/API/Profile
                     --bundle VeriCre/API/Profile.zip
             - step:
-                name: Update development Bundle
+                name: Update Development Bundle
                 caches:
                 - environment-dev
                 script:
@@ -2499,7 +2521,7 @@ pipelines:
                     --project VeriCre/API/Profile
                     --bundle VeriCre/API/Profile.zip
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                 - environment-test
                 script:
@@ -2512,7 +2534,7 @@ pipelines:
                     --project VeriCre/API/Profile
                     --bundle VeriCre/API/Profile.zip
             - step:
-                name: Update staging Bundle
+                name: Update Staging Bundle
                 caches:
                 - environment-stage
                 script:
@@ -2525,7 +2547,7 @@ pipelines:
                     --project VeriCre/API/Profile
                     --bundle VeriCre/API/Profile.zip
             - step:
-                name: Update production Bundle
+                name: Update Production Bundle
                 caches:
                 - environment-prod
                 script:
@@ -2609,7 +2631,7 @@ pipelines:
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
                 - step:
-                    name: Update development Bundle
+                    name: Update Development Bundle
                     caches:
                     - environment-dev
                     script:
@@ -2622,7 +2644,7 @@ pipelines:
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
                 - step:
-                    name: Update test Bundle
+                    name: Update Test Bundle
                     caches:
                     - environment-test
                     script:
@@ -2635,7 +2657,7 @@ pipelines:
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
                 - step:
-                    name: Update staging Bundle
+                    name: Update Staging Bundle
                     caches:
                     - environment-stage
                     script:
@@ -2648,7 +2670,7 @@ pipelines:
                         --project VeriCre/ETL/Profile
                         --bundle VeriCre/ETL/Profile.zip
                 - step:
-                    name: Update production Bundle
+                    name: Update Production Bundle
                     caches:
                     - environment-prod
                     script:
@@ -2699,7 +2721,7 @@ pipelines:
                         --project DEUS/API
                         --bundle DEUS/API.zip
                 # - step:
-                #     name: Update development Bundle
+                #     name: Update Development Bundle
                 #     caches:
                 #     - environment-dev
                 #     script:
@@ -2712,7 +2734,7 @@ pipelines:
                 #         --project DEUS/API
                 #         --bundle DEUS/API.zip
                 # - step:
-                #     name: Update test Bundle
+                #     name: Update Test Bundle
                 #     caches:
                 #     - environment-test
                 #     script:
@@ -2725,7 +2747,7 @@ pipelines:
                 #         --project DEUS/API
                 #         --bundle DEUS/API.zip
                 # - step:
-                #     name: Update production Bundle
+                #     name: Update Production Bundle
                 #     caches:
                 #     - environment-prod
                 #     script:

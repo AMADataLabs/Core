@@ -24,6 +24,7 @@ LICENSING_SYNC:
 
         S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
     DAG:
         DAG_CLASS: datalabs.etl.dag.intelligent_platform.licensing.sync.DAG
         DAG_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask
@@ -37,6 +38,7 @@ LICENSING_SYNC:
         STATUS_NOTIFICATION_WEB_HOOK: https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908
         TASK_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask
         TASK_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor
+
     CREATE_ACTIVE_ARTICLES_TABLE:
         CACHE_BASE_PATH: ${S3_BASE_PATH}
         CACHE_CLASS: ${S3_CACHE_CLASS}
@@ -46,6 +48,7 @@ LICENSING_SYNC:
 
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: frictionless_licensing_articles.csv
+
     CREATE_ORGANIZATIONS_TABLE:
         CACHE_BASE_PATH: ${S3_BASE_PATH}
         CACHE_CLASS: ${S3_CACHE_CLASS}
@@ -55,6 +58,7 @@ LICENSING_SYNC:
 
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: frictionless_licensing_organizations.csv
+
     EXTRACT_ACTIVE_ARTICLES:
         DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
         DATABASE_HOST: ${VISTEX_DB_HOST}
@@ -72,6 +76,7 @@ LICENSING_SYNC:
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: articles.csv
+
     EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS:
         DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
         DATABASE_HOST: ${VISTEX_DB_HOST}
@@ -105,6 +110,7 @@ LICENSING_SYNC:
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: active_contract_organizations.csv
+
     EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS:
         DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
         DATABASE_HOST: ${VISTEX_DB_HOST}
@@ -205,6 +211,7 @@ LICENSING_SYNC:
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: contract_rights_organizations.csv
+
     EXTRACT_LICENSED_ORGANIZATIONS:
         DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
         DATABASE_HOST: ${VISTEX_DB_HOST}
@@ -234,6 +241,7 @@ LICENSING_SYNC:
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_FILES: licensed_organizations.csv
+
     LOAD_ACTIVE_ARTICLES_TABLE:
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
@@ -248,6 +256,7 @@ LICENSING_SYNC:
         DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
         MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.Article
         IGNORE_COLUMNS: id
+
     LOAD_ORGANIZATIONS_TABLE:
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
