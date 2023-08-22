@@ -10,8 +10,7 @@ main() {
         [sbx]=dev
         [dev]=dev
         [tst]=dev  # AIMS not available in dev
-        [itg]=1.1.0
-        [prd]=1.1.0
+        [prd]=2.0.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
