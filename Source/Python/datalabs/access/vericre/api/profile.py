@@ -14,14 +14,12 @@ import urllib.parse
 import zipfile
 
 from   botocore.exceptions import ClientError
-from   sqlalchemy import func, literal, Integer
 import urllib3
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
-from   datalabs.model.vericre.api \
-    import APILedger, Document, Form, FormField, FormSection, FormSubSection, Physician, User
+from   datalabs.model.vericre.api import APILedger
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
 
