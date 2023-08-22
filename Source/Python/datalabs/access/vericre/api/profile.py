@@ -174,13 +174,11 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         entity_id = self._parameters.path['entityId']
         source_ip = self._parameters.identity['sourceIp']
 
-        sub_query = self._sub_query_for_documents(database)
+        sql = self._query_for_documents(entity_id)
 
-        sub_query = self._filter(sub_query, entity_id)
+        query = self._execute_sql(database, sql)
 
-        query = self._query_for_documents(database, sub_query)
-
-        query_result = [row._asdict() for row in query.all()]
+        query_result = self._convert_query_result_to_list(query)
 
         self._download_files_for_profile(query_result, entity_id)
 
@@ -202,64 +200,50 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         self._generate_response(zip_file_in_bytes, entity_id, current_date_time)
 
     @classmethod
-    def _sub_query_for_documents(cls, database):
-        return database.query(
-            User.id.label('user_id'),
-            FormField.name.label('field_name'),
-            User.avatar_image,
-            Document.document_name,
-            Document.document_path
-        ).join(
-            Physician, User.id == Physician.user
-        ).join(
-            Form, Form.id == Physician.form
-        ).join(
-            FormSection, FormSection.form == Form.id
-        ).join(
-            FormSubSection, FormSubSection.form_section == FormSection.id
-        ).join(
-            FormField, FormField.form_sub_section == FormSubSection.id
-        ).join(
-            Document, Document.id == func.cast(FormField.values[0], Integer)
-        )
-
-    def _filter(self, query, entity_id):
-        query = self._filter_by_entity_id(query, entity_id)
-        query = self._filter_by_active_user(query)
-
-        return query.filter(FormField.type == 'FILE').filter(Document.is_deleted == 'False')
-
-    @classmethod
-    def _filter_by_entity_id(cls, query, entity_id):
-        return query.filter(User.ama_entity_id == entity_id)
-
-    @classmethod
-    def _filter_by_active_user(cls, query):
-        return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
-
-    @classmethod
-    def _query_for_documents(cls, database, sub_query):
-        subquery = sub_query.subquery()
-
-        return database.query(
-            subquery.columns.field_name.label('document_identifier'),
-            subquery.columns.document_name,
-            func.concat(
-                subquery.columns.user_id,
-                '/',
-                subquery.columns.document_path
-            ).label('document_path')
-        ).union(
-            database.query(
-                literal('Profile Avatar').label('document_identifier'),
-                subquery.columns.avatar_image,
-                func.concat(
-                    subquery.columns.user_id,
-                    '/',
-                    'Avatar'
-                ).label('document_path')
+    def _query_for_documents(cls, entity_id):
+        sql = f'''
+            with docs as
+            (
+                select
+                    u.id as user_id,
+                    ff."name" as field_name,
+                    u.avatar_image,
+                    d.document_name,
+                    d.document_path
+                from "user" u
+                join physician p on u.id = p."user"
+                    and u.ama_entity_id = '{entity_id}'
+                    and u.is_deleted = false
+                    and u.status = 'ACTIVE'
+                join form f on f.id = p.form
+                join form_section fs1 on fs1.form = f.id
+                join form_sub_section fs2 on fs2.form_section = fs1.id
+                join form_field ff on ff.form_sub_section = fs2.id
+                    and ff."type" = 'FILE'
+                join "document" d on d.id = cast(ff."values" ->>0 as INT)
+                    and d.is_deleted = false
             )
-        )
+            select
+                field_name as document_identifier,document_name,concat (user_id,'/',document_path) as document_path
+            from docs
+            union
+            select
+                'Profile Avatar',avatar_image,concat(user_id ,'/','Avatar') as document_path from docs
+        '''
+
+        return sql
+
+    @classmethod
+    @run_time_logger
+    def _execute_sql(cls, database, sql):
+        query = database.execute(sql)
+        return query
+
+    @classmethod
+    @run_time_logger
+    def _convert_query_result_to_list(cls, query):
+        query_result = [dict(row) for row in query.fetchall()]
+        return query_result
 
     def _download_files_for_profile(self, query_result, entity_id):
         if len(query_result) == 0:
@@ -528,11 +512,11 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         entity_id = self._parameters.path['entityId']
         source_ip = self._parameters.identity['sourceIp']
 
-        query = self._query_for_provider_id(database)
+        sql = self._query_for_provider_id(entity_id)
 
-        query = self._filter(query)
+        query = self._execute_sql(database, sql)
 
-        query_result = [row._asdict() for row in query.all()]
+        query_result = self._convert_query_result_to_list(query)
 
         self._verify_query_result(query_result)
 
@@ -559,23 +543,30 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         self._generate_response(pdf_response, current_date_time)
 
     @classmethod
-    def _query_for_provider_id(cls, database):
-        return database.query(Physician.caqh_profile_id).join(User, User.id == Physician.user)
+    def _query_for_provider_id(cls, entity_id):
+        sql = f'''
+            select
+                p.caqh_profile_id
+            from physician p
+            join "user" u on u.id = p."user"
+                and u.ama_entity_id = '{entity_id}'
+                and u.is_deleted = 'False'
+                and u.status = 'ACTIVE'
+        '''
 
-    def _filter(self, query):
-        entity_id = self._parameters.path['entityId']
-        query = self._filter_by_entity_id(query, entity_id)
-        query = self._filter_by_active_user(query)
+        return sql
 
+    @classmethod
+    @run_time_logger
+    def _execute_sql(cls, database, sql):
+        query = database.execute(sql)
         return query
 
     @classmethod
-    def _filter_by_entity_id(cls, query, entity_id):
-        return query.filter(User.ama_entity_id == entity_id)
-
-    @classmethod
-    def _filter_by_active_user(cls, query):
-        return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
+    @run_time_logger
+    def _convert_query_result_to_list(cls, query):
+        query_result = [dict(row) for row in query.fetchall()]
+        return query_result
 
     @classmethod
     def _verify_query_result(cls, query_result):
