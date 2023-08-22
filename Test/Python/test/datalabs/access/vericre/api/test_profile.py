@@ -26,7 +26,9 @@ def test_query_for_documents(profile_documents_event, document_query_results):
 
         task = ProfileDocumentsEndpointTask(profile_documents_event)
 
-        results = task._query_for_documents(task._parameters.path.get('entityId'))
+        sql = task._query_for_documents(task._parameters.path.get('entityId'))
+
+        results = session.execute(sql)
 
     assert (hasattr(results[0], attr) for attr in ['document_identifier', 'document_name', 'document_path'])
     assert len(results) == 3
@@ -115,7 +117,9 @@ def test_query_for_provider_id(caqh_profile_pdf_event, provider_id_query_results
 
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
-        results = task._query_for_provider_id(task._parameters.path.get('entityId'))
+        sql = task._query_for_provider_id(task._parameters.path.get('entityId'))
+
+        results = session.execute(sql)
 
     assert (hasattr(results[0], attr) for attr in ['caqh_profile_id'])
     assert len(results) == 1
