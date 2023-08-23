@@ -87,7 +87,7 @@ ADDRESS_FLAGGING_REPORT:
             INTO TEMP address_flagging_report;
             SELECT * FROM address_flagging_report ORDER BY ME SKIP {index} LIMIT {count}
         "
-        CHUNK_SIZE: '100000'
+        CHUNK_SIZE: '200000'
         DRIVER: ${AIMS_DB_DRIVER}
         DRIVER_TYPE: ${AIMS_DB_DRIVER_TYPE}
         JAR_PATH: ${AIMS_DB_JAR_PATH}
@@ -113,5 +113,6 @@ ADDRESS_FLAGGING_REPORT:
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_FILES: 'report.pk'
 
-        TO: 'Debbie.Kidd@ama-assn.org,Christina.Lopez@ama-assn.org,Pat.Scheibel@ama-assn.org'
-        CC: 'datalabs@ama-assn.org,Nicole.Neal@ama-assn.org,Derek.Smart@ama-assn.org'
+        TO: 'Peter.Lane@ama-assn.org'
+        # TO: 'Debbie.Kidd@ama-assn.org,Christina.Lopez@ama-assn.org,Pat.Scheibel@ama-assn.org'
+        # CC: 'datalabs@ama-assn.org,Victoria.Grose@ama-assn.org,Nicole.Neal@ama-assn.org,Derek.Smart@ama-assn.org'
