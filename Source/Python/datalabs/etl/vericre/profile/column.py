@@ -66,7 +66,9 @@ DEMOG_DATA_COLUMNS = [
     "PHONE_EXTENSION",
     "MPA_DESC",
     "ECFMG_NBR",
-    "ME_NBR"
+    "ME_NBR",
+    "LABEL_NAME",
+    "PRINT_PHONE_NUMBER"
 ]
 
 DEA_COLUMNS = {
@@ -102,7 +104,8 @@ DEMOGRAPHICS_COLUMNS = {
     "STATUS_DESC": "amaMembershipStatus",
     "PRA_EXPR_DT": "praExpirationDate",
     "DEGREE_CD": "degreeCode",
-    "NAT_BRD_YEAR": "nbmeYear"
+    "NAT_BRD_YEAR": "nbmeYear",
+    "LABEL_NAME": "printName"
 }
 
 MAILING_ADDRESS_COLUMNS = {
@@ -130,6 +133,7 @@ PHONE_COLUMNS = {
     "PHONE_EXCHANGE": "exchange",
     "PHONE_NUMBER": "number",
     "PHONE_EXTENSION": "extension",
+    "PRINT_PHONE_NUMBER": "phoneNumber"
 }
 
 PRACTICE_SPECIALTIES_COLUMNS = {

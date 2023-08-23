@@ -114,6 +114,11 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         demog_data.MPA_DESC = demog_data.MPA_DESC.str.strip()
         demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
         demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
+        demog_data["PRINT_PHONE_NUMBER"] = (
+            demog_data[["PHONE_AREA_CD", "PHONE_EXCHANGE", "PHONE_NUMBER"]]
+            .astype(str)
+            .agg(''.join, axis=1)
+        )
         demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
         demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
@@ -151,8 +156,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         aggregated_dea.sort_values('entityId')
 
-        aggregated_dea['dea'] \
-            = aggregated_dea['dea'].apply(lambda x: sorted(x, key=lambda item: item['lastReportedDate']))
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(
+            lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['lastReportedDate'], format='%m/%d/%Y'))
+        )
 
         return ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
 
@@ -167,14 +173,10 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
     @classmethod
     def _create_npi(cls, ama_masterfile, npi_data):
-        # Stop gap for missing END_DT column
-        npi_data["END_DT"] = "2024-12-31"
-
         npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_npi["npi"] = npi.to_dict(orient="records")
-        aggregated_npi = aggregated_npi.groupby("entityId")["npi"].apply(list).reset_index()
 
         return ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
 
@@ -191,6 +193,10 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_medical_schools["medicalSchools"] = medical_schools.to_dict(orient="records")
         aggregated_medical_schools \
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
+
+        aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(
+            lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['graduateDate'], format='%m/%d/%Y'))
+        )
 
         return ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
 
@@ -212,9 +218,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
     @classmethod
     def _create_medical_training(cls, ama_masterfile, med_train):
-        # Stop gap for missing END_DT column
-        med_train["END_DT"] = "2024-12-31"
-
         medical_training = \
             med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -236,6 +239,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_licenses = license_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
         aggregated_licenses = aggregated_licenses.groupby("entityId")["licenses"].apply(list).reset_index()
+
+        aggregated_licenses['licenses'] \
+            = aggregated_licenses['licenses'].apply(lambda x: sorted(x, key=lambda item: str(item['issueDate'])))
 
         return ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
 
