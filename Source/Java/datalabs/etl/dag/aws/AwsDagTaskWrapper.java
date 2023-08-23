@@ -170,18 +170,33 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
                NoSuchMethodException,
                InstantiationException,
                IllegalAccessException,
-               InvocationTargetException
-    {
+               InvocationTargetException {
         Class stateClass = null;
         Map<String, String> stateParameters = null;
 
-        if (taskParameters.containsKey("DAG_STATE")) {
-            stateParameters = new Gson().fromJson(taskParameters.get("DAG_STATE"), HashMap.class);
-            stateClass = PluginImporter.importPlugin(stateParameters.get("CLASS"));
-        } else {
-            throw new IllegalArgumentException("Missing value for DAG parameter 'DAG_STATE_CLASS'");
+        if (!taskParameters.containsKey("DAG_STATE")) {
+            throw new IllegalArgumentException("Missing value for DAG parameter 'DAG_STATE'");
         }
 
+        stateParameters = new Gson().fromJson(taskParameters.get("DAG_STATE"), HashMap.class);
+
+        stateClass = getDagStateClass(stateParameters);
+
         return (DagState) stateClass.getConstructor(new Class[] {Map.class}).newInstance(stateParameters);
+    }
+
+    static Class getDagStateClass(Map<String, String> stateParameters)
+        throws ClassNotFoundException,
+               NoSuchMethodException,
+               InstantiationException,
+               IllegalAccessException,
+               InvocationTargetException {
+        String stateClassName = stateParameters.get("CLASS");
+
+        if (stateClassName == null) {
+            throw new IllegalArgumentException("Missing value for DAG parameter 'DAG_STATE.CLASS'");
+        }
+
+        return PluginImporter.importPlugin(stateClassName);
     }
 }

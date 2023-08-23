@@ -41,7 +41,11 @@ class InstitutionManagement(BASE, CommonColumns):
 
 class User(BASE, CommonColumns):
     __tablename__ = 'user'
-    __table_args__ = {"schema": SCHEMA}
+    __table_args__ = (
+        sa.Index('user_ama_entity_id_idx', 'ama_entity_id'),
+        sa.Index('user_ama_me_number_idx', 'ama_me_number'),
+        {"schema": SCHEMA}
+    )
 
     id = sa.Column(UUID(as_uuid=True), primary_key=True, nullable=False, default=uuid.uuid4)
     avatar_image = sa.Column(sa.String(255))

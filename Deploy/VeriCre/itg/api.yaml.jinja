@@ -1,10 +1,10 @@
 ---
 VERICRE_API:
     GLOBAL:
-        ENVIRONMENT: dev
-        ACCOUNT: '191296302136'
+        ENVIRONMENT: itg
+        ACCOUNT: '285887636563'
 
-        DATABASE_HOST: vericre-dev-au-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+        DATABASE_HOST: vericre-itg-au-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
         DATABASE_PORT: '5432'
         DATABASE_BACKEND: 'postgresql+psycopg2'
         DATABASE_NAME: 'vericre'
@@ -12,13 +12,13 @@ VERICRE_API:
         DATABASE_PASSWORD:  '{{database_password}}'
 
     ROUTE:
-        PHYSICIANS_SEARCH: '/profile_api/physicians/search'
-        PROFILES_LOOKUP:   '/profile_api/profiles/lookup'
-        PROFILES:          '/profile_api/profiles'
-        PROFILE:           '/profile_api/profile/*'
-        PROFILE_DOCUMENTS: '/profile_api/profile/*/documents'
-        PROFILE_CAQH_PDF:  '/profile_api/profile/*/CAQH/pdf'
-        PROFILE_AMA_PDF:   '/profile_api/profile/*/AMA/pdf'
+        PHYSICIANS_SEARCH: '/physicians/search'
+        PROFILES_LOOKUP:   '/profiles/lookup'
+        PROFILES:          '/profiles'
+        PROFILE:           '/profile/*'
+        PROFILE_DOCUMENTS: '/profile/*/documents'
+        PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
         DEFAULT:           '/*'
 
     PHYSICIANS_SEARCH:
@@ -29,8 +29,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        AMA_DOMAIN: 'wsinttest'
-        VERICRE_ALB_DOMAIN: 'internal-vericre-dev-backend-api-alb-1741917255.us-east-1.elb.amazonaws.com'
+        AMA_DOMAIN: 'wsint'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-itg-backend-api-alb-518045774.us-east-1.elb.amazonaws.com'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
@@ -95,9 +95,9 @@ VERICRE_API:
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
-        CLIENT_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
+        CLIENT_ID: 'e19e197a-a7b0-45ad-b419-effa69ce8b73'
         CLIENT_SECRET: '{{client_secret}}'
-        CLIENT_ENV: 'wsexttest'
+        CLIENT_ENV: 'wsext'
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

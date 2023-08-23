@@ -3,6 +3,9 @@ package datalabs.task;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -70,7 +73,20 @@ public class TaskWrapper {
     }
 
     protected Map<String, String> getTaskParameters() throws TaskException {
-        return this.parameters;
+        HashMap<String, String> taskParameters = new HashMap<String, String>(this.parameters);
+        String executionTime = this.getExecutionTime();
+
+        taskParameters.putAll(this.environment);
+
+        if (!taskParameters.containsKey("EXECUTION_TIME")) {
+            taskParameters.put("EXECUTION_TIME", this.getExecutionTime());
+        }
+
+        if (!taskParameters.containsKey("CACHE_EXECUTION_TIME")) {
+            taskParameters.put("CACHE_EXECUTION_TIME", this.getExecutionTime());
+        }
+
+        return taskParameters;
     }
 
     protected ArrayList<byte[]> getTaskInputData() throws TaskException {
@@ -146,6 +162,12 @@ public class TaskWrapper {
         exception.printStackTrace();
 
         return exception.getMessage();
+    }
+
+    static String getExecutionTime() {
+        DateFormat formatter = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss");
+
+        return formatter.format(new Date());
     }
 
     protected Class getTaskResolverClass() throws ClassNotFoundException {
