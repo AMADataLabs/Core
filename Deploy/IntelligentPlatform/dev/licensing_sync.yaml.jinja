@@ -7,6 +7,7 @@ LICENSING_SYNC:
         PLATFORM_DB_BACKEND: mysql+pymysql
         PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
         PLATFORM_DB_NAME: frictionlesslicensing
+        USER_MANAGEMENT_DB_NAME: usermgmt
         PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
         PLATFORM_DB_PORT: '3306'
         PLATFORM_DB_USERNAME: platform
@@ -81,7 +82,8 @@ LICENSING_SYNC:
         DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
         SQL: "
             SELECT
-                LTRIM(RTRIM(T1.licensee)) AS Organization
+                LTRIM(RTRIM(T1.licensee)) AS organization,
+                T3.id as licensee_id
             FROM
                 v_cm_contracts T1
                     JOIN cm_contract T2
@@ -98,7 +100,7 @@ LICENSING_SYNC:
                 T1.licensee <> '%ACME%' and
                 T1.account_exec Not In ('David Young', 'Brian Eaggleston') and
                 T1.properties like '%CPT%'
-            ORDER BY Organization ASC
+            ORDER BY name ASC
         "
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
@@ -113,7 +115,7 @@ LICENSING_SYNC:
         DATABASE_PORT: ${VISTEX_DB_PORT}
         DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
         SQL: "
-            SELECT DISTINCT LICENSEE AS Organization FROM (
+            SELECT DISTINCT LICENSEE AS name FROM (
                 SELECT DISTINCT
                     T3.ID                       AS  CONTRACTID,
                     LTRIM(RTRIM(T3.licensee))   AS  LICENSEE,
@@ -198,7 +200,7 @@ LICENSING_SYNC:
                     and T3.account_exec Not In ('David Young', 'Brian Eaggleston')
                     AND T3.properties like '%CPT%'
             ) AS contract_rights
-            ORDER BY Organization ASC
+            ORDER BY name ASC
         "
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
@@ -218,7 +220,7 @@ LICENSING_SYNC:
                     T2.licensee IS NULL,
                     T3.OrganizationName,
                     T2.licensee
-                ) AS Organization
+                ) AS organization
             FROM
                 AMA_LicensePortal.dbo.UploadReport T1
                     JOIN LicenseMaestro_CPT.dbo.v_cm_contracts T2
@@ -227,7 +229,7 @@ LICENSING_SYNC:
                         ON T1.UploadReportID = T3.UploadReportID
             WHERE T3.OrganizationName like '%%' and YEAR(T1.ReportedPeriodEndDate) = 2020
 
-            ORDER BY Organization ASC
+            ORDER BY name ASC
         "
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
@@ -262,3 +264,17 @@ LICENSING_SYNC:
         DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
         MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.Organization
         IGNORE_COLUMNS: id
+    LOAD_LICENSEE_ID:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: active_contract_organizations.csv
+
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${USER_MANAGEMENT_DB_NAME}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.UserManagementOrganization
+        IGNORE_COLUMNS: id, name, type_id, category_id, addr1, addr2, addr3, city, state, zip, phone, industry, about, main_contact, org_size, country, source_id, default_org, created_on, updated_on, row_id

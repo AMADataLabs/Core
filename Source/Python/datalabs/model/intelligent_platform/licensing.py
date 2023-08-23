@@ -53,3 +53,32 @@ class Groups(Base):
     valid_from = sa.Column(sa.String, nullable=False)
     valid_to = sa.Column(sa.String, nullable=False)
     renewal_reminders = sa.Column(sa.Integer, nullable=False)
+
+
+class UserManagementOrganization(Base):
+    __tablename__ = 'Organization'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String, nullable=False)
+    type_id = sa.Column(sa.Integer, nullable=True)
+    category_id = sa.Column(sa.Integer, nullable=True)
+    addr1 = sa.Column(sa.String, nullable=True)
+    addr2 = sa.Column(sa.String, nullable=True)
+    addr3 = sa.Column(sa.String, nullable=True)
+    city = sa.Column(sa.String, nullable=True)
+    state = sa.Column(sa.String, nullable=True)
+    zip = sa.Column(sa.String, nullable=True)
+    phone = sa.Column(sa.String, nullable=True)
+    industry = sa.Column(sa.String, nullable=True)
+    about = sa.Column(sa.String, nullable=True)
+    main_contact = sa.Column(sa.String, nullable=True)
+    org_size = sa.Column(sa.String, nullable=True)
+    country = sa.Column(sa.String, nullable=True)
+    source_id = sa.Column(sa.String, nullable=True)
+    default_org = sa.Column(sa.String, nullable=True)
+    created_on = sa.Column(sa.String, nullable=True)
+    updated_on = sa.Column(sa.String, nullable=True)
+    row_id = sa.Column(sa.String, nullable=True)
+    licensee_id = sa.Column(sa.String, nullable=True)
+
+
