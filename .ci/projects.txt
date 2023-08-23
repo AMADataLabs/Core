@@ -5,6 +5,8 @@ Cerner
 ContactID
 CPT/API/Endpoint
 CPT/API/ETL
+CPT/KnowledgeBase/API
+CPT/KnowledgeBase/ETL
 CPT/Files/Build
 CPT/Files/Legacy
 CPT/Files/Ingest
@@ -31,3 +33,4 @@ Scheduler
 VeriCre/DataSteward
 VeriCre/API/Profile
 VeriCre/ETL/Profile
+

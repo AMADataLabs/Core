@@ -7,9 +7,11 @@ ENVIRONMENT=${1:-""}
 
 main() {
     declare -A VERSIONS=(
-        [sbx]=[dev]=dev
-        [tst]=2.0.0
-        [prd]=2.0.0
+        [sbx]=dev
+        [dev]=dev
+        [tst]=0.1.0.dev0
+        [itg]=0.1.0.dev0
+        [prd]=0.1.0.dev0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -17,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-intelligentplatform-licensing"
-    export RELEASE_DESCRIPTION="Intelligent Platform Licensing ETL Process"
+    export RELEASE_NAME="datalabs-cpt-knowledge-base-etl"
+    export RELEASE_DESCRIPTION="CPT KnowledgeBase API"
 }
 
 
