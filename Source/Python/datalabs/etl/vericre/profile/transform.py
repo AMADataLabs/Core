@@ -114,7 +114,11 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         demog_data.MPA_DESC = demog_data.MPA_DESC.str.strip()
         demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
         demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
-        demog_data["PRINT_PHONE_NUMBER"] = demog_data[["PHONE_AREA_CD", "PHONE_EXCHANGE", "PHONE_NUMBER"]].astype(str).agg(''.join, axis=1) # THIS
+        demog_data["PRINT_PHONE_NUMBER"] = (
+            demog_data[["PHONE_AREA_CD", "PHONE_EXCHANGE", "PHONE_NUMBER"]]
+            .astype(str)
+            .agg(''.join, axis=1)
+        )
         demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
         demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
