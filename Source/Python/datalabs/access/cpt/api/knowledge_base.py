@@ -51,7 +51,6 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_results(self, keywords, opensearch_client, max_results, index):
-        mapping_set = {}
         index_name = 'kbsearch-index'
         query_string = ''
         for keyword in keywords:
