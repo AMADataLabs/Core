@@ -1,23 +1,23 @@
 
 
-module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
+module "webapp_{{ SNAKE_CASE_NAME }}_lambda" {
   source  = "app.terraform.io/AMA/lambda/aws"
   version = "2.2.0"
-  function_name             = "AIP-${local.environment}-{{CAMEL_CASE_NAME}}"
-  lambda_name               = "AIP-${local.environment}-{{CAMEL_CASE_NAME}}"
+  function_name             = "AIP-${local.environment}-{{ CAMEL_CASE_NAME }}"
+  lambda_name               = "AIP-${local.environment}-{{ CAMEL_CASE_NAME }}"
   layers                    = [aws_lambda_layer_version.authpython.arn]
   create_alias              = true
   alias_name                = local.environment
   create_lambda_permission  = true
   api_arn                   = module.api-gw.api_execution_arn
   use_source_hash           = false
-  description               = "AMA Intelligent Platform Backend Function - {{HUMAN_READABLE_NAME}}"
+  description               = "AMA Intelligent Platform Backend Function - {{ HUMAN_READABLE_NAME }}"
   s3_lambda_bucket          = local.s3_lambda_bucket
-  s3_lambda_key             = "{{CAMEL_CASE_NAME}}.zip"
+  s3_lambda_key             = "{{ CAMEL_CASE_NAME }}.zip"
   handler                   = "lambda_function.lambda_handler"
   runtime                   = "python3.8"
   memory_size               = 128
-  timeout                   = {{TIMEOUT}}
+  timeout                   = {{ TIMEOUT }}
   tracing_config            = { mode = "Active" }
 
   vpc_config = {
@@ -31,7 +31,7 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
     region      = local.region
   }
 
-  tag_name                          = "${upper(local.project_id)}-${upper(local.environment)}-{{CAMEL_CASE_NAME}}"
+  tag_name                          = "${upper(local.project_id)}-${upper(local.environment)}-{{ CAMEL_CASE_NAME }}"
   tag_environment                   = local.environment
   tag_contact                       = local.contact
   tag_budgetcode                    = local.budget_code
