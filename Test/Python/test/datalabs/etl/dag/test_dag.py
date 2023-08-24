@@ -58,8 +58,7 @@ def test_dag_edges_are_created(dag_class):
 #pylint: disable=redefined-outer-name
 def test_python_task_annotation_yields_class(dag_class):
     assert hasattr(dag_class, 'CELEBRATE_GOOD_TIMES')
-    assert dag_class.CELEBRATE_GOOD_TIMES.task_class == TestTask1
-    assert dag_class.CELEBRATE_GOOD_TIMES.task_class.name == "test.datalabs.etl.dag.test_dag.TestTask1"
+    assert dag_class.CELEBRATE_GOOD_TIMES.task_class == "test.datalabs.etl.dag.test_dag.TestTask1"
 
 
 #pylint: disable=redefined-outer-name

@@ -1,6 +1,8 @@
 """ Resolve task class name using the configured DAG class. """
 from   dataclasses import dataclass
+import logging
 import os
+import re
 import sys
 import tempfile
 
@@ -8,6 +10,10 @@ from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
 from   datalabs import task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema(unknowns=True)
@@ -53,13 +59,15 @@ class DAGTask(task.Task):
         self._status = None
 
     def run(self):
-        dag_class, dag = [d.decode() for d in self._data]
+        dag = self._data[0].decode()
+        dag_class = self._extract_dag_class(dag)
         dag_executor = LocalDAGExecutorTask(
             {
                 "dag_class": dag_class,
                 "task_statuses": self._parameters["task_statuses"]
             }
         )
+        LOGGER.info("Running Express DAG %s", dag_class)
 
         with tempfile.TemporaryDirectory() as python_path:
             self._write_dag(dag_class, dag, python_path)
@@ -78,6 +86,17 @@ class DAGTask(task.Task):
     @property
     def status(self):
         return self._status
+
+    @classmethod
+    def _extract_dag_class(cls, dag):
+        lines = dag.split("\n")
+        index = 0
+        dag_class = None
+
+        while lines[index] == "":
+            index += 1
+
+        return re.sub("'|\"| ", "", lines[index])
 
     @classmethod
     def _write_dag(cls, dag_class, dag, python_path):

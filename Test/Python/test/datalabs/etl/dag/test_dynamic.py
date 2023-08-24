@@ -7,8 +7,7 @@ from   datalabs.etl.dag.state import Status
 
 
 def test_dag_is_executed(dag):
-    dag_class = "dynamic.datalabs.etl.test.TestDAG"
-    dag_task = DAGTask({"task_statuses": {}}, [dag_class.encode(), dag.encode()])
+    dag_task = DAGTask({"task_statuses": {}}, [dag.encode()])
 
     dag_task.run()
 
@@ -20,13 +19,14 @@ def test_dag_is_executed(dag):
 @pytest.fixture
 def dag():
     return """
-from   datalabs.etl.dag.dag import DAG, PythonTask
+'''dynamic.datalabs.etl.test.TestDAG'''
+from   datalabs.etl.dag.dag import DAG
 
 class TestDAG(DAG):
-    A: PythonTask("test.datalabs.etl.dag.bogus.ATask")
-    B: PythonTask("test.datalabs.etl.dag.bogus.BTask")
-    C: PythonTask("test.datalabs.etl.dag.bogus.CTask")
-    D: PythonTask("test.datalabs.etl.dag.bogus.DTask")
+    A: "test.datalabs.etl.dag.bogus.ATask"
+    B: "test.datalabs.etl.dag.bogus.BTask"
+    C: "test.datalabs.etl.dag.bogus.CTask"
+    D: "test.datalabs.etl.dag.bogus.DTask"
 
 TestDAG.A >> TestDAG.B >> TestDAG.D
 TestDAG.A >> TestDAG.C >> TestDAG.D
