@@ -92,15 +92,11 @@ class DAGMeta(type):
         return cls.__task_classes__.keys()
 
     def _generate_task(cls, task, task_annotation):
-        if isinstance(task_annotation, TaskAnnotation):
-            cls.__task_classes__[task] = DAGTask(task, task_annotation.task_class)
-        elif type(task_annotation).__name__ == "Repeat":
+        if type(task_annotation).__name__ == "Repeat":
             # pylint: disable=no-value-for-parameter
             cls._generate_subtasks(task, task_annotation)
-        elif hasattr(task_annotation, "run"):
-            cls.__task_classes__[task] =  DAGTask(task, task_annotation)
         else:
-            cls.__task_classes__[task] = DAGTask(task, PythonTask(task_annotation).task_class)
+            cls.__task_classes__[task] = DAGTask(task, task_annotation)
 
     def _generate_subtasks(cls, task, repeat):
         for index in range(repeat.start, repeat.count):
@@ -262,25 +258,6 @@ def register(*args, **kwargs):
         return_value = register_class(args[0])
 
     return return_value
-
-
-class TaskAnnotation(ABC):
-    def __init__(self, task_class):
-        self._task_class = task_class
-
-    @property
-    def task_class(self):
-        return self._task_class
-
-
-class PythonTask(TaskAnnotation):
-    @property
-    def task_class(self):
-        return import_plugin(self._task_class)
-
-
-class JavaTask(TaskAnnotation):
-    pass
 
 
 @dataclass

@@ -1,7 +1,7 @@
 """ Source: datalabs.etl.dag.dag """
 import pytest
 
-from   datalabs.etl.dag import DAG, Repeat, PythonTask, JavaTask
+from   datalabs.etl.dag import DAG, Repeat
 from   datalabs.task import Task
 
 
@@ -198,7 +198,7 @@ def dag_class():
         POUR_CHAMPAIGN_INTO_GLASS: TestTask2
         WAX_ON_WITH_KARATE: Repeat(TestTask2, 3)
         WAX_OFF_WITH_KARATE: Repeat(TestTask2, 3)
-        CELEBRATE_GOOD_TIMES: PythonTask("test.datalabs.etl.dag.test_dag.TestTask1")
-        COME_ON: JavaTask("datalabs.etl.bogus.BeezelbubsBreakfastBiscuit")
+        CELEBRATE_GOOD_TIMES: "test.datalabs.etl.dag.test_dag.TestTask1"
+        COME_ON: "datalabs.etl.bogus.BeezelbubsBreakfastBiscuit"
 
     return TestDAG

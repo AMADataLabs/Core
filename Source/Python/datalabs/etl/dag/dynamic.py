@@ -46,6 +46,12 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
 
 
 class DAGTask(task.Task):
+    def __init__(self, parameters, data):
+        super().__init__(parameters, data)
+
+        self._triggered_tasks = None
+        self._status = None
+
     def run(self):
         dag_class, dag = [d.decode() for d in self._data]
         dag_executor = LocalDAGExecutorTask(
@@ -62,20 +68,39 @@ class DAGTask(task.Task):
 
             dag_executor.run()
 
+        self._triggered_tasks = dag_executor.triggered_tasks
+        self._status = dag_executor.status
+
+    @property
+    def triggered_tasks(self):
+        return self._triggered_tasks
+
+    @property
+    def status(self):
+        return self._status
+
     @classmethod
     def _write_dag(cls, dag_class, dag, python_path):
-        package, module, class_name = dag_class.rsplit(dag_class, 2)
+        package, module, _ = dag_class.rsplit(".", 2)
         package_path = os.path.join(*package.split("."))
-        init_path = os.path.join(package_path, "__init__.py")
         module_path = os.path.join(package_path, f"{module}.py")
 
         os.makedirs(os.path.join(python_path, package_path))
 
-        with open(init_path, "w"):
-            pass
+        cls._create_packages(python_path, package_path)
 
-        with open(module_path, "w") as file:
+        with open(os.path.join(python_path, module_path), "w") as file:
             file.write(dag)
+
+    @classmethod
+    def _create_packages(cls, python_path, package_path):
+        while package_path:
+            init_path = os.path.join(python_path, package_path, "__init__.py")
+
+            with open(init_path, "w"):
+                pass
+
+            package_path  = os.path.dirname(package_path)
 
 
 
