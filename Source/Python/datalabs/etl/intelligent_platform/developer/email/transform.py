@@ -22,4 +22,6 @@ class EmailReportGeneratorTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = EmailTransformerParameters
 
     def run(self):
+        """
+        """
         pass
