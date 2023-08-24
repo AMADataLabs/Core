@@ -40,3 +40,4 @@ Attached are the latest CPT Developer Program user emails.
             attachments=[file],
             from_account='datalabs@ama-assn.org'
         )
+
