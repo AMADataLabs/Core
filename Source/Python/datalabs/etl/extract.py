@@ -84,7 +84,7 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
 
         decoded_data = self._decode_dataset(data, resolved_files)
 
-        self._log_extracted_data_sizes("decoded", data)
+        self._log_extracted_data_sizes("decoded", decoded_data)
 
         if self.include_names:
             target_files = self._get_target_files(resolved_files)
