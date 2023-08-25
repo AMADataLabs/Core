@@ -2,12 +2,17 @@
 from   abc import ABC, abstractmethod
 from   datetime import datetime, timedelta
 import json
+import logging
 import pickle
 
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import Task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class IncludeNamesMixin:
@@ -73,9 +78,13 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
 
             data = self._extract_files(resolved_files)
 
+        self._log_extracted_data_sizes("raw", data)
+
         self._client = None
 
         decoded_data = self._decode_dataset(data, resolved_files)
+
+        self._log_extracted_data_sizes("decoded", data)
 
         if self.include_names:
             target_files = self._get_target_files(resolved_files)
@@ -106,6 +115,11 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
         data = [self._extract_file(file) for file in files]
 
         return data
+
+    @classmethod
+    def _log_extracted_data_sizes(cls, data_type, data):
+        for datum in data:
+            LOGGER.debug('Extracted %s %d bytes.', data_type, len(datum))
 
     def _decode_dataset(self, dataset, files):
         decoded_dataset = []
