@@ -63,6 +63,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
             with open(data, 'rb') as body:  # data is a filename bytes string
                 response = self._put_object(file, body, md5_hash)
         else:
+            LOGGER.info("Putting file with %s bytes", len(data))
             md5_hash = hashlib.md5(data).digest()
 
             response = self._put_object(file, data, md5_hash)
@@ -93,7 +94,6 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
 
     def _put_object(self, file, data, md5_hash):
         b64_md5_hash = base64.b64encode(md5_hash)
-        LOGGER.info("Putting file with %s bytes", len(data))
 
         response = self._client.put_object(
             Bucket=self._parameters.bucket,
