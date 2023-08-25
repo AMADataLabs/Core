@@ -70,10 +70,16 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
         if cache:
             data = cache.extract_data()
 
+        if data:
+            self._log_task_data_sizes(CacheDirection.OUTPUT, data)
+
         return data
 
     def _put_task_output_data(self, data):
         cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
+
+        if data:
+            self._log_task_data_sizes(CacheDirection.OUTPUT, data)
 
         if cache:
             cache.load_data(data)
@@ -118,6 +124,16 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     @classmethod
     def _extract_cache_parameters(cls, task_parameters):
         return TaskDataCacheParameters.extract(task_parameters)
+
+    @classmethod
+    def _log_task_data_sizes(cls, direction, data):
+        operation = "Received"
+
+        if direction == CacheDirection.OUTPUT:
+            operation = "Returning"
+
+        for datum in data:
+            LOGGER.debug('%s %d bytes.', operation, len(datum))
 
     # pylint: disable=no-self-use
     def _handle_dag_success(self, dag):
