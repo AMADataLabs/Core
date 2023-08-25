@@ -20,6 +20,9 @@ class EmailReportSMTPLoaderTask(Task):
     PARAMETER_CLASS = EmailReportSMTPLoaderParameters
 
     def run(self):
+        """
+        This function formats and sends developer report email
+        """
         date = str(datetime.now().date())  # 'YYYY-MM-DD'
         name = f'developer_emails_{date}.csv'
         report_csv_data = self._data[0]
@@ -40,4 +43,3 @@ Attached are the latest CPT Developer Program user emails.
             attachments=[file],
             from_account='datalabs@ama-assn.org'
         )
-
