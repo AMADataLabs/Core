@@ -157,7 +157,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_dea.sort_values('entityId')
 
         aggregated_dea['dea'] = aggregated_dea['dea'].apply(
-            lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['lastReportedDate'], format='%m/%d/%Y'))
+            lambda x: sorted(x, key=lambda item: str(item['lastReportedDate']))
         )
 
         return ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
@@ -195,7 +195,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
 
         aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(
-            lambda x: sorted(x, key=lambda item: pandas.to_datetime(item['graduateDate'], format='%m/%d/%Y'))
+            lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
         )
 
         return ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
