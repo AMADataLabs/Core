@@ -34,67 +34,71 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
     def run(self):
         LOGGER.info("Reading physician profile PSV files...")
-        abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
-            = [self._csv_to_dataframe(d, sep='|') for d in self._data]
-        practice_specialties = demog_data[["ENTITY_ID"] + list(column.PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
-        mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
-        ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
-        me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
+        # abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
+        #     = [self._csv_to_dataframe(d, sep='|') for d in self._data]
+        # practice_specialties = demog_data[["ENTITY_ID"] + list(column.PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
+        # mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
+        # ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
+        # me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
+        sanctions_data = self._csv_to_dataframe(self._data[7], sep='|')
 
-        LOGGER.info("Creating demographics...")
-        ama_masterfile = self._create_demographics(demog_data)
-        del demog_data
+        # LOGGER.info("Creating demographics...")
+        # ama_masterfile = self._create_demographics(demog_data)
+        # del demog_data
 
-        LOGGER.info("Creating dea...")
-        ama_masterfile = self._create_dea(ama_masterfile, dea_data)
-        del dea_data
+        # LOGGER.info("Creating dea...")
+        # ama_masterfile = self._create_dea(ama_masterfile, dea_data)
+        # del dea_data
 
-        LOGGER.info("Creating practiceSpecialties...")
-        ama_masterfile = self._create_practice_specialties(ama_masterfile, practice_specialties)
-        del practice_specialties
+        # LOGGER.info("Creating practiceSpecialties...")
+        # ama_masterfile = self._create_practice_specialties(ama_masterfile, practice_specialties)
+        # del practice_specialties
 
-        LOGGER.info("Creating npi...")
-        ama_masterfile = self._create_npi(ama_masterfile, npi_data)
-        del npi_data
+        # LOGGER.info("Creating npi...")
+        # ama_masterfile = self._create_npi(ama_masterfile, npi_data)
+        # del npi_data
 
-        LOGGER.info("Creating medicalSchools...")
-        ama_masterfile = self._create_medical_schools(ama_masterfile, med_sch_data)
-        del med_sch_data
+        # LOGGER.info("Creating medicalSchools...")
+        # ama_masterfile = self._create_medical_schools(ama_masterfile, med_sch_data)
+        # del med_sch_data
 
-        LOGGER.info("Creating abms...")
-        ama_masterfile = self._create_abms(ama_masterfile, abms_data)
-        del abms_data
+        # LOGGER.info("Creating abms...")
+        # ama_masterfile = self._create_abms(ama_masterfile, abms_data)
+        # del abms_data
 
-        LOGGER.info("Creating medicalTraining...")
-        ama_masterfile = self._create_medical_training(ama_masterfile, med_train_data)
-        del med_train_data
+        # LOGGER.info("Creating medicalTraining...")
+        # ama_masterfile = self._create_medical_training(ama_masterfile, med_train_data)
+        # del med_train_data
 
-        LOGGER.info("Creating licenses...")
-        ama_masterfile = self._create_licenses(ama_masterfile, license_data)
-        del license_data
+        # LOGGER.info("Creating licenses...")
+        # ama_masterfile = self._create_licenses(ama_masterfile, license_data)
+        # del license_data
+        ama_masterfile = None
 
         LOGGER.info("Creating sanctions...")
         ama_masterfile = self._create_sanctions(ama_masterfile, sanctions_data)
         del sanctions_data
 
-        LOGGER.info("Creating mpa...")
-        ama_masterfile = self._create_mpa(ama_masterfile, mpa)
-        del mpa
+        # LOGGER.info("Creating mpa...")
+        # ama_masterfile = self._create_mpa(ama_masterfile, mpa)
+        # del mpa
 
-        LOGGER.info("Creating ecfmg...")
-        ama_masterfile = self._create_ecfmg(ama_masterfile, ecfmg)
-        del ecfmg
+        # LOGGER.info("Creating ecfmg...")
+        # ama_masterfile = self._create_ecfmg(ama_masterfile, ecfmg)
+        # del ecfmg
 
-        LOGGER.info("Creating meNumber...")
-        ama_masterfile = self._create_me_number(ama_masterfile, me_number)
-        del me_number
+        # LOGGER.info("Creating meNumber...")
+        # ama_masterfile = self._create_me_number(ama_masterfile, me_number)
+        # del me_number
 
         LOGGER.info("Filling in null column values...")
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
         LOGGER.info("Pickeling aggregated column values...")
-        for column_name in column.AGGREGATED_COLUMNS:
-            ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
+        # for column_name in column.AGGREGATED_COLUMNS:
+        #     ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
+        # ama_masterfile.loc[:, "demographics"] = ama_masterfile.loc[:, "demographics"].apply(pickle.dumps)
+        ama_masterfile.loc[:, "sanctions"] = ama_masterfile.loc[:, "sanctions"].apply(pickle.dumps)
 
         LOGGER.info("Writing ama_masterfile table Feather file...")
         return [self._dataframe_to_feather(ama_masterfile)]
@@ -255,7 +259,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         aggregated_sanctions = cls._merge_sanctions(aggregated_non_state_sanctions, aggregated_state_sanctions)
 
-        return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
+        # return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
+        return aggregated_sanctions
 
     @classmethod
     def _create_mpa(cls, ama_masterfile, demog_data):
@@ -283,7 +288,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
     def _fill_nulls(cls, ama_masterfile):
         ama_masterfile = cls._fill_null_sanctions(ama_masterfile)
 
-        ama_masterfile = cls._fill_null_list_sections(ama_masterfile)
+        # ama_masterfile = cls._fill_null_list_sections(ama_masterfile)
 
         return ama_masterfile
 
@@ -318,8 +323,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_non_state_sanctions = cls._aggregate_sanction(
             aggregated_non_state_sanctions, non_state_sanctions, "ZV", "vaSanction")
 
-        aggregated_non_state_sanctions = cls._fill_null_non_state_sanctions(aggregated_non_state_sanctions)
-
         aggregated_non_state_sanctions["federalSanctions"] = None
 
         return aggregated_non_state_sanctions
@@ -351,7 +354,16 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
     @classmethod
     def _merge_sanctions(cls, aggregated_non_state_sanctions, aggregated_state_sanctions):
         merge_columns = column.SANCTIONS_COLUMNS+column.SANCTION_VALUE_COLUMNS
-        aggregated_sanctions = aggregated_state_sanctions.merge(aggregated_non_state_sanctions, on="ENTITY_ID")
+
+        aggregated_sanctions = aggregated_state_sanctions.merge(
+            aggregated_non_state_sanctions,
+            on="ENTITY_ID",
+            how="outer"
+        )
+
+        aggregated_sanctions = cls._fill_null_non_state_sanctions(aggregated_sanctions)
+
+        aggregated_sanctions = cls._fill_null_state_sanctions(aggregated_sanctions)
 
         aggregated_sanctions["sanctions"] = aggregated_sanctions[merge_columns].to_dict(orient="records")
 
@@ -362,16 +374,41 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         return aggregated_sanctions
 
     @classmethod
+    def _fill_null_non_state_sanctions(cls, aggregated_sanctions):
+        non_state_columns = [c for c in column.SANCTIONS_COLUMNS if c not in ("federalSanctions", "stateSanctions")]
+        value_columns = [c for c in aggregated_sanctions.columns.values if c.endswith("Value")]
+
+        aggregated_sanctions[non_state_columns] = aggregated_sanctions[non_state_columns].fillna("N")
+
+        aggregated_sanctions[value_columns] = aggregated_sanctions[value_columns].fillna(
+            "NO ACTIONS REPORTED AT THIS TIME"
+        )
+
+        return aggregated_sanctions
+
+    @classmethod
+    def _fill_null_state_sanctions(cls, aggregated_sanctions):
+        # aggregated_sanctions["stateSanctions"] = aggregated_sanctions["stateSanctions"].fillna([{"state": []}])
+        aggregated_sanctions.loc[aggregated_sanctions.stateSanctions.isnull(), "stateSanctions"] = \
+            aggregated_sanctions.loc[aggregated_sanctions.stateSanctions.isnull(), "stateSanctions"].apply(
+                lambda x: {"state": []}
+            )
+
+        aggregated_sanctions["stateSanctionsValue"] = aggregated_sanctions["stateSanctionsValue"].fillna(
+            "NO ACTIONS REPORTED AT THIS TIME"
+        )
+
+        return aggregated_sanctions
+
+    @classmethod
     def _fill_null_sanctions(cls, ama_masterfile):
         null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
 
-        null_sanctions = null_sanctions.update(
+        null_sanctions.update(
             {f"{key}Value":"NO ACTIONS REPORTED AT THIS TIME" for key in column.SANCTIONS_COLUMNS}
         )
 
         null_sanctions["stateSanctions"] = {"state": []}
-
-        null_sanctions["stateSanctionsValue"] = "NO ACTIONS REPORTED AT THIS TIME"
 
         ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [null_sanctions]
 
@@ -398,20 +435,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
 
         return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
-
-    @classmethod
-    def _fill_null_non_state_sanctions(cls, aggregated_non_state_sanctions):
-        non_state_columns = [c for c in column.SANCTIONS_COLUMNS if c not in ("federalSanctions", "stateSanctions")]
-        value_columns = [c for c in aggregated_non_state_sanctions.columns.values if c.endswith("Value")]
-
-        aggregated_non_state_sanctions[non_state_columns] = \
-            aggregated_non_state_sanctions[non_state_columns].fillna("N")
-
-        aggregated_non_state_sanctions[value_columns] = \
-            aggregated_non_state_sanctions[value_columns].fillna("NO ACTIONS REPORTED AT THIS TIME")
-
-        return aggregated_non_state_sanctions
-
 
 @add_schema
 @dataclass
@@ -606,6 +629,25 @@ class CAQHProfileTransformerTask(Task):
         modified_all_provider_cds = sorted(all_provider_cds, key=lambda x: x["IssueDate"])
 
         return modified_all_provider_cds
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class FeatherSplitTransformerParameters:
+    split_count: str = None
+    execution_time: str = None
+
+
+class FeatherSplitTransformerTask(FeatherReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = FeatherSplitTransformerParameters
+
+    def run(self):
+        split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
+        ama_masterfile = self._feather_to_dataframe(self._data[0])
+
+        LOGGER.info("Generating %d Feather files...", split_count)
+        return [self._dataframe_to_feather(x) for x in numpy.array_split(ama_masterfile, split_count)]
 
 
 @add_schema
