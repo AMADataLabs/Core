@@ -151,12 +151,18 @@ class TaskWrapper(ABC):
         if cache:
             data = cache.extract_data()
 
+            if data:
+                self._log_task_data_sizes(CacheDirection.INPUT, data)
+
         return data
 
     def _put_task_output_data(self, data):
         cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
 
         if cache:
+            if data:
+                self._log_task_data_sizes(CacheDirection.OUTPUT, data)
+
             cache.load_data(data)
 
     @classmethod
@@ -179,6 +185,16 @@ class TaskWrapper(ABC):
             raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
 
         return task_resolver_class
+
+    @classmethod
+    def _log_task_data_sizes(cls, direction, data):
+        operation = "Received"
+
+        if direction == CacheDirection.OUTPUT:
+            operation = "Returning"
+
+        for datum in data:
+            LOGGER.debug('%s %d bytes.', operation, len(datum))
 
 class TaskResolver(ABC):
     @classmethod

@@ -114,6 +114,11 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         demog_data.MPA_DESC = demog_data.MPA_DESC.str.strip()
         demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
         demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
+        demog_data["PRINT_PHONE_NUMBER"] = (
+            demog_data[["PHONE_AREA_CD", "PHONE_EXCHANGE", "PHONE_NUMBER"]]
+            .astype(str)
+            .agg(''.join, axis=1)
+        )
         demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
         demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
@@ -151,8 +156,9 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         aggregated_dea.sort_values('entityId')
 
-        aggregated_dea['dea'] \
-            = aggregated_dea['dea'].apply(lambda x: sorted(x, key=lambda item: item['lastReportedDate']))
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(
+            lambda x: sorted(x, key=lambda item: str(item['lastReportedDate']))
+        )
 
         return ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
 
@@ -167,14 +173,10 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
     @classmethod
     def _create_npi(cls, ama_masterfile, npi_data):
-        # Stop gap for missing END_DT column
-        npi_data["END_DT"] = "2024-12-31"
-
         npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_npi["npi"] = npi.to_dict(orient="records")
-        aggregated_npi = aggregated_npi.groupby("entityId")["npi"].apply(list).reset_index()
 
         return ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
 
@@ -191,6 +193,10 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_medical_schools["medicalSchools"] = medical_schools.to_dict(orient="records")
         aggregated_medical_schools \
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
+
+        aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(
+            lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
+        )
 
         return ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
 
@@ -212,9 +218,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
     @classmethod
     def _create_medical_training(cls, ama_masterfile, med_train):
-        # Stop gap for missing END_DT column
-        med_train["END_DT"] = "2024-12-31"
-
         medical_training = \
             med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -237,49 +240,20 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
         aggregated_licenses = aggregated_licenses.groupby("entityId")["licenses"].apply(list).reset_index()
 
+        aggregated_licenses['licenses'] \
+            = aggregated_licenses['licenses'].apply(lambda x: sorted(x, key=lambda item: str(item['issueDate'])))
+
         return ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
 
-    def _create_sanctions(self, ama_masterfile, sanctions):
+    @classmethod
+    def _create_sanctions(cls, ama_masterfile, sanctions):
         sanctions = sanctions[["ENTITY_ID", "BOARD_CD"]]
 
-        non_state_sanctions = (sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])]
-            .drop_duplicates().copy())
-        aggregated_non_state_sanctions = pandas.DataFrame()
-        aggregated_non_state_sanctions["ENTITY_ID"] = non_state_sanctions.ENTITY_ID.unique()
+        aggregated_non_state_sanctions = cls._create_non_state_sanctions(sanctions)
 
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "M0", "medicareMedicaidSanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "00", "additionalSanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "ZD", "deaSanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "DD", "dodSanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "ZF", "airforceSanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "ZA", "armySanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "ZN", "navySanction")
-        aggregated_non_state_sanctions = self._aggregate_sanction(
-            aggregated_non_state_sanctions, non_state_sanctions, "ZV", "vaSanction")
-        aggregated_non_state_sanctions["federalSanctions"] = None
-        aggregated_non_state_sanctions = aggregated_non_state_sanctions.fillna("N")
+        aggregated_state_sanctions = cls._create_state_sanctions(sanctions)
 
-        state_sanctions = sanctions[~sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].copy()
-        aggregated_state_sanctions = pandas.DataFrame()
-        aggregated_state_sanctions["ENTITY_ID"] = state_sanctions.ENTITY_ID.unique()
-        aggregated_state_sanctions["state"] \
-            = state_sanctions.groupby("ENTITY_ID")["BOARD_CD"].apply(list).reset_index().BOARD_CD
-        aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()] \
-            = aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()].apply(lambda x: [])
-        aggregated_state_sanctions["stateSanctions"] = aggregated_state_sanctions.state.apply(lambda x: {"state": x})
-        aggregated_state_sanctions.drop(columns=["state"], inplace=True)
-
-        aggregated_sanctions = aggregated_state_sanctions.merge(aggregated_non_state_sanctions, on="ENTITY_ID")
-        aggregated_sanctions["sanctions"] = aggregated_sanctions[column.SANCTIONS_COLUMNS].to_dict(orient="records")
-        aggregated_sanctions.drop(columns=column.SANCTIONS_COLUMNS, inplace=True)
-        aggregated_sanctions.rename(columns={"ENTITY_ID": "entityId"}, inplace=True)
+        aggregated_sanctions = cls._merge_sanctions(aggregated_non_state_sanctions, aggregated_state_sanctions)
 
         return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
 
@@ -311,20 +285,125 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = cls._fill_null_list_sections(ama_masterfile)
 
+        ama_masterfile = cls._fill_null_dict_sections(ama_masterfile)
+
         return ama_masterfile
 
     @classmethod
-    def _aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
-        sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
-        sanction[column_name] = "Y"
+    def _create_non_state_sanctions(cls, sanctions):
+        non_state_sanctions = (sanctions[sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])]
+            .drop_duplicates().copy())
+        aggregated_non_state_sanctions = pandas.DataFrame()
+        aggregated_non_state_sanctions["ENTITY_ID"] = non_state_sanctions.ENTITY_ID.unique()
 
-        aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "M0", "medicareMedicaidSanction")
 
-        return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "00", "additionalSanction")
+
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZD", "deaSanction")
+
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "DD", "dodSanction")
+
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZF", "airforceSanction")
+
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZA", "armySanction")
+
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZN", "navySanction")
+
+        aggregated_non_state_sanctions = cls._aggregate_sanction(
+            aggregated_non_state_sanctions, non_state_sanctions, "ZV", "vaSanction")
+
+        aggregated_non_state_sanctions["federalSanctions"] = None
+
+        return aggregated_non_state_sanctions
+
+    @classmethod
+    def _create_state_sanctions(cls, sanctions):
+        state_sanctions = sanctions[~sanctions.BOARD_CD.isin(["M0", "00", "ZD", "DD", "ZF", "ZA", "ZN", "ZV"])].copy()
+        aggregated_state_sanctions = pandas.DataFrame()
+
+        aggregated_state_sanctions["ENTITY_ID"] = state_sanctions.ENTITY_ID.unique()
+
+        aggregated_state_sanctions["state"] \
+            = state_sanctions.groupby("ENTITY_ID")["BOARD_CD"].apply(list).reset_index().BOARD_CD
+
+        aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()] \
+            = aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()].apply(lambda x: [])
+
+        aggregated_state_sanctions["stateSanctionsValue"] = "ACTION_REPORTED"
+        aggregated_state_sanctions["stateSanctionsValue"][aggregated_state_sanctions.state.isnull()] = \
+            "NO ACTIONS REPORTED AT THIS TIME"
+
+        aggregated_state_sanctions["stateSanctions"] \
+            = aggregated_state_sanctions.state.apply(lambda x: {"state": x})
+
+        aggregated_state_sanctions.drop(columns=["state"], inplace=True)
+
+        return aggregated_state_sanctions
+
+    @classmethod
+    def _merge_sanctions(cls, aggregated_non_state_sanctions, aggregated_state_sanctions):
+        merge_columns = column.SANCTIONS_COLUMNS+column.SANCTION_VALUE_COLUMNS
+
+        aggregated_sanctions = aggregated_state_sanctions.merge(
+            aggregated_non_state_sanctions,
+            on="ENTITY_ID",
+            how="outer"
+        )
+
+        aggregated_sanctions = cls._fill_null_non_state_sanctions(aggregated_sanctions)
+
+        aggregated_sanctions = cls._fill_null_state_sanctions(aggregated_sanctions)
+
+        aggregated_sanctions["sanctions"] = aggregated_sanctions[merge_columns].to_dict(orient="records")
+
+        aggregated_sanctions.drop(columns=merge_columns, inplace=True)
+
+        aggregated_sanctions.rename(columns={"ENTITY_ID": "entityId"}, inplace=True)
+
+        return aggregated_sanctions
+
+    @classmethod
+    def _fill_null_non_state_sanctions(cls, aggregated_sanctions):
+        non_state_columns = [c for c in column.SANCTIONS_COLUMNS if c not in ("federalSanctions", "stateSanctions")]
+        value_columns = [c for c in aggregated_sanctions.columns.values if c.endswith("Value")]
+
+        aggregated_sanctions[non_state_columns] = aggregated_sanctions[non_state_columns].fillna("N")
+
+        aggregated_sanctions[value_columns] = aggregated_sanctions[value_columns].fillna(
+            "NO ACTIONS REPORTED AT THIS TIME"
+        )
+
+        return aggregated_sanctions
+
+    @classmethod
+    def _fill_null_state_sanctions(cls, aggregated_sanctions):
+        aggregated_sanctions.loc[aggregated_sanctions.stateSanctions.isnull(), "stateSanctions"] = \
+            aggregated_sanctions.loc[aggregated_sanctions.stateSanctions.isnull(), "stateSanctions"].apply(
+                lambda x: {"state": []}
+            )
+
+        aggregated_sanctions["stateSanctionsValue"] = aggregated_sanctions["stateSanctionsValue"].fillna(
+            "NO ACTIONS REPORTED AT THIS TIME"
+        )
+
+        return aggregated_sanctions
 
     @classmethod
     def _fill_null_sanctions(cls, ama_masterfile):
         null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
+
+        null_sanctions.update(
+            {f"{key}Value":"NO ACTIONS REPORTED AT THIS TIME" for key in column.SANCTIONS_COLUMNS}
+        )
+
         null_sanctions["stateSanctions"] = {"state": []}
 
         ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [null_sanctions]
@@ -341,6 +420,26 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         return ama_masterfile
 
+    @classmethod
+    def _fill_null_dict_sections(cls, ama_masterfile):
+        ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"] = \
+            ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"].apply(
+                lambda x: {}
+            )
+
+        return ama_masterfile
+
+    @classmethod
+    def _aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
+        sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
+
+        sanction[column_name] = "Y"
+
+        sanction[f"{column_name}Value"] = "ACTION_REPORTED"
+
+        aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
+
+        return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
 
 @add_schema
 @dataclass
@@ -535,6 +634,25 @@ class CAQHProfileTransformerTask(Task):
         modified_all_provider_cds = sorted(all_provider_cds, key=lambda x: x["IssueDate"])
 
         return modified_all_provider_cds
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class FeatherSplitTransformerParameters:
+    split_count: str = None
+    execution_time: str = None
+
+
+class FeatherSplitTransformerTask(FeatherReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = FeatherSplitTransformerParameters
+
+    def run(self):
+        split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
+        ama_masterfile = self._feather_to_dataframe(self._data[0])
+
+        LOGGER.info("Generating %d Feather files...", split_count)
+        return [self._dataframe_to_feather(x) for x in numpy.array_split(ama_masterfile, split_count)]
 
 
 @add_schema
