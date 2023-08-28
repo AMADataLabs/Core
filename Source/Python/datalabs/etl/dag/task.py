@@ -1,5 +1,4 @@
 """ DAG task wrapper and runner classes. """
-from abc import abstractmethod
 import logging
 
 from   datalabs.access.environment import VariableTree
@@ -80,6 +79,7 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
 
         return f'Failed: {str(exception)}'
 
+    # pylint: disable=no-self-use
     def _get_dag_parameters(self):
         return {"dag": "LOCAL"}
 

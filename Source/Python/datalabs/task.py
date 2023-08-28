@@ -86,6 +86,7 @@ class TaskWrapper(ABC):
         self.task_class = None
         self._parameters = parameters or {}
         self._task_parameters = None
+        self._cache_parameters = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -173,9 +174,13 @@ class TaskWrapper(ABC):
     def _handle_success(self) -> (int, dict):
         LOGGER.info("Task completed successfully.")
 
+        return "Task completed successfully."
+
     # pylint: disable=unused-argument
     def _handle_exception(self, exception: Exception) -> (int, dict):
-        LOGGER.exception("Task failed.", exception)
+        LOGGER.exception("Task failed.")
+
+        return "Task failed."
 
     def _get_task_resolver_class(self):
         task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.EnvironmentTaskResolver')
