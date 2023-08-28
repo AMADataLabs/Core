@@ -155,7 +155,6 @@ class TaskWrapper(ABC):
 
     def _put_task_output_data(self, data):
         cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
-        import pdb; pdb.set_trace()
 
         if cache:
             cache.load_data(data)
