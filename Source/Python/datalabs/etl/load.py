@@ -89,11 +89,9 @@ class FileLoaderTask(Task, ABC):
 
             encoded_data = self._encode_dataset(data, resolved_files)
 
-            data = self._load_files(encoded_data, resolved_files)
+            self._load_files(encoded_data, resolved_files)
 
         self._client = None
-
-        return data
 
     @abstractmethod
     def _get_client(self) -> 'Context Manager':
@@ -133,8 +131,8 @@ class FileLoaderTask(Task, ABC):
         return encoded_dataset
 
     def _load_files(self, data, files):
-        for file, data in zip(files, data):
-            self._load_file(data, file)
+        for file, datum in zip(files, data):
+            self._load_file(datum, file)
 
     def _resolve_timestamps(self, files):
         return [datetime.strftime(self.execution_time, file) for file in files]
