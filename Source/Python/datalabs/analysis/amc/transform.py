@@ -41,7 +41,7 @@ class AMCAddressFlaggingTransformerTask(CSVReaderMixin, Task):
 
     @classmethod
     def _dedupe(cls, data):
-        return data[data.name_type == "LN"]
+        return data[data.name_type == "LN"].drop("name_type")
 
     @classmethod
     def _pickle(cls, result):
