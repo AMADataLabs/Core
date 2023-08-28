@@ -2,6 +2,7 @@
 from   io import BytesIO
 from   dataclasses import dataclass
 import logging
+import os
 import pickle
 from   pathlib import Path
 from   zipfile import ZipFile
@@ -90,6 +91,10 @@ class ZipFiles:
 
     def extract(self, file):
         zip_file = self._zip_files[self._file_zip_map[file]]
+        
+        parent = os.path.dirname(file)
+        
+        os.makedirs(parent, exist_ok=True)
 
         return zip_file.read(file)
 
