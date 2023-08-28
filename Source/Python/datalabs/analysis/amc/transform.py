@@ -1,10 +1,7 @@
 """ AMC Flagged Addresses Report generation task """
 from   dataclasses import dataclass
-from   io import BytesIO
 import logging
 import pickle
-
-import pandas
 
 # pylint: disable=import-error, invalid-name
 from   datalabs.analysis.amc.address import AMCAddressFlagger
