@@ -33,19 +33,16 @@ class SMTPFileLoaderTask(FileLoaderTask):
         return [file.strip() for file in self._parameters.files.split(',')]
 
     def _load_files(self, data, files):
-        attachements = super()._load_files(data, files)
+        attachments = [Attachment(name=file, data=data) for file, data in zip(files, data)]
 
         message = create_message(
             self._parameters.to_addresses,
             datetime.strftime(self.execution_time, self._parameters.subject),
             cc=self._parameters.cc_addresses,
             body=self._parameters.message,
-            attachments=attachements,
+            attachments=attachments,
             from_account=self.FROM_ADDRESS,
             html_content=None
         )
 
         self._client.send_message(message)
-
-    def _load_file(self, data, file):
-        return Attachment(name=file, data=data)

@@ -218,6 +218,18 @@ SANCTIONS_COLUMNS = [
     "vaSanction",
 ]
 
+SANCTION_VALUE_COLUMNS = [
+    "medicareMedicaidSanctionValue",
+    "additionalSanctionValue",
+    "stateSanctionsValue",
+    "deaSanctionValue",
+    "dodSanctionValue",
+    "airforceSanctionValue",
+    "armySanctionValue",
+    "navySanctionValue",
+    "vaSanctionValue",
+]
+
 MPA_COLUMNS = {
     "MPA_DESC": "description"
 }
