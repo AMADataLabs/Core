@@ -70,18 +70,18 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
         if cache:
             data = cache.extract_data()
 
-        if data:
-            self._log_task_data_sizes(CacheDirection.OUTPUT, data)
+            if data:
+                self._log_task_data_sizes(CacheDirection.INPUT, data)
 
         return data
 
     def _put_task_output_data(self, data):
         cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
 
-        if data:
-            self._log_task_data_sizes(CacheDirection.OUTPUT, data)
-
         if cache:
+            if data:
+                self._log_task_data_sizes(CacheDirection.OUTPUT, data)
+
             cache.load_data(data)
 
     def _handle_success(self) -> str:

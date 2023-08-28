@@ -133,17 +133,15 @@ class FileLoaderTask(Task, ABC):
         return encoded_dataset
 
     def _load_files(self, data, files):
-        if len(data) != len(files):
-            raise IndexError('The number of configured output files does not match the number of outputs.')
-
-        return [self._load_file(data, file) for file, data in zip(files, data)]
+        for file, data in zip(files, data):
+            self._load_file(data, file)
 
     def _resolve_timestamps(self, files):
         return [datetime.strftime(self.execution_time, file) for file in files]
 
     @abstractmethod
     def _load_file(self, data, file):
-        return []
+        pass
 
     @classmethod
     def _encode_data(cls, data):
