@@ -40,7 +40,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
         ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
         me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
-        # sanctions_data = self._csv_to_dataframe(self._data[7], sep='|')
 
         LOGGER.info("Creating demographics...")
         ama_masterfile = self._create_demographics(demog_data)
@@ -73,7 +72,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         LOGGER.info("Creating licenses...")
         ama_masterfile = self._create_licenses(ama_masterfile, license_data)
         del license_data
-        # ama_masterfile = None
 
         LOGGER.info("Creating sanctions...")
         ama_masterfile = self._create_sanctions(ama_masterfile, sanctions_data)
@@ -97,8 +95,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         LOGGER.info("Pickeling aggregated column values...")
         for column_name in column.AGGREGATED_COLUMNS:
             ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
-        ama_masterfile.loc[:, "demographics"] = ama_masterfile.loc[:, "demographics"].apply(pickle.dumps)
-        # ama_masterfile.loc[:, "sanctions"] = ama_masterfile.loc[:, "sanctions"].apply(pickle.dumps)
 
         LOGGER.info("Writing ama_masterfile table Feather file...")
         return [self._dataframe_to_feather(ama_masterfile)]
@@ -260,7 +256,6 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_sanctions = cls._merge_sanctions(aggregated_non_state_sanctions, aggregated_state_sanctions)
 
         return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
-        # return aggregated_sanctions
 
     @classmethod
     def _create_mpa(cls, ama_masterfile, demog_data):
