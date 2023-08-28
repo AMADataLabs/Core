@@ -91,9 +91,9 @@ class ZipFiles:
 
     def extract(self, file):
         zip_file = self._zip_files[self._file_zip_map[file]]
-        
+
         parent = os.path.dirname(file)
-        
+
         if parent:
             os.makedirs(parent, exist_ok=True)
 
