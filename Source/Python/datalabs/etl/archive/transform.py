@@ -94,7 +94,8 @@ class ZipFiles:
         
         parent = os.path.dirname(file)
         
-        os.makedirs(parent, exist_ok=True)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
 
         return zip_file.read(file)
 
