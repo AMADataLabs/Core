@@ -1,9 +1,7 @@
 """ DAG task wrapper and runner classes. """
-from abc import abstractmethod
 import logging
 
 from   datalabs.access.environment import VariableTree
-from   datalabs.etl.dag.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
@@ -47,8 +45,6 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
-        self._cache_parameters = {}
-
     def _get_task_parameters(self):
         task_parameters = None
 
@@ -57,26 +53,9 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
         task_parameters = self._get_dag_task_parameters(dag_parameters)
 
         task_parameters = self._merge_parameters(dag_parameters, task_parameters)
-
-        self._cache_parameters = self._extract_cache_parameters(task_parameters)
         LOGGER.debug('Task Parameters: %s', task_parameters)
 
         return task_parameters
-
-    def _get_task_input_data(self):
-        data = []
-        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
-
-        if cache:
-            data = cache.extract_data()
-
-        return data
-
-    def _put_task_output_data(self, data):
-        cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
-
-        if cache:
-            cache.load_data(data)
 
     def _handle_success(self) -> str:
         super()._handle_success()
@@ -91,16 +70,16 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def _handle_exception(self, exception) -> str:
         super()._handle_exception(exception)
 
-        if self._get_task_id() == "DAG":
+        if self._task_parameters and self._get_task_id() == "DAG":
             self._handle_dag_exception(self.task)
         else:
             self._handle_task_exception(self.task)
 
         return f'Failed: {str(exception)}'
 
-    @abstractmethod
+    # pylint: disable=no-self-use
     def _get_dag_parameters(self):
-        return {}
+        return {"dag": "LOCAL"}
 
     def _get_dag_task_parameters(self, dag_parameters):
         dag_id = dag_parameters["dag"].upper()
@@ -114,10 +93,6 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
             pass
 
         return parameters
-
-    @classmethod
-    def _extract_cache_parameters(cls, task_parameters):
-        return TaskDataCacheParameters.extract(task_parameters)
 
     # pylint: disable=no-self-use
     def _handle_dag_success(self, dag):

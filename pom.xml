@@ -406,6 +406,7 @@
                             <includes>
                                 <include>datalabs/**</include>
                                 <include>log4j2.xml</include>
+                                <include>DB2JccConfiguration.properties</include>
                             </includes>
                             <!-- <excludes>
                                 <exclude>**/Log4j2Plugins.dat</exclude>

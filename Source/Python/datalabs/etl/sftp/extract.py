@@ -14,7 +14,7 @@ from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -64,13 +64,17 @@ class SFTPFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorT
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         buffer = io.BytesIO()
+        data = None
 
         try:
             self._client.get(file, buffer)
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file}'") from exception
 
-        return bytes(buffer.getbuffer())
+        data =  bytes(buffer.getbuffer())
+        LOGGER.info('Extracted %d byte file %s.', len(data), file)
+
+        return data
 
 
 # pylint: disable=too-many-ancestors
