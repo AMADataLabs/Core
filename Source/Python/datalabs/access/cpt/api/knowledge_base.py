@@ -24,6 +24,7 @@ class MapSearchEndpointParameters:
     database_index: str
     unknowns: dict = None
 
+
 @dataclass
 class SearchParameters:
     max_results: int
