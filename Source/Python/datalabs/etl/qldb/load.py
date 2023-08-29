@@ -186,12 +186,16 @@ class QLDBLoaderTask(Task):
     def _update_documents_in_qldb(self, updated_documents):
         LOGGER.info("Updating %d documents...", len(updated_documents))
         for index, document in enumerate(updated_documents):
-            sql = f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?"
+            sql = f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p.{self._parameters.primary_key} = ?"
             if index % 40 == 0:
                 qldb = self._get_qldb_client()
 
             qldb.execute_lambda(
-                partial(self._execute_statement, statement=sql, parameters=document[self._parameters.primary_key])
+                partial(
+                    self._execute_statement,
+                    statement=sql,
+                    parameters=[document, document[self._parameters.primary_key]]
+                )
             )
 
     @classmethod
