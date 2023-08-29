@@ -86,7 +86,7 @@ class TaskWrapper(ABC):
         self.task_class = None
         self._parameters = parameters or {}
         self._task_parameters = None
-        self._cache_parameters = None
+        self._cache_parameters = {}
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 

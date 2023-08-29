@@ -45,8 +45,6 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
-        self._cache_parameters = {}
-
     def _get_task_parameters(self):
         task_parameters = None
 
