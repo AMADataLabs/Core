@@ -6,7 +6,7 @@ import os
 import pytest
 
 from   datalabs.etl.dag.airflow import DAGTaskWrapper
-from   datalabs.etl.dag.cache import TaskDataCache, CacheDirection
+from   datalabs.etl.dag.cache import TaskDataCache
 from   datalabs.task import Task
 
 logging.basicConfig()
