@@ -1,12 +1,17 @@
 """SFTP loader class"""
 from   dataclasses import dataclass
 import io
+import logging
 import os
 
 from   datalabs.access import sftp
 from   datalabs.etl.load import FileLoaderTask
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -47,6 +52,9 @@ class SFTPFileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
             self._client.put(buffer, file)
         except Exception as exception:
             raise ETLException(f"Unable to write file '{file}'") from exception
+
+        LOGGER.info('Loaded %d byte file %s.', len(data), file)
+
 
 # pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileLoaderTask(SFTPFileLoaderTask):

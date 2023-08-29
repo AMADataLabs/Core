@@ -47,7 +47,7 @@ DBL:
 
     GET_LAST_REPORT:
         BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive"
-        FILES: "Weekly DBL Report - Latest.xlsx"
+        FILES: "Weekly DBL Report - %Y-%m-%d.xlsx"
         HOST: ${UDRIVE_HOST}
         USERNAME: ${UDRIVE_USERNAME}
         PASSWORD: ${UDRIVE_PASSWORD}
@@ -56,6 +56,7 @@ DBL:
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_FILES: "Weekly DBL Report - Latest.xlsx"
+        EXECUTION_OFFSET: '{"weeks": 1}'
 
     CREATE_DBL_REPORT:
         CACHE_CLASS: ${S3_CACHE_CLASS}
