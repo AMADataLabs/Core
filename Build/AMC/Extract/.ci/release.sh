@@ -10,7 +10,7 @@ main() {
         [sbx]=dev
         [dev]=dev
         [tst]=dev
-        [prd]=2.0.0
+        [prd]=2.0.2
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
