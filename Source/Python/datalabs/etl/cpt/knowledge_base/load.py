@@ -27,7 +27,6 @@ class OpensearchLoaderTask(Task):
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
         json_data = json.loads(self._data[0])
-        index_name = json
         with AWSClient("opensearch") as opensearch_client:
             if self._knowledge_base_index_does_not_exists(opensearch_client, 'knowledge-base'):
                 self._create_index(opensearch_client, 'knowledge_base')
@@ -44,7 +43,7 @@ class OpensearchLoaderTask(Task):
     @classmethod
     def _load_knowledge_base_data(cls, json_data, opensearch_client):
         for json_object in json_data:
-            response = opensearch_client.index(
+            opensearch_client.index(
                 index='knowledge-base',
                 body=json_object
             )

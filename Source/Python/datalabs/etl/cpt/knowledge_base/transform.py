@@ -1,12 +1,8 @@
 """SNOMED CPT Transformer"""
-import json
 import logging
-import re
 
 import pandas
-
-from   datalabs.task import Task
-
+from datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

@@ -19,7 +19,7 @@ class TrafficReportSMTPLoaderParameters:
 class TrafficReportSMTPLoaderTask(Task):
     PARAMETER_CLASS = TrafficReportSMTPLoaderParameters
 
-    def run(self):
+    def run(cls):
         date = str(datetime.now().date())  # 'YYYY-MM-DD'
         name = f'Intelligent_Platform_Traffic_Report_{date}.csv'
         report_csv_data = self._data[0]

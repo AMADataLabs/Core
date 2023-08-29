@@ -80,5 +80,3 @@ class UserManagementOrganization(Base):
     updated_on = sa.Column(sa.String, nullable=True)
     row_id = sa.Column(sa.String, nullable=True)
     licensee_id = sa.Column(sa.String, nullable=True)
-
-

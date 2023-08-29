@@ -50,14 +50,14 @@ class MapSearchEndpointTask(APIEndpointTask):
         return max_results, index, keywords
 
     @classmethod
-    def _get_results(self, keywords, opensearch_client, max_results, index):
+    def _get_results(cls, keywords, opensearch_client, max_results, index):
         index_name = 'kbsearch-index'
         query_string = ''
         for keyword in keywords:
             query_string += f'|{keyword}'
         response = None
         if keywords:
-            response = self._get_search_results(query_string, opensearch_client, index_name, max_results, index)
+            response = cls._get_search_results(query_string, opensearch_client, index_name, max_results, index)
         return response
 
     @classmethod
