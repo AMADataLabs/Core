@@ -24,51 +24,60 @@ class MapSearchEndpointParameters:
     database_index: str
     unknowns: dict = None
 
+@dataclass
+class SearchParameters:
+    max_results: int
+    index: str
+    keywords: list
+
 
 class MapSearchEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = MapSearchEndpointParameters
 
     def run(self):
-        max_results, index, keywords = self._get_query_parameters(self._parameters.query)
+        search_parameters = self._get_search_parameters(self._parameters.query)
         search_results = None
-        with AWSClient("opensearch") as opensearch_client:
-            search_results = self._get_results(keywords, opensearch_client, max_results, index)
+
+        with AWSClient("opensearch") as opensearch:
+            search_results = self._query_index(opensearch, search_parameters)
 
         return search_results
 
     @classmethod
-    def _get_query_parameters(cls, parameters):
+    def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
         max_results = int(parameters.get("results")[0]) if parameters.get("results") else 50
         index = int(parameters.get("index")[0]) if parameters.get("index") else 0
         keywords = parameters.get("keyword")
 
         if max_results < 1:
             raise InvalidRequest("Results must be greater 0.")
+
         if index < 0:
             raise InvalidRequest("Index must be 0 or greater.")
 
-        return max_results, index, keywords
+        return SearchParameters(max_results, index, keywords)
 
     @classmethod
-    def _get_results(cls, keywords, opensearch_client, max_results, index):
+    def _query_index(cls, opensearch, search_parameters):
         index_name = 'kbsearch-index'
-        query_string = ''
-        for keyword in keywords:
-            query_string += f'|{keyword}'
-        response = None
-        if keywords:
-            response = cls._get_search_results(query_string, opensearch_client, index_name, max_results, index)
-        return response
+        query = "|".join(search_parameters.keywords)
+        results = None
+
+        if search_parameters.keywords:
+            results = cls._get_search_results(opensearch, query, index_name, search_parameters)
+
+        return results
 
     @classmethod
-    def _get_search_results(cls, query_string, opensearch_client, index_name, max_results, index):
+    def _get_search_results(cls, opensearch, query, index_name, search_parameters):
+        results = None
 
-        search_query = {
-            "from": index,
-            "size": max_results,
+        query_parameters = {
+            "from": search_parameters.index,
+            "size": search_parameters.max_results,
             "query": {
                 "multi_match": {
-                    "query": f"{query_string}",
+                    "query": f"{query}",
                     "fields": ['section^10000', 'subsection^1000', 'question^10', 'answer'],
                     "boost": 50,
                     "analyzer": "stop",
@@ -82,8 +91,11 @@ class MapSearchEndpointTask(APIEndpointTask):
                 }
             }
         }
-        response = opensearch_client.search(index=index_name, body=search_query)
+
+        response = opensearch.search(index=index_name, body=query_parameters)
+
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
             # Extract and process the search results
-            return response['hits']['hits']
-        return None
+            results = response['hits']['hits']
+
+        return results

@@ -49,10 +49,7 @@ class OpensearchLoaderTask(Task):
 
     @classmethod
     def _create_index(cls, opensearch_client, index_name):
-        try:
-            LOGGER.debug('Creating index: {name}')
-            response = opensearch_client.indices.create(index_name)
-            LOGGER.debug('Created index: {name}')
-            LOGGER.debug(response)
-        except Exception as exp:
-            LOGGER.debug(f"exp Creating index {index_name}: {exp}")
+        LOGGER.debug('Creating index: %s', index_name)
+        response = opensearch_client.indices.create(index_name)
+        LOGGER.debug('Created index: %s', index_name)
+        LOGGER.debug(response)
