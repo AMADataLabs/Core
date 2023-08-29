@@ -37,8 +37,7 @@ class OpensearchLoaderTask(Task):
         existing_indices = opensearch_client.cat.indices()
         if index_name in existing_indices:
             return False
-        else:
-            return True
+        return True
 
     @classmethod
     def _load_knowledge_base_data(cls, json_data, opensearch_client):

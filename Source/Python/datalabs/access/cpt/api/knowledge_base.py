@@ -86,3 +86,4 @@ class MapSearchEndpointTask(APIEndpointTask):
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
             # Extract and process the search results
             return response['hits']['hits']
+        return None
