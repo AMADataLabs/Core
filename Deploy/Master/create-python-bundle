@@ -100,7 +100,7 @@ install_dependencies() {
 create_package_text() {
     echo "Running package ${PACKAGE} version ${VERSION}." > package.txt
 
-    EXTRA_FILES"-f package.txt "
+    EXTRA_FILES+="-f package.txt "
 }
 
 
