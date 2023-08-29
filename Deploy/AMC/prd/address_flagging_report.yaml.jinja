@@ -63,7 +63,8 @@ ADDRESS_FLAGGING_REPORT:
                 pa.zip,
                 pa.state_cd,
                 ecu.usg_begin_dt,
-                ecu.comm_usage
+                ecu.comm_usage,
+                pn.name_type
 
             FROM
                 entity_comm_usg_at ecu
@@ -81,7 +82,6 @@ ADDRESS_FLAGGING_REPORT:
                 ecu.src_cat_code = 'AMC' AND
                 ecu.end_dt is null       AND
                 eke.key_type ='ME'       AND
-                pn.name_type = 'LN'      AND
                 pn.end_dt is null
 
             INTO TEMP address_flagging_report;
