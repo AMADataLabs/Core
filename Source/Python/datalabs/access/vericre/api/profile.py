@@ -214,10 +214,9 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                     and u.is_deleted = false
                     and u.status = 'ACTIVE'
                 join form f on f.id = p.form
-                join form_section fs1 on fs1.form = f.id
-                join form_sub_section fs2 on fs2.form_section = fs1.id
-                join form_field ff on ff.form_sub_section = fs2.id
-                    and ff."type" = 'FILE'
+                join form_field ff on ff.form = f.id 
+                    and ff."type" = 'FILE' 
+                    and ff.sub_section is not null
                 join "document" d on d.id = cast(ff."values" ->>0 as INT)
                     and d.is_deleted = false
             )
