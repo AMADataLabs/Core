@@ -2,6 +2,8 @@ package datalabs.task;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -23,6 +25,13 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
         TaskWrapper taskWrapper;
         String response = null;
 
+        try {
+            logPackageText();
+        } catch(Exception exception) {
+            LOGGER.error("Unable to read package.txt: " + exception.getMessage());
+            exception.printStackTrace();
+        }
+
         LOGGER.info("TaskWrapper: " + taskWrapperClassName);
 
         try {
@@ -38,7 +47,14 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
         return response;
      }
 
-     TaskWrapper createTaskWrapper(String taskWrapperClassName, Map<String,String> event)
+    static void logPackageText() throws Exception {
+        String text = new String(
+            Files.readAllBytes(Paths.get("package.txt")));
+
+        LOGGER.info(text);
+    }
+
+    TaskWrapper createTaskWrapper(String taskWrapperClassName, Map<String,String> event)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
          ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
