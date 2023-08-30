@@ -24,5 +24,6 @@ modspec:
   - package: datalabs.access.secret
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.state
   - package: datalabs.model.vericre
   - package: datalabs.util
