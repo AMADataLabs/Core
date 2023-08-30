@@ -21,6 +21,8 @@ main() {
 
     install_dependencies
 
+    create_package_text
+
     create_bundle
 }
 
@@ -92,6 +94,13 @@ install_dependencies() {
     fi
 
     pip install $TRUSTED_HOSTS --target Bundle/ -r requirements.txt
+}
+
+
+create_package_text() {
+    echo "Running package ${PACKAGE} version ${VERSION}." > package.txt
+
+    EXTRA_FILES+="-f package.txt "
 }
 
 

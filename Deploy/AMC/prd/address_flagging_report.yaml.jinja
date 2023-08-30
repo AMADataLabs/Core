@@ -63,7 +63,8 @@ ADDRESS_FLAGGING_REPORT:
                 pa.zip,
                 pa.state_cd,
                 ecu.usg_begin_dt,
-                ecu.comm_usage
+                ecu.comm_usage,
+                pn.name_type
 
             FROM
                 entity_comm_usg_at ecu
@@ -81,7 +82,6 @@ ADDRESS_FLAGGING_REPORT:
                 ecu.src_cat_code = 'AMC' AND
                 ecu.end_dt is null       AND
                 eke.key_type ='ME'       AND
-                pn.name_type = 'LN'      AND
                 pn.end_dt is null
 
             INTO TEMP address_flagging_report;
@@ -113,6 +113,5 @@ ADDRESS_FLAGGING_REPORT:
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_FILES: 'report.pk'
 
-        TO: 'Peter.Lane@ama-assn.org'
-        # TO: 'Debbie.Kidd@ama-assn.org,Christina.Lopez@ama-assn.org,Pat.Scheibel@ama-assn.org'
-        # CC: 'datalabs@ama-assn.org,Victoria.Grose@ama-assn.org,Nicole.Neal@ama-assn.org,Derek.Smart@ama-assn.org'
+        TO: 'Debbie.Kidd@ama-assn.org,Christina.Lopez@ama-assn.org,Pat.Scheibel@ama-assn.org'
+        CC: 'datalabs@ama-assn.org,Victoria.Grose@ama-assn.org,Derek.Smart@ama-assn.org,Nicole.Neal@ama-assn.org'
