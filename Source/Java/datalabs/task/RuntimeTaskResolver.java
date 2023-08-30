@@ -11,7 +11,7 @@ public class RuntimeTaskResolver {
         String taskClassName = taskParameters.get("TASK_CLASS");
 
         if (taskClassName == null) {
-            throw new IllegalArgumentException("The runtime parameter \"TASK_CLASS\" is not set.");
+            throw new IllegalArgumentException("The task parameter \"TASK_CLASS\" is not set.");
         }
 
         return PluginImporter.importPlugin(taskClassName);
