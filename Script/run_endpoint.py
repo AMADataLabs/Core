@@ -72,7 +72,7 @@ def generate_api_gateway_event(method, endpoint, path_parameters, query_paramete
     if not no_auth:
         authorizer_context = f'''
             "authorizer": {{
-                "CPTAPI": "2048-10-06-05:00",
+                "CPTAPI": "{{\\"start\\":\\"2020-01-01-05:00\\",\\"end\\":\\"2048-10-06-05:00\\"}}",
                 "principalId": "username",
                 "integrationLatency": 0,
                 "customerNumber": "000002164389",

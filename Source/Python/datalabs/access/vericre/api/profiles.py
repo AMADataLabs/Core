@@ -70,7 +70,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         sql = '''
             select
                 u.ama_entity_id,
-                fss.identifier as section_identifier,
+                ff.sub_section as section_identifier,
                 ff.identifier as field_identifier,
                 case
                     when ff.is_source_field = True and ff.is_authoritative = True then True
@@ -90,9 +90,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
             from "user" u
             join physician p on u.id = p."user"
             join form f on p.form = f.id
-            join form_section fs on f.id = fs.form
-            join form_sub_section fss on fs.id = fss.form_section
-            join form_field ff on fss.id = ff.form_sub_section
+            join form_field ff on ff.form = f.id 
+                and ff.sub_section is not null
             where 1=1
         '''
 
@@ -121,7 +120,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _sort(cls, sql):
-        sql = f'{sql} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
+        sql = f'{sql} order by u.ama_entity_id asc, ff.sub_section asc, ff.order asc'
         return sql
 
     @classmethod
