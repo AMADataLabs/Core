@@ -82,7 +82,6 @@ check_mac_version() {
     os_minor_version=${os_version_parts[1]}
     os_micro_version=${os_version_parts[2]}
 
-    echo $os_major_version
     if [[ $os_major_version -lt 21 ]]; then
         echo Unsupported OS X version $os_version
         exit 2
