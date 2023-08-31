@@ -7,7 +7,7 @@ ADDRESS_LOAD_COMPILER:
         EFT_HOST: eft.ama-assn.org
         EFT_USERNAME: datalabs
         EFT_PASSWORD: '{{eft_password}}'
-        EFT_BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/${ENVIRONMENT}'
+        EFT_BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad'
 
         S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
@@ -18,7 +18,7 @@ ADDRESS_LOAD_COMPILER:
     DAG:
         LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AddressLoadCompilerDAG'
         DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
-        DAG_STATE_PARAMETERS:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
