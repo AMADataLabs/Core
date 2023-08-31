@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.12.0a5-slim
 
 ARG AIRFLOW_VERSION=2.1.0
 

@@ -100,7 +100,12 @@ def dag_parameters():
         yield dict(
             DAG="TEST_DAG",
             DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
-            DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+            DAG_STATE=f'''
+                {{
+                    "CLASS": "datalabs.etl.dag.state.file.DAGState",
+                    "BASE_PATH": "{state_base_path}"
+                }}
+            ''',
             DAG_EXECUTOR_CLASS='test.datalabs.etl.dag.test_process.DummyExecutorTask',
             EXECUTION_TIME="2021-01-21T12:24:38.000000",
             BASE_PATH=state_base_path,
@@ -115,7 +120,12 @@ def task_parameters():
             DAG="TEST_DAG",
             TASK="DO_THIS",
             DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
-            DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+            DAG_STATE=f'''
+                {{
+                    "CLASS": "datalabs.etl.dag.state.file.DAGState",
+                    "BASE_PATH": "{state_base_path}"
+                }}
+            ''',
             TASK_EXECUTOR_CLASS='test.datalabs.etl.dag.test_process.DummyExecutorTask',
             BASE_PATH=state_base_path,
             EXECUTION_TIME="2021-01-21T12:24:38.000000",

@@ -51,7 +51,7 @@ module "hello_world_java_dag_lambda" {
 
 module "hello_world_java_task_lambda" {
   source           = "app.terraform.io/AMA/lambda/aws"
-  version          = "2.0.0"
+  version          = "2.4.0"
   function_name    = local.task_lambda
   lambda_name      = local.task_lambda
   s3_lambda_bucket = local.s3_lambda_bucket

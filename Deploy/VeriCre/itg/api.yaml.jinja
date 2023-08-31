@@ -1,0 +1,103 @@
+---
+VERICRE_API:
+    GLOBAL:
+        ENVIRONMENT: itg
+        ACCOUNT: '285887636563'
+
+        DATABASE_HOST: vericre-itg-au-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
+        DATABASE_PORT: '5432'
+        DATABASE_BACKEND: 'postgresql+psycopg2'
+        DATABASE_NAME: 'vericre'
+        DATABASE_USERNAME:  vericreadmin
+        DATABASE_PASSWORD:  '{{database_password}}'
+
+    ROUTE:
+        PHYSICIANS_SEARCH: '/physicians/search'
+        PROFILES_LOOKUP:   '/profiles/lookup'
+        PROFILES:          '/profiles'
+        PROFILE:           '/profile/*'
+        PROFILE_DOCUMENTS: '/profile/*/documents'
+        PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
+        DEFAULT:           '/*'
+
+    PHYSICIANS_SEARCH:
+        TASK_CLASS:  'datalabs.access.vericre.api.physician.PhysiciansSearchEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        AMA_DOMAIN: 'wsint'
+        VERICRE_ALB_DOMAIN: 'internal-vericre-itg-backend-api-alb-518045774.us-east-1.elb.amazonaws.com'
+
+    PROFILES_LOOKUP:
+        TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    PROFILES:
+        TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    PROFILE:
+        TASK_CLASS:  'datalabs.access.vericre.api.profiles.SingleProfileLookupEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    PROFILE_DOCUMENTS:
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfileDocumentsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
+
+    PROFILE_CAQH_PDF:
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
+        USERNAME: 'DeepakA123'
+        PASSWORD: '{{caqh_pdf_password}}'
+        ORG_ID: '6166'
+        APPLICATION_TYPE: '100000001'
+        DOMAIN: 'https://proview-demo.nonprod.caqh.org'
+        PROVIDER_API: 'DocumentAPI/api/providerdocs/download'
+        STATUS_CHECK_API: 'RosterAPI/api/providerstatusbynpi'
+
+    PROFILE_AMA_PDF:
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
+        CLIENT_ID: 'e19e197a-a7b0-45ad-b419-effa69ce8b73'
+        CLIENT_SECRET: '{{client_secret}}'
+        CLIENT_ENV: 'wsext'
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

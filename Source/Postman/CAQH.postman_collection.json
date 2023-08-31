@@ -1,0 +1,157 @@
+{
+	"info": {
+		"_postman_id": "cc16c464-e943-4ec8-a2e6-5a3b2358b09d",
+		"name": "CAQH",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7392489"
+	},
+	"item": [
+		{
+			"name": "Get Profile",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://proview-demo.nonprod.caqh.org/credentialingapi/api/v8/entities?organizationId=6166&caqhProviderId=16113253&attestationDate=01/27/2023 ",
+					"protocol": "https",
+					"host": [
+						"proview-demo",
+						"nonprod",
+						"caqh",
+						"org"
+					],
+					"path": [
+						"credentialingapi",
+						"api",
+						"v8",
+						"entities"
+					],
+					"query": [
+						{
+							"key": "organizationId",
+							"value": "6166"
+						},
+						{
+							"key": "caqhProviderId",
+							"value": "16113253"
+						},
+						{
+							"key": "attestationDate",
+							"value": "01/27/2023 "
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Status By NPI",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatusbynpi?Product=PV&Organization_Id=6166&NPI_Provider_Id=16038675",
+					"protocol": "https",
+					"host": [
+						"proview-demo",
+						"nonprod",
+						"caqh",
+						"org"
+					],
+					"path": [
+						"RosterAPI",
+						"api",
+						"providerstatusbynpi"
+					],
+					"query": [
+						{
+							"key": "Product",
+							"value": "PV"
+						},
+						{
+							"key": "Organization_Id",
+							"value": "6166"
+						},
+						{
+							"key": "NPI_Provider_Id",
+							"value": "16038675"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Status By Provider ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://proview-demo.nonprod.caqh.org/RosterAPI/api/providerstatus?Product=PV&Organization_Id=6166&Caqh_Provider_Id=16038675",
+					"protocol": "https",
+					"host": [
+						"proview-demo",
+						"nonprod",
+						"caqh",
+						"org"
+					],
+					"path": [
+						"RosterAPI",
+						"api",
+						"providerstatus"
+					],
+					"query": [
+						{
+							"key": "Product",
+							"value": "PV"
+						},
+						{
+							"key": "Organization_Id",
+							"value": "6166"
+						},
+						{
+							"key": "Caqh_Provider_Id",
+							"value": "16038675"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "AMAVCPOCDemo@123",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "DeepakA123",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

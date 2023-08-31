@@ -1,0 +1,7 @@
+{
+  "test_caqh_status_url_list.py": true, 
+  "test_caqh_status_url_list.py::TestCAQHStatusURLListTransformerTask": true, 
+  "test_caqh_status_url_list.py::TestCAQHStatusURLListTransformerTask::()::test_transformer_task": true, 
+  "test_extract.py": true, 
+  "test_load.py": true
+}

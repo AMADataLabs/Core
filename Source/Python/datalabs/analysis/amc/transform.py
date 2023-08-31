@@ -1,13 +1,11 @@
 """ AMC Flagged Addresses Report generation task """
 from   dataclasses import dataclass
-from   io import BytesIO
 import logging
 import pickle
 
-import pandas
-
 # pylint: disable=import-error, invalid-name
 from   datalabs.analysis.amc.address import AMCAddressFlagger
+from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -24,23 +22,23 @@ class AMCAddressFlaggingTransformerParameters:
 
 
 # pylint: disable=no-self-use
-class AMCAddressFlaggingTransformerTask(Task):
+class AMCAddressFlaggingTransformerTask(CSVReaderMixin, Task):
     PARAMETER_CLASS = AMCAddressFlaggingTransformerParameters
 
     def run(self):
         flagger = AMCAddressFlagger()
 
-        data = [self._csv_to_dataframe(file) for file in self._data]
+        data = self._csv_to_dataframe(self._data[0])
 
-        results = [flagger.flag(file) for file in data]
+        deduped_data = self._dedupe(data)
 
-        # returns list of bytes tuples, (xlsx_data, report_summary)
-        LOGGER.debug('Returning %d results.', len(results))
-        return [self._pickle(result) for result in results]
+        results = flagger.flag(deduped_data)  # list of bytes tuples, (xlsx_data, report_summary)
+
+        return [self._pickle(results)]
 
     @classmethod
-    def _csv_to_dataframe(cls, file):
-        return pandas.read_csv(BytesIO(file))
+    def _dedupe(cls, data):
+        return data[data.name_type == "LN"].drop(columns="name_type")
 
     @classmethod
     def _pickle(cls, result):

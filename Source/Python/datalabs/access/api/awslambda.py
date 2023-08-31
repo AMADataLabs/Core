@@ -1,40 +1,74 @@
 """ API endpoint-specific Lambda function Task wrapper. """
+import base64
 import json
 import logging
 import os
+import re
 
 import datalabs.access.api.task as api
-from   datalabs.awslambda import TaskWrapper
+from   datalabs.task import TaskWrapper
+from   datalabs.plugin import import_plugin
+from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
-class APIEndpointTaskWrapper(TaskWrapper):
-    def _get_runtime_parameters(self, parameters):
-        return dict(
-            path = parameters.get('path', ""),
-        )
-
+class APIEndpointTaskWrapper(DynamoDBTaskParameterGetterMixin, TaskWrapper):
     def _get_task_parameters(self):
+        route_parameters = self._get_route_parameters()
+        task_parameters = self._get_api_task_parameters(route_parameters)
+
         query_parameters = self._parameters.pop("queryStringParameters") or {}
         multivalue_query_parameters = self._parameters.pop("multiValueQueryStringParameters") or {}
+        payload = self._get_payload(self._parameters.get("body"), self._parameters["headers"].get("Content-Type"))
+
         standard_parameters = dict(
+            method=self._parameters.get("httpMethod"),
+            identity=self._parameters.get("requestContext")["identity"],
             path=self._parameters.pop("pathParameters") or {},
             query={**query_parameters, **multivalue_query_parameters},
+            payload=payload,
             authorization=self._extract_authorization_parameters(self._parameters)
         )
-        task_specific_parameters = self._get_task_specific_parameters()
 
-        return {**standard_parameters, **task_specific_parameters}
+        return self._merge_parameters(task_parameters, standard_parameters)
+
+    def _get_route_parameters(self):
+        return self._get_dag_task_parameters_from_dynamodb(os.environ['API_ID'], "ROUTE")
+
+    def _get_api_task_parameters(self, route_parameters):
+        path = self._parameters.get('path', "")
+        task_id = self._get_task_id(path, route_parameters)
+
+        return self._get_dag_task_parameters_from_dynamodb(os.environ['API_ID'], task_id)
+
+    @classmethod
+    def _get_payload(cls, encoded_body, content_type):
+        payload = None
+
+        if encoded_body:
+            payload = base64.b64decode(encoded_body).decode()
+
+        if content_type == "application/json":
+            payload = json.loads(payload)
+
+        return payload
 
     def _handle_success(self) -> (int, dict):
+        if isinstance(self.task.response_body, bytes):
+            body = base64.b64encode(self.task.response_body)
+            is_base64_encoded = True
+        else:
+            body = json.dumps(self.task.response_body)
+            is_base64_encoded = False
+
         response = {
             "statusCode": self.task.status_code,
             "headers": self.task.headers,
-            "body": json.dumps(self.task.response_body),
-            "isBase64Encoded": False,
+            "body": body,
+            "isBase64Encoded": is_base64_encoded,
         }
 
         LOGGER.debug("API endpoint response: %s", response)
@@ -55,7 +89,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
         else:
             message = str(exception)
 
-        LOGGER.exception("Handling API endpoint exception: %s", exception)
+        LOGGER.exception("Handling API endpoint exception")
 
         return {
             "statusCode": status_code,
@@ -64,62 +98,41 @@ class APIEndpointTaskWrapper(TaskWrapper):
             "isBase64Encoded": False,
         }
 
+    def _get_task_resolver_class(self):
+        task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.RuntimeTaskResolver')
+        task_resolver_class = import_plugin(task_resolver_class_name)
+
+        if not hasattr(task_resolver_class, 'get_task_class'):
+            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
+
+        return task_resolver_class
+
+    @classmethod
+    def _get_task_id(cls, path, route_parameters):
+        task_id = None
+
+        for task_id, pattern in route_parameters.items():
+            pattern = f"{pattern.replace('*', '[^/]+')}$"
+
+            if re.match(pattern, path):
+                break
+        LOGGER.info('Resolved path %s to implementation ID %s', path, str(task_id))
+
+        return task_id
+
     @classmethod
     def _extract_authorization_parameters(cls, parameters):
         known_keys = ["customerNumber", "customerName", "principalId", "integrationLatency"]
-        authorization_context = parameters["requestContext"]["authorizer"].copy()
-        authorizations = {key:value for key, value in authorization_context.items() if key not in known_keys}
+        authorization_context = parameters["requestContext"].get("authorizer")
+        parameters = {}
 
-        return dict(
-            user_id=authorization_context.get("customerNumber"),
-            user_name=authorization_context.get("customerName"),
-            authorizations=authorizations
-        )
+        if authorization_context:
+            parameters = dict(
+                user_id=authorization_context.get("customerNumber"),
+                user_name=authorization_context.get("customerName"),
+                authorizations={
+                    key:json.loads(value) for key, value in authorization_context.items() if key not in known_keys
+                }
+            )
 
-    # pylint: disable=no-self-use
-    def _get_task_specific_parameters(self):
-        ''' Get parameters specific to a particular endpoint. '''
-
-        return dict(
-            database_name=os.getenv('DATABASE_NAME'),
-            database_backend=os.getenv('DATABASE_BACKEND'),
-            database_host=os.getenv('DATABASE_HOST'),
-            database_port=os.getenv('DATABASE_PORT'),
-            database_username=os.getenv('DATABASE_USERNAME'),
-            database_password=os.getenv('DATABASE_PASSWORD'),
-            bucket_name=os.getenv('BUCKET_NAME'),
-            bucket_base_path=os.getenv('BUCKET_BASE_PATH'),
-            bucket_url_duration=os.getenv('BUCKET_URL_DURATION')
-        )
-
-    @classmethod
-    def _resolve_secrets_manager_environment_variables(cls):
-        super()._resolve_secrets_manager_environment_variables()
-
-        if 'DATABASE_SECRET' in os.environ:
-            cls._populate_database_parameters_from_secret()
-
-    @classmethod
-    def _populate_database_parameters_from_secret(cls):
-        secret = os.getenv('DATABASE_SECRET')
-
-        for name, value in cls._get_database_parameters_from_secret('DATABASE_SECRET', secret).items():
-            os.environ[name] = value
-
-    @classmethod
-    def _get_database_parameters_from_secret(cls, name, secret_string):
-        secret = json.loads(secret_string)
-        engine = secret.get('engine')
-        variables = dict(
-            DATABASE_NAME=secret.get('dbname'),
-            DATABASE_PORT=str(secret.get('port')),
-            DATABASE_USERNAME=secret.get('username'),
-            DATABASE_PASSWORD=secret.get('password')
-        )
-
-        if engine == 'postgres':
-            variables['DATABASE_BACKEND'] = os.getenv('DATABASE_BACKEND') or 'postgresql+psycopg2'
-
-        os.environ.pop(name)
-
-        return variables
+        return parameters

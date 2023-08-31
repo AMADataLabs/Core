@@ -35,7 +35,7 @@ class LockingStateMixin():
         while not locked and (time.time()-start_time) < self.TIMEOUT_SECONDS:
             try:
                 dynamodb.put_item(
-                    TableName=self._parameters.state_lock_table,
+                    TableName=self._parameters.lock_table,
                     Item={'LockID': {'S': lock_id}, 'ttl': {'N': str(time.time()+30)}},
                     ConditionExpression="attribute_not_exists(#r)",
                     ExpressionAttributeNames={"#r": "LockID"}
@@ -54,7 +54,7 @@ class LockingStateMixin():
 
         try:
             dynamodb.delete_item(
-                TableName=self._parameters.state_lock_table,
+                TableName=self._parameters.lock_table,
                 Key={'LockID': {'S': lock_id}},
                 ConditionExpression="attribute_exists(#r)",
                 ExpressionAttributeNames={"#r": "LockID"}
@@ -73,8 +73,8 @@ class LockingStateMixin():
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DAGStateParameters:
-    state_lock_table: str
-    dag_state_table: str
+    lock_table: str
+    state_table: str
     endpoint_url: str=None
     access_key: str=None
     secret_key: str=None
@@ -125,7 +125,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
                 limit = 10
 
             response = dynamodb.query(
-                TableName=self._parameters.dag_state_table,
+                TableName=self._parameters.state_table,
                 KeyConditionExpression='#DAG=:dag',
                 ExpressionAttributeNames={"#DAG": "name"},
                 ExpressionAttributeValues={":dag": {"S": dag}},
@@ -223,7 +223,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
             LOGGER.debug('Get Requests: %s', get_requests)
 
-            response = dynamodb.batch_get_item(RequestItems={self._parameters.dag_state_table: get_requests})
+            response = dynamodb.batch_get_item(RequestItems={self._parameters.state_table: get_requests})
 
             status_data = response["Responses"][collections.deque(response["Responses"].keys())[0]]
 
@@ -241,7 +241,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             delete_requests = self._generate_delete_requests(execution_time, items_subset)
             LOGGER.debug('Delete Statements: %s', delete_requests)
 
-            dynamodb.batch_write_item(RequestItems={self._parameters.dag_state_table: delete_requests})
+            dynamodb.batch_write_item(RequestItems={self._parameters.state_table: delete_requests})
 
     @classmethod
     def _item_chunks(cls, items, chunk_size):
@@ -311,7 +311,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
     def _scan_dags(self, dynamodb, dag: str, execution_time: str, start_key):
         parameters = dict(
-            TableName=self._parameters.dag_state_table,
+            TableName=self._parameters.state_table,
             FilterExpression="begins_with(#DAG, :dag) and execution_time = :execution_time",
             ProjectionExpression="#DAG",
             ExpressionAttributeNames={"#DAG": "name"},
@@ -328,7 +328,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
     def _get_state(self, dynamodb, primary_key: str, execution_time: str):
         items = dynamodb.get_item(
-            TableName=self._parameters.dag_state_table,
+            TableName=self._parameters.state_table,
             Key=dict(
                 name=dict(S=primary_key),
                 execution_time=dict(S=execution_time)
@@ -340,7 +340,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
     def _set_state(self, dynamodb, primary_key: str, execution_time: str, status: Status):
         dynamodb.put_item(
-            TableName=self._parameters.dag_state_table,
+            TableName=self._parameters.state_table,
             Item=dict(
                 name=dict(S=primary_key),
                 execution_time=dict(S=execution_time),

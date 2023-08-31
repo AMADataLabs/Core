@@ -7,85 +7,331 @@
 	},
 	"item": [
 		{
-			"name": "Physician Profile",
-			"protocolProfileBehavior": {
-				"disabledSystemHeaders": {
-					"host": true
+			"name": "External",
+			"item": [
+				{
+					"name": "Physician Profile",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Host",
+								"value": "api-sbx.vericre.local",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/amaProfile",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"amaProfile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CAQH Profile",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Host",
+								"value": "api-sbx.vericre.local",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/caqhProfile",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"caqhProfile"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Host",
-						"value": "api-sbx.vericre.local",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{VERICRE_API_URL}}/amaProfile",
-					"host": [
-						"{{VERICRE_API_URL}}"
-					],
-					"path": [
-						"amaProfile"
-					]
-				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "CAQH Profile",
-			"protocolProfileBehavior": {
-				"disabledSystemHeaders": {}
-			},
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Host",
-						"value": "api-sbx.vericre.local",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"url": {
-					"raw": "{{VERICRE_API_URL}}/caqhProfile",
-					"host": [
-						"{{VERICRE_API_URL}}"
-					],
-					"path": [
-						"caqhProfile"
-					]
+			"name": "Backend",
+			"item": [
+				{
+					"name": "Containerized API",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "api-sbx.vericre.local",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/common/getReference/AMA",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"common",
+								"getReference",
+								"AMA"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Containerized API",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Host",
-						"value": "api-sbx.vericre.local",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"url": {
-					"raw": "{{VERICRE_API_URL}}/common/getReference/AMA",
-					"host": [
-						"{{VERICRE_API_URL}}"
+			"name": "Profiles",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Save access token\", function () {\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"path": [
-						"common",
-						"getReference",
-						"AMA"
-					]
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"clientId\": \"{{PASSPORT_CONSUMER_ID}}\",\r\n    \"clientSecret\": \"{{PASSPORT_CONSUMER_SECRET}}\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/provider/token",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"provider",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get CPT entitlements",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Subscriptions list is not empty\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Object.keys(jsonData.subscriptionsList)).to.not.be.empty\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list/CPTAPI",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"entitlements",
+								"list",
+								"CPTAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Physician Search",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Host",
+								"value": "vericre-api-dev.ama-assn.org",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Peter\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://internal-vericre-dev-profile-apigw-alb-1557872266.us-east-1.elb.amazonaws.com/physicians/search",
+							"protocol": "https",
+							"host": [
+								"internal-vericre-dev-profile-apigw-alb-1557872266",
+								"us-east-1",
+								"elb",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"physicians",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AMA Profile PDF",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "vericre-api-dev.ama-assn.org",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://internal-vericre-dev-profile-apigw-alb-1557872266.us-east-1.elb.amazonaws.com/profile/123456/AMA/pdf",
+							"protocol": "https",
+							"host": [
+								"internal-vericre-dev-profile-apigw-alb-1557872266",
+								"us-east-1",
+								"elb",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"profile",
+								"123456",
+								"AMA",
+								"pdf"
+							]
+						}
+					},
+					"response": []
 				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
 			},
-			"response": []
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
 		}
 	]
 }

@@ -9,7 +9,11 @@ CPT/Files/Build
 CPT/Files/Legacy
 CPT/Files/Ingest
 CPT/Files/Watermark
+CPT/SNOMED/API
+CPT/SNOMED/ETL
+DEUS/API
 DBL
+HelloWorld
 HelloWorldJava/DAG
 HelloWorldJava/Task
 HelloWorldVault
@@ -18,10 +22,12 @@ IntelligentPlatform/Licensing
 IntelligentPlatform
 LicenseMovement
 LicenseMovement/Extract
+Marketing/Aggregator
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract
 OneView/API
 Scheduler
 VeriCre/DataSteward
-HelloWorld
+VeriCre/API/Profile
+VeriCre/ETL/Profile

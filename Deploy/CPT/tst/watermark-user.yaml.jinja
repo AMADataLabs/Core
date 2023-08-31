@@ -1,87 +1,68 @@
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "CPT_FILES_WATERMARK_USER"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+---
+CPT_FILES_WATERMARK_USER:
+    GLOBAL:
+        ENVIRONMENT: tst
+        ACCOUNT: '194221139997'
 
-    ENVIRONMENT: tst
-    ACCOUNT: '194221139997'
+        S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/CPT/Files'
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/CPT/Files'
+    DAG:
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-WatermarkDAG'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.files.watermark.UserDAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
+    EXTRACT_SIGNING_CREDENTIALS:
+        BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        BASE_PATH: AMA/DataLabs/CA
+        FILES: ca.p12
+        INCLUDE_DATESTAMP: 'False'
 
-    #######################################################################
-    # Dynamic Global Variables
-    #######################################################################
-    # USER_ID
+        CACHE_OUTPUT_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: '${USER_ID}/ca.p12'
 
+    EXTRACT_RELEASE_FILES:
+        CACHE_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_DOWNLOADS_BUCKET}
+        CACHE_INPUT_BASE_PATH: ''
+        CACHE_INPUT_FILES: files.zip
 
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "CPT_FILES_WATERMARK_USER"}, "Task": {"S": "DAG"}})
-    #######################################################################
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: '${USER_ID}/files.pkl'
 
-    CPT_FILES_WATERMARK_USER__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-WatermarkDAG'
-    CPT_FILES_WATERMARK_USER__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.watermark.UserDAG'
-    CPT_FILES_WATERMARK_USER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    CPT_FILES_WATERMARK_USER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    CPT_FILES_WATERMARK_USER__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    CPT_FILES_WATERMARK_USER__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    CPT_FILES_WATERMARK_USER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    CPT_FILES_WATERMARK_USER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    CPT_FILES_WATERMARK_USER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    SIGN_PDFS:
+        CACHE_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: ${USER_ID}/ca.p12,${USER_ID}/files.pkl
 
+        CREDENTIALS_PASSWORD:  '{{credentials_password}}'
+        RECIPIENT:  ${USER_ID}
 
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "CPT_FILES_WATERMARK_USER"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: '${USER_ID}/files.pkl'
 
-    # Signing credentials extractor
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__BASE_PATH: AMA/DataLabs/CA
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__FILES: ca.p12
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__INCLUDE_DATESTAMP: 'False'
+    CREATE_DISTRIBUTION:
+        CACHE_CLASS: '${S3_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: '${USER_ID}/files.pkl'
 
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__CACHE_OUTPUT_CLASS: '${S3_CACHE_CLASS}'
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    CPT_FILES_WATERMARK_USER__EXTRACT_SIGNING_CREDENTIALS__CACHE_OUTPUT_FILES: '${USER_ID}/ca.p12'
-
-
-    # Release files extractor
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_CLASS: '${S3_CACHE_CLASS}'
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_INPUT_BUCKET: ${S3_DOWNLOADS_BUCKET}
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_INPUT_BASE_PATH: ''
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_INPUT_FILES: files.zip
-
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    CPT_FILES_WATERMARK_USER__EXTRACT_RELEASE_FILES__CACHE_OUTPUT_FILES: '${USER_ID}/files.pkl'
-
-
-    # PDF signer
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_CLASS: '${S3_CACHE_CLASS}'
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_INPUT_FILES: ${USER_ID}/ca.p12,${USER_ID}/files.pkl
-
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CREDENTIALS_PASSWORD:  '{{credentials_password}}'
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__RECIPIENT:  ${USER_ID}
-
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    CPT_FILES_WATERMARK_USER__SIGN_PDFS__CACHE_OUTPUT_FILES: '${USER_ID}/files.pkl'
-
-
-    # Watermarked files zip loader
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_CLASS: '${S3_CACHE_CLASS}'
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_INPUT_FILES: '${USER_ID}/files.pkl'
-
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_OUTPUT_BUCKET: ${S3_DOWNLOADS_BUCKET}
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_OUTPUT_BASE_PATH: ''
-    CPT_FILES_WATERMARK_USER__CREATE_DISTRIBUTION__CACHE_OUTPUT_FILES: '${USER_ID}/files.zip'
+        CACHE_OUTPUT_BUCKET: ${S3_DOWNLOADS_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ''
+        CACHE_OUTPUT_FILES: '${USER_ID}/files.zip'

@@ -3,6 +3,7 @@ import base64
 from   dataclasses import dataclass
 from   datetime import datetime
 import hashlib
+import logging
 
 from   dateutil.parser import isoparse
 
@@ -10,6 +11,10 @@ from   datalabs.access.aws import AWSClient
 from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, CurrentPathMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -49,6 +54,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _load_file(self, data, file):
+        LOGGER.info('Loading file %s to bucket %s...', file, self._parameters.bucket)
         response = None
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
@@ -57,6 +63,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
             with open(data, 'rb') as body:  # data is a filename bytes string
                 response = self._put_object(file, body, md5_hash)
         else:
+            LOGGER.info("Putting file with %s bytes", len(data))
             md5_hash = hashlib.md5(data).digest()
 
             response = self._put_object(file, data, md5_hash)

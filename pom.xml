@@ -15,7 +15,7 @@
         <db2.version>11.5.7.0</db2.version>
         <mssql.version>11.2.0.jre11</mssql.version>
         <informix.version>4.50.8</informix.version>
-        <poi.version>4.1.2</poi.version>
+        <poi.version>5.1.0</poi.version>
     </properties>
 
     <repositories>
@@ -90,7 +90,7 @@
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.6</version>
+            <version>5.7.1</version>
         </dependency>
 
         <dependency>
@@ -406,6 +406,7 @@
                             <includes>
                                 <include>datalabs/**</include>
                                 <include>log4j2.xml</include>
+                                <include>DB2JccConfiguration.properties</include>
                             </includes>
                             <!-- <excludes>
                                 <exclude>**/Log4j2Plugins.dat</exclude>

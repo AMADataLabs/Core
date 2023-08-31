@@ -1,6 +1,5 @@
 """OneView ETL ORM Loader"""
 from   dataclasses import dataclass
-import io
 import logging
 import math
 
@@ -8,6 +7,7 @@ import pandas
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.orm.provider import get_provider
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
@@ -15,7 +15,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -48,36 +48,33 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-class ORMLoaderTask(Task):
+class ORMLoaderTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ORMLoaderParameters
 
     COLUMN_TYPE_CONVERTERS = {
         'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
-        'INTEGER': lambda x: x.astype(int, copy=False)
+        'INTEGER': lambda x: x.astype(float).astype('Int64')
     }
 
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
         model_classes = self._get_model_classes()
         data = [self._csv_to_dataframe(datum) for datum in self._data]
+        comitted_data = []
 
         with self._get_database() as database:
             for model_class, data in zip(model_classes, data):
                 table_parameters = self._generate_table_parameters(database, model_class, data)
 
-                self._update(database, table_parameters)
+                comitted_data = self._update(database, table_parameters)
+
+        return [self._dataframe_to_csv(x) for x in comitted_data if x is not None]
 
     def _get_database(self):
         return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
-
-    @classmethod
-    def _csv_to_dataframe(cls, data):
-        dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
-
-        return dataframe
 
     def _generate_table_parameters(self, database, model_class, data):
         schema = self._get_schema(model_class)
@@ -95,8 +92,8 @@ class ORMLoaderTask(Task):
         else:
             data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = provider.get_current_row_hashes(database, schema, table, primary_key, hash_columns)
         incoming_hashes = provider.generate_row_hashes(data, primary_key, hash_columns)
+        current_hashes = provider.get_current_row_hashes(database, schema, table, primary_key, hash_columns)
 
         return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes, autoincrement)
 
@@ -132,14 +129,19 @@ class ORMLoaderTask(Task):
     def _update(self, database, table_parameters):
         append = self._parameters.append
         delete = self._parameters.delete
+        deleted_data = None
+        updated_data = None
+        added_data = None
 
         if (append is None or append.upper() != 'TRUE') or (delete is not None and delete.upper() == 'TRUE'):
-            self._delete_data(database, table_parameters)
+            deleted_data = self._delete_data(database, table_parameters)
 
         if (delete is None or delete.upper() != 'TRUE') or (append is not None and append.upper() == 'TRUE'):
-            self._update_data(database, table_parameters)
+            updated_data = self._update_data(database, table_parameters)
 
-            self._add_data(database, table_parameters)
+            added_data = self._add_data(database, table_parameters)
+
+        return deleted_data, updated_data, added_data
 
     @classmethod
     def _get_hash_columns(cls, columns, ignore_columns):
@@ -161,6 +163,8 @@ class ORMLoaderTask(Task):
 
         database.commit()  # pylint: disable=no-member
 
+        return deleted_data
+
     @classmethod
     def _update_data(cls, database, table_parameters):
         updated_data = cls._select_updated_data(table_parameters)
@@ -169,6 +173,8 @@ class ORMLoaderTask(Task):
 
         database.commit()  # pylint: disable=no-member
 
+        return updated_data
+
     @classmethod
     def _add_data(cls, database, table_parameters):
         added_data = cls._select_new_data(table_parameters)
@@ -176,6 +182,8 @@ class ORMLoaderTask(Task):
         cls._add_data_to_table(database, table_parameters, added_data)
 
         database.commit()  # pylint: disable=no-member
+
+        return added_data
 
     @classmethod
     def _select_deleted_data(cls, table_parameters):
@@ -189,7 +197,7 @@ class ORMLoaderTask(Task):
                     table_parameters.data[table_parameters.primary_key]
                 )
             ].reset_index(drop=True)
-        LOGGER.debug('Deleted Data: %s', deleted_data)
+        LOGGER.info('Deleted Data: %s', deleted_data)
 
         return deleted_data
 
@@ -243,7 +251,7 @@ class ORMLoaderTask(Task):
                 updated_hashes[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
-        LOGGER.debug('Updated Data: %s', updated_data)
+        LOGGER.info('Updated Data: %s', updated_data)
 
         return updated_data
 
@@ -275,7 +283,7 @@ class ORMLoaderTask(Task):
                     table_parameters.current_hashes[table_parameters.primary_key]
                 )
             ].reset_index(drop=True)
-        LOGGER.debug('New Data: %s', selected_data)
+        LOGGER.info('New Data: %s', selected_data)
         LOGGER.info('Incoming Data Size: %d', len(table_parameters.data))
         LOGGER.info('New Data Size: %d', len(selected_data))
 
@@ -356,7 +364,7 @@ class ORMLoaderTask(Task):
     def _replace_nan(cls, value):
         replacement_value = value
 
-        if isinstance(value, float) and math.isnan(value):
+        if (isinstance(value, float) and math.isnan(value)) or pandas.isna(value):
             replacement_value = None
 
         return replacement_value

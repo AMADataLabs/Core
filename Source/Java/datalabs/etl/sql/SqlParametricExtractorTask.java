@@ -64,13 +64,12 @@ public class SqlParametricExtractorTask extends SqlExtractorTask {
     @Override
     byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
         String resolvedQuery = SqlParametricExtractorTask.resolveQuery(query, this.sqlParameters);
+        LOGGER.debug("Resolved parametric query: " + resolvedQuery);
 
         return super.readQuery(resolvedQuery, connection);
     }
 
     static String resolveQuery(String query, Map<String, Object> parameters) {
-        PartialFormatter formatter = new PartialFormatter();
-
-        return formatter.format(query, parameters);
+        return PartialFormatter.format(query, parameters);
     }
 }

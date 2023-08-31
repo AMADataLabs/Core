@@ -2,6 +2,7 @@
 from   io import BytesIO
 from   dataclasses import dataclass
 import logging
+import os
 import pickle
 from   pathlib import Path
 from   zipfile import ZipFile
@@ -61,7 +62,7 @@ class ZipTransformerParameters:
 
 
 class ZipTransformerTask(Task):
-    PARAMETER_CLASS = UnzipTransformerParameters
+    PARAMETER_CLASS = ZipTransformerParameters
 
     def run(self) -> 'Transformed Data':
         return [self._zip_files(pickle.loads(pickled_dataset)) for pickled_dataset in self._data]
@@ -91,7 +92,17 @@ class ZipFiles:
     def extract(self, file):
         zip_file = self._zip_files[self._file_zip_map[file]]
 
+        parent = os.path.dirname(file)
+
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+
         return zip_file.read(file)
+
+    def get_info(self, file):
+        zip_file = self._zip_files[self._file_zip_map[file]]
+
+        return zip_file.getinfo(file).file_size
 
     def __enter__(self):
         self._zip_files = [ZipFile(BytesIO(zip_file)) for zip_file in self._zip_file_data]

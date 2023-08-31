@@ -3,6 +3,9 @@ package datalabs.task;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -18,39 +21,38 @@ import datalabs.plugin.PluginImporter;
 
 
 public class TaskWrapper {
+    /* The base task wrapper where the task parameters are just the task wrapper parameters.
+     */
     static final Logger LOGGER = LoggerFactory.getLogger(TaskWrapper.class);
     protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
     protected Map<String, String> environment;
     protected Map<String, String> parameters;
-    protected Map<String, String> runtimeParameters;
+    protected Map<String, String> taskParameters;
     protected Task task;
     protected ArrayList<byte[]> output;
+
+    protected TaskWrapper() { }
 
     public TaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         this.environment = environment;
         this.parameters = parameters;
-        this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
-            put(TaskDataCache.Direction.INPUT, null);
-            put(TaskDataCache.Direction.OUTPUT, null);
-        }};
     }
 
     public String run() {
         String response;
 
         try {
-            this.runtimeParameters = this.getRuntimeParameters(this.parameters);
+            this.taskParameters = this.getTaskParameters();
+            LOGGER.debug("Task Parameters: " + this.taskParameters);
 
-            Map<String, String> taskParameters = this.getTaskParameters();
+            this.cacheParameters = extractCacheParameters(this.taskParameters);
+            LOGGER.debug("Cache Parameters: " + cacheParameters);
 
-            TaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
-            LOGGER.debug("Cache Parameters: " + this.cacheParameters);
-
-            ArrayList<byte[]> taskData = this.getTaskInputData(taskParameters);
+            ArrayList<byte[]> taskData = this.getTaskInputData();
 
             Class taskClass = this.getTaskClass();
 
-            this.task = TaskWrapper.createTask(taskClass, taskParameters, taskData);
+            this.task = TaskWrapper.createTask(taskClass, this.taskParameters, taskData);
 
             this.preRun();
 
@@ -70,19 +72,28 @@ public class TaskWrapper {
         return this.task;
     }
 
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws TaskException {
-        return new HashMap<String, String>();
-    }
-
     protected Map<String, String> getTaskParameters() throws TaskException {
-        return this.environment;
+        HashMap<String, String> taskParameters = new HashMap<String, String>(this.parameters);
+        String executionTime = this.getExecutionTime();
+
+        taskParameters.putAll(this.environment);
+
+        if (!taskParameters.containsKey("EXECUTION_TIME")) {
+            taskParameters.put("EXECUTION_TIME", this.getExecutionTime());
+        }
+
+        if (!taskParameters.containsKey("CACHE_EXECUTION_TIME")) {
+            taskParameters.put("CACHE_EXECUTION_TIME", this.getExecutionTime());
+        }
+
+        return taskParameters;
     }
 
-    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
+    protected ArrayList<byte[]> getTaskInputData() throws TaskException {
         ArrayList<byte[]> inputData = new ArrayList<byte[]>();
 
         try {
-            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
+            TaskDataCache cachePlugin = TaskWrapper.getCachePlugin(this.cacheParameters.get(TaskDataCache.Direction.INPUT));
 
             if (cachePlugin != null) {
                 inputData = cachePlugin.extractData();
@@ -100,10 +111,9 @@ public class TaskWrapper {
         try {
             Class taskResolverClass = this.getTaskResolverClass();
             Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
-            LOGGER.debug("Runtime Parameters: " + this.runtimeParameters);
             LOGGER.debug("Task Resolver Class: " + taskResolverClass);
 
-            taskClass = (Class) getTaskClass.invoke(null, this.environment, this.runtimeParameters);
+            taskClass = (Class) getTaskClass.invoke(null, this.environment, this.taskParameters);
         } catch (Exception exception) {
             throw new TaskException("Unable to resolve task class.", exception);
         }
@@ -134,7 +144,7 @@ public class TaskWrapper {
         TaskDataCache cachePlugin = null;
 
         try {
-            cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
+            cachePlugin = TaskWrapper.getCachePlugin(this.cacheParameters.get(TaskDataCache.Direction.OUTPUT));
 
             if (cachePlugin != null) {
                 cachePlugin.loadData(output);
@@ -154,7 +164,13 @@ public class TaskWrapper {
         return exception.getMessage();
     }
 
-    Class getTaskResolverClass() throws ClassNotFoundException {
+    static String getExecutionTime() {
+        DateFormat formatter = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss");
+
+        return formatter.format(new Date());
+    }
+
+    protected Class getTaskResolverClass() throws ClassNotFoundException {
         String taskResolverClassName = (String) this.environment.getOrDefault(
             "TASK_RESOLVER_CLASS",
             "datalabs.task.EnvironmentTaskResolver"
@@ -163,25 +179,14 @@ public class TaskWrapper {
         return PluginImporter.importPlugin(taskResolverClassName);
     }
 
-    static void extractCacheParameters(
-        Map<String, String> taskParameters,
+    static Map<TaskDataCache.Direction, Map<String, String>> extractCacheParameters(Map<String, String> taskParameters) {
         Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
-    ) {
-        LOGGER.debug("Task parameters before extraction: " + taskParameters);
-        final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
-        final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
+            = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
+            put(TaskDataCache.Direction.INPUT, getCacheParameters(taskParameters, TaskDataCache.Direction.INPUT));
+            put(TaskDataCache.Direction.OUTPUT, getCacheParameters(taskParameters, TaskDataCache.Direction.OUTPUT));
+        }};
 
-        cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
-        cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
-        LOGGER.debug("Cache Parameters: " + cacheParameters);
-
-        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
-            if (key.startsWith("CACHE_")) {
-                LOGGER.debug("Removing cache parameter " + key + " from task parameters...");
-                taskParameters.remove(key);
-            }
-        }
-        LOGGER.debug("Task parameters after extraction: " + taskParameters);
+        return cacheParameters;
     }
 
     static Map<String, String> getCacheParameters(
@@ -221,20 +226,13 @@ public class TaskWrapper {
         }
     }
 
-    TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
+    static TaskDataCache getCachePlugin(Map<String, String> cacheParameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
         TaskDataCache plugin = null;
-        Map<String, String> cacheParameters = this.cacheParameters.get(direction);
 
         if (cacheParameters.size() > 1) {
-            String pluginName = null;
-
-            if (cacheParameters.containsKey("CLASS")) {
-                pluginName = cacheParameters.remove("CLASS");
-            } else {
-                throw new ClassNotFoundException("Cache class '" + pluginName + "' not found.");
-            }
+            String pluginName = cacheParameters.get("CLASS");
 
             Class pluginClass = PluginImporter.importPlugin(pluginName);
 

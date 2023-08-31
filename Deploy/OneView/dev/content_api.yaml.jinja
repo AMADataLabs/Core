@@ -1,0 +1,24 @@
+---
+ONEVIEW_API:
+    ROUTE:
+        DEFAULT: /*
+        PHYSICIANS: /physicians
+    GLOBAL:
+        ACCOUNT: '191296302136'
+        DATABASE_BACKEND: postgresql+psycopg2
+        DATABASE_HOST: oneview-dev-content-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+        DATABASE_NAME: oneview_content
+        DATABASE_PASSWORD: '{{database_password}}'
+        DATABASE_PORT: '5432'
+        DATABASE_USERNAME: oneviewadmin
+        ENVIRONMENT: dev
+    DEFAULT:
+        TASK_CLASS: datalabs.access.cpt.api.default.DefaultEndpointTask
+    PHYSICIANS:
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_NAME: ${DATABASE_NAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        TASK_CLASS: datalabs.access.oneview.api.physician.PhysiciansEndpointTask

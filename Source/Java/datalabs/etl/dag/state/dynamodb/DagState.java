@@ -29,8 +29,8 @@ public class DagState extends datalabs.etl.dag.state.DagState {
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters, DagStateParameters.class);
 
-        LOGGER.debug("State Lock Table: " + ((DagStateParameters) this.parameters).stateLockTable);
-        LOGGER.debug("DAG State Table: " + ((DagStateParameters) this.parameters).dagStateTable);
+        LOGGER.debug("State Lock Table: " + ((DagStateParameters) this.parameters).lockTable);
+        LOGGER.debug("DAG State Table: " + ((DagStateParameters) this.parameters).stateTable);
     }
 
     public Status getDagStatus(String dag, String executionTime)
@@ -68,7 +68,7 @@ public class DagState extends datalabs.etl.dag.state.DagState {
 
     boolean lockState(String dag, String task, String executionTime) {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
-        String table = ((DagStateParameters) this.parameters).stateLockTable;
+        String table = ((DagStateParameters) this.parameters).lockTable;
         Map<String, AttributeValue> lockId = getLockId(dag, task, executionTime);
         long start_time = new Date().getTime();
         boolean locked = false;
@@ -103,7 +103,7 @@ public class DagState extends datalabs.etl.dag.state.DagState {
 
     boolean unlockState(String dag, String task, String executionTime) {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
-        String table = ((DagStateParameters) this.parameters).stateLockTable;
+        String table = ((DagStateParameters) this.parameters).lockTable;
         Map<String, AttributeValue> lockId = getLockId(dag, task, executionTime);
         boolean unlocked = false;
 
@@ -131,7 +131,7 @@ public class DagState extends datalabs.etl.dag.state.DagState {
     Map<String, AttributeValue> getItem(String dag, String task, String executionTime) throws DynamoDbException {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
         Map<String, AttributeValue> key = DagState.getKey(dag, task, executionTime);
-        String table = ((DagStateParameters) this.parameters).dagStateTable;
+        String table = ((DagStateParameters) this.parameters).stateTable;
         GetItemRequest request = GetItemRequest.builder().key(key).tableName(table).build();
         LOGGER.debug("Get Item Request: " + request);
 
@@ -142,7 +142,7 @@ public class DagState extends datalabs.etl.dag.state.DagState {
             throws ResourceNotFoundException, DynamoDbException {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
         Map<String, AttributeValue> key = DagState.getKey(dag, task, executionTime);
-        String table = ((DagStateParameters) this.parameters).dagStateTable;
+        String table = ((DagStateParameters) this.parameters).stateTable;
         HashMap<String,AttributeValue> columnValues = new HashMap<String,AttributeValue>() {{
             put("name", AttributeValue.builder().s(key.get("name").s()).build());
             put("execution_time", AttributeValue.builder().s(executionTime).build());

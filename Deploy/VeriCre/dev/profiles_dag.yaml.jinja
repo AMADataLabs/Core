@@ -1,0 +1,179 @@
+---
+VERICRE_PROFILES_ETL:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+
+        CAQH_USERNAME: DeepakA123
+        CAQH_PASSWORD: '{{caqh_password}}'
+
+        EFT_HOST: efttest.ama-assn.org
+        EFT_USERNAME: vericretst
+        EFT_PASSWORD: '{{eft_password}}'
+
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
+
+        S3_CACHE_PYTHON_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/VeriCre/Profiles'
+
+    DAG:
+        LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-ETL'
+        DAG_CLASS: 'datalabs.etl.dag.vericre.profile.DAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+    EXTRACT_AMA_PHYSICIAN_PROFILES:
+        HOST: ${EFT_HOST}
+        USERNAME: ${EFT_USERNAME}
+        PASSWORD: ${EFT_PASSWORD}
+        BASE_PATH="./"
+        FILES=ABMS_DATA.psv,DEA_DATA.psv,DEMOG_DATA.psv,LICENSE_DATA.psv,MED_SCH_DATA.psv,MED_TRAIN_DATA.psv,NPI_DATA.psv,SANCTIONS_DATA.psv
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: ABMS_DATA.psv,DEA_DATA.psv,DEMOG_DATA.psv,LICENSE_DATA.psv,MED_SCH_DATA.psv,MED_TRAIN_DATA.psv,NPI_DATA.psv,SANCTIONS_DATA.psv
+
+    STANDARDIZE_DATES:
+        CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: ABMS_DATA.psv,DEA_DATA.psv,DEMOG_DATA.psv,LICENSE_DATA.psv,MED_SCH_DATA.psv,MED_TRAIN_DATA.psv,NPI_DATA.psv,SANCTIONS_DATA.psv
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: ABMS_DATA_STD.psv, DEA_DATA_STD.psv, DEMOG_DATA_STD.psv, LICENSE_DATA_STD.psv, MED_SCH_DATA_STD.psv, MED_TRAIN_DATA_STD.psv, NPI_DATA_STD.psv, SANCTIONS_DATA_STD.psv
+
+    CREATE_AMA_MASTERFILE_TABLE:
+        CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: ABMS_DATA_STD.psv, DEA_DATA_STD.psv, DEMOG_DATA_STD.psv, LICENSE_DATA_STD.psv, MED_SCH_DATA_STD.psv, MED_TRAIN_DATA_STD.psv, NPI_DATA_STD.psv, SANCTIONS_DATA_STD.psv
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: 'ama_masterfile.feather'
+
+    CONVERT_AMA_MASTERFILE_TO_JSON:
+        CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'ama_masterfile.feather'
+
+        SPLIT_COUNT=20
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: >
+            ama_masterfile_0.json, ama_masterfile_1.json, ama_masterfile_2.json, ama_masterfile_3.json, ama_masterfile_4.json,
+            ama_masterfile_5.json, ama_masterfile_6.json, ama_masterfile_7.json, ama_masterfile_8.json, ama_masterfile_9.json,
+            ama_masterfile_10.json, ama_masterfile_11.json, ama_masterfile_12.json, ama_masterfile_13.json, ama_masterfile_14.json,
+            ama_masterfile_15.json, ama_masterfile_16.json, ama_masterfile_17.json, ama_masterfile_18.json, ama_masterfile_19.json
+
+    LOAD_AMA_MASTERFILE_TABLE:
+        __MACRO_COUNT__: 20
+        CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'ama_masterfile__MACRO_INDEX__.json'
+
+        LEDGER: vericre-${ENVIRONMENT}-ledger
+        TABLE: ama_masterfile
+        PRIMARY_KEY: entityId
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: ama_masterfile_added__MACRO_INDEX__.json, ama_masterfile_updated__MACRO_INDEX__.json
+
+    #CREATE_CAQH_STATUS_URLS:
+        #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        #USERNAME: ${CAQH_USERNAME}
+        #PASSWORD: ${CAQH_PASSWORD}
+
+        #CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: 'caqh_profile_statuses.pkl'
+
+        #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_OUTPUT_FILES: 'caqh_profile_urls.txtv'
+
+    #EXTRACT_CAQH_PROFILE_STATUSES:
+        #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        #USERNAME: ${CAQH_USERNAME}
+        #PASSWORD: ${CAQH_PASSWORD}
+
+        #CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: 'caqh_profile_urls.txt'
+
+        #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_OUTPUT_FILES: 'caqh_profile_statuses.pkl'
+
+    #CREATE_CAQH_PROFILE_URLS:
+        #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        #USERNAME: ${CAQH_USERNAME}
+        #PASSWORD: ${CAQH_PASSWORD}
+
+        #CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: 'caqh_profile_statuses.pkl'
+
+        #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_OUTPUT_FILES: 'caqh_profile_urls.txt'
+
+    #EXTRACT_CAQH_PHYSICIAN_PROFILES:
+        #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        #USERNAME: ${CAQH_USERNAME}
+        #PASSWORD: ${CAQH_PASSWORD}
+
+        #CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: 'caqh_profile_urls.txt'
+
+        #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_OUTPUT_FILES: 'caqh_profiles.csv'
+
+    #CREATE_CAQH_PROFILE_TABLE:
+        #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        #CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: ''
+
+        #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_OUTPUT_FILES: 'caqh_profiles.csv'
+
+    #LOAD_CAQH_PROFILE_TABLE:
+        #CACHE_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        #LEDGER: vericre-sbx-ledger
+        #TABLE: loader_development
+        #PRIMARY_KEY: entityId
+
+        #CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: 'caqh_profile.json'
+
+        #CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_OUTPUT_FILES: 'caqh_profiles.csv'
+
+    #SYNC_PROFILES_TO_DATABASE:
+        #CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        #CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        #CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        #CACHE_INPUT_FILES: ama_masterfile_added.json, ama_masterfile_updated.json
+
+        #HOST=internal-vericre-dev-backend-api-alb-1741917255.us-east-1.elb.amazonaws.com
+        #SSL_VERIFICATION=False

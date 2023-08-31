@@ -19,15 +19,15 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_getting_state_plugin(scheduler):
-    state = scheduler._get_state_plugin()
+def test_getting_state_plugin(scheduler, parameters):
+    state = scheduler._get_state_plugin(parameters)
 
     assert state.get_dag_status('BOGUS_DAG', datetime.utcnow().isoformat()) == Status.UNKNOWN
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_dag_flagged_not_started_if_no_state(scheduler):
-    state = scheduler._get_state_plugin()
+def test_dag_flagged_not_started_if_no_state(scheduler, parameters):
+    state = scheduler._get_state_plugin(parameters)
     dag = dict(dag='BUGUS_DAG', execution_time=pandas.Timestamp(datetime.utcnow()))
 
     assert not scheduler._is_started(state, dag)
@@ -92,7 +92,7 @@ def test_scheduled_dags_are_correctly_identified(scheduler, schedule, base_time)
 def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
     scheduler = DAGSchedulerTask(parameters)
     schedule["execution_time"] = scheduler._get_execution_times(schedule, base_time)
-    state = DAGState(dict(BASE_PATH=json.loads(parameters["DAG_STATE_PARAMETERS"])["BASE_PATH"]))
+    state = DAGState(dict(BASE_PATH=json.loads(parameters["DAG_STATE"])["BASE_PATH"]))
 
     state.set_dag_status('archive_cat_photos', schedule.execution_time[0].to_pydatetime().isoformat(), Status.PENDING)
 
@@ -106,7 +106,7 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
 def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execution_time):
     scheduler = DAGSchedulerTask(parameters)
     execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=int('15')))
-    state = DAGState(dict(BASE_PATH=json.loads(parameters["DAG_STATE_PARAMETERS"])["BASE_PATH"]))
+    state = DAGState(dict(BASE_PATH=json.loads(parameters["DAG_STATE"])["BASE_PATH"]))
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
@@ -160,9 +160,9 @@ def state_directory():
 def parameters(state_directory):
     return dict(
         INTERVAL_MINUTES='15',
-        DAG_STATE_PARAMETERS=json.dumps(
+        DAG_STATE=json.dumps(
             dict(
-                DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+                CLASS='datalabs.etl.dag.state.file.DAGState',
                 BASE_PATH=state_directory
             )
         ),

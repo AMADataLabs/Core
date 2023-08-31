@@ -1,0 +1,24 @@
+---
+SNOMED_CPT_API:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
+
+        DATABASE_TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
+
+    ROUTE:
+    ROUTE MAP: '/snomed/map/cpt/*'
+    ROUTE MAPS: '/snomed/maps/cpt'
+    ROUTE DEFAULT: '/*'
+
+    MAP:
+        TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapLookupEndpointTask'
+        DATABASE_TABLE:  ${DATABASE_TABLE}
+
+    MAPS:
+        TASK_CLASS: 'datalabs.access.cpt.api.snomed.MapSearchEndpointTask'
+        DATABASE_TABLE:  ${DATABASE_TABLE}
+        DATABASE_INDEX:  'SearchIndex'
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'

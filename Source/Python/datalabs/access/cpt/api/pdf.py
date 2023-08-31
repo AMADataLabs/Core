@@ -17,12 +17,13 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class PDFsEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict
-    bucket_name: str
-    bucket_base_path: str
-    bucket_url_duration: str
+    bucket: str
+    base_path: str
+    url_duration: str
     unknowns: dict=None
 
 

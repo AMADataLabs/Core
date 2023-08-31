@@ -60,7 +60,14 @@ def public_flag_update(data):
             'MD Special Permit License',
             'MD Special Volunteer',
             'MD Volunteer Limited',
-            'MD Special Purpose License']
+            'MD Special Purpose License',
+            'MD Faculty Limited/Duke & Affiliated Inst.',
+            'MD Faculty Limited/ECU & Affiliated Inst.',
+            'MD Faculty Limited/UNC & Affiliated Inst.',
+            'MD Faculty Limited/WFU & Affiliated Inst.',
+            'MD Faculty Limited/Duke/UNC & Affiliated Inst.',
+            'MD Faculty Limited/Duke/UNC/ECU & Affiliated Inst.',
+            'MD Faculty Limited to Duke/UNC/ECU & Affiliated Inst.']
     for lic_type in data.License_Type.unique():
         split_type = lic_type.split(' ')
         if len(split_type)>1 and split_type[0] in ['MD','DO']:
@@ -80,8 +87,8 @@ def check_data(data_new):
     LOGGER.info(f'{new_length} total records')
     new_public = data_new.PublicFlag.count()
     LOGGER.info(f'{new_public} public flag records')
-    old_length = 42804
-    old_public = 830
+    old_length = 43825
+    old_public = 856
     check = False
     if sanity_check(old_length, new_length) and sanity_check(old_public, new_public):
         check = True
@@ -113,7 +120,7 @@ def create_file():
         data = pd.merge(og_file, all_scraped_data, suffixes = ['OLD',''], on='License_Number').drop_duplicates()
         LOGGER.info('Saving to UDrive...')
         data['Medical_School_Graduation_Year'] = [str(x).replace('.0','') for x in data.Medical_School_Graduation_Year]
-        data[og_file.columns].to_csv(u_file, sep = '\t', index=False)
+        data[og_file.columns].to_csv(u_file, sep='|', index=False)
         LOGGER.info('Saving locally...')
         data[og_file.columns].to_csv(local_file, index=False)
     else:

@@ -23,9 +23,13 @@ def configure(template_parameters, relative_path=None, name=None, overwrite=Fals
 
     if not os.path.exists(dotenv_path) and not os.path.exists(template_path):
         raise FileNotFoundError(
-            f'Application {script_name} does not have a configuration file in {environment_path.absolute()}.'
+            f'No configuration file template for task "{name}" in {environment_path.absolute()}.'
         )
-    elif overwrite or not os.path.exists(dotenv_path):
-        render_template(template_path, dotenv_path, **template_parameters)
+    elif os.path.exists(dotenv_path) and not overwrite:
+        raise FileExistsError(
+            f'Rendered configuration file exists and --check was used.'
+        )
+
+    render_template(template_path, dotenv_path, **template_parameters)
 
     dotenv.load_dotenv(dotenv_path=dotenv_path)

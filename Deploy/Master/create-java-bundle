@@ -6,6 +6,7 @@ PROJECT=
 EXTRA_FILES=()
 PACKAGE=
 VERSION=
+NO_ZIP=False
 
 
 
@@ -18,9 +19,13 @@ main() {
 
     download_dependency_jars
 
+    create_package_text
+
     copy_extra_files
 
-    create_zip
+    if [[ $NO_ZIP == "False" ]]; then
+        create_zip
+    fi
 }
 
 
@@ -51,10 +56,14 @@ process_arguments() {
             shift
             shift
             ;;
+        -Z|--no-zip)
+            NO_ZIP="--no-zip"
+            shift
+            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
-            exit 0
+            exit 1
             ;;
       esac
     done
@@ -63,6 +72,19 @@ process_arguments() {
         echo "Missing project argument."
         exit 1
     fi
+}
+
+
+print_usage() {
+    echo "Usage: create-java-package [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Java runtime Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -f, --file <file>                     include <file> in the bundle"
+    echo "  -p, --project <project>               project path relative to Build/"
+    echo "  -Z, --no-zip                          Do not zip the Bundle directory (used to build container images)"
 }
 
 
@@ -135,6 +157,13 @@ download_dependency_jars() {
 }
 
 
+create_package_text() {
+    echo "Running package ${PACKAGE} version ${VERSION}." > package.txt
+
+    EXTRA_FILES+=(package.txt)
+}
+
+
 copy_extra_files() {
     for extra_file in "${EXTRA_FILES[@]}"
     do
@@ -149,18 +178,6 @@ create_zip() {
     zip -r ../Bundle.zip ./
 
     cd ..
-}
-
-
-print_usage() {
-    echo "Usage: create-java-package [OPTIONS]..."
-    echo "Bundle and upload a code bundle for a Java runtime Lambda function."
-    echo
-    echo "OPTIONS"
-    echo "  -h, --help                            print this usage text"
-    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
-    echo "  -f, --file <file>                     include <file> in the bundle"
-    echo "  -p, --project <project>               project path relative to Build/"
 }
 
 

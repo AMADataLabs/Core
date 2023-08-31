@@ -2,8 +2,10 @@
 from   abc import ABC, abstractmethod
 from   enum import Enum
 from   itertools import dropwhile
+import json
 
 from   datalabs.parameter import ParameterValidatorMixin
+from   datalabs.plugin import import_plugin
 
 
 class Status(Enum):
@@ -49,3 +51,22 @@ class State(ParameterValidatorMixin, ABC):
     @abstractmethod
     def set_task_status(self, dag, task, execution_time, status) -> bool:
         pass
+
+
+class StatefulDAGMixin:
+    @classmethod
+    def _get_state_plugin(cls, parameters):
+        state_parameters = None
+        plugin = None
+
+        if hasattr(parameters, 'dag_state') and parameters.dag_state:
+            state_parameters = json.loads(parameters.dag_state)
+        elif hasattr(parameters, 'get'):
+            state_parameters = json.loads(parameters.get("DAG_STATE", "{}"))
+
+        plugin_class = import_plugin(state_parameters["CLASS"])
+
+        if plugin_class:
+            plugin = plugin_class(state_parameters)
+
+        return plugin

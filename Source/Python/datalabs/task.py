@@ -6,6 +6,7 @@ import os
 from   marshmallow.exceptions import ValidationError
 
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.etl.dag.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.parameter import ParameterValidatorMixin, ValidationException
 from   datalabs.plugin import import_plugin
 
@@ -27,6 +28,7 @@ class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
         self._parameters = parameters
         self._data = data
         self._log_parameters(parameters)
+
 
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
@@ -83,10 +85,8 @@ class TaskWrapper(ABC):
         self.task = None
         self.task_class = None
         self._parameters = parameters or {}
-        self._runtime_parameters = None
         self._task_parameters = None
-        self._inputs = None
-        self._outputs = None
+        self._cache_parameters = {}
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -96,19 +96,21 @@ class TaskWrapper(ABC):
         try:
             self._setup_environment()
 
-            self._runtime_parameters = self._get_runtime_parameters(self._parameters)
-
             self._task_parameters = self._get_task_parameters()
 
-            self._inputs = self._get_task_data()
+            self._cache_parameters = self._extract_cache_parameters(self._task_parameters)
+
+            input_data = self._get_task_input_data()
 
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(self._task_parameters, self._inputs)
+            self.task = self.task_class(self._task_parameters, input_data)
 
             self._pre_run()
 
-            self._outputs = self.task.run()
+            output_data = self.task.run()
+
+            self._put_task_output_data(output_data)
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
@@ -125,7 +127,7 @@ class TaskWrapper(ABC):
     def _get_task_class(self):
         task_resolver_class = self._get_task_resolver_class()
 
-        task_class = task_resolver_class.get_task_class(self._runtime_parameters)
+        task_class = task_resolver_class.get_task_class(self._task_parameters)
 
         if not hasattr(task_class, 'run'):
             raise TypeError('Task class does not have a "run" method.')
@@ -136,28 +138,49 @@ class TaskWrapper(ABC):
     def _pre_run(self):
         pass
 
-    def _get_runtime_parameters(self, parameters):
-        return parameters
-
     def _get_task_parameters(self):
-        return self._parameters
+        return os.environ
 
-    def _get_task_data(self):
-        return []
+    @classmethod
+    def _extract_cache_parameters(cls, task_parameters):
+        return TaskDataCacheParameters.extract(task_parameters)
+
+    def _get_task_input_data(self):
+        data = []
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
+
+        if cache:
+            data = cache.extract_data()
+
+            if data:
+                self._log_task_data_sizes(CacheDirection.INPUT, data)
+
+        return data
+
+    def _put_task_output_data(self, data):
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
+
+        if cache:
+            if data:
+                self._log_task_data_sizes(CacheDirection.OUTPUT, data)
+
+            cache.load_data(data)
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
-        parameters.update(new_parameters)
+        return {**parameters, **new_parameters}
 
-        return parameters
-
-    @abstractmethod
+    # pylint: disable=unused-argument
     def _handle_success(self) -> (int, dict):
-        pass
+        LOGGER.info("Task completed successfully.")
 
-    @abstractmethod
+        return "Task completed successfully."
+
+    # pylint: disable=unused-argument
     def _handle_exception(self, exception: Exception) -> (int, dict):
-        pass
+        LOGGER.exception("Task failed.")
+
+        return "Task failed."
 
     def _get_task_resolver_class(self):
         task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.EnvironmentTaskResolver')
@@ -168,17 +191,27 @@ class TaskWrapper(ABC):
 
         return task_resolver_class
 
+    @classmethod
+    def _log_task_data_sizes(cls, direction, data):
+        operation = "Received"
+
+        if direction == CacheDirection.OUTPUT:
+            operation = "Returning"
+
+        for datum in data:
+            LOGGER.debug('%s %d bytes.', operation, len(datum))
+
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
-    def get_task_class(cls, runtime_parameters):
+    def get_task_class(cls, task_parameters):
         pass
 
 
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
-    def get_task_class(cls, runtime_parameters):
+    def get_task_class(cls, task_parameters):
         task_class_name = os.environ["TASK_CLASS"]
 
         return import_plugin(task_class_name)
@@ -186,7 +219,7 @@ class EnvironmentTaskResolver(TaskResolver):
 
 class RuntimeTaskResolver(TaskResolver):
     @classmethod
-    def get_task_class(cls, runtime_parameters):
-        task_class_name = runtime_parameters["TASK_CLASS"]
+    def get_task_class(cls, task_parameters):
+        task_class_name = task_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)

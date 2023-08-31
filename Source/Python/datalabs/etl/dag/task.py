@@ -2,7 +2,6 @@
 import logging
 
 from   datalabs.access.environment import VariableTree
-from   datalabs.etl.dag.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
@@ -10,70 +9,9 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class DAGTaskWrapper(TaskWrapper):
-    def __init__(self, parameters=None):
-        super().__init__(parameters)
-
-        self._cache_parameters = {}
-
-    def _get_runtime_parameters(self, parameters):
-        return self._parse_command_line_parameters(parameters)
-
-    def _get_task_parameters(self):
-        task_parameters = None
-
-        default_parameters = self._get_default_parameters()
-
-        task_parameters = self._merge_parameters(default_parameters, self._get_dag_task_parameters())
-
-        task_parameters, self._cache_parameters = TaskDataCacheParameters.extract(task_parameters)
-        LOGGER.debug('Task Parameters: %s', task_parameters)
-
-        return task_parameters
-
-    def _get_task_data(self):
-        data = []
-        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
-
-        if cache:
-            data = cache.extract_data()
-
-        return data
-
-    def _handle_exception(self, exception):
-        LOGGER.exception('Handling DAG task exception: %s', exception)
-
-    def _handle_success(self):
-        cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
-        if cache:
-            cache.load_data(self._outputs)
-
-        LOGGER.info('DAG task has finished')
-
-    @classmethod
-    def _parse_command_line_parameters(cls, command_line_parameters):
-        dag, task, execution_time = command_line_parameters[1].split('__')
-
-        return dict(
-            dag=dag,
-            task=task,
-            execution_time=execution_time
-        )
-
-    def _get_default_parameters(self):
-        dag_parameters = self._get_default_parameters_from_environment(self._get_dag_id())
-        execution_time = self._get_execution_time()
-
-        dag_parameters['EXECUTION_TIME'] = execution_time
-        dag_parameters['CACHE_EXECUTION_TIME'] = execution_time
-
-        return dag_parameters
-
-    def _get_dag_task_parameters(self):
-        return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
-
+class DAGTaskIDMixin:
     def _get_dag_id(self):
-        return self._runtime_parameters["dag"].upper()
+        return self._task_parameters["dag"].upper()
 
     def _get_dag_name(self):
         base_name, _ = self._parse_dag_id(self._get_dag_id())
@@ -86,32 +24,10 @@ class DAGTaskWrapper(TaskWrapper):
         return index
 
     def _get_task_id(self):
-        return self._runtime_parameters["task"].upper()
+        return self._task_parameters.get("task", "DAG").upper()
 
     def _get_execution_time(self):
-        return self._runtime_parameters["execution_time"].upper()
-
-    @classmethod
-    def _get_default_parameters_from_environment(cls, dag_id):
-        parameters = {}
-
-        try:
-            parameters = cls._get_parameters([dag_id.upper()])
-        except KeyError:
-            pass
-
-        return parameters
-
-    @classmethod
-    def _get_task_parameters_from_environment(cls, dag_id, task_id):
-        parameters = {}
-
-        try:
-            parameters = cls._get_parameters([dag_id.upper(), task_id.upper()])
-        except KeyError:
-            pass
-
-        return parameters
+        return self._task_parameters["execution_time"].upper()
 
     @classmethod
     def _parse_dag_id(cls, dag):
@@ -124,10 +40,77 @@ class DAGTaskWrapper(TaskWrapper):
 
         return base_name, iteration
 
+
+class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
+    def _get_task_parameters(self):
+        task_parameters = None
+
+        dag_parameters = self._get_dag_parameters()
+
+        task_parameters = self._get_dag_task_parameters(dag_parameters)
+
+        task_parameters = self._merge_parameters(dag_parameters, task_parameters)
+        LOGGER.debug('Task Parameters: %s', task_parameters)
+
+        return task_parameters
+
+    def _handle_success(self) -> str:
+        super()._handle_success()
+
+        if self._get_task_id() == "DAG":
+            self._handle_dag_success(self.task)
+        else:
+            self._handle_task_success(self.task)
+
+        return "Success"
+
+    def _handle_exception(self, exception) -> str:
+        super()._handle_exception(exception)
+
+        if self._task_parameters and self._get_task_id() == "DAG":
+            self._handle_dag_exception(self.task)
+        else:
+            self._handle_task_exception(self.task)
+
+        return f'Failed: {str(exception)}'
+
+    # pylint: disable=no-self-use
+    def _get_dag_parameters(self):
+        return {"dag": "LOCAL"}
+
+    def _get_dag_task_parameters(self, dag_parameters):
+        dag_id = dag_parameters["dag"].upper()
+        dag, _ = self._parse_dag_id(dag_id)
+        task = dag_parameters.get("task", "DAG").upper()
+        parameters = {}
+
+        try:
+            parameters = self._get_parameters_from_environment(dag, task)
+        except KeyError:
+            pass
+
+        return parameters
+
+    # pylint: disable=no-self-use
+    def _handle_dag_success(self, dag):
+        LOGGER.info("DAG %s succeeded.", dag)
+
+    # pylint: disable=no-self-use
+    def _handle_task_success(self, task):
+        LOGGER.info("Task %s succeeded.", task)
+
+    # pylint: disable=no-self-use
+    def _handle_dag_exception(self, dag):
+        LOGGER.info("DAG %s failed.", dag)
+
+    # pylint: disable=no-self-use
+    def _handle_task_exception(self, task):
+        LOGGER.info("Task %s failed.", task)
+
     @classmethod
-    def _get_parameters(cls, branch):
+    def _get_parameters_from_environment(cls, dag, task):
         var_tree = VariableTree.from_environment()
 
-        candidate_parameters = var_tree.get_branch_values(branch)
+        candidate_parameters = var_tree.get_branch_values([dag, task])
 
         return {key:value for key, value in candidate_parameters.items() if value is not None}

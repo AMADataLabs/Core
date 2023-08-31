@@ -4,7 +4,7 @@ set -eux
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-. ${SCRIPT_BASE_PATH}/determine-package-version.sh
+. ${SCRIPT_BASE_PATH}/determine_package_version.sh
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
@@ -69,7 +69,7 @@ process_arguments() {
         *)
             echo "Unexpected argument $1"
             print_usage
-            exit 0
+            exit 1
             ;;
       esac
     done
@@ -106,11 +106,11 @@ create_code_bundle() {
     fi
 
     if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $VERSION $NO_ZIP $EXTRA_FILES
+        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT --package $PACKAGE --version $VERSION $NO_ZIP $EXTRA_FILES
     elif [[ "$RELEASE_TYPE" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
 
-        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $PACKAGE $VERSION $NO_ZIP $EXTRA_FILES -f ./log4j2.xml
+        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT --package $PACKAGE --version $VERSION $NO_ZIP $EXTRA_FILES -f ./log4j2.xml
     else
         echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
         exit 1

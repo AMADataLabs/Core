@@ -1,80 +1,66 @@
-# Update DynamoDB as follows:
-#
-# Script/update-dag-config -e dev -p AddressLoad -t dag \
-# -v "eft_password={{eft_password}}""
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+ADDRESS_LOAD_COMPILER:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+        EFT_HOST: eft.ama-assn.org
+        EFT_USERNAME: datalabs
+        EFT_PASSWORD: '{{eft_password}}'
+        EFT_BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/${ENVIRONMENT}'
 
-    EFT_HOST: eft.ama-assn.org
-    EFT_USERNAME: datalabs
-    EFT_PASSWORD: '{{eft_password}}'
-    EFT_BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/${ENVIRONMENT}'
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/AddressLoad'
 
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/AddressLoad'
-
-
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    ADDRESS_LOAD_COMPILER__DAG__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AddressLoadCompilerDAG'
-    ADDRESS_LOAD_COMPILER__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
-    ADDRESS_LOAD_COMPILER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    ADDRESS_LOAD_COMPILER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    ADDRESS_LOAD_COMPILER__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    ADDRESS_LOAD_COMPILER__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    ADDRESS_LOAD_COMPILER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    ADDRESS_LOAD_COMPILER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    ADDRESS_LOAD_COMPILER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    ADDRESS_LOAD_COMPILER__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
-
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
+    DAG:
+        LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AddressLoadCompilerDAG'
+        DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+        STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
     # Extract Component Files
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__BASE_PATH: '${EFT_BASE_PATH}/input'
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__FILES: '*.csv'
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__HOST: ${EFT_HOST}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__USERNAME: ${EFT_USERNAME}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__PASSWORD: ${EFT_PASSWORD}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__INCLUDE_NAMES: 'True'
+    EXTRACT_COMPONENT_FILES:
+        BASE_PATH: '${EFT_BASE_PATH}/input'
+        FILES: '*.csv'
+        HOST: ${EFT_HOST}
+        USERNAME: ${EFT_USERNAME}
+        PASSWORD: ${EFT_PASSWORD}
+        INCLUDE_NAMES: 'True'
 
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_FILES: 'extract_output.pckl'
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'extract_output.pckl'
 
-    # Compile Batch Load File
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_CLASS: ${S3_CACHE_CLASS}
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    COMPILE_BATCH_LOAD_FILE:
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
 
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'extract_output.pckl'
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'extract_output.pckl'
 
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
 
-    # Load Batch Load File
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
+    LOAD_BATCH_LOAD_FILE:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
 
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__BASE_PATH: '${EFT_BASE_PATH}/output'
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__HOST: ${EFT_HOST}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__USERNAME: ${EFT_USERNAME}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__PASSWORD: ${EFT_PASSWORD}
+        BASE_PATH: '${EFT_BASE_PATH}/output'
+        FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
+        HOST: ${EFT_HOST}
+        USERNAME: ${EFT_USERNAME}
+        PASSWORD: ${EFT_PASSWORD}

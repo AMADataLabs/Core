@@ -1,0 +1,65 @@
+---
+SNOMED_CPT_ETL:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
+
+
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/SNOMED'
+
+    DAG:
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-SNOMED-DAG'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.snomed.DAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+    EXTRACT_SNOMED_FILE:
+        BUCKET: ${S3_STAGED_DATA_BUCKET}
+        BASE_PATH: ${S3_BASE_PATH}
+        FILES: snomed_cpt_map_fsn_descr_20230131.xlsx
+        INCLUDE_DATESTAMP: 'False'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'snomed_mappings.xlsx'
+
+    CREATE_SNOMED_MAPPINGS:
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'snomed_mappings.xlsx'
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: 'snomed_mappings.json'
+
+    SPLIT_MAPPINGS:
+        COUNT: '3'
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+        CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'snomed_mappings.json'
+        CACHE_OUTPUT_FILES: 'snomed_mappings_0.json,snomed_mappings_1.json,snomed_mappings_0.json'
+
+
+
+    LOAD_SNOMED_MAPPINGS:
+        __MACRO_COUNT__: 3
+        TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'snomed_mappings___MACRO_INDEX__.json'

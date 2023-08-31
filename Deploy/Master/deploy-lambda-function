@@ -4,7 +4,7 @@ set -eux
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-. ${SCRIPT_BASE_PATH}/determine-package-version.sh
+. ${SCRIPT_BASE_PATH}/determine_package_version.sh
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
@@ -16,8 +16,6 @@ BUNDLE=
 JDBC_DRIVER=
 DEPLOYED_VERSION=
 METADATA=
-PACKAGE=
-VERSION=
 
 
 main() {
@@ -65,7 +63,7 @@ process_arguments() {
         *)
             echo "Unexpected argument $1"
             print_usage
-            exit 0
+            exit 1
             ;;
       esac
     done

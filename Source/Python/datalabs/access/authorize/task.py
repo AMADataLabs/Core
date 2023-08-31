@@ -1,9 +1,14 @@
 """Authorize Task"""
 from   dataclasses import dataclass
+import logging
 import json
 import requests
 
 from   datalabs.task import Task, TaskException
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -11,6 +16,7 @@ class AuthorizerParameters:
     token: str
     passport_url: str
     endpoint: str
+    customer: str = None
 
 
 class AuthorizerTask(Task):
@@ -29,26 +35,38 @@ class AuthorizerTask(Task):
         return self._session
 
     def run(self):
+        headers = {
+            'Authorization': 'Bearer ' + self._parameters.token,
+        }
+
+        if self._parameters.customer:
+            headers["x-customer-nbr"] = self._parameters.customer
+
         response = self._session.post(
             self._parameters.passport_url,
-            headers={'Authorization': 'Bearer ' + self._parameters.token}
+            headers=headers
         )
+        LOGGER.debug("Passport Response: \n%s", response)
 
         if response.status_code in (200, 401):
             entitlements = json.loads(response.text)
+            LOGGER.info("Entitlements Response: %s", entitlements)
+
             self._authorization = self._authorize(entitlements)
         else:
             raise AuthorizerTaskException(f'Unable to authorize: {response.text}')
 
     def _authorize(self, entitlements):
-        policy = None
-        context = dict(
-            customerNumber=entitlements.get("customerNumber"),
-            customerName=entitlements.get("customerName")
-        )
         active_subscriptions = self._get_active_subscriptions(entitlements)
 
-        if active_subscriptions and len(active_subscriptions) > 0:
+        customer_number = self._parameters.customer if self._parameters.customer else entitlements.get("customerNumber")
+        policy = None
+        context = dict(
+            customerNumber=customer_number,
+            customerName=entitlements.get("customerName")
+        )
+
+        if active_subscriptions is not None:
             policy = self._generate_policy(effect='Allow')
             context.update(self._generate_context_from_subscriptions(active_subscriptions))
         else:
@@ -62,7 +80,12 @@ class AuthorizerTask(Task):
 
     @classmethod
     def _get_active_subscriptions(cls, entitlements):
-        return [s for s in entitlements.get('subscriptionsList') if s.get("agreementStatus") == "A"]
+        subscriptions = entitlements.get('subscriptionsList')
+
+        if subscriptions:
+            subscriptions = [s for s in subscriptions if s.get("agreementStatus") == "A"]
+
+        return subscriptions
 
 
     def _generate_policy(self, effect):
@@ -85,7 +108,12 @@ class AuthorizerTask(Task):
         context = {}
 
         for subscription in subscriptions:
-            context[subscription.get("productCode")] = subscription.get("accessEndDt")
+            context[subscription.get("productCode")] = json.dumps(
+                {
+                    "start": subscription.get("startDate"),
+                    "end": subscription.get("accessEndDt")
+                }
+            )
 
         return context
 

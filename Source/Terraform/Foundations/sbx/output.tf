@@ -15,6 +15,11 @@ output "vpc_endpoint_execapi_id" {
 }
 
 
+output "vpc_endpoint_opensearch_id" {
+    value = aws_vpc_endpoint.opensearch.id
+}
+
+
 ### extra output that may be useful, but shouldn't be used in TE-destined app stacks ##
 
 output "public_subnet_ids" {

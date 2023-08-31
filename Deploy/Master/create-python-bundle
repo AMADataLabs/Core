@@ -21,6 +21,8 @@ main() {
 
     install_dependencies
 
+    create_package_text
+
     create_bundle
 }
 
@@ -65,7 +67,7 @@ process_arguments() {
         *)
             echo "Unexpected argument $1"
             print_usage
-            exit 0
+            exit 1
             ;;
       esac
     done
@@ -92,6 +94,13 @@ install_dependencies() {
     fi
 
     pip install $TRUSTED_HOSTS --target Bundle/ -r requirements.txt
+}
+
+
+create_package_text() {
+    echo "Running package ${PACKAGE} version ${VERSION}." > package.txt
+
+    EXTRA_FILES+="-f package.txt "
 }
 
 

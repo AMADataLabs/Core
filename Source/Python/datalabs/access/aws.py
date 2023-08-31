@@ -3,12 +3,14 @@ import os
 
 import boto3
 
+
 class AWSClient:
     def __init__(self, service: str, **kwargs):
         self._service = service
         self._kwargs = kwargs
         self._client = None
         self._ssl_verification = True
+        self._client_factory = boto3.client
 
         if os.getenv('AWS_NO_VERIFY_SSL') == "True":
             self._ssl_verification = False
@@ -22,7 +24,7 @@ class AWSClient:
 
             self._kwargs.update(self._get_credential_kwargs(role["Credentials"]))
 
-        self._client = boto3.client(self._service, verify=self._ssl_verification, **self._kwargs)
+        self._client = self._client_factory(self._service, verify=self._ssl_verification, **self._kwargs)
 
         return self._client
 
@@ -45,3 +47,10 @@ class AWSClient:
             aws_secret_access_key=credentials["SecretAccessKey"],
             aws_access_key_id=credentials["AccessKeyId"]
         )
+
+
+class AWSResource(AWSClient):
+    def __init__(self, service: str, **kwargs):
+        super().__init__(service, **kwargs)
+
+        self._client_factory = boto3.resource

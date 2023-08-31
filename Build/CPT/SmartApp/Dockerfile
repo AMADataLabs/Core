@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=get_descriptors.env -ti cpt python -c "import awslambda; print(awslambda.handler(None, None))"
 
-FROM python:3.7
+FROM python:3.12.0a5-slim
 
 ENV HOME /CPT
 WORKDIR $HOME

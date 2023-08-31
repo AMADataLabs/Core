@@ -113,11 +113,17 @@ class Physician(BASE):
     has_email = sa.Column(sa.Boolean)
     no_release = sa.Column(sa.Boolean)
 
-    primary_specialties = relationship("Specialty", foreign_keys=[primary_specialty],
-                                       backref=backref("physicians_primary", cascade="all, delete-orphan"))
+    primary_specialties = relationship(
+        "Specialty",
+        foreign_keys=[primary_specialty],
+        backref=backref("physicians_primary", cascade="all, delete-orphan")
+    )
 
-    secondary_specialties = relationship("Specialty", foreign_keys=[secondary_specialty],
-                                         backref=backref("physicians_secondary", cascade="all, delete-orphan"))
+    secondary_specialties = relationship(
+        "Specialty",
+        foreign_keys=[secondary_specialty],
+        backref=backref("physicians_secondary", cascade="all, delete-orphan")
+    )
 
 
 class ResidencyProgram(BASE):
@@ -208,6 +214,7 @@ class Business(BASE):
     physical_city = sa.Column(sa.String, nullable=False)
     physical_state = sa.Column(sa.String, nullable=False)
     physical_zipcode = sa.Column(sa.String, nullable=False)
+    physical_zipcode5 = sa.Column(sa.String, nullable=False, index=True)
     postal_address_1 = sa.Column(sa.String, nullable=False)
     postal_address_2 = sa.Column(sa.String)
     postal_city = sa.Column(sa.String, nullable=False)
@@ -249,9 +256,11 @@ class Provider(BASE):
     __tablename__ = 'provider'
     __table_args__ = {"schema": SCHEMA}
 
-    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         primary_key=True)
+    medical_education_number = sa.Column(
+        sa.String,
+        sa.ForeignKey("oneview.physician.medical_education_number"),
+        primary_key=True
+    )
     iqvia_provider_id = sa.Column(sa.String)
     first_name = sa.Column(sa.String)
     middle_name = sa.Column(sa.String)
@@ -269,12 +278,13 @@ class Provider(BASE):
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
 
+    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
+
 
 class ProviderAffiliation(BASE):
     __tablename__ = 'provider_affiliation'
     __table_args__ = {"schema": SCHEMA}
 
-    physician = relationship("Physician", backref=backref("provider_affiliation", cascade="all, delete-orphan"))
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
@@ -286,6 +296,8 @@ class ProviderAffiliation(BASE):
     group_description = sa.Column(sa.String)
     best = sa.Column(sa.Boolean)
 
+    physician = relationship("Physician", backref=backref("provider_affiliation", cascade="all, delete-orphan"))
+
 
 class MedicalLicense(BASE):
     __tablename__ = 'medical_license'
@@ -294,7 +306,8 @@ class MedicalLicense(BASE):
     id = sa.Column(sa.String, primary_key=True)
     number = sa.Column(sa.String, nullable=False)
     medical_education_number = sa.Column(
-        sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
+        sa.String,
+        sa.ForeignKey("oneview.physician.medical_education_number"),
         nullable=False
     )
     state = sa.Column(sa.String, nullable=False)
@@ -336,16 +349,20 @@ class CredentialingOrder(BASE):
     __tablename__ = 'credentialing_order'
     __table_args__ = {"schema": SCHEMA}
 
-    physician = relationship("Physician", backref=backref("credentialing_orders", cascade="all, delete-orphan"))
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     customer = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), nullable=False)
     product = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_product.id"), nullable=False)
     number = sa.Column(sa.String, nullable=False)
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         nullable=False)
+    medical_education_number = sa.Column(
+        sa.String,
+        sa.ForeignKey("oneview.physician.medical_education_number"),
+        nullable=False
+    )
     date = sa.Column(sa.String, nullable=False)
     quantity = sa.Column(sa.String, nullable=False)
     unique_physician_identification_number = sa.Column(sa.String, nullable=True)
+
+    physician = relationship("Physician", backref=backref("credentialing_orders", cascade="all, delete-orphan"))
 
 
 ################################################################
@@ -489,15 +506,19 @@ class HistoricalResident(BASE):
     __tablename__ = 'historical_resident'
     __table_args__ = {"schema": SCHEMA}
 
-    physician = relationship("Physician", backref=backref("historical_residents", cascade="all, delete-orphan"))
     id = sa.Column(sa.String, primary_key=True)
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         nullable=False)
+    medical_education_number = sa.Column(
+        sa.String,
+        sa.ForeignKey("oneview.physician.medical_education_number"),
+        nullable=False
+    )
     institution_code = sa.Column(sa.String, nullable=False)
     specialty = sa.Column(sa.String, nullable=False)
     training_type = sa.Column(sa.String, nullable=True)
     start_year = sa.Column(sa.Integer, nullable=False)
     end_year = sa.Column(sa.Integer, nullable=False)
+
+    physician = relationship("Physician", backref=backref("historical_residents", cascade="all, delete-orphan"))
 
 
 class IqviaUpdate(BASE):
@@ -535,7 +556,6 @@ class ResidencyProgramPhysician(BASE):
     __tablename__ = 'residency_program_physician'
     __table_args__ = {"schema": SCHEMA}
 
-    physician = relationship("Physician", backref=backref("residency_program_physicians", cascade="all, delete-orphan"))
     id = sa.Column(sa.String, primary_key=True)
     program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"), nullable=False, unique=True)
     medical_education_number = sa.Column(
@@ -543,6 +563,8 @@ class ResidencyProgramPhysician(BASE):
         sa.ForeignKey("oneview.physician.medical_education_number"),
         nullable=False
     )
+
+    physician = relationship("Physician", backref=backref("residency_program_physicians", cascade="all, delete-orphan"))
 
 
 class CorporateParentBusiness(BASE):

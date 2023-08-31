@@ -15,6 +15,7 @@ create_python_virtual_environment() {
 
     if [[ ! -f "$environment_path/bin/python${python_version}" ]]; then
         echo "Creating virtual environment..."
+        mkdir -p $environment_path
         python${python_version} -m venv $environment_path
         echo "Done creating virtual environment"
     else

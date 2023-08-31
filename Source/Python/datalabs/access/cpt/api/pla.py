@@ -18,6 +18,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class PLADetailsEndpointParameters:
+    method: str
     path: dict
     query: dict
     authorization: dict

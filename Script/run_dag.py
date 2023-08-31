@@ -4,7 +4,7 @@ import json
 import logging
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.celery.task import run_dag_processor
+from   datalabs.etl.dag.local.task import run_dag_processor
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,13 +23,19 @@ ACCOUNTS = dict(
 
 def main(args):
     if args["environment"] == 'local':
-        run_local_dag(args)
+        if args["config_file"] is not None:
+            run_local_dag(args)
+        else:
+            raise ValueError("The --config option is requred when the environment is \"local\".")
     else:
         run_remote_dag(args)
 
-
 def run_local_dag(args):
-    run_dag_processor(args["dag"], args["time"], args["parameters"])
+    parameters = args["parameters"] if args["parameters"] else {}
+
+    parameters["config_file"] = args["config_file"]
+
+    run_dag_processor(args["dag"], f'{args["date"]}T{args["time"]}', parameters)
 
 def run_remote_dag(args):
     topic_arn = f'arn:aws:sns:us-east-1:{ACCOUNTS[args["environment"]]}:DataLake-{args["environment"]}-DAGProcessor'
@@ -49,6 +55,7 @@ def run_remote_dag(args):
             Message=json.dumps(message)
         )
 
+
 if __name__ == '__main__':
     return_code = 0
 
@@ -58,6 +65,7 @@ if __name__ == '__main__':
     ap.add_argument('-D', '--date', required=True, help='Execution date of the form YYYY-MM-DD')
     ap.add_argument('-T', '--time', required=True, help='Execution time of the form HH:MM:SS')
     ap.add_argument('-p', '--parameters', action='append', required=False, help='Dynamic global DAG plugin variables')
+    ap.add_argument('-f', '--config-file', required=False, help='Config file for local DAG run')
     args = vars(ap.parse_args())
 
     try:

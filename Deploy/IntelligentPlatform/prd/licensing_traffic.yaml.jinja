@@ -1,551 +1,524 @@
-# Render as follows:
-#
-# Script/render-template -t Deploy/IntelligentPlatform/dev/licensing.yaml.jinja -f Deploy/CPT/dev/licensing.yaml \
-# -v platform_db_password={{platform_db_password}}"
 ---
-data:
-    #######################################################################
-    # Global Variables - {"DAG": {"S": "LICENSING"}, "Task": {"S": "GLOBAL"}}
-    #######################################################################
+LICENSING_TRAFFIC:
+    GLOBAL:
+        ACCOUNT: '285887636563'
+        ENVIRONMENT: prd
 
-    ENVIRONMENT: prd
-    ACCOUNT: '285887636563'
+        PLATFORM_DB_BACKEND: mysql+pymysql
+        PLATFORM_DB_HOST: pe-prd-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_PORT: '3306'
+        PLATFORM_DB_USERNAME: platform
+        LICENSING_DATABASE: frictionlesslicensing
+        USER_MANAGEMENT_DATABASE: usermgmt
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_BASE_PATH: AMA/IntelligentPlatform/Licensing/Traffic
+        S3_CACHE_CLASS: datalabs.etl.dag.cache.s3.S3TaskDataCache
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+    DAG:
+        DAG_CLASS: datalabs.etl.dag.intelligent_platform.licensing.traffic.DAG
+        DAG_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DAGState
+            LOCK_TABLE: DataLake-scheduler-locks-${ENVIRONMENT}
+            STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
+        DAG_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor
+        ENVIRONMENT: ${ENVIRONMENT}
+        LAMBDA_FUNCTION: AIP-${ENVIRONMENT}-LicensingDAG
+        STATUS_NOTIFICATION_WEB_HOOK: https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908
+        TASK_EXECUTOR_CLASS: datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask
+        TASK_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor
+    EXTRACT_COUNTS:
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${LICENSING_DATABASE}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        SQL: "
+            SELECT A, CAST(sum(count1) as NCHAR) as applicants_signed_in, CAST(sum(count2) as NCHAR) as applications_started, CAST(sum(count3) as NCHAR) as applications_saved, CAST(sum(count4) as NCHAR) as applications_completed_sent_to_portal, CAST(sum(count5) as NCHAR) as applications_completed_exempt, CAST(sum(count6) as NCHAR) as applicants_international, CAST(sum(count7) as NCHAR) as applicants_distribution, CAST(sum(count8) as NCHAR) as lab_applications_pre_tax_flagged, CAST(sum(count9) as NCHAR) as lab_applications_post_tax_flagged, CAST(sum(count10) as NCHAR) as individual_users_under_26_flagged, CAST(sum(count11) as NCHAR) as other_flagged_applications, current_timestamp() as data_collection_date from (
+                SELECT
+                    'A' as A, COALESCE(COUNT(*), 0) AS count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${USER_MANAGEMENT_DATABASE}.User
+                WHERE
+                    latest_login_date > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                        AND user_name NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, COALESCE(COUNT(*), 0) as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes
+                WHERE
+                    created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, COALESCE(COUNT(*), 0) as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes
+                WHERE
+                    saved IS NOT NULL
+                        AND created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, COALESCE(COUNT(*), 0) AS count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes
+                WHERE
+                    rp_contract_id IS NOT NULL
+                        AND rp_licensee_id IS NOT NULL
+                        AND created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, COALESCE(COUNT(*), 0) AS count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes
+                WHERE
+                    quote_status_id = 4
+                        AND rp_contract_id IS NULL
+                        AND rp_licensee_id IS NULL
+                        AND created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, COALESCE(COUNT(*), 0) AS count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes q
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.agreement_detail_flags adf ON q.id = adf.quote_id
+                WHERE
+                    created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                        AND adf.field_name IN ('org_state_id' , 'org_country_id')
+                        AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, COALESCE(COUNT(*), 0) AS count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes q
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
+                WHERE
+                    qqa.question_answer_id = (SELECT
+                            id
+                        FROM
+                            ${LICENSING_DATABASE}.question_answers
+                        WHERE
+                            question_id = (SELECT
+                                    id
+                                FROM
+                                    ${LICENSING_DATABASE}.questions
+                                WHERE
+                                    description = 'Do either of the following apply in your use case?'
+                                        AND group_id = 1)
+                                AND answer_id = (SELECT
+                                    id
+                                FROM
+                                    ${LICENSING_DATABASE}.answers
+                                WHERE
+                                    description = 'Yes'))
+                        AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, COALESCE(COUNT(*), 0) AS count8, 0 as count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes q
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
+                WHERE
+                    qqa.question_answer_id = (SELECT
+                            id
+                        FROM
+                            ${LICENSING_DATABASE}.question_answers
+                        WHERE
+                            question_id = (SELECT
+                                    id
+                                FROM
+                                    ${LICENSING_DATABASE}.questions
+                                WHERE
+                                    description = 'What is your organization type?'
+                                        AND group_id = 1)
+                                AND answer_id = (SELECT
+                                    id
+                                FROM
+                                    ${LICENSING_DATABASE}.answers
+                                WHERE
+                                    description = 'Laboratory (unaffiliated with hospital)'))
+                        AND qf.flag_group_id = (SELECT
+                            id
+                        FROM
+                            ${LICENSING_DATABASE}.flag_groups
+                        WHERE
+                            name = 'Delayed Major FL - Lab Metrics > 11999026')
+                        AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, COALESCE(COUNT(*), 0) AS count9, 0 as count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes q
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
+                WHERE
+                    qqa.question_answer_id = (SELECT
+                            id
+                        FROM
+                            ${LICENSING_DATABASE}.question_answers
+                        WHERE
+                            question_id = (SELECT
+                                    id
+                                FROM
+                                    ${LICENSING_DATABASE}.questions
+                                WHERE
+                                    description = 'What is your organization type?'
+                                        AND group_id = 1)
+                                AND answer_id = (SELECT
+                                    id
+                                FROM
+                                    ${LICENSING_DATABASE}.answers
+                                WHERE
+                                    description = 'Laboratory (unaffiliated with hospital)'))
+                        AND adf.field_name = 'Lab amount post tax is greater than 5000'
+                        AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, COALESCE(COUNT(*), 0) AS count10, 0 as count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes q
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
+                WHERE
+                    qf.flag_group_id = (SELECT
+                            id
+                        FROM
+                            ${LICENSING_DATABASE}.flag_groups
+                        WHERE
+                            name = 'FL - IU < 26 Users more than 25 PMS')
+                        AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT')
+                UNION ALL SELECT
+                    'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, COALESCE(COUNT(*), 0) AS count11
+                FROM
+                    ${LICENSING_DATABASE}.quotes q
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
+                        INNER JOIN
+                    ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
+                WHERE
+                    qf.flag_group_id IN (SELECT
+                            id
+                        FROM
+                            ${LICENSING_DATABASE}.flag_groups
+                        WHERE
+                            name IN ('Delayed Major FL - AMA Content used for research' , 'Delayed Major FL - Other Third Party'))
+                        AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
+                        INTERVAL 7 DAY)
+                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                            'datalabs',
+                            'acmegbtaxed',
+                            'acmegbnontax',
+                            'rptestuser2',
+                            'yogeshama',
+                            'sdhamale',
+                            'shahrukh-ama',
+                            'amitivl',
+                            'kyleddahl',
+                            'dcasaubo',
+                            'amitinfovision',
+                            'kcallagh',
+                            'kcardina',
+                            'vprieto',
+                            'TommyT') ) as abc group by A;
+        "
 
-    PLATFORM_DB_HOST: pe-prd-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
-    PLATFORM_DB_PORT: '3306'
-    PLATFORM_DB_BACKEND: 'mysql+pymysql'
-    LICENSING_DATABASE: 'frictionlesslicensing'
-
-    USER_MANAGEMENT_DATABASE: 'usermgmt'
-    PLATFORM_DB_USERNAME:  platform
-    PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
-    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/IntelligentPlatform/Licensing/Traffic'
-
-
-    #######################################################################
-    # DAG Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "DAG"}})
-    #######################################################################
-
-    LICENSING_TRAFFIC__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingDAG'
-    LICENSING_TRAFFIC__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.traffic.DAG'
-    LICENSING_TRAFFIC__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    LICENSING_TRAFFIC__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    LICENSING_TRAFFIC__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    LICENSING_TRAFFIC__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    LICENSING_TRAFFIC__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    LICENSING_TRAFFIC__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    LICENSING_TRAFFIC__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
-    LICENSING_TRAFFIC__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    LICENSING_TRAFFIC__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
-
-
-    ##########################################################################
-    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
-    ##########################################################################
-
-    # Extract Traffic
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_HOST: ${PLATFORM_DB_HOST}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PORT: ${PLATFORM_DB_PORT}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_NAME: ${LICENSING_DATABASE}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__SQL: "
-    SELECT
-        q.name QuoteName,
-        q.created_by Created_By,
-        usr.fname FirstName,
-        usr.lname LastName,
-        usr.email EmailId,
-        q.created_on Created_On,
-        qs.status Status,
-        q.completed_page Page_Completed,
-        GROUP_CONCAT(qqa.answer) Organization_name,
-        GROUP_CONCAT(a.description) Organization_Type,
-        c.name Campaign_name,
-        c.id Campaign_id,
-        cq.org_name_key campaign_Org_id,
-        GROUP_CONCAT(fg.name) Flag_details,
-        GROUP_CONCAT(f.name) Flag_name,
-        adf.field_name Agreement_Detail_Flag
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_question_answers qqa ON qqa.quote_id = q.id
-            INNER JOIN
-        ${LICENSING_DATABASE}.question_answers qa ON qa.id = qqa.question_answer_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.questions que ON que.id = qa.question_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_status qs ON qs.id = q.quote_status_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.license_categories lc ON lc.id = q.license_category_id
-            INNER JOIN
-        ${USER_MANAGEMENT_DATABASE}.User usr ON usr.user_name = q.created_by
-            INNER JOIN
-        ${USER_MANAGEMENT_DATABASE}.Organization org ON org.id = usr.organization_id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.campaign_quotes cq ON cq.quote_id = q.id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.campaigns c ON c.id = cq.campaign_id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.answers a ON a.id = qa.answer_id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.flag_groups fg ON fg.id = qf.flag_group_id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.flags f ON f.id = fg.flag_id
-            LEFT JOIN
-        ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
-    WHERE
-        lc.category = 'Provisional'
-            AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-            'datalabs',
-            'acmegbtaxed',
-            'acmegbnontax',
-            'rptestuser2',
-            'yogeshama',
-            'sdhamale',
-            'shahrukh-ama',
-            'amitivl',
-            'kyleddahl',
-            'dcasaubo',
-            'amitinfovision',
-            'kcallagh',
-            'kcardina',
-            'vprieto',
-            'TommyT')
-            AND q.created_on >= '2022-09-14'
-            AND que.description IN ('What is the name of the organization licensing CPT content?' , 'What is your organization type?')
-    GROUP BY q.name
-    ORDER BY created_on DESC;
-    "
-
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_FILES: licensing_traffic.csv
-
-
-    # Email Traffic Report
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_FILES: 'licensing_traffic.csv'
-
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO_ADDRESSES: 'datalabs@ama-assn.org,Denis.Casaubon@ama-assn.org,Kyle.Dahl@ama-assn.org,Gerri.Boyle@ama-assn.org,Daniel.Casey@ama-assn.org,Ravin.Bandara@ama-assn.org'
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__SUBJECT: 'Self-Service Licensing Traffic Report - %Y-%m-%d'
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__MESSAGE: '
-Hello,
-This is an automated email from DataLabs.
-Attached is the latest Self-Service Licensing traffic data.
-'
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__FILES: 'Intelligent_Platform_Traffic_Report_%Y-%m-%d.csv'
-
-
-    # Extract Traffic
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_HOST: ${PLATFORM_DB_HOST}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_PORT: ${PLATFORM_DB_PORT}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_NAME: ${LICENSING_DATABASE}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__SQL: "
-SELECT A, CAST(sum(count1) as NCHAR) as applicants_signed_in, CAST(sum(count2) as NCHAR) as applications_started, CAST(sum(count3) as NCHAR) as applications_saved, CAST(sum(count4) as NCHAR) as applications_completed_sent_to_portal, CAST(sum(count5) as NCHAR) as applications_completed_exempt, CAST(sum(count6) as NCHAR) as applicants_international, CAST(sum(count7) as NCHAR) as applicants_distribution, CAST(sum(count8) as NCHAR) as lab_applications_pre_tax_flagged, CAST(sum(count9) as NCHAR) as lab_applications_post_tax_flagged, CAST(sum(count10) as NCHAR) as individual_users_under_26_flagged, CAST(sum(count11) as NCHAR) as other_flagged_applications, current_timestamp() as data_collection_date from (
-    SELECT
-        'A' as A, COALESCE(COUNT(*), 0) AS count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${USER_MANAGEMENT_DATABASE}.User
-    WHERE
-        latest_login_date > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-            AND user_name NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, COALESCE(COUNT(*), 0) as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes
-    WHERE
-        created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, COALESCE(COUNT(*), 0) as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes
-    WHERE
-        saved IS NOT NULL
-            AND created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, COALESCE(COUNT(*), 0) AS count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes
-    WHERE
-        rp_contract_id IS NOT NULL
-            AND rp_licensee_id IS NOT NULL
-            AND created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, COALESCE(COUNT(*), 0) AS count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes
-    WHERE
-        quote_status_id = 4
-            AND rp_contract_id IS NULL
-            AND rp_licensee_id IS NULL
-            AND created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, COALESCE(COUNT(*), 0) AS count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.agreement_detail_flags adf ON q.id = adf.quote_id
-    WHERE
-        created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-            AND adf.field_name IN ('org_state_id' , 'org_country_id')
-            AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, COALESCE(COUNT(*), 0) AS count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
-    WHERE
-        qqa.question_answer_id = (SELECT
-                id
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: licensing_applicant_data.csv
+    EXTRACT_TRAFFIC:
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${LICENSING_DATABASE}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        SQL: "
+            SELECT
+                q.name QuoteName,
+                q.created_by Created_By,
+                usr.fname FirstName,
+                usr.lname LastName,
+                usr.email EmailId,
+                q.created_on Created_On,
+                qs.status Status,
+                q.completed_page Page_Completed,
+                GROUP_CONCAT(qqa.answer) Organization_name,
+                GROUP_CONCAT(a.description) Organization_Type,
+                c.name Campaign_name,
+                c.id Campaign_id,
+                cq.org_name_key campaign_Org_id,
+                GROUP_CONCAT(fg.name) Flag_details,
+                GROUP_CONCAT(f.name) Flag_name,
+                adf.field_name Agreement_Detail_Flag
             FROM
-                ${LICENSING_DATABASE}.question_answers
+                ${LICENSING_DATABASE}.quotes q
+                    INNER JOIN
+                ${LICENSING_DATABASE}.quote_question_answers qqa ON qqa.quote_id = q.id
+                    INNER JOIN
+                ${LICENSING_DATABASE}.question_answers qa ON qa.id = qqa.question_answer_id
+                    INNER JOIN
+                ${LICENSING_DATABASE}.questions que ON que.id = qa.question_id
+                    INNER JOIN
+                ${LICENSING_DATABASE}.quote_status qs ON qs.id = q.quote_status_id
+                    INNER JOIN
+                ${LICENSING_DATABASE}.license_categories lc ON lc.id = q.license_category_id
+                    INNER JOIN
+                ${USER_MANAGEMENT_DATABASE}.User usr ON usr.user_name = q.created_by
+                    INNER JOIN
+                ${USER_MANAGEMENT_DATABASE}.Organization org ON org.id = usr.organization_id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.campaign_quotes cq ON cq.quote_id = q.id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.campaigns c ON c.id = cq.campaign_id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.answers a ON a.id = qa.answer_id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.flag_groups fg ON fg.id = qf.flag_group_id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.flags f ON f.id = fg.flag_id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
             WHERE
-                question_id = (SELECT
-                        id
-                    FROM
-                        ${LICENSING_DATABASE}.questions
-                    WHERE
-                        description = 'Do either of the following apply in your use case?'
-                            AND group_id = 1)
-                    AND answer_id = (SELECT
-                        id
-                    FROM
-                        ${LICENSING_DATABASE}.answers
-                    WHERE
-                        description = 'Yes'))
-            AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, COALESCE(COUNT(*), 0) AS count8, 0 as count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
-    WHERE
-        qqa.question_answer_id = (SELECT
-                id
-            FROM
-                ${LICENSING_DATABASE}.question_answers
-            WHERE
-                question_id = (SELECT
-                        id
-                    FROM
-                        ${LICENSING_DATABASE}.questions
-                    WHERE
-                        description = 'What is your organization type?'
-                            AND group_id = 1)
-                    AND answer_id = (SELECT
-                        id
-                    FROM
-                        ${LICENSING_DATABASE}.answers
-                    WHERE
-                        description = 'Laboratory (unaffiliated with hospital)'))
-            AND qf.flag_group_id = (SELECT
-                id
-            FROM
-                ${LICENSING_DATABASE}.flag_groups
-            WHERE
-                name = 'Delayed Major FL - Lab Metrics > 11999026')
-            AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, COALESCE(COUNT(*), 0) AS count9, 0 as count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
-            INNER JOIN
-        ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
-    WHERE
-        qqa.question_answer_id = (SELECT
-                id
-            FROM
-                ${LICENSING_DATABASE}.question_answers
-            WHERE
-                question_id = (SELECT
-                        id
-                    FROM
-                        ${LICENSING_DATABASE}.questions
-                    WHERE
-                        description = 'What is your organization type?'
-                            AND group_id = 1)
-                    AND answer_id = (SELECT
-                        id
-                    FROM
-                        ${LICENSING_DATABASE}.answers
-                    WHERE
-                        description = 'Laboratory (unaffiliated with hospital)'))
-            AND adf.field_name = 'Lab amount post tax is greater than 5000'
-            AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, COALESCE(COUNT(*), 0) AS count10, 0 as count11
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
-    WHERE
-        qf.flag_group_id = (SELECT
-                id
-            FROM
-                ${LICENSING_DATABASE}.flag_groups
-            WHERE
-                name = 'FL - IU < 26 Users more than 25 PMS')
-            AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT')
-    UNION ALL SELECT
-        'A' as A, 0 as count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, COALESCE(COUNT(*), 0) AS count11
-    FROM
-        ${LICENSING_DATABASE}.quotes q
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_question_answers qqa ON q.id = qqa.quote_id
-            INNER JOIN
-        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
-    WHERE
-        qf.flag_group_id IN (SELECT
-                id
-            FROM
-                ${LICENSING_DATABASE}.flag_groups
-            WHERE
-                name IN ('Delayed Major FL - AMA Content used for research' , 'Delayed Major FL - Other Third Party'))
-            AND q.created_on > DATE_SUB(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '-05:00'),
-            INTERVAL 7 DAY)
-        AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                'datalabs',
-                'acmegbtaxed',
-                'acmegbnontax',
-                'rptestuser2',
-                'yogeshama',
-                'sdhamale',
-                'shahrukh-ama',
-                'amitivl',
-                'kyleddahl',
-                'dcasaubo',
-                'amitinfovision',
-                'kcallagh',
-                'kcardina',
-                'vprieto',
-                'TommyT') ) as abc group by A;
-    "
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_TRAFFIC__EXTRACT_COUNTS__CACHE_OUTPUT_FILES: licensing_applicant_data.csv
+                lc.category = 'Provisional'
+                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+                    'datalabs',
+                    'acmegbtaxed',
+                    'acmegbnontax',
+                    'rptestuser2',
+                    'yogeshama',
+                    'sdhamale',
+                    'shahrukh-ama',
+                    'amitivl',
+                    'kyleddahl',
+                    'dcasaubo',
+                    'amitinfovision',
+                    'kcallagh',
+                    'kcardina',
+                    'vprieto',
+                    'TommyT')
+                    AND q.created_on >= '2022-09-14'
+                    AND que.description IN ('What is the name of the organization licensing CPT content?' , 'What is your organization type?')
+            GROUP BY q.name
+            ORDER BY created_on DESC;
+        "
 
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: licensing_traffic.csv
+    LOAD_COUNTS_TABLE:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: licensing_applicant_data.csv
 
-    # Load Counts
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__CACHE_INPUT_FILES: 'licensing_applicant_data.csv'
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${USER_MANAGEMENT_DATABASE}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.TrafficCounts
+        IGNORE_COLUMNS: id, A
+    SEND_APPLICANT_DATA:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: licensing_applicant_data.csv
 
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_HOST: ${PLATFORM_DB_HOST}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_PORT: ${PLATFORM_DB_PORT}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_NAME: ${USER_MANAGEMENT_DATABASE}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__MODEL_CLASSES: 'datalabs.model.intelligent_platform.licensing.TrafficCounts'
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__IGNORE_COLUMNS: id, A
+        FILES: Intelligent_Platform_Applicant_Data_%Y-%m-%d.csv
+        MESSAGE: "
+            Hello, This is an automated email from DataLabs. Attached is the
+            latest Self-Service Licensing applicant data.
+        "
+        SUBJECT: Self-Service Licensing Applicant Data - %Y-%m-%d
+        TO_ADDRESSES: datalabs@ama-assn.org
+    SEND_TRAFFIC_REPORT:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: licensing_traffic.csv
 
-
-    # Email Traffic Report
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__CACHE_INPUT_FILES: 'licensing_applicant_data.csv'
-
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__TO_ADDRESSES: 'datalabs@ama-assn.org,Denis.Casaubon@ama-assn.org,Kyle.Dahl@ama-assn.org,Gerri.Boyle@ama-assn.org,Daniel.Casey@ama-assn.org,Ravin.Bandara@ama-assn.org'
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__SUBJECT: 'Self-Service Licensing Applicant Data - %Y-%m-%d'
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__MESSAGE: '
-Hello,
-This is an automated email from DataLabs.
-Attached is the latest Self-Service Licensing applicant data.
-'
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__FILES: 'Intelligent_Platform_Applicant_Data_%Y-%m-%d.csv'
+        FILES: Intelligent_Platform_Traffic_Report_%Y-%m-%d.csv
+        MESSAGE: "
+            Hello, This is an automated email from DataLabs. Attached is the
+            latest Self-Service Licensing traffic data.
+        "
+        SUBJECT: Self-Service Licensing Traffic Report - %Y-%m-%d
+        TO_ADDRESSES: datalabs@ama-assn.org
