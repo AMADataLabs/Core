@@ -6,11 +6,11 @@ LICENSE_MOVEMENT:
         APP_STACK: OneView
 
 
-        DATABASE_HOST: rdbt1511.ama-assn.org
-        DATABASE_NAME: test_100_pct
-        DATABASE_PASSWORD: '{{database_password}}'
-        DATABASE_PORT: '22035'
-        DATABASE_USERNAME: dlabs
+        AIMS_HOST: rdbt1511.ama-assn.org
+        AIMS_NAME: test_100_pct
+        AIMS_PASSWORD: '{{database_password}}'
+        AIMS_PORT: '22035'
+        AIMS_USERNAME: dlabs
         DRIVER: com.informix.jdbc.IfxDriver
         DRIVER_TYPE: informix-sqli
 
@@ -68,11 +68,11 @@ LICENSE_MOVEMENT:
             STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
-        DATABASE_HOST: ${DATABASE_HOST}
-        DATABASE_NAME: ${DATABASE_NAME}
-        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DATABASE_PORT: ${DATABASE_PORT}
-        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        AIMS_HOST: ${AIMS_HOST}
+        AIMS_NAME: ${AIMS_NAME}
+        AIMS_PASSWORD: ${AIMS_PASSWORD}
+        AIMS_PORT: ${AIMS_PORT}
+        AIMS_USERNAME: ${AIMS_USERNAME}
         DRIVER: ${DRIVER}
         DRIVER_TYPE: ${DRIVER_TYPE}
         JAR_PATH: ${JAR_PATH}
@@ -132,11 +132,11 @@ LICENSE_MOVEMENT:
             STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
 
         TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
-        DATABASE_HOST: ${DATABASE_HOST}
-        DATABASE_NAME: ${DATABASE_NAME}
-        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DATABASE_PORT: ${DATABASE_PORT}
-        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        AIMS_HOST: ${AIMS_HOST}
+        AIMS_NAME: ${AIMS_NAME}
+        AIMS_PASSWORD: ${AIMS_PASSWORD}
+        AIMS_PORT: ${AIMS_PORT}
+        AIMS_USERNAME: ${AIMS_USERNAME}
         DRIVER: ${DRIVER}
         DRIVER_TYPE: ${DRIVER_TYPE}
         JAR_PATH: ${JAR_PATH}
