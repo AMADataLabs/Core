@@ -64,6 +64,7 @@ public class SqlParametricExtractorTask extends SqlExtractorTask {
     @Override
     byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
         String resolvedQuery = SqlParametricExtractorTask.resolveQuery(query, this.sqlParameters);
+        LOGGER.debug("Resolved parametric query: " + resolvedQuery);
 
         return super.readQuery(resolvedQuery, connection);
     }
