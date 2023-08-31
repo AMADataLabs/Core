@@ -21,7 +21,7 @@ CERNER_REPORT:
     DAG:
         LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-Cerner'
         DAG_CLASS: 'datalabs.etl.dag.customer_intelligence.cerner.DAG'
-         DAG_STATE:
+        DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
             LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
