@@ -32,6 +32,9 @@ class SMTPFileLoaderTask(FileLoaderTask):
     def _get_files(self):
         return [file.strip() for file in self._parameters.files.split(',')]
 
+    def _load_file(self, data, file):
+        pass
+
     def _load_files(self, data, files):
         attachments = [Attachment(name=file, data=data) for file, data in zip(files, data)]
 

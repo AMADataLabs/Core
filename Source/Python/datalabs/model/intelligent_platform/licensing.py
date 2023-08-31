@@ -53,3 +53,4 @@ class Groups(Base):
     valid_from = sa.Column(sa.String, nullable=False)
     valid_to = sa.Column(sa.String, nullable=False)
     renewal_reminders = sa.Column(sa.Integer, nullable=False)
+    quote_id = sa.Column(sa.Integer, nullable=False)
