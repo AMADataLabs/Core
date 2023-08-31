@@ -45,9 +45,9 @@ class QLDBLoaderTask(Task):
         ]
 
     def _get_qldb_client(self):
-        retry_config = RetryConfig(retry_limit=3), json.loads(self._data[0])
+        retry_config = RetryConfig(retry_limit=3)
 
-        return QldbDriver(self._parameters.ledger, retry_config=retry_config[0])
+        return QldbDriver(self._parameters.ledger, retry_config=retry_config)
 
     @classmethod
     def _add_hash_to_documents(cls, documents):
