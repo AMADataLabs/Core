@@ -27,12 +27,16 @@ class PersonTransformerTask(TransformerTask):
     def _parse_metadata(self, metadata):
         json_metadata = json.loads(metadata)
 
-        return {list(d[1].keys())[0]: {"index": d[0], "seperator": list(d[1].values())[0]}
-                for d in enumerate(json_metadata)}
+        return {
+            list(d[1].keys())[0]: {"index": d[0], "seperator": list(d[1].values())[0]}
+                for d in enumerate(json_metadata)
+                }
 
     def _preprocess(self, dataset):
-        dataset = [self._convert_columns_to_lower_case(
-            data) for data in dataset]
+        dataset = [
+            self._convert_columns_to_lower_case(
+            data) for data in dataset
+            ]
 
         return dataset
 
@@ -46,15 +50,20 @@ class PersonTransformerTask(TransformerTask):
         race_ethnicity, medical_education_num, person_type, party_ids, entity_ids, person_details, person_name = dataset
         ids = pandas.merge(entity_ids, party_ids, on='party_id')
         person_data = pandas.merge(
-            ids, medical_education_num, left_on='me', right_on='medical_education_number', how='right')
+            ids, medical_education_num, left_on='me', right_on='medical_education_number', how='right'
+            )
         person_data = pandas.merge(
-            person_data, person_type, on='entity_id', how='left').drop_duplicates()
+            person_data, person_type, on='entity_id', how='left'
+            ).drop_duplicates()
         person_data = pandas.merge(
-            person_data, person_name, on='party_id', how='left').drop_duplicates()
+            person_data, person_name, on='party_id', how='left'
+            ).drop_duplicates()
         person_data = pandas.merge(
-            person_data, race_ethnicity, on='medical_education_number', how='left')
+            person_data, race_ethnicity, on='medical_education_number', how='left'
+            )
         person_data = pandas.merge(
-            person_data, person_details, on='party_id', how='left').drop_duplicates()
+            person_data, person_details, on='party_id', how='left'
+            ).drop_duplicates()
 
         return [person_data]
 

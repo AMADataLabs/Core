@@ -16,8 +16,11 @@ class TransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         LOGGER.debug(self._data)
         metadata = self._parse_metadata(self._parameters.metadata)
         data = self._parse_input(self._data, metadata)
+
         preprocessed_data = self._preprocess(data)
+
         entity = self._create_entity(preprocessed_data)
+
         postprocessed_data = self._postprocess(entity)
 
         return self._pack(postprocessed_data)
