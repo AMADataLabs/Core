@@ -19,6 +19,8 @@ main() {
 
     download_dependency_jars
 
+    create_package_text
+
     copy_extra_files
 
     if [[ $NO_ZIP == "False" ]]; then
@@ -152,6 +154,13 @@ download_dependency_jars() {
     do
         download_and_copy_jar $dependency
     done < Bundle/dependencies.txt
+}
+
+
+create_package_text() {
+    echo "Running package ${PACKAGE} version ${VERSION}." > package.txt
+
+    EXTRA_FILES+=(package.txt)
 }
 
 

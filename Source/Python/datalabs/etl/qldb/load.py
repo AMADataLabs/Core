@@ -45,9 +45,9 @@ class QLDBLoaderTask(Task):
         ]
 
     def _get_qldb_client(self):
-        retry_config = RetryConfig(retry_limit=3), json.loads(self._data[0])
+        retry_config = RetryConfig(retry_limit=3)
 
-        return QldbDriver(self._parameters.ledger, retry_config=retry_config[0])
+        return QldbDriver(self._parameters.ledger, retry_config=retry_config)
 
     @classmethod
     def _add_hash_to_documents(cls, documents):
@@ -186,12 +186,16 @@ class QLDBLoaderTask(Task):
     def _update_documents_in_qldb(self, updated_documents):
         LOGGER.info("Updating %d documents...", len(updated_documents))
         for index, document in enumerate(updated_documents):
-            sql = f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p. {self._parameters.primary_key} = ?"
+            sql = f"UPDATE {self._parameters.table} AS p SET p = ? WHERE p.{self._parameters.primary_key} = ?"
             if index % 40 == 0:
                 qldb = self._get_qldb_client()
 
             qldb.execute_lambda(
-                partial(self._execute_statement, statement=sql, parameters=document[self._parameters.primary_key])
+                partial(
+                    self._execute_statement,
+                    statement=sql,
+                    parameters=[document, document[self._parameters.primary_key]]
+                )
             )
 
     @classmethod

@@ -48,7 +48,7 @@ class TaskDataCacheParameters:
         for key, value in task_parameters.items():
             cache_parameters.update(cls._extract_cache_parameter(direction, key, value))
 
-        if cache_parameters:
+        if cache_parameters and "execution_time" in task_parameters:
             cache_parameters["execution_time"] = task_parameters["execution_time"]
 
         return cache_parameters

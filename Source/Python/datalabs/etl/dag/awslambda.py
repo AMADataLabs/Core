@@ -40,6 +40,12 @@ class ProcessorTaskWrapper(
 
         return task_parameters
 
+    def _get_task_input_data(self):
+        return None
+
+    def _put_task_output_data(self, data):
+        pass
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 
