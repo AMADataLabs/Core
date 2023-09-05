@@ -6,10 +6,10 @@ PLATFORM_USER_TOKENS:
 
         PLATFORM_DB_BACKEND: mysql+pymysql
         PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
-        PLATFORM_DB_NAME: usermgmt
-        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
         PLATFORM_DB_PORT: '3306'
         PLATFORM_DB_USERNAME: platform
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_NAME: usermgmt
 
         S3_BASE_PATH: AMA/IntelligentPlatform
         S3_CACHE_CLASS: datalabs.etl.dag.cache.s3.S3TaskDataCache
