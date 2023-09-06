@@ -67,7 +67,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         updated_date_to = parameters.get("updated_date_to") if parameters.get("updated_date_to") else None
 
         if max_results < 1:
-            raise InvalidRequest("Results must be greater 0.")
+            raise InvalidRequest("Results must be greater than 0.")
 
         if index < 0:
             raise InvalidRequest("Index must be 0 or greater.")
