@@ -27,7 +27,6 @@ class TaskDataCache(ABC):
 class TaskDataCacheParameters:
     @classmethod
     def extract(cls, task_parameters: dict) -> (dict, dict):
-        task_parameters = task_parameters if task_parameters else {}
         cache_parameters = {}
 
         cache_parameters[CacheDirection.INPUT] = cls._get_cache_parameters(
