@@ -1,4 +1,4 @@
-OPTION_ID_MAPPING = {
+OPTION_MAP = {
     "1": "yesno",
     "2": "pronoun",
     "3": "race",
@@ -22,7 +22,7 @@ OPTION_ID_MAPPING = {
     "23": "gender"
 }
 
-PROFILE_OPTION_MAPPING = {
+OPTION_VALUES_MAP = {
     "yesno": {
         "1": "Yes",
         "0": "No"

@@ -8,7 +8,7 @@ from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEnd
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
-from datalabs.access.vericre.api.profileOptionsData import OPTION_ID_MAPPING, PROFILE_OPTION_MAPPING
+from   datalabs.access.vericre.api.option import OPTION_MAP, OPTION_VALUES_MAP
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -192,11 +192,12 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return response_result
 
-    def _create_record_item(self, record):
+    @classmethod
+    def _create_record_item(cls, record):
         record_values = record['values']
 
-        if isinstance(record['option'], int) and str(record['option']) in OPTION_ID_MAPPING.keys():
-            record_values = self._convert_option_values(OPTION_ID_MAPPING[str(record['option'])], record['values'])
+        if isinstance(record['option'], int) and str(record['option']) in OPTION_MAP.keys():
+            record_values = cls._convert_option_values(OPTION_MAP[str(record['option'])], record['values'])
 
         return dict(
             field_identifier = record['field_identifier'],
@@ -210,25 +211,26 @@ class BaseProfileEndpointTask(APIEndpointTask):
             values = record_values
         )
 
-    def _convert_option_values(self, option_key, values):
-        phased_values = []
+    @classmethod
+    def _convert_option_values(cls, option_key, values):
+        option_value_names = []
 
         for value in values:
             value = value.strip()
-            option_data = PROFILE_OPTION_MAPPING[option_key]
+            option_values = OPTION_VALUES_MAP[option_key]
 
-            phased_values = self._phase_values(option_data, value, phased_values)
+            option_value_names = cls._get_option_value_name(option_values, value, option_value_names)
 
-        return phased_values
+        return option_value_names
 
     @classmethod
-    def _phase_values(cls, option_data, value, phased_values):
-        if value in option_data.keys():
-            phased_values.append(option_data[value])
+    def _get_option_value_name(cls, option_values, value, option_value_names):
+        if value in option_values.keys():
+            option_value_names.append(option_values[value])
         else:
-            phased_values.append(value)
+            option_value_names.append(value)
 
-        return phased_values
+        return option_value_names
 
     @classmethod
     def _generate_response_body(cls, response_result):
