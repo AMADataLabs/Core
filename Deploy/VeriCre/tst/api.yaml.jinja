@@ -11,15 +11,23 @@ VERICRE_API:
         DATABASE_USERNAME:  vericreadmin
         DATABASE_PASSWORD:  '{{database_password}}'
 
+        PROFILE_API_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
+        PROFILE_API_SECRET: {{profile_api_secret}}
+        PROFILE_API_ENVIRONMENT: 'wsexttest'
+
+        CAQH_USERNAME: 'DeepakA123'
+        CAQH_PASSWORD: '{{caqh_password}}'
+        CAQH_ORG_ID: '6166'
+
     ROUTE:
-        PHYSICIANS_SEARCH: '/physicians/search'
-        PROFILES_LOOKUP:   '/profiles/lookup'
-        PROFILES:          '/profiles'
-        PROFILE:           '/profile/*'
-        PROFILE_DOCUMENTS: '/profile/*/documents'
-        PROFILE_CAQH_PDF:  '/profile/*/CAQH/pdf'
-        PROFILE_AMA_PDF:   '/profile/*/AMA/pdf'
-        DEFAULT:           '/*'
+        PHYSICIANS_SEARCH: '/profile_api/physicians/search'
+        PROFILES_LOOKUP:   '/profile_api/profiles/lookup'
+        PROFILES:          '/profile_api/profiles'
+        PROFILE:           '/profile_api/profile/*'
+        PROFILE_DOCUMENTS: '/profile_api/profile/*/documents'
+        PROFILE_CAQH_PDF:  '/profile_api/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF:   '/profile_api/profile/*/AMA/pdf'
+        DEFAULT:           '/profile_api/*'
 
     PHYSICIANS_SEARCH:
         TASK_CLASS:  'datalabs.access.vericre.api.physician.PhysiciansSearchEndpointTask'
@@ -78,9 +86,9 @@ VERICRE_API:
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
-        USERNAME: 'DeepakA123'
-        PASSWORD: '{{caqh_pdf_password}}'
-        ORG_ID: '6166'
+        USERNAME: ${CAQH_USERNAME}
+        PASSWORD: ${CAQH_PASSWORD}
+        ORG_ID: ${CAQH_ORG_ID}
         APPLICATION_TYPE: '100000001'
         DOMAIN: 'https://proview-demo.nonprod.caqh.org'
         PROVIDER_API: 'DocumentAPI/api/providerdocs/download'
@@ -95,9 +103,9 @@ VERICRE_API:
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
-        CLIENT_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
-        CLIENT_SECRET: '{{client_secret}}'
-        CLIENT_ENV: 'wsexttest'
+        CLIENT_ID: ${PROFILE_API_ID}
+        CLIENT_SECRET: ${PROFILE_API_SECRET}
+        CLIENT_ENV: ${PROFILE_API_ENVIRONMENT}
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+ENVIRONMENTS=(dev tst prd)
+
+
+# bash --rcfile assume_role.rc -i ${SCRIPT_BASE_PATH}/get-deployed-dags --environment dev
+
+main() {
+    for environment in ${ENVIRONMENTS[@]}; do
+        schedule_path=$(realpath $SCRIPT_BASE_PATH/../Deploy/Scheduler/$environment/schedule.csv)
+
+        setup_aws_cli $environment
+
+        source assume_role.rc
+
+        echo "*** $environment ***"
+
+        generate_report $environment
+
+        echo
+    done
+}
+
+
+generate_report() {
+    environment=$1
+
+    ${RUN} -c "
+from datalabs.tool.dag.report import generate_dag_run_report
+
+generate_dag_run_report('$environment', '$schedule_path')
+    "
+
+}
+
+
+setup_aws_cli() {
+    environment=$1
+
+    if [ $environment == "itg" ]; then
+        environment=prd
+    fi
+
+    ${SCRIPT_BASE_PATH}/apigw_assume_role.sh $environment | grep source > assume_role.rc
+}
+
+
+main "$@"
