@@ -9,7 +9,6 @@ from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 from   zeep import Client
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError, InvalidRequest
-from   datalabs.access.orm import Database
 from   datalabs.access.vericre.api.wsdl import ENTERPRISE_SEARCH_WSDL
 from   datalabs.model.vericre.api import User
 from   datalabs.parameter import add_schema

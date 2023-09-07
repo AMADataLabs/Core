@@ -1,12 +1,14 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
+import json
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
+from datalabs.access.vericre.api.profileOptionsData import OPTION_ID_MAPPING, PROFILE_OPTION_MAPPING
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -86,7 +88,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
                     else \'Physician Provided\'
                 end as source_tag,
                 ff.type,
-                ff.values
+                ff.values,
+                ff.option
             from "user" u
             join physician p on u.id = p."user"
             join form f on p.form = f.id
@@ -189,8 +192,12 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return response_result
 
-    @classmethod
-    def _create_record_item(cls, record):
+    def _create_record_item(self, record):
+        record_values = record['values']
+
+        if isinstance(record['option'], int) and str(record['option']) in OPTION_ID_MAPPING.keys():
+            record_values = self._convert_option_values(OPTION_ID_MAPPING[str(record['option'])], record['values'])
+
         return dict(
             field_identifier = record['field_identifier'],
             is_authoritative = record['is_authoritative'],
@@ -200,8 +207,28 @@ class BaseProfileEndpointTask(APIEndpointTask):
             source_key = record['source_key'],
             source_tag = record['source_tag'],
             type = record['type'],
-            values = record['values']
+            values = record_values
         )
+
+    def _convert_option_values(self, option_key, values):
+        phased_values = []
+
+        for value in values:
+            value = value.strip()
+            option_data = PROFILE_OPTION_MAPPING[option_key]
+
+            phased_values = self._phase_values(option_data, value, phased_values)
+
+        return phased_values
+
+    @classmethod
+    def _phase_values(cls, option_data, value, phased_values):
+        if value in option_data.keys():
+            phased_values.append(option_data[value])
+        else:
+            phased_values.append(value)
+
+        return phased_values
 
     @classmethod
     def _generate_response_body(cls, response_result):
