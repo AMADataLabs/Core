@@ -25,6 +25,10 @@ class TransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return self._pack(postprocessed_data)
 
+    @classmethod
+    def _parse_metadata(cls, metadata):
+        pass
+
     def _parse_input(self, dataset, metadata):
         return [self._csv_to_dataframe(dataset[i['index']], sep=i['seperator']) for i in metadata.values()]
 
