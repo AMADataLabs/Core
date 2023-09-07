@@ -15,37 +15,41 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class OpensearchLoaderParameters:
+class OpenSearchLoaderParameters:
     table: str = None
     execution_time: str = None
     index_name: str = None
 
 
 class OpensearchLoaderTask(Task):
-    PARAMETER_CLASS = OpensearchLoaderParameters
+    PARAMETER_CLASS = OpenSearchLoaderParameters
 
     def run(self):
+
         LOGGER.debug('Input data: \n%s', self._data)
-        json_data = json.loads(self._data[0])
+        knowledge_base_data = json.loads(self._data[0])
+
         with AWSClient("opensearch") as opensearch_client:
+
             if self._knowledge_base_index_does_not_exists(opensearch_client, 'knowledge-base'):
                 self._create_index(opensearch_client, 'knowledge_base')
-            self._load_knowledge_base_data(json_data, opensearch_client)
+            self._load_knowledge_base_data(knowledge_base_data, opensearch_client)
 
     @classmethod
     def _knowledge_base_index_does_not_exists(cls, opensearch_client, index_name):
+
+        index_does_not_exist = True
         existing_indices = opensearch_client.cat.indices()
         if index_name in existing_indices:
-            return False
-        return True
+            index_does_not_exist = False
+
+        return index_does_not_exist
 
     @classmethod
     def _load_knowledge_base_data(cls, json_data, opensearch_client):
+
         for json_object in json_data:
-            opensearch_client.index(
-                index='knowledge-base',
-                body=json_object
-            )
+            opensearch_client.index(index='knowledge-base', body=json_object)
 
     @classmethod
     def _create_index(cls, opensearch_client, index_name):

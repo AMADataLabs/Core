@@ -1,7 +1,7 @@
 """SNOMED CPT Transformer"""
 import logging
-
 import pandas
+
 from datalabs.task import Task
 
 logging.basicConfig()
