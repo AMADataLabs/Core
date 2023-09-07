@@ -1,7 +1,6 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
-import json
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
@@ -196,7 +195,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _create_record_item(cls, record):
         record_values = record['values']
 
-        if isinstance(record['option'], int) and str(record['option']) in OPTION_MAP.keys():
+        if isinstance(record['option'], int) and str(record['option']) in OPTION_MAP:
             record_values = cls._convert_option_values(OPTION_MAP[str(record['option'])], record['values'])
 
         return dict(
@@ -225,7 +224,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_option_value_name(cls, option_values, value, option_value_names):
-        if value in option_values.keys():
+        if value in option_values:
             option_value_names.append(option_values[value])
         else:
             option_value_names.append(value)
