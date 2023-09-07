@@ -200,15 +200,15 @@ class BaseProfileEndpointTask(APIEndpointTask):
             record_values = cls._convert_option_values(OPTION_MAP[str(record['option'])], record['values'])
 
         return dict(
-            field_identifier = record['field_identifier'],
-            is_authoritative = record['is_authoritative'],
-            is_source = record['is_source'],
-            name = record['name'],
-            read_only = record['read_only'],
-            source_key = record['source_key'],
-            source_tag = record['source_tag'],
-            type = record['type'],
-            values = record_values
+            field_identifier=record['field_identifier'],
+            is_authoritative=record['is_authoritative'],
+            is_source=record['is_source'],
+            name=record['name'],
+            read_only=record['read_only'],
+            source_key=record['source_key'],
+            source_tag=record['source_tag'],
+            type=record['type'],
+            values=record_values
         )
 
     @classmethod
