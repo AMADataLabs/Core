@@ -11,11 +11,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class QueryObjectDictionary:
-    def add_item(self, item_name, item_value):
-        self.__setattr__(item_name, item_value)
-
-
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
@@ -84,8 +79,8 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_query_object(cls, query, search_parameters):
 
-        search_string_object = QueryObjectDictionary()
-        query_object = QueryObjectDictionary()
+        search_string_object = dict()
+        query_object = dict()
         filters_array = []
 
         if search_parameters.sections is not None and len(search_parameters.sections) > 0:
@@ -96,13 +91,13 @@ class MapSearchEndpointTask(APIEndpointTask):
         updated_on_range_object = cls._populate_updated_on_filters(search_parameters)
 
         if updated_on_range_object is not None:
-            filter_object = QueryObjectDictionary()
-            filter_object.add_item("range", updated_on_range_object)
+            filter_object = dict()
+            filter_object.range = updated_on_range_object
             filters_array.append(filter_object)
 
-        search_string_object.add_item("from", 0)
-        search_string_object.add_item("size", 30)
-        boolean_object = QueryObjectDictionary()
+        search_string_object['from'] = 0
+        search_string_object['size'] = 30
+        boolean_object = dict()
         boolean_object.must = cls._get_multi_match_object(query)
         if len(filters_array) > 0:
             boolean_object.filter = filters_array
@@ -127,9 +122,9 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_section_filter_object(cls, sections):
 
-        section_terms_object = QueryObjectDictionary()
+        section_terms_object = dict()
         section_terms_object.section = sections
-        filter_object = QueryObjectDictionary()
+        filter_object = dict()
         filter_object.terms = section_terms_object
 
         return filter_object
@@ -137,9 +132,9 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_subsection_filter_object(cls, subsections):
 
-        subsection_terms_object = QueryObjectDictionary()
+        subsection_terms_object = dict()
         subsection_terms_object.subsection = subsections
-        filter_object = QueryObjectDictionary()
+        filter_object = dict()
         filter_object.terms = subsection_terms_object
 
         return filter_object
@@ -149,18 +144,18 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         updated_date_object = None
         if search_parameters.updated_date_from is not None and len(search_parameters.updated_date_from) > 0:
-            updated_date_object = QueryObjectDictionary()
+            updated_date_object = dict()
             updated_date_object.gte = search_parameters.updated_date_from
         if search_parameters.updated_date_to is not None and len(search_parameters.updated_date_to) > 0:
             if updated_date_object is None:
-                updated_date_object = QueryObjectDictionary()
+                updated_date_object = dict()
             updated_date_object.lte = search_parameters.updated_date_to
         return updated_date_object
 
     @classmethod
     def _get_multi_match_object(cls, query):
 
-        multi_match_object = QueryObjectDictionary()
+        multi_match_object = dict()
         if query is not None:
             multi_match_object.query = query
         multi_match_object.fields = [
@@ -177,6 +172,6 @@ class MapSearchEndpointTask(APIEndpointTask):
         multi_match_object.minimum_should_match = 1
         multi_match_object.type = "best_fields"
         multi_match_object.lenient = True
-        must_object = QueryObjectDictionary()
+        must_object = dict()
         must_object.multi_match = multi_match_object
         return must_object
