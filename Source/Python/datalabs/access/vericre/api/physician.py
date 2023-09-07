@@ -126,12 +126,12 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_physician(cls, physician):
         physician_data = dict(
-                entity_id=physician.entityId,
-                first_name=physician.legalFirstName,
-                last_name=physician.legalLastName,
-                date_of_birth=cls._get_date(physician.birthDate),
-                npi_number=physician.npiNumber.NPI[0].npiNumber
-            )
+            entity_id=physician.entityId,
+            first_name=physician.legalFirstName,
+            last_name=physician.legalLastName,
+            date_of_birth=cls._get_date(physician.birthDate),
+            npi_number=physician.npiNumber.NPI[0].npiNumber
+        )
 
         return physician_data
 
