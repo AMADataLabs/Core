@@ -1,3 +1,5 @@
+""" profile option maps for id and values """
+# pylint: disable=too-many-lines
 OPTION_MAP = {
     "1": "yesno",
     "2": "pronoun",
