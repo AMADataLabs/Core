@@ -43,7 +43,6 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     def run(self):
         search_parameters = self._get_search_parameters(self._parameters.query)
-        search_results = None
 
         with AWSClient("opensearch") as opensearch:
             search_results = self._query_index(opensearch, search_parameters)
@@ -98,7 +97,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if updated_on_range_object is not None:
             filter_object = QueryObjectDictionary()
-            filter_object.range = updated_on_range_object
+            filter_object.add_item("range", updated_on_range_object)
             filters_array.append(filter_object)
 
         search_string_object.add_item("from", 0)
