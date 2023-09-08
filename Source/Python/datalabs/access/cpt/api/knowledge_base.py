@@ -38,7 +38,6 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     def run(self):
         search_parameters = self._get_search_parameters(self._parameters.query)
-
         with AWSClient("opensearch") as opensearch:
             search_results = self._query_index(opensearch, search_parameters)
 
@@ -46,9 +45,8 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
-
         max_results = int(parameters.get("results")[0]) if parameters.get("results") else 50
-        index = int(parameters.get("index")[0]) if parameters.get("index") else 0
+        index = parameters.get("index")[0] if parameters.get("index") else None
         keywords = parameters.get("keywords") if parameters.get("keywords") else None
         sections = parameters.get("sections").split('|') if parameters.get("sections") else []
         subsections = parameters.get("subsections").split('|') if parameters.get("subsections") else []
@@ -57,121 +55,128 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
-
-        if index < 0:
-            raise InvalidRequest("Index must be 0 or greater.")
+        if index is None:
+            raise InvalidRequest("Invalid Index name. ")
 
         return SearchParameters(max_results, index, keywords, sections, subsections, updated_date_from, updated_date_to)
 
     @classmethod
     def _query_index(cls, opensearch, search_parameters):
-
-        query = None
+        keywords = None
         results = None
-        if search_parameters.keywords is not None:
-            query = "|".join(search_parameters.keywords)
 
+        if search_parameters.keywords is not None:
+            keywords = "|".join(search_parameters.keywords)
         if search_parameters.keywords:
-            results = cls._get_search_results(opensearch, query, search_parameters)
+            results = cls._get_search_results(opensearch, keywords, search_parameters)
 
         return results
 
     @classmethod
-    def _get_query_object(cls, query, search_parameters):
-
-        search_string_object = {}
-        query_object = {}
-        filters_array = []
-
-        if search_parameters.sections is not None and len(search_parameters.sections) > 0:
-            filters_array.append(cls._get_section_filter_object(search_parameters.sections))
-        if search_parameters.subsections is not None and len(search_parameters.subsections) > 0:
-            filters_array.append(cls._get_subsection_filter_object(search_parameters.subsections))
-
-        updated_on_range_object = cls._populate_updated_on_filters(search_parameters)
-
-        if updated_on_range_object is not None:
-            filter_object = {}
-            filter_object.range = updated_on_range_object
-            filters_array.append(filter_object)
-
-        search_string_object['from'] = 0
-        search_string_object['size'] = 30
-        boolean_object = {}
-        boolean_object.must = cls._get_multi_match_object(query)
-        if len(filters_array) > 0:
-            boolean_object.filter = filters_array
-        query_object.bool = boolean_object
-        search_string_object.query = query_object
-
-        return search_string_object
-
-    @classmethod
     def _get_search_results(cls, opensearch, query, search_parameters):
-
         results = None
-        query_parameters = cls._get_query_object(query, search_parameters)
+        query_parameters = cls._get_query_parameters(query, search_parameters)
         response = opensearch.search(index=search_parameters.index, body=query_parameters)
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
-            # Extract and process the search results
             results = response['hits']['hits']
 
         return results
 
     @classmethod
-    def _get_section_filter_object(cls, sections):
+    def _get_query_parameters(cls, keywords, search_parameters):
+        query_parameters = {}
+        cls._add_pagination(query_parameters, search_parameters)
+        query_parameters['query'] = cls._generate_query_section(keywords, search_parameters)
 
-        section_terms_object = {}
-        section_terms_object.section = sections
-        filter_object = {}
-        filter_object.terms = section_terms_object
+        return query_parameters
+
+    @classmethod
+    def _add_pagination(cls, query_parameters, search_parameters):
+        query_parameters['from'] = 0
+        query_parameters['size'] = 30
+
+    @classmethod
+    def _generate_query_section(cls, keywords, search_parameters):
+        return dict(
+            bool=cls._generate_bool_section(keywords, search_parameters)
+        )
+
+    @classmethod
+    def _generate_bool_section(cls, keywords, search_parameters):
+        bool_section = dict(
+            must=cls._generate_must_section(keywords, search_parameters)
+        )
+        filter_array = cls._generate_filter_section(search_parameters)
+        if len(filter_array) > 0:
+            bool_section["filter"] = filter_array
+
+        return bool_section
+
+    @classmethod
+    def _generate_must_section(cls, keywords, search_parameters):
+        return dict(
+            multi_match=cls._generate_multi_match_object(keywords, search_parameters)
+        )
+
+    @classmethod
+    def _generate_multi_match_object(cls, keywords, search_parameters):
+        return dict(
+            fields=[
+                "section^10000",
+                "subsection^1000",
+                "question^10",
+                "answer"
+            ],
+            boost=50,
+            analyzer="stop",
+            auto_generate_synonyms_phrase_query=True,
+            fuzzy_transpositions=True,
+            fuzziness="AUTO",
+            minimum_should_match=1,
+            type="best_fields",
+            lenient=True
+        )
+
+    @classmethod
+    def _generate_filter_section(cls, search_parameters):
+        filters_array = []
+
+        if search_parameters.sections is not None and len(search_parameters.sections) > 0:
+            filters_array.append(cls._generate_section_filter_object(search_parameters.sections))
+        if search_parameters.subsections is not None and len(search_parameters.subsections) > 0:
+            filters_array.append(cls._generate_subsection_filter_object(search_parameters.subsections))
+        updated_on_range_object = cls._generate_range_object(search_parameters)
+        if updated_on_range_object is not None:
+            filter_object = {'range': updated_on_range_object}
+            filters_array.append(filter_object)
+
+        return filters_array
+
+    @classmethod
+    def _generate_section_filter_object(cls, sections):
+        section_terms_object = {'section': sections}
+        filter_object = {'terms': section_terms_object}
 
         return filter_object
 
     @classmethod
-    def _get_subsection_filter_object(cls, subsections):
-
-        subsection_terms_object = {}
-        subsection_terms_object.subsection = subsections
-        filter_object = {}
-        filter_object.terms = subsection_terms_object
+    def _generate_subsection_filter_object(cls, subsections):
+        subsection_terms_object = {'subsection': subsections}
+        filter_object = {'terms': subsection_terms_object}
 
         return filter_object
 
     @classmethod
-    def _populate_updated_on_filters(cls, search_parameters):
-
+    def _generate_range_object(cls, search_parameters):
         updated_date_object = None
+
         if search_parameters.updated_date_from is not None and len(search_parameters.updated_date_from) > 0:
-            updated_date_object = {}
-            updated_date_object.gte = search_parameters.updated_date_from
+            updated_date_object = {'gte': search_parameters.updated_date_from}
         if search_parameters.updated_date_to is not None and len(search_parameters.updated_date_to) > 0:
             if updated_date_object is None:
                 updated_date_object = {}
-            updated_date_object.lte = search_parameters.updated_date_to
+            updated_date_object['lte'] = search_parameters.updated_date_to
+
         return updated_date_object
 
-    @classmethod
-    def _get_multi_match_object(cls, query):
-
-        multi_match_object = {}
-        if query is not None:
-            multi_match_object.query = query
-        multi_match_object.fields = [
-            "section^10000",
-            "subsection^1000",
-            "question^10",
-            "answer"
-        ]
-        multi_match_object.boost = 50
-        multi_match_object.analyzer = "stop"
-        multi_match_object.auto_generate_synonyms_phrase_query = True
-        multi_match_object.fuzzy_transpositions = True
-        multi_match_object.fuzziness = "AUTO"
-        multi_match_object.minimum_should_match = 1
-        multi_match_object.type = "best_fields"
-        multi_match_object.lenient = True
-        must_object = {}
-        must_object.multi_match = multi_match_object
-        return must_object
