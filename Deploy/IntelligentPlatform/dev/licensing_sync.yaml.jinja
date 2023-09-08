@@ -6,17 +6,19 @@ LICENSING_SYNC:
 
         PLATFORM_DB_BACKEND: mysql+pymysql
         PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
-        PLATFORM_DB_NAME: frictionlesslicensing
-        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
         PLATFORM_DB_PORT: '3306'
         PLATFORM_DB_USERNAME: platform
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_NAME: frictionlesslicensing
 
         VISTEX_DB_BACKEND: mssql+pymssql
+        # VISTEX_DB_HOST: rdbt5681.ad.ama-assn.org
+        # VISTEX_DB_PORT: '1436'
         VISTEX_DB_HOST: rdbt5302.ad.ama-assn.org
-        VISTEX_DB_NAME: LicenseMaestro_CPT
-        VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
         VISTEX_DB_PORT: '1433'
         VISTEX_DB_USERNAME: dlabs_read
+        VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
+        VISTEX_DB_NAME: LicenseMaestro_CPT
 
         S3_BASE_PATH: AMA/Licensing
 
