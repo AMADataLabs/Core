@@ -83,6 +83,7 @@ class FilesEndpointTask(APIEndpointTask):
         try:
             release = database.query(Release).filter(Release.id == release_id).one()
         except NoResultFound:
+            # pylint: disable=raise-missing-from
             raise ResourceNotFound(f'No release for ID "{release_id}".')
 
         return release.code_set
