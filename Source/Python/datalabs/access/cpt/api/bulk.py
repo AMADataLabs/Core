@@ -5,8 +5,9 @@ import logging
 
 import boto3
 from   botocore.exceptions import ClientError
+from   sqlalchemy.orm.exc import NoResultFound
 
-from   datalabs.access.api.task import APIEndpointTask, InternalServerError
+from   datalabs.access.api.task import APIEndpointTask, InternalServerError, ResourceNotFound
 from   datalabs.access.cpt.api.authorize import PRODUCT_CODE, OLD_PRODUCT_CODE
 from   datalabs.access.orm import Database
 from   datalabs.model.cpt.api import Release
@@ -77,7 +78,12 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_release_code_set(cls, release_id, database):
-        release = database.query(Release).filter(Release.id == release_id).one()
+        release = None
+
+        try:
+            release = database.query(Release).filter(Release.id == release_id).one()
+        except NoResultFound:
+            raise ResourceNotFound(f'No release for ID "{release_id}".')
 
         return release.code_set
 
