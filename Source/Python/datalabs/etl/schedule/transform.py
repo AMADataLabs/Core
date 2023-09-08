@@ -5,6 +5,7 @@ from   functools import partial
 from   io import BytesIO
 import json
 import logging
+from   typing import Iterator
 
 from   dateutil.parser import isoparse
 from   croniter import croniter
@@ -13,7 +14,6 @@ import pandas
 from   datalabs.etl.dag.state import Status, StatefulDAGMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
-from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
 
 logging.basicConfig()
@@ -103,18 +103,61 @@ class DAGSchedulerTask(ExecutionTimeMixin, StatefulDAGMixin, Task):
 
         return status != Status.UNKNOWN
 
-    def _get_state_plugin(self):
-        parameters = json.loads(self._parameters.dag_state_parameters)
-        plugin = import_plugin(parameters.pop("DAG_STATE_CLASS"))
-
-        return plugin(parameters)
-
-
+# pylint: disable=line-too-long
 class ScheduledDAGIdentifierTask(DAGSchedulerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
-    def _get_execution_time_bounds(self, base_time):
-        execution_times = croniter(f'*/{self._parameters.interval_minutes} * * * *', base_time)
-        duration = timedelta(hours=24)
+    # pylint: disable=too-many-locals
+    def _determine_dags_to_run(self, schedule, target_execution_time):
+        scheduled_dags = pandas.DataFrame(columns=["dag", "execution_time"])
 
-        return (execution_times.get_next(datetime) - duration, execution_times.get_next(datetime) - duration)
+        target_execution_time_at_previous_day = target_execution_time  - timedelta(days=1)
+
+        if ~(schedule["schedule"].str.contains("/", na=False).any()):
+            scheduled_dags = super()._determine_dags_to_run(schedule, target_execution_time_at_previous_day)
+        else:
+            if len(schedule) > 0:
+                dags_with_repeat_schedule, dags_without_repeat_schedule = self._split_dags(schedule)
+
+                without_repeat_schedule = super()._determine_dags_to_run(dags_without_repeat_schedule, target_execution_time_at_previous_day)
+
+                start = target_execution_time_at_previous_day
+                stop = target_execution_time
+                schedule_list = []
+
+                for _, row in dags_with_repeat_schedule.iterrows():
+                    dag_name = row.dag
+
+                    schedules = list(self._next_all_valid_schedules(row.schedule, start, stop))
+
+                    schedule_list.append((dag_name, schedules))
+
+                repeat_schedule_list = [(i, k) for i, j in schedule_list for k in j]
+                repeat_schedule = pandas.DataFrame(repeat_schedule_list, columns = ["dag", "execution_time"])
+
+                scheduled_dags = pandas.concat([without_repeat_schedule, repeat_schedule], ignore_index=True, axis=0)
+
+        return scheduled_dags
+
+    @classmethod
+    def _next_all_valid_schedules(cls, schedule: str, start: datetime, stop: datetime) -> Iterator[datetime]:
+        crons = croniter(schedule, start - timedelta(seconds=1))
+        previous = start - timedelta(days=1)
+
+        for eta in crons.all_next(datetime):
+            if eta >= stop:
+                break
+            if eta < start:
+                continue
+            if eta - previous < timedelta(0):
+                continue
+
+            yield eta
+            previous = eta
+
+    @classmethod
+    def _split_dags(cls, schedule):
+        dags_with_repeat_schedule = schedule[(schedule["schedule"].str.contains("/", na=False))]
+        dags_without_repeat_schedule = schedule[~(schedule["schedule"].str.contains("/", na=False))]
+
+        return dags_with_repeat_schedule, dags_without_repeat_schedule
