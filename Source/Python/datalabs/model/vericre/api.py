@@ -74,6 +74,7 @@ class Form(BASE):
     is_main_form = sa.Column(sa.Boolean)
     name = sa.Column(sa.String(512))
     status = sa.Column(sa.String(255))
+    updated_at = sa.Column(sa.BigInteger)
 
 
 class FormField(BASE):
@@ -100,45 +101,10 @@ class FormField(BASE):
     values = sa.Column(JSONB)
     is_verified = sa.Column(sa.Boolean)
     placeholder = sa.Column(sa.String(255))
-    form_sub_section = sa.Column(sa.BigInteger)
-    form_adddendum_section = sa.Column(sa.BigInteger)
-
-
-class FormSection(BASE):
-    __tablename__ = 'form_section'
-    __table_args__ = {"schema": SCHEMA}
-
-    id = sa.Column(
-        sa.BigInteger,
-        sa.Sequence('form_section_seq', start=1, increment=1),
-        primary_key=True,
-        nullable=False
-    )
-    title = sa.Column(sa.String(512))
-    description = sa.Column(sa.String(512))
-    is_hidden = sa.Column(sa.Boolean)
-    order = sa.Column(sa.BigInteger)
-    identifier = sa.Column(sa.String(255))
+    sub_section = sa.Column(sa.String(255))
+    adddendum_section = sa.Column(sa.String(255))
+    meta_data = sa.Column(JSONB)
     form = sa.Column(sa.BigInteger, nullable=False)
-
-
-class FormSubSection(BASE):
-    __tablename__ = 'form_sub_section'
-    __table_args__ = {"schema": SCHEMA}
-
-    id = sa.Column(
-        sa.BigInteger,
-        sa.Sequence('form_sub_section_seq', start=1, increment=1),
-        primary_key=True,
-        nullable=False
-    )
-    description = sa.Column(sa.String(512))
-    dynamic_field_sections = sa.Column(JSONB)
-    identifier = sa.Column(sa.String(255))
-    is_hidden = sa.Column(sa.Boolean)
-    order = sa.Column(sa.BigInteger)
-    title = sa.Column(sa.String(512))
-    form_section = sa.Column(sa.BigInteger, nullable=False)
 
 
 class Document(BASE, CommonColumns):

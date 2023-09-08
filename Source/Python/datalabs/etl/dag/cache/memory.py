@@ -1,5 +1,5 @@
 ''' In-memory Task Data Cache implementation '''
-from   datalabs.etl.dag.cache.base import TaskDataCache
+from   datalabs.cache.base import TaskDataCache
 
 
 class InMemoryTaskDataCache(TaskDataCache):

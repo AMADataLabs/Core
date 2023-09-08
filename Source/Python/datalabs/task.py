@@ -6,6 +6,7 @@ import os
 from   marshmallow.exceptions import ValidationError
 
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.parameter import ParameterValidatorMixin, ValidationException
 from   datalabs.plugin import import_plugin
 
@@ -85,6 +86,7 @@ class TaskWrapper(ABC):
         self.task_class = None
         self._parameters = parameters or {}
         self._task_parameters = None
+        self._cache_parameters = {}
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -95,6 +97,8 @@ class TaskWrapper(ABC):
             self._setup_environment()
 
             self._task_parameters = self._get_task_parameters()
+
+            self._cache_parameters = self._extract_cache_parameters(self._task_parameters)
 
             input_data = self._get_task_input_data()
 
@@ -135,29 +139,48 @@ class TaskWrapper(ABC):
         pass
 
     def _get_task_parameters(self):
-        return self._parameters
+        return os.environ
 
-    # pylint: disable=unused-argument
+    @classmethod
+    def _extract_cache_parameters(cls, task_parameters):
+        return TaskDataCacheParameters.extract(task_parameters)
+
     def _get_task_input_data(self):
-        return []
+        data = []
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
 
-    # pylint: disable=unused-argument
+        if cache:
+            data = cache.extract_data()
+
+            if data:
+                self._log_task_data_sizes(CacheDirection.INPUT, data)
+
+        return data
+
     def _put_task_output_data(self, data):
-        LOGGER.info("Output Data:\n %s", data)
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
+
+        if cache:
+            if data:
+                self._log_task_data_sizes(CacheDirection.OUTPUT, data)
+
+            cache.load_data(data)
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
         return {**parameters, **new_parameters}
 
     # pylint: disable=unused-argument
-    @abstractmethod
     def _handle_success(self) -> (int, dict):
-        pass
+        LOGGER.info("Task completed successfully.")
+
+        return "Task completed successfully."
 
     # pylint: disable=unused-argument
-    @abstractmethod
     def _handle_exception(self, exception: Exception) -> (int, dict):
-        pass
+        LOGGER.exception("Task failed.")
+
+        return "Task failed."
 
     def _get_task_resolver_class(self):
         task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.EnvironmentTaskResolver')
@@ -167,6 +190,16 @@ class TaskWrapper(ABC):
             raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
 
         return task_resolver_class
+
+    @classmethod
+    def _log_task_data_sizes(cls, direction, data):
+        operation = "Received"
+
+        if direction == CacheDirection.OUTPUT:
+            operation = "Returning"
+
+        for datum in data:
+            LOGGER.debug('%s %d bytes.', operation, len(datum))
 
 class TaskResolver(ABC):
     @classmethod

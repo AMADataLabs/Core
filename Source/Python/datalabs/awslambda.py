@@ -18,6 +18,9 @@ class TaskWrapper(task.TaskWrapper):
 
         self._resolve_secrets_manager_environment_variables()
 
+    def _get_task_parameters(self):
+        return self._parameters
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 

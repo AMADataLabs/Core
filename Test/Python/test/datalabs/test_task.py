@@ -14,11 +14,6 @@ def test_task_is_not_abstract():
     GoodTask(None).run()
 
 
-def test_task_wrapper_is_abstract():
-    with pytest.raises(TypeError):
-        BadTaskWrapper()  # pylint: disable=abstract-class-instantiated
-
-
 def test_task_wrapper_is_not_abstract():
     os.environ['TASK_CLASS'] = 'test.datalabs.test_task.GoodTask'
     GoodTaskWrapper().run()
@@ -36,10 +31,6 @@ class BadTask(Task):
 class GoodTask(Task):
     def run(self):
         pass
-
-
-class BadTaskWrapper(TaskWrapper):
-    pass
 
 
 class GoodTaskWrapper(TaskWrapper):

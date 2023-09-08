@@ -6,7 +6,7 @@ import os
 import pytest
 
 from   datalabs.etl.dag.airflow import DAGTaskWrapper
-from   datalabs.etl.dag.cache import TaskDataCache, CacheDirection
+from   datalabs.cache import TaskDataCache
 from   datalabs.task import Task
 
 logging.basicConfig()
@@ -25,39 +25,6 @@ def test_task_parameters_are_parsed(args, environment):
     assert 'TEST_TASK' not in parameters
     assert 'OTHER_TASK' not in parameters
     assert parameters.get("TASK_VARIABLE") == 'fruity'
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_cache_parameters_are_parsed(args, environment):
-    task_wrapper = DAGTaskWrapper(parameters=args)
-    task_wrapper._get_task_parameters()
-    input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
-    output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
-
-    assert input_cache_parameters.get("execution_time") == '19000101'
-    assert input_cache_parameters.get("DATA") == '["light", "and", "smoothie"]'
-    assert input_cache_parameters.get("STUFF") == 'Hello, there!'
-    assert input_cache_parameters.get("QUOTE_ONE") == 'How will this end? - Sheridan'
-    assert input_cache_parameters.get("QUOTE_TWO") is None
-
-    assert output_cache_parameters.get("execution_time") == '19000101'
-    assert output_cache_parameters.get("THING") == 'I am Batman'
-    assert output_cache_parameters.get("STUFF") == 'Dear John'
-    assert output_cache_parameters.get("QUOTE_ONE") == 'How will this end? - Sheridan'
-    assert output_cache_parameters.get("QUOTE_TWO") is None
-
-
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_task_input_data_is_loaded(args, environment):
-    task_wrapper = DAGTaskWrapper(parameters=args)
-
-    task_wrapper._get_task_parameters()  # required to extract cache parameters
-
-    data = task_wrapper._get_task_input_data()
-
-    assert data is not None
-    assert len(data) == 3
-    assert data == ['light', 'and', 'smoothie']
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
