@@ -18,8 +18,6 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.utils.AttributeMap
 
-import datalabs.parameter.Optional
-import datalabs.parameter.KParameters
 import datalabs.task.Task
 
 
