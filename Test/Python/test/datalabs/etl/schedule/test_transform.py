@@ -150,49 +150,30 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
         assert all(column in row for column in ['dag', 'execution_time'])
 
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
-def test_scheduled_identifier_dags_to_run_are_correctly_identified(parameters_identify_scheduled_dag, schedule_one_dag_run_per_day, \
-        target_execution_time_identify_scheduled_dag):
-    scheduler = ScheduledDAGIdentifierTask(parameters_identify_scheduled_dag)
+def test_scheduled_identifier_dags_to_run_are_correctly_identified(parameters_get_last_days_runs, schedule_get_last_days_runs, \
+        target_execution_time_get_last_days_runs):
+    scheduler = ScheduledDAGIdentifierTask(parameters_get_last_days_runs)
 
-    dags_to_run = scheduler._determine_dags_to_run(schedule_one_dag_run_per_day, \
-            target_execution_time_identify_scheduled_dag).reset_index()
+    dags_to_run = scheduler._determine_dags_to_run(schedule_get_last_days_runs, \
+            target_execution_time_get_last_days_runs).reset_index()
 
-    start_at =  target_execution_time_identify_scheduled_dag - timedelta(days=1)
-    stop_at =  target_execution_time_identify_scheduled_dag
-
-    assert start_at == datetime(2023, 8, 30, 13, 0)
-    assert stop_at == datetime(2023, 8, 31, 13, 0)
-
-    assert len(dags_to_run) == 2
-    assert dags_to_run.dag[0] == 'ADDRESS_LOAD_COMPILER'
-    assert dags_to_run.execution_time[0] == datetime(2023, 8, 30, 13, 0)
-
-    assert dags_to_run.dag[1] == 'LICENSE_MOVEMENT'
-    assert dags_to_run.execution_time[1] == datetime(2023, 8, 30, 13, 5)
-
-# pylint: disable=redefined-outer-name, protected-access, line-too-long
-def test_repeatly_scheduled_identifier_dags_to_run_are_correctly_identified(parameters_identify_scheduled_dag, schedule_one_dag_run_repeatly, \
-        target_execution_time_identify_scheduled_dag):
-    scheduler = ScheduledDAGIdentifierTask(parameters_identify_scheduled_dag)
-
-    dags_to_run = scheduler._determine_dags_to_run(schedule_one_dag_run_repeatly, \
-            target_execution_time_identify_scheduled_dag).reset_index()
-
-    start_at =  target_execution_time_identify_scheduled_dag - timedelta(days=1)
-    stop_at =  target_execution_time_identify_scheduled_dag
+    start_at =  target_execution_time_get_last_days_runs - timedelta(days=1)
+    stop_at =  target_execution_time_get_last_days_runs
 
     assert start_at == datetime(2023, 8, 30, 13, 0)
     assert stop_at == datetime(2023, 8, 31, 13, 0)
 
     assert len(dags_to_run) == 110
 
-    assert dags_to_run.dag[0] == 'LICENSE_MOVEMENT'
-    assert dags_to_run.execution_time[0] == datetime(2023, 8, 30, 13, 5)
+    assert dags_to_run.dag[0] == 'CERNER_REPORT'
+    assert dags_to_run.execution_time[0] == datetime(2023, 8, 30, 13, 15)
+    assert dags_to_run.execution_time[94] == datetime(2023, 8, 31, 12, 45)
 
-    assert dags_to_run.dag[1] == 'CERNER_REPORT'
-    assert dags_to_run.execution_time[1] == datetime(2023, 8, 30, 13, 0)
-    assert dags_to_run.execution_time[2] == datetime(2023, 8, 30, 13, 15)
-    assert dags_to_run.execution_time[96] == datetime(2023, 8, 31, 12, 45)
+    assert dags_to_run.dag[95] == 'PLATFORM_USER_TOKENS'
+    assert dags_to_run.execution_time[95] == datetime(2023, 8, 31, 0, 13)
+
+    assert dags_to_run.dag[96] == 'LICENSE_MOVEMENT'
+    assert dags_to_run.execution_time[96] == datetime(2023, 8, 30, 13, 5)
 
     assert dags_to_run.dag[97] == 'VERICRE_DATA_STEWARD'
     assert dags_to_run.execution_time[97] == datetime(2023, 8, 31, 0, 0)
@@ -201,20 +182,20 @@ def test_repeatly_scheduled_identifier_dags_to_run_are_correctly_identified(para
 
 
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
-def test_scheduled_dags_to_run_are_correctly_identified_edge_cases(parameters_identify_scheduled_dag_test, schedule_one_dag_run_repeatly, \
-        target_execution_time_identify_scheduled_dag_test):
-    scheduler = ScheduledDAGIdentifierTask(parameters_identify_scheduled_dag_test)
+def test_scheduled_dags_to_run_are_correctly_identified_edge_cases(parameters_get_last_days_runs_test, schedule_get_last_days_runs, \
+        target_execution_time_get_last_days_runs_test):
+    scheduler = ScheduledDAGIdentifierTask(parameters_get_last_days_runs_test)
 
-    dags_to_run = scheduler._determine_dags_to_run(schedule_one_dag_run_repeatly, \
-            target_execution_time_identify_scheduled_dag_test)
+    dags_to_run = scheduler._determine_dags_to_run(schedule_get_last_days_runs, \
+            target_execution_time_get_last_days_runs_test)
 
-    start_at =  target_execution_time_identify_scheduled_dag_test - timedelta(days=1)
-    stop_at =  target_execution_time_identify_scheduled_dag_test
+    start_at =  target_execution_time_get_last_days_runs_test - timedelta(days=1)
+    stop_at =  target_execution_time_get_last_days_runs_test
 
     assert start_at == datetime(2023, 8, 30, 13, 20)
     assert stop_at == datetime(2023, 8, 31, 13, 20)
 
-    assert len(dags_to_run) == 110
+    assert len(dags_to_run) == 112
     assert dags_to_run.dag[0] == 'CERNER_REPORT'
     assert dags_to_run.execution_time[0] == datetime(2023, 8, 30, 13, 30)
     assert dags_to_run.execution_time[95] == datetime(2023, 8, 31, 13, 15)
@@ -282,7 +263,7 @@ def empty_schedule(empty_schedule_csv):
 
 
 @pytest.fixture
-def parameters_identify_scheduled_dag(state_directory):
+def parameters_get_last_days_runs(state_directory):
     return dict(
         INTERVAL_MINUTES='15',
         DAG_STATE=json.dumps(
@@ -296,7 +277,7 @@ def parameters_identify_scheduled_dag(state_directory):
 
 
 @pytest.fixture
-def parameters_identify_scheduled_dag_test(state_directory):
+def parameters_get_last_days_runs_test(state_directory):
     return dict(
         INTERVAL_MINUTES='15',
         DAG_STATE=json.dumps(
@@ -310,39 +291,24 @@ def parameters_identify_scheduled_dag_test(state_directory):
 
 
 @pytest.fixture
-def target_execution_time_identify_scheduled_dag():
+def target_execution_time_get_last_days_runs():
     return datetime(2023, 8, 31, 13, 0, 0)
 
 
 @pytest.fixture
-def target_execution_time_identify_scheduled_dag_test():
+def target_execution_time_get_last_days_runs_test():
     return datetime(2023, 8, 31, 13, 20, 0)
 
 
 @pytest.fixture
-def schedule_one_dag_run_per_day_csv():
-    return """dag,schedule
-ADDRESS_LOAD_COMPILER,0 13 * * mon-fri
-DBL,13 0 * * tue-sat
-DEVELOPER_EMAILS,0 0 * * sun-thu
-LICENSE_MOVEMENT,5 13 * * mon-fri
-"""
-
-
-@pytest.fixture
-def schedule_one_dag_run_per_day(schedule_one_dag_run_per_day_csv):
-    return pandas.read_csv(BytesIO(schedule_one_dag_run_per_day_csv.encode('utf8')))
-
-
-@pytest.fixture
-def schedule_one_dag_run_repeatly_csv():
+def schedule_get_last_days_runs_csv():
     return """dag,schedule
 CERNER_REPORT,*/15 * * * *
 PLATFORM_USER_TOKENS,13 0 * * tue-sat
-VERICRE_DATA_STEWARD,0 */1 * * thu-fri
 LICENSE_MOVEMENT,5 13 * * mon-fri
+VERICRE_DATA_STEWARD,0 * * * thu-fri
 """
 
 @pytest.fixture
-def schedule_one_dag_run_repeatly(schedule_one_dag_run_repeatly_csv):
-    return pandas.read_csv(BytesIO(schedule_one_dag_run_repeatly_csv.encode('utf8')))
+def schedule_get_last_days_runs(schedule_get_last_days_runs_csv):
+    return pandas.read_csv(BytesIO(schedule_get_last_days_runs_csv.encode('utf8')))
