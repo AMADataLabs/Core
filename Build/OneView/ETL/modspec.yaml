@@ -23,6 +23,7 @@ modspec:
       - task
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
+  - package: datalabs.cache
   - package: datalabs.etl
     include:
       - awslambda
