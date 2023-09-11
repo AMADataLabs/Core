@@ -16,6 +16,7 @@ modspec:
   - package: datalabs.analysis.address.batchload
     include:
       - transform
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.s3
   - package: datalabs.etl.dag
