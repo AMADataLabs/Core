@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
+from   itertools import takewhile, chain
 import json
 import logging
 
@@ -101,3 +102,35 @@ class DAGSchedulerTask(ExecutionTimeMixin, StatefulDAGMixin, Task):
         status = state.get_dag_status(dag["dag"], dag["execution_time"].to_pydatetime().isoformat())
 
         return status != Status.UNKNOWN
+
+# pylint: disable=line-too-long
+class ScheduledDAGIdentifierTask(DAGSchedulerTask):
+    PARAMETER_CLASS = DAGSchedulerParameters
+
+    # pylint: disable=too-many-locals
+    def _determine_dags_to_run(self, schedule, target_execution_time):
+        scheduled_dags = pandas.DataFrame(columns=["dag", "execution_time"])
+
+        scheduled_dags = self._get_last_days_runs(schedule, target_execution_time)
+
+        scheduled_dags = scheduled_dags.rename(columns={"run": "execution_time"}).reset_index()
+
+        return scheduled_dags
+
+    # pylint: disable=unsupported-assignment-operation, no-member
+    @classmethod
+    def _get_last_days_runs(cls, schedule, now=None):
+        now = datetime.utcnow() if now is None else now
+        base_time = now - timedelta(hours=24)
+
+        dag_runs = schedule.schedule.apply(lambda cron_descriptor: croniter(cron_descriptor, base_time))
+
+        schedule["run"] = dag_runs.apply(lambda x: list(chain(*list(cls._get_dag_runs(x, now)))))
+
+        schedule.drop(columns="schedule", inplace=True)
+
+        return schedule.explode("run")
+
+    @classmethod
+    def _get_dag_runs(cls, dag_runs, now):
+        yield takewhile(lambda p: p < now, dag_runs.all_next(datetime))
