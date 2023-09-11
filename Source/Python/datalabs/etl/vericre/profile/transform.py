@@ -113,13 +113,18 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         demog_data.PHONE_AREA_CD = demog_data.PHONE_AREA_CD.str.strip()
         demog_data.MPA_DESC = demog_data.MPA_DESC.str.strip()
         demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
+        demog_data["PRINT_NAME"] = demog_data[["FIRST_NAME", "LAST_NAME"]].astype(str).agg(' '.join, axis=1)
         demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
+        demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
         demog_data["PRINT_PHONE_NUMBER"] = (
             demog_data[["PHONE_AREA_CD", "PHONE_EXCHANGE", "PHONE_NUMBER"]]
             .astype(str)
             .agg(''.join, axis=1)
         )
-        demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
+        demog_data.PRINT_PHONE_NUMBER[
+            demog_data.PHONE_AREA_CD.isna() | demog_data.PHONE_EXCHANGE.isna() | demog_data.PHONE_NUMBER.isna()
+        ] = None
+
         demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
         aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -339,7 +344,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()] \
             = aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()].apply(lambda x: [])
 
-        aggregated_state_sanctions["stateSanctionsValue"] = "ACTION_REPORTED"
+        aggregated_state_sanctions["stateSanctionsValue"] = "ACTION REPORTED"
         aggregated_state_sanctions["stateSanctionsValue"][aggregated_state_sanctions.state.isnull()] = \
             "NO ACTIONS REPORTED AT THIS TIME"
 
@@ -437,7 +442,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         sanction[column_name] = "Y"
 
-        sanction[f"{column_name}Value"] = "ACTION_REPORTED"
+        sanction[f"{column_name}Value"] = "ACTION REPORTED"
 
         aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
 

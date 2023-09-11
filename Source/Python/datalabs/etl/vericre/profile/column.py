@@ -67,7 +67,6 @@ DEMOG_DATA_COLUMNS = [
     "MPA_DESC",
     "ECFMG_NBR",
     "ME_NBR",
-    "LABEL_NAME",
     "PRINT_PHONE_NUMBER"
 ]
 
@@ -105,7 +104,7 @@ DEMOGRAPHICS_COLUMNS = {
     "PRA_EXPR_DT": "praExpirationDate",
     "DEGREE_CD": "degreeCode",
     "NAT_BRD_YEAR": "nbmeYear",
-    "LABEL_NAME": "printName"
+    "PRINT_NAME": "printName"
 }
 
 MAILING_ADDRESS_COLUMNS = {
