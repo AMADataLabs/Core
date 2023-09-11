@@ -150,12 +150,17 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
         assert all(column in row for column in ['dag', 'execution_time'])
 
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
-def test_scheduled_identifier_dags_to_run_are_correctly_identified(parameters_get_last_days_runs, schedule_get_last_days_runs, \
-        target_execution_time_get_last_days_runs):
+def test_scheduled_identifier_dags_to_run_are_correctly_identified(
+        parameters_get_last_days_runs,
+        schedule_get_last_days_runs,
+        target_execution_time_get_last_days_runs
+):
     scheduler = ScheduledDAGIdentifierTask(parameters_get_last_days_runs)
 
-    dags_to_run = scheduler._determine_dags_to_run(schedule_get_last_days_runs, \
-            target_execution_time_get_last_days_runs).reset_index()
+    dags_to_run = scheduler._determine_dags_to_run(
+            schedule_get_last_days_runs,
+            target_execution_time_get_last_days_runs
+    ).reset_index()
 
     start_at =  target_execution_time_get_last_days_runs - timedelta(days=1)
     stop_at =  target_execution_time_get_last_days_runs
@@ -182,12 +187,17 @@ def test_scheduled_identifier_dags_to_run_are_correctly_identified(parameters_ge
 
 
 # pylint: disable=redefined-outer-name, protected-access, line-too-long
-def test_scheduled_dags_to_run_are_correctly_identified_edge_cases(parameters_get_last_days_runs_test, schedule_get_last_days_runs, \
-        target_execution_time_get_last_days_runs_test):
+def test_scheduled_dags_to_run_are_correctly_identified_edge_cases(
+        parameters_get_last_days_runs_test,
+        schedule_get_last_days_runs,
+        target_execution_time_get_last_days_runs_test
+):
     scheduler = ScheduledDAGIdentifierTask(parameters_get_last_days_runs_test)
 
-    dags_to_run = scheduler._determine_dags_to_run(schedule_get_last_days_runs, \
-            target_execution_time_get_last_days_runs_test)
+    dags_to_run = scheduler._determine_dags_to_run(
+            schedule_get_last_days_runs,
+            target_execution_time_get_last_days_runs_test
+    )
 
     start_at =  target_execution_time_get_last_days_runs_test - timedelta(days=1)
     stop_at =  target_execution_time_get_last_days_runs_test

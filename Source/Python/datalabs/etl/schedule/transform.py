@@ -125,7 +125,7 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask):
 
         dag_runs = schedule.schedule.apply(lambda cron_descriptor: croniter(cron_descriptor, base_time))
 
-        schedule["run"] = dag_runs.apply(lambda x: list(chain(*cls._get_dag_runs(x, now))))
+        schedule["run"] = dag_runs.apply(lambda x: list(chain(*list(cls._get_dag_runs(x, now)))))
 
         schedule.drop(columns="schedule", inplace=True)
 
@@ -133,4 +133,4 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask):
 
     @classmethod
     def _get_dag_runs(cls, dag_runs, now):
-        yield list(takewhile(lambda p: p < now, dag_runs.all_next(datetime)))
+        yield takewhile(lambda p: p < now, dag_runs.all_next(datetime))
