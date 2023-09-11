@@ -21,6 +21,7 @@ modspec:
   - package: datalabs.access.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.snomed
