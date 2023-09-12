@@ -1,14 +1,14 @@
 """ Practice transformer class for creating Practice entitiy """
 # pylint: disable=import-error
-import logging
 import csv
+import logging
 import pandas
 
 # pylint: disable=wrong-import-order
 from datetime import datetime
+
 from datalabs.task import Task
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -49,13 +49,13 @@ class PracticeTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             employer_ids,
             active_mpa_codes,
             specialities,
-            award_recipients,
+            pra_certifications,
         ) = preprocessed_data
 
-        award_recipients.expiration_dt = pandas.to_datetime(award_recipients.expiration_dt)
+        pra_certifications.expiration_dt = pandas.to_datetime(pra_certifications.expiration_dt)
 
         wards = (
-            award_recipients[award_recipients.expiration_dt > datetime.today()]
+            pra_certifications[pra_certifications.expiration_dt > datetime.today()]
             .sort_values("expiration_dt")
             .drop_duplicates("party_id", keep="last")
         )
