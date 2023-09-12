@@ -19,8 +19,9 @@ ADDRESS_LOAD_COMPILER:
         LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AddressLoadCompilerDAG'
         DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
         DAG_STATE:
-            CLASS: 'datalabs.etl.dag.state.file.DAGState'
-            BASE_PATH: './test_output_file_state'
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'

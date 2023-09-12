@@ -7,6 +7,7 @@ from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEnd
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
+from   datalabs.access.vericre.api.option import OPTION_MAP, OPTION_VALUES_MAP
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -70,7 +71,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         sql = '''
             select
                 u.ama_entity_id,
-                fss.identifier as section_identifier,
+                ff.sub_section as section_identifier,
                 ff.identifier as field_identifier,
                 case
                     when ff.is_source_field = True and ff.is_authoritative = True then True
@@ -86,13 +87,13 @@ class BaseProfileEndpointTask(APIEndpointTask):
                     else \'Physician Provided\'
                 end as source_tag,
                 ff.type,
-                ff.values
+                ff.values,
+                ff.option
             from "user" u
             join physician p on u.id = p."user"
             join form f on p.form = f.id
-            join form_section fs on f.id = fs.form
-            join form_sub_section fss on fs.id = fss.form_section
-            join form_field ff on fss.id = ff.form_sub_section
+            join form_field ff on ff.form = f.id 
+                and ff.sub_section is not null
             where 1=1
         '''
 
@@ -121,7 +122,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _sort(cls, sql):
-        sql = f'{sql} order by u.ama_entity_id asc, ff.form_sub_section asc, ff.order asc'
+        sql = f'{sql} order by u.ama_entity_id asc, ff.sub_section asc, ff.order asc'
         return sql
 
     @classmethod
@@ -192,17 +193,43 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _create_record_item(cls, record):
+        record_values = record['values']
+
+        if isinstance(record['option'], int) and str(record['option']) in OPTION_MAP:
+            record_values = cls._convert_option_values(OPTION_MAP[str(record['option'])], record['values'])
+
         return dict(
-            field_identifier = record['field_identifier'],
-            is_authoritative = record['is_authoritative'],
-            is_source = record['is_source'],
-            name = record['name'],
-            read_only = record['read_only'],
-            source_key = record['source_key'],
-            source_tag = record['source_tag'],
-            type = record['type'],
-            values = record['values']
+            field_identifier=record['field_identifier'],
+            is_authoritative=record['is_authoritative'],
+            is_source=record['is_source'],
+            name=record['name'],
+            read_only=record['read_only'],
+            source_key=record['source_key'],
+            source_tag=record['source_tag'],
+            type=record['type'],
+            values=record_values
         )
+
+    @classmethod
+    def _convert_option_values(cls, option_key, values):
+        option_value_names = []
+
+        for value in values:
+            value = value.strip()
+            option_values = OPTION_VALUES_MAP[option_key]
+
+            option_value_names = cls._get_option_value_name(option_values, value, option_value_names)
+
+        return option_value_names
+
+    @classmethod
+    def _get_option_value_name(cls, option_values, value, option_value_names):
+        if value in option_values:
+            option_value_names.append(option_values[value])
+        else:
+            option_value_names.append(value)
+
+        return option_value_names
 
     @classmethod
     def _generate_response_body(cls, response_result):

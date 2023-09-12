@@ -23,6 +23,7 @@ modspec:
       - sftp
       - environment
   - package: datalabs.access.parameter
+  - package: datalabs.cache
   - package: datalabs.etl
     include:
       - csv

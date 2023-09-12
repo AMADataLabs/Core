@@ -6,7 +6,7 @@ import os
 from   marshmallow.exceptions import ValidationError
 
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-from   datalabs.etl.dag.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
+from   datalabs.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.parameter import ParameterValidatorMixin, ValidationException
 from   datalabs.plugin import import_plugin
 

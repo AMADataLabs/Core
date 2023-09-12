@@ -6,9 +6,9 @@ LICENSING_TRAFFIC:
 
         PLATFORM_DB_BACKEND: mysql+pymysql
         PLATFORM_DB_HOST: pe-tst-aurora-cluster.cluster-cvo5zwdixjdr.us-east-1.rds.amazonaws.com
-        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
         PLATFORM_DB_PORT: '3306'
         PLATFORM_DB_USERNAME: platform
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
         LICENSING_DATABASE: frictionlesslicensing
         USER_MANAGEMENT_DATABASE: usermgmt
 
@@ -519,6 +519,6 @@ LICENSING_TRAFFIC:
         MESSAGE: "
             Hello, This is an automated email from DataLabs. Attached is the
             latest Self-Service Licensing traffic data.
-        '
+        "
         SUBJECT: Self-Service Licensing Traffic Report - %Y-%m-%d
         TO_ADDRESSES: datalabs@ama-assn.org

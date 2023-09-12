@@ -4,6 +4,7 @@ modspec:
   - package: datalabs.access.cpt
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.files

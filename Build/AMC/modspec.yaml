@@ -15,6 +15,7 @@ modspec:
       - environment
       - excel
   - package: datalabs.access.parameter
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache

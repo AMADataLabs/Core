@@ -173,6 +173,8 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
     @classmethod
     def _create_npi(cls, ama_masterfile, npi_data):
+        npi_data.sort_values(by=['RPTD_DT'], ascending=False, inplace=True)
+        npi_data.drop_duplicates(subset="ENTITY_ID", inplace=True)
         npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})

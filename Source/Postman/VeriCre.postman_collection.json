@@ -1,104 +1,13 @@
 {
 	"info": {
-		"_postman_id": "c7bcc7a9-391e-425a-8907-ca1239122681",
+		"_postman_id": "ebd3d726-e70a-41a6-8eda-24aa7abc2eba",
 		"name": "VeriCre",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "7392489"
 	},
 	"item": [
 		{
-			"name": "External",
-			"item": [
-				{
-					"name": "Physician Profile",
-					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {
-							"host": true
-						}
-					},
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Host",
-								"value": "api-sbx.vericre.local",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{VERICRE_API_URL}}/amaProfile",
-							"host": [
-								"{{VERICRE_API_URL}}"
-							],
-							"path": [
-								"amaProfile"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CAQH Profile",
-					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {}
-					},
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Host",
-								"value": "api-sbx.vericre.local",
-								"type": "text",
-								"disabled": true
-							}
-						],
-						"url": {
-							"raw": "{{VERICRE_API_URL}}/caqhProfile",
-							"host": [
-								"{{VERICRE_API_URL}}"
-							],
-							"path": [
-								"caqhProfile"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Backend",
-			"item": [
-				{
-					"name": "Containerized API",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Host",
-								"value": "api-sbx.vericre.local",
-								"type": "text",
-								"disabled": true
-							}
-						],
-						"url": {
-							"raw": "{{VERICRE_API_URL}}/common/getReference/AMA",
-							"host": [
-								"{{VERICRE_API_URL}}"
-							],
-							"path": [
-								"common",
-								"getReference",
-								"AMA"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Profiles",
+			"name": "Direct Authentication",
 			"item": [
 				{
 					"name": "Get Token",
@@ -162,30 +71,25 @@
 					"response": []
 				},
 				{
-					"name": "Get CPT entitlements",
+					"name": "Get Entitlements List",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
 									"pm.test(\"Response code indicates success\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response contains correct fields\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
-									"    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
-									"    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
-									"    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
-									"    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
-									"    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
-									"    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
-									"});\r",
 									"\r",
-									"pm.test(\"Subscriptions list is not empty\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(Object.keys(jsonData.subscriptionsList)).to.not.be.empty\r",
+									"pm.test(\"Save access token\", function () {\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
 									"});\r",
 									""
 								],
@@ -193,6 +97,9 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -205,7 +112,23 @@
 							]
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6210",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list/CPTAPI",
 							"protocol": "https",
@@ -221,7 +144,98 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Portal Authentication",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"console.log(jsonData.access_token);\r",
+									"pm.globals.set('token', jsonData.access_token);\r",
+									"console.log(pm.globals.get('token'));\r",
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var consumer_token = pm.environment.get('PORTAL_CONSUMER_KEY') + ':' + pm.environment.get('PORTAL_CONSUMER_SECRET');\r",
+									"var encoded_consumer_token = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(consumer_token))\r",
+									"console.log(encoded_consumer_token)\r",
+									"\r",
+									"pm.globals.set('consumer_token', encoded_consumer_token);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "Basic {{consumer_token}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{PORTAL_TOKEN_URL}}",
+							"host": [
+								"{{PORTAL_TOKEN_URL}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Profiles",
+			"item": [
 				{
 					"name": "Physician Search",
 					"protocolProfileBehavior": {
@@ -234,13 +248,13 @@
 						"header": [
 							{
 								"key": "Host",
-								"value": "vericre-api-dev.ama-assn.org",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
 								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"first_name\": \"Peter\"\n}",
+							"raw": "\n{\n    \"last_name\":\"Barry\",\n    \"first_name\":\"Rabin\",\n    \"date_of_birth\":\"1942-10-01\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -248,14 +262,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://internal-vericre-dev-profile-apigw-alb-1557872266.us-east-1.elb.amazonaws.com/physicians/search",
-							"protocol": "https",
+							"raw": "{{VERICRE_API_URL}}/physicians/search",
 							"host": [
-								"internal-vericre-dev-profile-apigw-alb-1557872266",
-								"us-east-1",
-								"elb",
-								"amazonaws",
-								"com"
+								"{{VERICRE_API_URL}}"
 							],
 							"path": [
 								"physicians",
@@ -266,7 +275,7 @@
 					"response": []
 				},
 				{
-					"name": "AMA Profile PDF",
+					"name": "Lookup Single Profile",
 					"protocolProfileBehavior": {
 						"disabledSystemHeaders": {
 							"host": true
@@ -277,31 +286,187 @@
 						"header": [
 							{
 								"key": "Host",
-								"value": "vericre-api-dev.ama-assn.org",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "https://internal-vericre-dev-profile-apigw-alb-1557872266.us-east-1.elb.amazonaws.com/profile/123456/AMA/pdf",
-							"protocol": "https",
+							"raw": "{{VERICRE_API_URL}}/profile/3381907",
 							"host": [
-								"internal-vericre-dev-profile-apigw-alb-1557872266",
-								"us-east-1",
-								"elb",
-								"amazonaws",
-								"com"
+								"{{VERICRE_API_URL}}"
 							],
 							"path": [
 								"profile",
-								"123456",
+								"3381907"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lookup Multiple Profiles",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Host",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
+								"description": "DEV",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"entity_id\":[\"3381907\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/profiles/lookup",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"profiles",
+								"lookup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download AMA PDF",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/profile/5457448/AMA/pdf",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"profile",
+								"5457448",
 								"AMA",
 								"pdf"
 							]
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Download CAQH PDF (with npi_provider_id)",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/profile/10005/CAQH/pdf",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"profile",
+								"10005",
+								"CAQH",
+								"pdf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download CAQH PDF (with caqh provider_id)",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/profile/5457448/CAQH/pdf",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"profile",
+								"5457448",
+								"CAQH",
+								"pdf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download VeriCre Physician's Uploaded Documents",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"host": true
+						}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "{{VERICRE_API_HOST_HEADER}}",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{VERICRE_API_URL}}/profile/3381907/documents",
+							"host": [
+								"{{VERICRE_API_URL}}"
+							],
+							"path": [
+								"profile",
+								"3381907",
+								"documents"
+							]
+						}
+					},
+					"response": []
 				}
 			],
+			"description": "run [Get Token] before function endpoints",
 			"auth": {
 				"type": "bearer",
 				"bearer": [
@@ -330,6 +495,135 @@
 							""
 						]
 					}
+				}
+			]
+		},
+		{
+			"name": "Backend",
+			"item": [
+				{
+					"name": "onETLSync",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"entityId\": \"6280673\"}, {\"entityId\": \"6280790\"}, {\"entityId\": \"6280907\"}, {\"entityId\": \"6300017\"}, {\"entityId\": \"6300134\"}, {\"entityId\": \"6300251\"}, {\"entityId\": \"6300368\"}, {\"entityId\": \"6300485\"}, {\"entityId\": \"6300602\"}, {\"entityId\": \"6300719\"}, {\"entityId\": \"6300836\"}, {\"entityId\": \"6301070\"}, {\"entityId\": \"1403593\"}, {\"entityId\": \"1403710\"}, {\"entityId\": \"1403827\"}, {\"entityId\": \"1357313\"}, {\"entityId\": \"1357547\"}, {\"entityId\": \"1357664\"}, {\"entityId\": \"1408312\"}, {\"entityId\": \"1408429\"}, {\"entityId\": \"1408546\"}, {\"entityId\": \"1409014\"}, {\"entityId\": \"1409131\"}, {\"entityId\": \"1409248\"}, {\"entityId\": \"1409365\"}, {\"entityId\": \"1409482\"}, {\"entityId\": \"1409599\"}, {\"entityId\": \"1409716\"}, {\"entityId\": \"1409833\"}, {\"entityId\": \"1409950\"}, {\"entityId\": \"1410067\"}, {\"entityId\": \"1410184\"}, {\"entityId\": \"1410301\"}, {\"entityId\": \"1410418\"}, {\"entityId\": \"1410535\"}, {\"entityId\": \"1410652\"}, {\"entityId\": \"1410769\"}, {\"entityId\": \"1410886\"}, {\"entityId\": \"1411003\"}, {\"entityId\": \"1411471\"}, {\"entityId\": \"1411588\"}, {\"entityId\": \"1411705\"}, {\"entityId\": \"1411822\"}, {\"entityId\": \"1411939\"}, {\"entityId\": \"1412056\"}, {\"entityId\": \"1412173\"}, {\"entityId\": \"1412290\"}, {\"entityId\": \"1412407\"}, {\"entityId\": \"1412524\"}, {\"entityId\": \"1412641\"}, {\"entityId\": \"1412758\"}, {\"entityId\": \"1412875\"}, {\"entityId\": \"1412992\"}, {\"entityId\": \"1413109\"}, {\"entityId\": \"1413226\"}, {\"entityId\": \"1413343\"}, {\"entityId\": \"1413460\"}, {\"entityId\": \"1413928\"}, {\"entityId\": \"1414045\"}, {\"entityId\": \"1414162\"}, {\"entityId\": \"6200411\"}, {\"entityId\": \"6200528\"}, {\"entityId\": \"6210863\"}, {\"entityId\": \"6210980\"}, {\"entityId\": \"6211097\"}, {\"entityId\": \"6211214\"}, {\"entityId\": \"6211331\"}, {\"entityId\": \"6211448\"}, {\"entityId\": \"6211565\"}, {\"entityId\": \"6211682\"}, {\"entityId\": \"6211799\"}, {\"entityId\": \"6212267\"}, {\"entityId\": \"6212384\"}, {\"entityId\": \"6212501\"}, {\"entityId\": \"6212618\"}, {\"entityId\": \"6212735\"}, {\"entityId\": \"6212852\"}, {\"entityId\": \"6212969\"}, {\"entityId\": \"6213086\"}, {\"entityId\": \"6213203\"}, {\"entityId\": \"6213320\"}, {\"entityId\": \"6213437\"}, {\"entityId\": \"6213554\"}, {\"entityId\": \"6213671\"}, {\"entityId\": \"6213788\"}, {\"entityId\": \"6213905\"}, {\"entityId\": \"6214022\"}, {\"entityId\": \"6214139\"}, {\"entityId\": \"6214256\"}, {\"entityId\": \"6214373\"}, {\"entityId\": \"6214490\"}, {\"entityId\": \"6214607\"}, {\"entityId\": \"6186488\"}, {\"entityId\": \"6186605\"}, {\"entityId\": \"6186722\"}, {\"entityId\": \"6186839\"}, {\"entityId\": \"6186956\"}, {\"entityId\": \"6187073\"}, {\"entityId\": \"6187190\"}, {\"entityId\": \"6187307\"}, {\"entityId\": \"6187541\"}, {\"entityId\": \"6187658\"}, {\"entityId\": \"6187775\"}, {\"entityId\": \"6187892\"}, {\"entityId\": \"6188009\"}, {\"entityId\": \"6188126\"}, {\"entityId\": \"6188243\"}, {\"entityId\": \"6188711\"}, {\"entityId\": \"6470096\"}, {\"entityId\": \"6470213\"}, {\"entityId\": \"6470330\"}, {\"entityId\": \"6470447\"}, {\"entityId\": \"6148424\"}, {\"entityId\": \"6148541\"}, {\"entityId\": \"6148658\"}, {\"entityId\": \"6148775\"}, {\"entityId\": \"6148892\"}, {\"entityId\": \"6149009\"}, {\"entityId\": \"6149126\"}, {\"entityId\": \"6149360\"}, {\"entityId\": \"6149477\"}, {\"entityId\": \"6149594\"}, {\"entityId\": \"6149711\"}, {\"entityId\": \"6149828\"}, {\"entityId\": \"6150062\"}, {\"entityId\": \"6180521\"}, {\"entityId\": \"6180638\"}, {\"entityId\": \"6180755\"}, {\"entityId\": \"6180872\"}, {\"entityId\": \"6181106\"}, {\"entityId\": \"6181223\"}, {\"entityId\": \"6181340\"}, {\"entityId\": \"6181457\"}, {\"entityId\": \"6181574\"}, {\"entityId\": \"6181691\"}, {\"entityId\": \"6181808\"}, {\"entityId\": \"6181925\"}, {\"entityId\": \"6182042\"}, {\"entityId\": \"6182159\"}, {\"entityId\": \"6182276\"}, {\"entityId\": \"6182393\"}, {\"entityId\": \"6182510\"}, {\"entityId\": \"6182627\"}, {\"entityId\": \"6182861\"}, {\"entityId\": \"6182978\"}, {\"entityId\": \"6183095\"}, {\"entityId\": \"6183212\"}, {\"entityId\": \"6183329\"}, {\"entityId\": \"6183446\"}, {\"entityId\": \"6183563\"}, {\"entityId\": \"6183680\"}, {\"entityId\": \"6183797\"}, {\"entityId\": \"6184148\"}, {\"entityId\": \"6184265\"}, {\"entityId\": \"6184382\"}, {\"entityId\": \"6184499\"}, {\"entityId\": \"6285626\"}, {\"entityId\": \"6285743\"}, {\"entityId\": \"6285860\"}, {\"entityId\": \"6286094\"}, {\"entityId\": \"6286211\"}, {\"entityId\": \"6286328\"}, {\"entityId\": \"6286562\"}, {\"entityId\": \"6286679\"}, {\"entityId\": \"6286796\"}, {\"entityId\": \"6286913\"}, {\"entityId\": \"6287030\"}, {\"entityId\": \"6287147\"}, {\"entityId\": \"6287264\"}, {\"entityId\": \"6287381\"}, {\"entityId\": \"6287498\"}, {\"entityId\": \"6287615\"}, {\"entityId\": \"6287732\"}, {\"entityId\": \"6287849\"}, {\"entityId\": \"6226658\"}, {\"entityId\": \"6226775\"}, {\"entityId\": \"6226892\"}, {\"entityId\": \"6227009\"}, {\"entityId\": \"6227126\"}, {\"entityId\": \"6227243\"}, {\"entityId\": \"6227711\"}, {\"entityId\": \"6227828\"}, {\"entityId\": \"6227945\"}, {\"entityId\": \"6228062\"}, {\"entityId\": \"6228179\"}, {\"entityId\": \"6228296\"}, {\"entityId\": \"6228413\"}, {\"entityId\": \"6228530\"}, {\"entityId\": \"6228647\"}, {\"entityId\": \"6228764\"}, {\"entityId\": \"6228881\"}, {\"entityId\": \"6228998\"}, {\"entityId\": \"6229115\"}, {\"entityId\": \"6229232\"}, {\"entityId\": \"6229349\"}, {\"entityId\": \"6229466\"}, {\"entityId\": \"6229583\"}, {\"entityId\": \"6229700\"}, {\"entityId\": \"6230168\"}, {\"entityId\": \"6230285\"}, {\"entityId\": \"6230402\"}, {\"entityId\": \"6230519\"}, {\"entityId\": \"6230636\"}, {\"entityId\": \"6230753\"}, {\"entityId\": \"6208367\"}, {\"entityId\": \"6208484\"}, {\"entityId\": \"6208601\"}, {\"entityId\": \"6209069\"}, {\"entityId\": \"6209186\"}, {\"entityId\": \"6209303\"}, {\"entityId\": \"6209420\"}, {\"entityId\": \"6209537\"}, {\"entityId\": \"6209654\"}, {\"entityId\": \"6209771\"}, {\"entityId\": \"6209888\"}, {\"entityId\": \"6210005\"}, {\"entityId\": \"6483785\"}, {\"entityId\": \"6483902\"}, {\"entityId\": \"6484019\"}, {\"entityId\": \"6484136\"}, {\"entityId\": \"6484253\"}, {\"entityId\": \"6484370\"}, {\"entityId\": \"6484487\"}, {\"entityId\": \"6484604\"}, {\"entityId\": \"6484721\"}, {\"entityId\": \"6484838\"}, {\"entityId\": \"6484955\"}, {\"entityId\": \"6485072\"}, {\"entityId\": \"6485540\"}, {\"entityId\": \"6485657\"}, {\"entityId\": \"6485774\"}, {\"entityId\": \"6485891\"}, {\"entityId\": \"6486008\"}, {\"entityId\": \"6486125\"}, {\"entityId\": \"6486242\"}, {\"entityId\": \"6486359\"}, {\"entityId\": \"6486476\"}, {\"entityId\": \"6486593\"}, {\"entityId\": \"6486710\"}, {\"entityId\": \"6486827\"}, {\"entityId\": \"6486944\"}, {\"entityId\": \"6176387\"}, {\"entityId\": \"6176504\"}, {\"entityId\": \"6176621\"}, {\"entityId\": \"6489518\"}, {\"entityId\": \"6489635\"}, {\"entityId\": \"6489752\"}, {\"entityId\": \"6489869\"}, {\"entityId\": \"6489986\"}, {\"entityId\": \"6490103\"}, {\"entityId\": \"6490220\"}, {\"entityId\": \"6490337\"}, {\"entityId\": \"6490454\"}, {\"entityId\": \"6490571\"}, {\"entityId\": \"6490688\"}, {\"entityId\": \"6491039\"}, {\"entityId\": \"6491156\"}, {\"entityId\": \"6491273\"}, {\"entityId\": \"6491390\"}, {\"entityId\": \"6491507\"}, {\"entityId\": \"6491624\"}, {\"entityId\": \"6491741\"}, {\"entityId\": \"6491858\"}, {\"entityId\": \"6491975\"}, {\"entityId\": \"9123773\"}, {\"entityId\": \"9123890\"}, {\"entityId\": \"9124007\"}, {\"entityId\": \"9105560\"}, {\"entityId\": \"9105677\"}, {\"entityId\": \"9105794\"}, {\"entityId\": \"9182897\"}, {\"entityId\": \"9183131\"}, {\"entityId\": \"9183248\"}, {\"entityId\": \"9183833\"}, {\"entityId\": \"9183950\"}, {\"entityId\": \"9184067\"}, {\"entityId\": \"9184184\"}, {\"entityId\": \"9184301\"}, {\"entityId\": \"9184418\"}, {\"entityId\": \"9184535\"}, {\"entityId\": \"9184652\"}, {\"entityId\": \"9184769\"}, {\"entityId\": \"9184886\"}, {\"entityId\": \"9185003\"}, {\"entityId\": \"9185120\"}, {\"entityId\": \"9185237\"}, {\"entityId\": \"9185354\"}, {\"entityId\": \"9185471\"}, {\"entityId\": \"9185588\"}, {\"entityId\": \"9185705\"}, {\"entityId\": \"9185822\"}, {\"entityId\": \"9186056\"}, {\"entityId\": \"9186173\"}, {\"entityId\": \"9186290\"}, {\"entityId\": \"9186407\"}, {\"entityId\": \"9186641\"}, {\"entityId\": \"9186758\"}, {\"entityId\": \"9186875\"}, {\"entityId\": \"9186992\"}, {\"entityId\": \"9187109\"}, {\"entityId\": \"9187343\"}, {\"entityId\": \"9187460\"}, {\"entityId\": \"9187577\"}, {\"entityId\": \"9187694\"}, {\"entityId\": \"9187811\"}, {\"entityId\": \"9187928\"}, {\"entityId\": \"9188045\"}, {\"entityId\": \"9188162\"}, {\"entityId\": \"9188279\"}, {\"entityId\": \"9188513\"}, {\"entityId\": \"9188630\"}, {\"entityId\": \"9188747\"}, {\"entityId\": \"6458786\"}, {\"entityId\": \"6458903\"}, {\"entityId\": \"6459020\"}, {\"entityId\": \"6459137\"}, {\"entityId\": \"6459254\"}, {\"entityId\": \"6459371\"}, {\"entityId\": \"6459488\"}, {\"entityId\": \"6459605\"}, {\"entityId\": \"6459839\"}, {\"entityId\": \"6459956\"}, {\"entityId\": \"6460073\"}, {\"entityId\": \"6460190\"}, {\"entityId\": \"6460424\"}, {\"entityId\": \"6460541\"}, {\"entityId\": \"6460658\"}, {\"entityId\": \"6460775\"}, {\"entityId\": \"6460892\"}, {\"entityId\": \"6461009\"}, {\"entityId\": \"6470564\"}, {\"entityId\": \"6470681\"}, {\"entityId\": \"6470798\"}, {\"entityId\": \"6470915\"}, {\"entityId\": \"6471032\"}, {\"entityId\": \"6471266\"}, {\"entityId\": \"6471383\"}, {\"entityId\": \"6471500\"}, {\"entityId\": \"6471617\"}, {\"entityId\": \"6471734\"}, {\"entityId\": \"6471851\"}, {\"entityId\": \"6472085\"}, {\"entityId\": \"6472319\"}, {\"entityId\": \"6472436\"}, {\"entityId\": \"6472553\"}, {\"entityId\": \"6472787\"}, {\"entityId\": \"6472904\"}, {\"entityId\": \"6473021\"}, {\"entityId\": \"6473138\"}, {\"entityId\": \"6473255\"}, {\"entityId\": \"6473372\"}, {\"entityId\": \"6473489\"}, {\"entityId\": \"6473606\"}, {\"entityId\": \"6473723\"}, {\"entityId\": \"6473840\"}, {\"entityId\": \"6473957\"}, {\"entityId\": \"6474074\"}, {\"entityId\": \"6483434\"}, {\"entityId\": \"6483551\"}, {\"entityId\": \"6483668\"}, {\"entityId\": \"6500984\"}, {\"entityId\": \"6501101\"}, {\"entityId\": \"6501218\"}, {\"entityId\": \"6501686\"}, {\"entityId\": \"6501803\"}, {\"entityId\": \"6501920\"}, {\"entityId\": \"6502037\"}, {\"entityId\": \"6502154\"}, {\"entityId\": \"6502271\"}, {\"entityId\": \"6502388\"}, {\"entityId\": \"6502505\"}, {\"entityId\": \"6502622\"}, {\"entityId\": \"6502739\"}, {\"entityId\": \"6502856\"}, {\"entityId\": \"6502973\"}, {\"entityId\": \"6503090\"}, {\"entityId\": \"6503207\"}, {\"entityId\": \"6503324\"}, {\"entityId\": \"6503441\"}, {\"entityId\": \"6503558\"}, {\"entityId\": \"6503675\"}, {\"entityId\": \"6504143\"}, {\"entityId\": \"6504260\"}, {\"entityId\": \"6504377\"}, {\"entityId\": \"6504494\"}, {\"entityId\": \"6504611\"}, {\"entityId\": \"6504728\"}, {\"entityId\": \"6504845\"}, {\"entityId\": \"6504962\"}, {\"entityId\": \"6505079\"}, {\"entityId\": \"6505196\"}, {\"entityId\": \"6505313\"}, {\"entityId\": \"6505430\"}, {\"entityId\": \"6505547\"}, {\"entityId\": \"6505664\"}, {\"entityId\": \"6505781\"}, {\"entityId\": \"6505898\"}, {\"entityId\": \"6506015\"}, {\"entityId\": \"6506132\"}, {\"entityId\": \"6506249\"}, {\"entityId\": \"6506600\"}, {\"entityId\": \"6506717\"}, {\"entityId\": \"6506834\"}, {\"entityId\": \"6506951\"}, {\"entityId\": \"6507068\"}, {\"entityId\": \"6507185\"}, {\"entityId\": \"6507302\"}, {\"entityId\": \"6507419\"}, {\"entityId\": \"9188864\"}, {\"entityId\": \"9188981\"}, {\"entityId\": \"9189098\"}, {\"entityId\": \"9189215\"}, {\"entityId\": \"9189332\"}, {\"entityId\": \"9189449\"}, {\"entityId\": \"9189683\"}, {\"entityId\": \"9189800\"}, {\"entityId\": \"9189917\"}, {\"entityId\": \"9210938\"}, {\"entityId\": \"9211055\"}, {\"entityId\": \"9211172\"}, {\"entityId\": \"9211289\"}, {\"entityId\": \"9211406\"}, {\"entityId\": \"9211523\"}, {\"entityId\": \"9211640\"}, {\"entityId\": \"9211757\"}, {\"entityId\": \"9211874\"}, {\"entityId\": \"9211991\"}, {\"entityId\": \"9212225\"}, {\"entityId\": \"9212342\"}, {\"entityId\": \"9212459\"}, {\"entityId\": \"9212576\"}, {\"entityId\": \"9212810\"}, {\"entityId\": \"9213161\"}, {\"entityId\": \"9213278\"}, {\"entityId\": \"9213395\"}, {\"entityId\": \"9213512\"}, {\"entityId\": \"9213629\"}, {\"entityId\": \"9213746\"}, {\"entityId\": \"9213863\"}, {\"entityId\": \"9213980\"}, {\"entityId\": \"9214097\"}, {\"entityId\": \"9214214\"}, {\"entityId\": \"9214331\"}, {\"entityId\": \"9214448\"}, {\"entityId\": \"9214565\"}, {\"entityId\": \"9214799\"}, {\"entityId\": \"9214916\"}, {\"entityId\": \"9215033\"}, {\"entityId\": \"9215150\"}, {\"entityId\": \"9215267\"}, {\"entityId\": \"9215501\"}, {\"entityId\": \"9215618\"}, {\"entityId\": \"9215735\"}, {\"entityId\": \"9215852\"}, {\"entityId\": \"9215969\"}, {\"entityId\": \"9216086\"}, {\"entityId\": \"6568025\"}, {\"entityId\": \"6568142\"}, {\"entityId\": \"6568259\"}, {\"entityId\": \"6568376\"}, {\"entityId\": \"6568493\"}, {\"entityId\": \"6568727\"}, {\"entityId\": \"6568844\"}, {\"entityId\": \"6568961\"}, {\"entityId\": \"6569078\"}, {\"entityId\": \"6569312\"}, {\"entityId\": \"6569429\"}, {\"entityId\": \"6569546\"}, {\"entityId\": \"6569663\"}, {\"entityId\": \"6569897\"}, {\"entityId\": \"6570014\"}, {\"entityId\": \"6570248\"}, {\"entityId\": \"6570365\"}, {\"entityId\": \"6570482\"}, {\"entityId\": \"6570599\"}, {\"entityId\": \"6570716\"}, {\"entityId\": \"6570833\"}, {\"entityId\": \"6571067\"}, {\"entityId\": \"6571184\"}, {\"entityId\": \"6571301\"}, {\"entityId\": \"6571418\"}, {\"entityId\": \"6571535\"}, {\"entityId\": \"6571652\"}, {\"entityId\": \"6571769\"}, {\"entityId\": \"6571886\"}, {\"entityId\": \"6572003\"}, {\"entityId\": \"6572120\"}, {\"entityId\": \"6572354\"}, {\"entityId\": \"6572471\"}, {\"entityId\": \"6572588\"}, {\"entityId\": \"6231260\"}, {\"entityId\": \"6231611\"}, {\"entityId\": \"6231845\"}, {\"entityId\": \"6231962\"}, {\"entityId\": \"6232079\"}, {\"entityId\": \"6232196\"}, {\"entityId\": \"6232313\"}, {\"entityId\": \"6232430\"}, {\"entityId\": \"6232547\"}, {\"entityId\": \"6232664\"}, {\"entityId\": \"6248225\"}, {\"entityId\": \"6248342\"}, {\"entityId\": \"6248459\"}, {\"entityId\": \"6248576\"}, {\"entityId\": \"6581831\"}, {\"entityId\": \"6581948\"}, {\"entityId\": \"6582065\"}, {\"entityId\": \"6582182\"}, {\"entityId\": \"6582299\"}, {\"entityId\": \"6582416\"}, {\"entityId\": \"6582533\"}, {\"entityId\": \"6582650\"}, {\"entityId\": \"6582767\"}, {\"entityId\": \"6582884\"}, {\"entityId\": \"6583001\"}, {\"entityId\": \"6583118\"}, {\"entityId\": \"6583235\"}, {\"entityId\": \"6583352\"}, {\"entityId\": \"6583469\"}, {\"entityId\": \"6583586\"}, {\"entityId\": \"6583703\"}, {\"entityId\": \"6583820\"}, {\"entityId\": \"6583937\"}, {\"entityId\": \"6584054\"}, {\"entityId\": \"6584171\"}, {\"entityId\": \"6252788\"}, {\"entityId\": \"6253022\"}, {\"entityId\": \"6253139\"}, {\"entityId\": \"6253256\"}, {\"entityId\": \"6253373\"}, {\"entityId\": \"6253841\"}, {\"entityId\": \"6253958\"}, {\"entityId\": \"6254075\"}, {\"entityId\": \"6254192\"}, {\"entityId\": \"6254309\"}, {\"entityId\": \"6254426\"}, {\"entityId\": \"6254543\"}, {\"entityId\": \"6254660\"}, {\"entityId\": \"6254777\"}, {\"entityId\": \"6254894\"}, {\"entityId\": \"6255011\"}, {\"entityId\": \"6255128\"}, {\"entityId\": \"6255245\"}, {\"entityId\": \"6255362\"}, {\"entityId\": \"6255479\"}, {\"entityId\": \"6255596\"}, {\"entityId\": \"6255713\"}, {\"entityId\": \"6255830\"}, {\"entityId\": \"6256298\"}, {\"entityId\": \"6256415\"}, {\"entityId\": \"6256532\"}, {\"entityId\": \"6256649\"}, {\"entityId\": \"6265073\"}, {\"entityId\": \"6265190\"}, {\"entityId\": \"6265307\"}, {\"entityId\": \"6265424\"}, {\"entityId\": \"6265541\"}, {\"entityId\": \"6610847\"}, {\"entityId\": \"6610964\"}, {\"entityId\": \"6611081\"}, {\"entityId\": \"6611198\"}, {\"entityId\": \"6611315\"}, {\"entityId\": \"6611432\"}, {\"entityId\": \"6611549\"}, {\"entityId\": \"6611666\"}, {\"entityId\": \"6611783\"}, {\"entityId\": \"6611900\"}, {\"entityId\": \"6612017\"}, {\"entityId\": \"6612134\"}, {\"entityId\": \"6612251\"}, {\"entityId\": \"6612368\"}, {\"entityId\": \"6612602\"}, {\"entityId\": \"6584444\"}, {\"entityId\": \"6584561\"}, {\"entityId\": \"6584678\"}, {\"entityId\": \"6584795\"}, {\"entityId\": \"6585029\"}, {\"entityId\": \"6585146\"}, {\"entityId\": \"6585263\"}, {\"entityId\": \"6585380\"}, {\"entityId\": \"6585497\"}, {\"entityId\": \"6585965\"}, {\"entityId\": \"6586082\"}, {\"entityId\": \"6586199\"}, {\"entityId\": \"6586316\"}, {\"entityId\": \"6586433\"}, {\"entityId\": \"6586550\"}, {\"entityId\": \"6586667\"}, {\"entityId\": \"6586784\"}, {\"entityId\": \"6586901\"}, {\"entityId\": \"6587018\"}, {\"entityId\": \"6587135\"}, {\"entityId\": \"6587252\"}, {\"entityId\": \"6587369\"}, {\"entityId\": \"6587486\"}, {\"entityId\": \"6587603\"}, {\"entityId\": \"6587720\"}, {\"entityId\": \"6587837\"}, {\"entityId\": \"6587954\"}, {\"entityId\": \"6588422\"}, {\"entityId\": \"6424154\"}, {\"entityId\": \"6424271\"}, {\"entityId\": \"6424388\"}, {\"entityId\": \"6424505\"}, {\"entityId\": \"6424622\"}, {\"entityId\": \"6424739\"}, {\"entityId\": \"6424856\"}, {\"entityId\": \"6424973\"}, {\"entityId\": \"6425090\"}, {\"entityId\": \"6425207\"}, {\"entityId\": \"6425324\"}, {\"entityId\": \"6425441\"}, {\"entityId\": \"6425909\"}, {\"entityId\": \"6426026\"}, {\"entityId\": \"6426143\"}, {\"entityId\": \"6426260\"}, {\"entityId\": \"6426377\"}, {\"entityId\": \"6426494\"}, {\"entityId\": \"6426611\"}, {\"entityId\": \"6426728\"}, {\"entityId\": \"6426845\"}, {\"entityId\": \"6426962\"}, {\"entityId\": \"6427079\"}, {\"entityId\": \"6427196\"}, {\"entityId\": \"6427313\"}, {\"entityId\": \"6427430\"}, {\"entityId\": \"6427547\"}, {\"entityId\": \"6427664\"}, {\"entityId\": \"6427781\"}, {\"entityId\": \"6427898\"}, {\"entityId\": \"6428249\"}, {\"entityId\": \"6428483\"}, {\"entityId\": \"6428600\"}, {\"entityId\": \"6428717\"}, {\"entityId\": \"6428834\"}, {\"entityId\": \"6428951\"}, {\"entityId\": \"6429068\"}, {\"entityId\": \"6429185\"}, {\"entityId\": \"6429302\"}, {\"entityId\": \"6449075\"}, {\"entityId\": \"6449192\"}, {\"entityId\": \"6449309\"}, {\"entityId\": \"6449426\"}, {\"entityId\": \"6449543\"}, {\"entityId\": \"6449660\"}, {\"entityId\": \"6449894\"}, {\"entityId\": \"6450011\"}, {\"entityId\": \"6450128\"}, {\"entityId\": \"6521810\"}, {\"entityId\": \"6521927\"}, {\"entityId\": \"6522044\"}, {\"entityId\": \"6522161\"}, {\"entityId\": \"6522278\"}, {\"entityId\": \"6522512\"}, {\"entityId\": \"6522629\"}, {\"entityId\": \"6522863\"}, {\"entityId\": \"6522980\"}, {\"entityId\": \"6523097\"}, {\"entityId\": \"6523214\"}, {\"entityId\": \"6523331\"}, {\"entityId\": \"6523448\"}, {\"entityId\": \"6523565\"}, {\"entityId\": \"6523682\"}, {\"entityId\": \"6523799\"}, {\"entityId\": \"6523916\"}, {\"entityId\": \"6524033\"}, {\"entityId\": \"6524150\"}, {\"entityId\": \"6524267\"}, {\"entityId\": \"6524384\"}, {\"entityId\": \"6524618\"}, {\"entityId\": \"6524735\"}, {\"entityId\": \"6525203\"}, {\"entityId\": \"6525320\"}, {\"entityId\": \"6525437\"}, {\"entityId\": \"6525554\"}, {\"entityId\": \"6525671\"}, {\"entityId\": \"6525788\"}, {\"entityId\": \"6513776\"}, {\"entityId\": \"6514010\"}, {\"entityId\": \"6514127\"}, {\"entityId\": \"6514244\"}, {\"entityId\": \"6514361\"}, {\"entityId\": \"6514478\"}, {\"entityId\": \"6514595\"}, {\"entityId\": \"6514712\"}, {\"entityId\": \"6514829\"}, {\"entityId\": \"6515063\"}, {\"entityId\": \"6515180\"}, {\"entityId\": \"6515297\"}, {\"entityId\": \"6515414\"}, {\"entityId\": \"6515531\"}, {\"entityId\": \"6515648\"}, {\"entityId\": \"6515765\"}, {\"entityId\": \"6515999\"}, {\"entityId\": \"6516116\"}, {\"entityId\": \"6516233\"}, {\"entityId\": \"1411276\"}, {\"entityId\": \"1411393\"}, {\"entityId\": \"1411510\"}, {\"entityId\": \"1411627\"}, {\"entityId\": \"1411744\"}, {\"entityId\": \"1411978\"}, {\"entityId\": \"1412095\"}, {\"entityId\": \"1412212\"}, {\"entityId\": \"1412329\"}, {\"entityId\": \"1412446\"}, {\"entityId\": \"1412563\"}, {\"entityId\": \"1412680\"}, {\"entityId\": \"1413148\"}, {\"entityId\": \"1413265\"}, {\"entityId\": \"1413382\"}, {\"entityId\": \"1413499\"}, {\"entityId\": \"1413616\"}, {\"entityId\": \"1413733\"}, {\"entityId\": \"1413850\"}, {\"entityId\": \"1413967\"}, {\"entityId\": \"1414084\"}, {\"entityId\": \"1414201\"}, {\"entityId\": \"1414318\"}, {\"entityId\": \"1414435\"}, {\"entityId\": \"1414552\"}, {\"entityId\": \"1414669\"}, {\"entityId\": \"1414786\"}, {\"entityId\": \"1414903\"}, {\"entityId\": \"1415020\"}, {\"entityId\": \"1415137\"}, {\"entityId\": \"1415605\"}, {\"entityId\": \"1415722\"}, {\"entityId\": \"1415839\"}, {\"entityId\": \"1427071\"}, {\"entityId\": \"1493605\"}, {\"entityId\": \"1493722\"}, {\"entityId\": \"1493956\"}, {\"entityId\": \"1494073\"}, {\"entityId\": \"1494190\"}, {\"entityId\": \"1496101\"}, {\"entityId\": \"1496218\"}, {\"entityId\": \"1496335\"}, {\"entityId\": \"1496452\"}, {\"entityId\": \"1496569\"}, {\"entityId\": \"1496686\"}, {\"entityId\": \"1496803\"}, {\"entityId\": \"1496920\"}, {\"entityId\": \"1497037\"}, {\"entityId\": \"1321823\"}, {\"entityId\": \"1321940\"}, {\"entityId\": \"1322057\"}, {\"entityId\": \"1322174\"}, {\"entityId\": \"1322291\"}, {\"entityId\": \"1322525\"}, {\"entityId\": \"1322642\"}, {\"entityId\": \"1322759\"}, {\"entityId\": \"1322876\"}, {\"entityId\": \"1322993\"}, {\"entityId\": \"1323227\"}, {\"entityId\": \"1323344\"}, {\"entityId\": \"1323461\"}, {\"entityId\": \"1323578\"}, {\"entityId\": \"1323695\"}, {\"entityId\": \"1323812\"}, {\"entityId\": \"1323929\"}, {\"entityId\": \"1324046\"}, {\"entityId\": \"1324397\"}, {\"entityId\": \"1324514\"}, {\"entityId\": \"1324631\"}, {\"entityId\": \"1324748\"}, {\"entityId\": \"1324865\"}, {\"entityId\": \"1324982\"}, {\"entityId\": \"1325099\"}, {\"entityId\": \"1325216\"}, {\"entityId\": \"1325333\"}, {\"entityId\": \"1325450\"}, {\"entityId\": \"1325567\"}, {\"entityId\": \"1325801\"}, {\"entityId\": \"1325918\"}, {\"entityId\": \"1326035\"}, {\"entityId\": \"1326152\"}, {\"entityId\": \"1326269\"}, {\"entityId\": \"1326386\"}, {\"entityId\": \"1326503\"}, {\"entityId\": \"1326737\"}, {\"entityId\": \"1326854\"}, {\"entityId\": \"1326971\"}, {\"entityId\": \"1327088\"}, {\"entityId\": \"1327205\"}, {\"entityId\": \"1327322\"}, {\"entityId\": \"1327439\"}, {\"entityId\": \"1327556\"}, {\"entityId\": \"1327673\"}, {\"entityId\": \"1327790\"}, {\"entityId\": \"1328024\"}, {\"entityId\": \"1328141\"}, {\"entityId\": \"6259028\"}, {\"entityId\": \"6259145\"}, {\"entityId\": \"6259262\"}, {\"entityId\": \"6259379\"}, {\"entityId\": \"6259496\"}, {\"entityId\": \"6259730\"}, {\"entityId\": \"6259847\"}, {\"entityId\": \"6259964\"}, {\"entityId\": \"6260198\"}, {\"entityId\": \"6260315\"}, {\"entityId\": \"6260432\"}, {\"entityId\": \"6260549\"}, {\"entityId\": \"6260666\"}, {\"entityId\": \"6260783\"}, {\"entityId\": \"6260900\"}, {\"entityId\": \"6261017\"}, {\"entityId\": \"6261134\"}, {\"entityId\": \"6261134\"}, {\"entityId\": \"6261251\"}, {\"entityId\": \"6261368\"}, {\"entityId\": \"6261485\"}, {\"entityId\": \"6261602\"}, {\"entityId\": \"6261836\"}, {\"entityId\": \"6261953\"}, {\"entityId\": \"6266399\"}, {\"entityId\": \"6266516\"}, {\"entityId\": \"6266633\"}, {\"entityId\": \"6266867\"}, {\"entityId\": \"6266984\"}, {\"entityId\": \"6267218\"}, {\"entityId\": \"6267569\"}, {\"entityId\": \"6267686\"}, {\"entityId\": \"6267803\"}, {\"entityId\": \"6268037\"}, {\"entityId\": \"6268154\"}, {\"entityId\": \"6268271\"}, {\"entityId\": \"6268388\"}, {\"entityId\": \"6268505\"}, {\"entityId\": \"6268622\"}, {\"entityId\": \"6268739\"}, {\"entityId\": \"6268856\"}, {\"entityId\": \"6268973\"}, {\"entityId\": \"6269090\"}, {\"entityId\": \"6269207\"}, {\"entityId\": \"6269324\"}, {\"entityId\": \"6269441\"}, {\"entityId\": \"6269558\"}, {\"entityId\": \"6269675\"}, {\"entityId\": \"6269909\"}, {\"entityId\": \"6029318\"}, {\"entityId\": \"6029435\"}, {\"entityId\": \"6029903\"}, {\"entityId\": \"6030020\"}, {\"entityId\": \"6030137\"}, {\"entityId\": \"6030254\"}, {\"entityId\": \"6030371\"}, {\"entityId\": \"6030488\"}, {\"entityId\": \"6030605\"}, {\"entityId\": \"6030722\"}, {\"entityId\": \"6030839\"}, {\"entityId\": \"6030956\"}, {\"entityId\": \"6031073\"}, {\"entityId\": \"6031190\"}, {\"entityId\": \"6031307\"}, {\"entityId\": \"6031424\"}, {\"entityId\": \"6031541\"}, {\"entityId\": \"6031658\"}, {\"entityId\": \"6031775\"}, {\"entityId\": \"6031892\"}, {\"entityId\": \"6032360\"}, {\"entityId\": \"6032477\"}, {\"entityId\": \"6032594\"}, {\"entityId\": \"6032711\"}, {\"entityId\": \"6032828\"}, {\"entityId\": \"6032945\"}, {\"entityId\": \"6033062\"}, {\"entityId\": \"6033179\"}, {\"entityId\": \"6033296\"}, {\"entityId\": \"6033413\"}, {\"entityId\": \"6033530\"}, {\"entityId\": \"6033647\"}, {\"entityId\": \"6033764\"}, {\"entityId\": \"6033881\"}, {\"entityId\": \"6033998\"}, {\"entityId\": \"6034115\"}, {\"entityId\": \"1360823\"}, {\"entityId\": \"1360940\"}, {\"entityId\": \"1361174\"}, {\"entityId\": \"1361408\"}, {\"entityId\": \"1361525\"}, {\"entityId\": \"1361642\"}, {\"entityId\": \"1361759\"}, {\"entityId\": \"1361876\"}, {\"entityId\": \"1365022\"}, {\"entityId\": \"1365139\"}, {\"entityId\": \"1365256\"}, {\"entityId\": \"1365412\"}, {\"entityId\": \"1365529\"}, {\"entityId\": \"1365646\"}, {\"entityId\": \"1365763\"}, {\"entityId\": \"1365880\"}, {\"entityId\": \"1365997\"}, {\"entityId\": \"1366114\"}, {\"entityId\": \"1366348\"}, {\"entityId\": \"1366465\"}, {\"entityId\": \"1366582\"}, {\"entityId\": \"1366933\"}, {\"entityId\": \"1367050\"}, {\"entityId\": \"1367167\"}, {\"entityId\": \"1367401\"}, {\"entityId\": \"1367518\"}, {\"entityId\": \"1367635\"}, {\"entityId\": \"1367752\"}, {\"entityId\": \"1367869\"}, {\"entityId\": \"1367986\"}, {\"entityId\": \"1368103\"}, {\"entityId\": \"1368220\"}, {\"entityId\": \"1368337\"}, {\"entityId\": \"1368454\"}, {\"entityId\": \"1368571\"}, {\"entityId\": \"1368688\"}, {\"entityId\": \"1368805\"}, {\"entityId\": \"1369039\"}, {\"entityId\": \"1369156\"}, {\"entityId\": \"1320536\"}, {\"entityId\": \"1320653\"}, {\"entityId\": \"1320770\"}, {\"entityId\": \"1320887\"}, {\"entityId\": \"1321004\"}, {\"entityId\": \"1321238\"}, {\"entityId\": \"1321355\"}, {\"entityId\": \"1321472\"}, {\"entityId\": \"1321589\"}, {\"entityId\": \"6253061\"}, {\"entityId\": \"6253178\"}, {\"entityId\": \"6253295\"}, {\"entityId\": \"6253412\"}, {\"entityId\": \"6253529\"}, {\"entityId\": \"6253646\"}, {\"entityId\": \"6253763\"}, {\"entityId\": \"6253880\"}, {\"entityId\": \"6253997\"}, {\"entityId\": \"6254114\"}, {\"entityId\": \"6254231\"}, {\"entityId\": \"6254348\"}, {\"entityId\": \"6254465\"}, {\"entityId\": \"6254582\"}, {\"entityId\": \"6254933\"}, {\"entityId\": \"6255050\"}, {\"entityId\": \"6255167\"}, {\"entityId\": \"6268076\"}, {\"entityId\": \"6268193\"}, {\"entityId\": \"6268310\"}, {\"entityId\": \"6268427\"}, {\"entityId\": \"6268544\"}, {\"entityId\": \"6268661\"}, {\"entityId\": \"6268778\"}, {\"entityId\": \"6268895\"}, {\"entityId\": \"6269012\"}, {\"entityId\": \"6269129\"}, {\"entityId\": \"6269246\"}, {\"entityId\": \"6269363\"}, {\"entityId\": \"6269363\"}, {\"entityId\": \"6269480\"}, {\"entityId\": \"6269597\"}, {\"entityId\": \"6269714\"}, {\"entityId\": \"6269831\"}, {\"entityId\": \"6269948\"}, {\"entityId\": \"6270065\"}, {\"entityId\": \"6270182\"}, {\"entityId\": \"6270299\"}, {\"entityId\": \"6270416\"}, {\"entityId\": \"6270533\"}, {\"entityId\": \"6270650\"}, {\"entityId\": \"6270767\"}, {\"entityId\": \"6270884\"}, {\"entityId\": \"6271001\"}, {\"entityId\": \"6271118\"}, {\"entityId\": \"6271352\"}, {\"entityId\": \"6271469\"}, {\"entityId\": \"6233873\"}, {\"entityId\": \"6233990\"}, {\"entityId\": \"6234107\"}, {\"entityId\": \"6234224\"}, {\"entityId\": \"6234341\"}, {\"entityId\": \"6234458\"}, {\"entityId\": \"6234575\"}, {\"entityId\": \"6235043\"}, {\"entityId\": \"6235160\"}, {\"entityId\": \"6235277\"}, {\"entityId\": \"6235394\"}, {\"entityId\": \"6235511\"}, {\"entityId\": \"6235628\"}, {\"entityId\": \"6235745\"}, {\"entityId\": \"6235862\"}, {\"entityId\": \"6235979\"}, {\"entityId\": \"6236096\"}, {\"entityId\": \"6236213\"}, {\"entityId\": \"6236330\"}, {\"entityId\": \"6236447\"}, {\"entityId\": \"6236564\"}, {\"entityId\": \"6236681\"}, {\"entityId\": \"6255284\"}, {\"entityId\": \"6255401\"}, {\"entityId\": \"6255518\"}, {\"entityId\": \"6255635\"}, {\"entityId\": \"6255752\"}, {\"entityId\": \"6255869\"}, {\"entityId\": \"6255986\"}, {\"entityId\": \"6256103\"}, {\"entityId\": \"6256220\"}, {\"entityId\": \"6256337\"}, {\"entityId\": \"6256571\"}, {\"entityId\": \"6256688\"}, {\"entityId\": \"6256805\"}, {\"entityId\": \"6256922\"}, {\"entityId\": \"6257039\"}, {\"entityId\": \"6257273\"}, {\"entityId\": \"6257390\"}, {\"entityId\": \"6257507\"}, {\"entityId\": \"6257741\"}, {\"entityId\": \"6257858\"}, {\"entityId\": \"6257975\"}, {\"entityId\": \"6258092\"}, {\"entityId\": \"6258209\"}, {\"entityId\": \"6258326\"}, {\"entityId\": \"6258560\"}, {\"entityId\": \"6258677\"}, {\"entityId\": \"6258794\"}, {\"entityId\": \"6258911\"}, {\"entityId\": \"6256961\"}, {\"entityId\": \"6257078\"}, {\"entityId\": \"6257195\"}, {\"entityId\": \"6257312\"}, {\"entityId\": \"6257429\"}, {\"entityId\": \"6257663\"}, {\"entityId\": \"6257780\"}, {\"entityId\": \"6257897\"}, {\"entityId\": \"6258014\"}, {\"entityId\": \"6258248\"}, {\"entityId\": \"6258482\"}, {\"entityId\": \"6258599\"}, {\"entityId\": \"6258716\"}, {\"entityId\": \"6258833\"}, {\"entityId\": \"6258950\"}, {\"entityId\": \"6259067\"}, {\"entityId\": \"6259184\"}, {\"entityId\": \"6259301\"}, {\"entityId\": \"6259418\"}, {\"entityId\": \"6259535\"}, {\"entityId\": \"6259652\"}, {\"entityId\": \"6259769\"}, {\"entityId\": \"6259886\"}, {\"entityId\": \"6260003\"}, {\"entityId\": \"6260120\"}, {\"entityId\": \"6260354\"}, {\"entityId\": \"6260471\"}, {\"entityId\": \"6260705\"}, {\"entityId\": \"6260822\"}, {\"entityId\": \"6043358\"}, {\"entityId\": \"6043475\"}, {\"entityId\": \"6043592\"}, {\"entityId\": \"6043709\"}, {\"entityId\": \"6043826\"}, {\"entityId\": \"6043943\"}, {\"entityId\": \"6338120\"}, {\"entityId\": \"6338237\"}, {\"entityId\": \"6338354\"}, {\"entityId\": \"6338471\"}, {\"entityId\": \"6338588\"}, {\"entityId\": \"6338705\"}, {\"entityId\": \"6339173\"}, {\"entityId\": \"6339290\"}, {\"entityId\": \"6339407\"}, {\"entityId\": \"6339524\"}, {\"entityId\": \"6339641\"}, {\"entityId\": \"6339758\"}, {\"entityId\": \"6339875\"}, {\"entityId\": \"6605387\"}, {\"entityId\": \"6605504\"}, {\"entityId\": \"6605621\"}, {\"entityId\": \"6605738\"}, {\"entityId\": \"6605855\"}, {\"entityId\": \"6605972\"}, {\"entityId\": \"6606089\"}, {\"entityId\": \"6606206\"}, {\"entityId\": \"6606323\"}, {\"entityId\": \"6606440\"}, {\"entityId\": \"6606557\"}, {\"entityId\": \"6606908\"}, {\"entityId\": \"6607025\"}, {\"entityId\": \"6607142\"}, {\"entityId\": \"6248381\"}, {\"entityId\": \"6248498\"}, {\"entityId\": \"6248615\"}, {\"entityId\": \"6248732\"}, {\"entityId\": \"6248849\"}, {\"entityId\": \"6248966\"}, {\"entityId\": \"6249083\"}, {\"entityId\": \"6249200\"}, {\"entityId\": \"6249317\"}, {\"entityId\": \"6249434\"}, {\"entityId\": \"6249551\"}, {\"entityId\": \"6249668\"}, {\"entityId\": \"6250136\"}, {\"entityId\": \"6250253\"}, {\"entityId\": \"6250370\"}, {\"entityId\": \"6250487\"}, {\"entityId\": \"6250604\"}, {\"entityId\": \"6250721\"}, {\"entityId\": \"6250838\"}, {\"entityId\": \"6250955\"}, {\"entityId\": \"6251072\"}, {\"entityId\": \"6251189\"}, {\"entityId\": \"6251306\"}, {\"entityId\": \"6251423\"}, {\"entityId\": \"6251540\"}, {\"entityId\": \"6251657\"}, {\"entityId\": \"6251774\"}, {\"entityId\": \"6251891\"}, {\"entityId\": \"6252008\"}, {\"entityId\": \"6252125\"}, {\"entityId\": \"6252593\"}, {\"entityId\": \"6252710\"}, {\"entityId\": \"6252827\"}, {\"entityId\": \"6252944\"}, {\"entityId\": \"6218000\"}, {\"entityId\": \"6218117\"}, {\"entityId\": \"6218234\"}, {\"entityId\": \"6218351\"}, {\"entityId\": \"6218468\"}, {\"entityId\": \"6218585\"}, {\"entityId\": \"6218702\"}, {\"entityId\": \"6218819\"}, {\"entityId\": \"6218936\"}, {\"entityId\": \"6219053\"}, {\"entityId\": \"6219170\"}, {\"entityId\": \"6219287\"}, {\"entityId\": \"6219404\"}, {\"entityId\": \"6219521\"}, {\"entityId\": \"6219989\"}, {\"entityId\": \"6220106\"}, {\"entityId\": \"6220223\"}, {\"entityId\": \"6220340\"}, {\"entityId\": \"6220457\"}, {\"entityId\": \"6220574\"}, {\"entityId\": \"6220691\"}, {\"entityId\": \"6220808\"}, {\"entityId\": \"6220925\"}, {\"entityId\": \"6221042\"}, {\"entityId\": \"6221159\"}, {\"entityId\": \"6221276\"}, {\"entityId\": \"6221393\"}, {\"entityId\": \"6221510\"}, {\"entityId\": \"6221627\"}, {\"entityId\": \"6221744\"}, {\"entityId\": \"6221861\"}, {\"entityId\": \"6221978\"}, {\"entityId\": \"6293777\"}, {\"entityId\": \"6293894\"}, {\"entityId\": \"6294011\"}, {\"entityId\": \"6294245\"}, {\"entityId\": \"6294479\"}, {\"entityId\": \"6294596\"}, {\"entityId\": \"6294713\"}, {\"entityId\": \"6294830\"}, {\"entityId\": \"6294947\"}, {\"entityId\": \"6295064\"}, {\"entityId\": \"6295181\"}, {\"entityId\": \"6295298\"}, {\"entityId\": \"6295532\"}, {\"entityId\": \"6295649\"}, {\"entityId\": \"6295766\"}, {\"entityId\": \"6296000\"}, {\"entityId\": \"6316280\"}, {\"entityId\": \"6316397\"}, {\"entityId\": \"6316631\"}, {\"entityId\": \"6316748\"}, {\"entityId\": \"6316865\"}, {\"entityId\": \"6316982\"}, {\"entityId\": \"6317099\"}, {\"entityId\": \"6317216\"}, {\"entityId\": \"6317333\"}, {\"entityId\": \"6317567\"}, {\"entityId\": \"6317684\"}, {\"entityId\": \"6317801\"}, {\"entityId\": \"6317918\"}, {\"entityId\": \"6318035\"}, {\"entityId\": \"6318152\"}, {\"entityId\": \"6318269\"}, {\"entityId\": \"6318386\"}, {\"entityId\": \"6318620\"}, {\"entityId\": \"6318737\"}, {\"entityId\": \"6318854\"}, {\"entityId\": \"6290735\"}, {\"entityId\": \"6290852\"}, {\"entityId\": \"6290969\"}, {\"entityId\": \"6291086\"}, {\"entityId\": \"6291203\"}, {\"entityId\": \"6291437\"}, {\"entityId\": \"6291554\"}, {\"entityId\": \"6291671\"}, {\"entityId\": \"6291788\"}, {\"entityId\": \"6291905\"}, {\"entityId\": \"6292022\"}, {\"entityId\": \"6292139\"}, {\"entityId\": \"6292256\"}, {\"entityId\": \"6292373\"}, {\"entityId\": \"6292490\"}, {\"entityId\": \"6292607\"}, {\"entityId\": \"6292724\"}, {\"entityId\": \"6292841\"}, {\"entityId\": \"6293075\"}, {\"entityId\": \"6293192\"}, {\"entityId\": \"6293309\"}, {\"entityId\": \"6293426\"}, {\"entityId\": \"6293543\"}, {\"entityId\": \"6293660\"}, {\"entityId\": \"6256493\"}, {\"entityId\": \"6256610\"}, {\"entityId\": \"6256727\"}, {\"entityId\": \"6256727\"}, {\"entityId\": \"6256844\"}, {\"entityId\": \"6018320\"}, {\"entityId\": \"6018437\"}, {\"entityId\": \"6018554\"}, {\"entityId\": \"6018671\"}, {\"entityId\": \"6018788\"}, {\"entityId\": \"6018905\"}, {\"entityId\": \"6019022\"}, {\"entityId\": \"6019139\"}, {\"entityId\": \"6019490\"}, {\"entityId\": \"6019607\"}, {\"entityId\": \"6019724\"}, {\"entityId\": \"6019841\"}, {\"entityId\": \"6020192\"}, {\"entityId\": \"6020309\"}, {\"entityId\": \"6020426\"}, {\"entityId\": \"6020543\"}, {\"entityId\": \"6020660\"}, {\"entityId\": \"6020777\"}, {\"entityId\": \"6020894\"}, {\"entityId\": \"6021011\"}, {\"entityId\": \"6021128\"}, {\"entityId\": \"6021245\"}, {\"entityId\": \"6021362\"}, {\"entityId\": \"6021479\"}, {\"entityId\": \"6021596\"}, {\"entityId\": \"6021713\"}, {\"entityId\": \"6022181\"}, {\"entityId\": \"6022298\"}, {\"entityId\": \"6022415\"}, {\"entityId\": \"6022532\"}, {\"entityId\": \"6022649\"}, {\"entityId\": \"6022766\"}, {\"entityId\": \"6022883\"}, {\"entityId\": \"6023000\"}, {\"entityId\": \"6023117\"}, {\"entityId\": \"6027797\"}, {\"entityId\": \"6087935\"}, {\"entityId\": \"6088052\"}, {\"entityId\": \"6088169\"}, {\"entityId\": \"6088286\"}, {\"entityId\": \"6088403\"}, {\"entityId\": \"6088520\"}, {\"entityId\": \"6088637\"}, {\"entityId\": \"6088754\"}, {\"entityId\": \"6089222\"}, {\"entityId\": \"6089339\"}, {\"entityId\": \"6089456\"}, {\"entityId\": \"6089573\"}, {\"entityId\": \"6089690\"}, {\"entityId\": \"6089807\"}, {\"entityId\": \"6089924\"}, {\"entityId\": \"6090041\"}, {\"entityId\": \"6090158\"}, {\"entityId\": \"6090275\"}, {\"entityId\": \"6090392\"}, {\"entityId\": \"6090509\"}, {\"entityId\": \"6090626\"}, {\"entityId\": \"6090743\"}, {\"entityId\": \"6090860\"}, {\"entityId\": \"6090977\"}, {\"entityId\": \"6091094\"}, {\"entityId\": \"6091211\"}, {\"entityId\": \"6413741\"}, {\"entityId\": \"6413858\"}, {\"entityId\": \"6414092\"}, {\"entityId\": \"6414209\"}, {\"entityId\": \"6414326\"}, {\"entityId\": \"6414443\"}, {\"entityId\": \"6414560\"}, {\"entityId\": \"6414677\"}, {\"entityId\": \"6414794\"}, {\"entityId\": \"6414911\"}, {\"entityId\": \"6415028\"}, {\"entityId\": \"6415145\"}, {\"entityId\": \"6415262\"}, {\"entityId\": \"6415496\"}, {\"entityId\": \"6415613\"}, {\"entityId\": \"6415730\"}, {\"entityId\": \"6415847\"}, {\"entityId\": \"6415964\"}, {\"entityId\": \"6416198\"}, {\"entityId\": \"6416432\"}, {\"entityId\": \"6416549\"}, {\"entityId\": \"6411479\"}, {\"entityId\": \"6034232\"}, {\"entityId\": \"6034349\"}, {\"entityId\": \"6375833\"}, {\"entityId\": \"6376067\"}, {\"entityId\": \"6376184\"}, {\"entityId\": \"6376301\"}, {\"entityId\": \"6376418\"}, {\"entityId\": \"6376535\"}, {\"entityId\": \"6376652\"}, {\"entityId\": \"6376769\"}, {\"entityId\": \"6376886\"}, {\"entityId\": \"6377471\"}, {\"entityId\": \"3099014\"}, {\"entityId\": \"3099131\"}, {\"entityId\": \"3099248\"}, {\"entityId\": \"3099365\"}, {\"entityId\": \"3099482\"}, {\"entityId\": \"3099599\"}, {\"entityId\": \"3099833\"}, {\"entityId\": \"3099950\"}, {\"entityId\": \"3100067\"}, {\"entityId\": \"3100184\"}, {\"entityId\": \"3100301\"}, {\"entityId\": \"3100418\"}, {\"entityId\": \"3101003\"}, {\"entityId\": \"3101120\"}, {\"entityId\": \"3101237\"}, {\"entityId\": \"3101354\"}, {\"entityId\": \"3101471\"}, {\"entityId\": \"3101588\"}, {\"entityId\": \"3101705\"}, {\"entityId\": \"3101822\"}, {\"entityId\": \"3101939\"}, {\"entityId\": \"3102056\"}, {\"entityId\": \"3102173\"}, {\"entityId\": \"3102290\"}, {\"entityId\": \"3102407\"}, {\"entityId\": \"3102524\"}, {\"entityId\": \"3102641\"}, {\"entityId\": \"3102758\"}, {\"entityId\": \"3102875\"}, {\"entityId\": \"3102992\"}, {\"entityId\": \"3103226\"}, {\"entityId\": \"3103343\"}, {\"entityId\": \"3103460\"}, {\"entityId\": \"3103694\"}, {\"entityId\": \"3103811\"}, {\"entityId\": \"3104045\"}, {\"entityId\": \"3118085\"}, {\"entityId\": \"3118202\"}, {\"entityId\": \"3118319\"}, {\"entityId\": \"3118436\"}, {\"entityId\": \"3118553\"}, {\"entityId\": \"3118670\"}, {\"entityId\": \"3118787\"}, {\"entityId\": \"3119021\"}, {\"entityId\": \"3119138\"}, {\"entityId\": \"3119255\"}, {\"entityId\": \"3119372\"}, {\"entityId\": \"3119489\"}, {\"entityId\": \"1519579\"}, {\"entityId\": \"1519930\"}, {\"entityId\": \"1520047\"}, {\"entityId\": \"1520164\"}, {\"entityId\": \"1520281\"}, {\"entityId\": \"1520398\"}, {\"entityId\": \"1520515\"}, {\"entityId\": \"1312970\"}, {\"entityId\": \"1313087\"}, {\"entityId\": \"1313321\"}, {\"entityId\": \"1313438\"}, {\"entityId\": \"1313555\"}, {\"entityId\": \"1313672\"}, {\"entityId\": \"1313789\"}, {\"entityId\": \"1313906\"}, {\"entityId\": \"1314023\"}, {\"entityId\": \"1314140\"}, {\"entityId\": \"1314257\"}, {\"entityId\": \"1314374\"}, {\"entityId\": \"1314491\"}, {\"entityId\": \"1314608\"}, {\"entityId\": \"1314725\"}, {\"entityId\": \"1314959\"}, {\"entityId\": \"1315076\"}, {\"entityId\": \"1315193\"}, {\"entityId\": \"1315661\"}, {\"entityId\": \"1315778\"}, {\"entityId\": \"1315895\"}, {\"entityId\": \"1316012\"}, {\"entityId\": \"1316129\"}, {\"entityId\": \"1316246\"}, {\"entityId\": \"1316363\"}, {\"entityId\": \"1316480\"}, {\"entityId\": \"1316597\"}, {\"entityId\": \"1316714\"}, {\"entityId\": \"1316831\"}, {\"entityId\": \"1316948\"}, {\"entityId\": \"1317065\"}, {\"entityId\": \"1317182\"}, {\"entityId\": \"1317299\"}, {\"entityId\": \"1317416\"}, {\"entityId\": \"1317533\"}, {\"entityId\": \"1317650\"}, {\"entityId\": \"1317884\"}, {\"entityId\": \"1318118\"}, {\"entityId\": \"1318235\"}, {\"entityId\": \"1318352\"}, {\"entityId\": \"1318469\"}, {\"entityId\": \"6162620\"}, {\"entityId\": \"6163088\"}, {\"entityId\": \"6163205\"}, {\"entityId\": \"6163322\"}, {\"entityId\": \"6163439\"}, {\"entityId\": \"6163556\"}, {\"entityId\": \"6163673\"}, {\"entityId\": \"6163790\"}, {\"entityId\": \"6163907\"}, {\"entityId\": \"6164024\"}, {\"entityId\": \"6164141\"}, {\"entityId\": \"6164258\"}, {\"entityId\": \"6164375\"}, {\"entityId\": \"6164492\"}, {\"entityId\": \"6164609\"}, {\"entityId\": \"6164726\"}, {\"entityId\": \"6164843\"}, {\"entityId\": \"6164960\"}, {\"entityId\": \"6165077\"}, {\"entityId\": \"6165311\"}, {\"entityId\": \"6165428\"}, {\"entityId\": \"6165545\"}, {\"entityId\": \"6165662\"}, {\"entityId\": \"6165779\"}, {\"entityId\": \"6264800\"}, {\"entityId\": \"6264917\"}, {\"entityId\": \"6265034\"}, {\"entityId\": \"6265151\"}, {\"entityId\": \"6265619\"}, {\"entityId\": \"6265736\"}, {\"entityId\": \"6265853\"}, {\"entityId\": \"6265970\"}, {\"entityId\": \"6266087\"}, {\"entityId\": \"6266204\"}, {\"entityId\": \"6266321\"}, {\"entityId\": \"6266438\"}, {\"entityId\": \"6266555\"}, {\"entityId\": \"6266672\"}, {\"entityId\": \"6266789\"}, {\"entityId\": \"6266906\"}, {\"entityId\": \"6267023\"}, {\"entityId\": \"6267140\"}, {\"entityId\": \"6267257\"}, {\"entityId\": \"6267374\"}, {\"entityId\": \"6267491\"}, {\"entityId\": \"6267608\"}, {\"entityId\": \"6279191\"}, {\"entityId\": \"6279308\"}, {\"entityId\": \"6279542\"}, {\"entityId\": \"6279659\"}, {\"entityId\": \"6279776\"}, {\"entityId\": \"6279893\"}, {\"entityId\": \"6280010\"}, {\"entityId\": \"6280127\"}, {\"entityId\": \"6280244\"}, {\"entityId\": \"6280361\"}, {\"entityId\": \"6280478\"}, {\"entityId\": \"6280595\"}, {\"entityId\": \"6280712\"}, {\"entityId\": \"6280829\"}, {\"entityId\": \"6280946\"}, {\"entityId\": \"6243233\"}, {\"entityId\": \"6243350\"}, {\"entityId\": \"6243467\"}, {\"entityId\": \"6243584\"}, {\"entityId\": \"6243701\"}, {\"entityId\": \"6243935\"}, {\"entityId\": \"6244052\"}, {\"entityId\": \"6244169\"}, {\"entityId\": \"6244403\"}, {\"entityId\": \"6244520\"}, {\"entityId\": \"6244637\"}, {\"entityId\": \"6062312\"}, {\"entityId\": \"6062546\"}, {\"entityId\": \"6062663\"}, {\"entityId\": \"6062780\"}, {\"entityId\": \"6347363\"}, {\"entityId\": \"6347480\"}, {\"entityId\": \"6347714\"}, {\"entityId\": \"6347831\"}, {\"entityId\": \"6347948\"}, {\"entityId\": \"6348065\"}, {\"entityId\": \"6348182\"}, {\"entityId\": \"6348299\"}, {\"entityId\": \"6348416\"}, {\"entityId\": \"6348533\"}, {\"entityId\": \"6348650\"}, {\"entityId\": \"6348767\"}, {\"entityId\": \"6348884\"}, {\"entityId\": \"6349001\"}, {\"entityId\": \"6349118\"}, {\"entityId\": \"6349235\"}, {\"entityId\": \"6349469\"}, {\"entityId\": \"6349586\"}, {\"entityId\": \"6349820\"}, {\"entityId\": \"6349937\"}, {\"entityId\": \"6350054\"}, {\"entityId\": \"6350171\"}, {\"entityId\": \"6350405\"}, {\"entityId\": \"6350522\"}, {\"entityId\": \"6394202\"}, {\"entityId\": \"6394319\"}, {\"entityId\": \"6394553\"}, {\"entityId\": \"6376028\"}, {\"entityId\": \"6376145\"}, {\"entityId\": \"6376262\"}, {\"entityId\": \"6376379\"}, {\"entityId\": \"6376496\"}, {\"entityId\": \"6376613\"}, {\"entityId\": \"6376730\"}, {\"entityId\": \"6376847\"}, {\"entityId\": \"6376964\"}, {\"entityId\": \"6377081\"}, {\"entityId\": \"6377198\"}, {\"entityId\": \"6377315\"}, {\"entityId\": \"6377432\"}, {\"entityId\": \"6377549\"}, {\"entityId\": \"6377666\"}, {\"entityId\": \"6377783\"}, {\"entityId\": \"6377900\"}, {\"entityId\": \"1457023\"}, {\"entityId\": \"1457140\"}, {\"entityId\": \"1457374\"}, {\"entityId\": \"1457491\"}, {\"entityId\": \"1464745\"}, {\"entityId\": \"1464862\"}, {\"entityId\": \"1464979\"}, {\"entityId\": \"1514080\"}, {\"entityId\": \"1514197\"}, {\"entityId\": \"1514314\"}, {\"entityId\": \"1514431\"}, {\"entityId\": \"1514548\"}, {\"entityId\": \"1514665\"}, {\"entityId\": \"1515133\"}, {\"entityId\": \"1515250\"}, {\"entityId\": \"1515367\"}, {\"entityId\": \"1515484\"}, {\"entityId\": \"1515601\"}, {\"entityId\": \"1515718\"}, {\"entityId\": \"1515835\"}, {\"entityId\": \"1515952\"}, {\"entityId\": \"1516069\"}, {\"entityId\": \"1516186\"}, {\"entityId\": \"1516303\"}, {\"entityId\": \"1516420\"}, {\"entityId\": \"1516537\"}, {\"entityId\": \"1516654\"}, {\"entityId\": \"1516771\"}, {\"entityId\": \"1516888\"}, {\"entityId\": \"1517005\"}, {\"entityId\": \"1517122\"}, {\"entityId\": \"1517356\"}, {\"entityId\": \"1517473\"}, {\"entityId\": \"1517590\"}, {\"entityId\": \"1517707\"}, {\"entityId\": \"1517824\"}, {\"entityId\": \"1518058\"}, {\"entityId\": \"1518175\"}, {\"entityId\": \"1518292\"}, {\"entityId\": \"1518409\"}, {\"entityId\": \"1518526\"}, {\"entityId\": \"1518643\"}, {\"entityId\": \"1518760\"}, {\"entityId\": \"1518877\"}, {\"entityId\": \"1518994\"}, {\"entityId\": \"1519111\"}, {\"entityId\": \"1519345\"}, {\"entityId\": \"1519462\"}, {\"entityId\": \"6027914\"}, {\"entityId\": \"6028031\"}, {\"entityId\": \"6028148\"}, {\"entityId\": \"6028265\"}, {\"entityId\": \"6028382\"}, {\"entityId\": \"6028499\"}, {\"entityId\": \"6028616\"}, {\"entityId\": \"6028733\"}, {\"entityId\": \"6028850\"}, {\"entityId\": \"6028967\"}, {\"entityId\": \"6029084\"}, {\"entityId\": \"6029201\"}, {\"entityId\": \"6411596\"}, {\"entityId\": \"6260939\"}, {\"entityId\": \"6261056\"}, {\"entityId\": \"6261173\"}, {\"entityId\": \"6261290\"}, {\"entityId\": \"6261407\"}, {\"entityId\": \"6261524\"}, {\"entityId\": \"6261641\"}, {\"entityId\": \"6261758\"}, {\"entityId\": \"6261875\"}, {\"entityId\": \"6261992\"}, {\"entityId\": \"6224279\"}, {\"entityId\": \"6224396\"}, {\"entityId\": \"6224747\"}, {\"entityId\": \"6224864\"}, {\"entityId\": \"6224981\"}, {\"entityId\": \"6225098\"}, {\"entityId\": \"6225215\"}, {\"entityId\": \"6225332\"}, {\"entityId\": \"6232469\"}, {\"entityId\": \"6232586\"}, {\"entityId\": \"6232703\"}, {\"entityId\": \"6232820\"}, {\"entityId\": \"6232937\"}, {\"entityId\": \"6233054\"}, {\"entityId\": \"6233171\"}, {\"entityId\": \"6233288\"}, {\"entityId\": \"6233405\"}, {\"entityId\": \"6233522\"}, {\"entityId\": \"6262226\"}, {\"entityId\": \"6262343\"}, {\"entityId\": \"6262460\"}, {\"entityId\": \"6262577\"}, {\"entityId\": \"6262694\"}, {\"entityId\": \"6263162\"}, {\"entityId\": \"6263279\"}, {\"entityId\": \"6263396\"}, {\"entityId\": \"6263513\"}, {\"entityId\": \"6263630\"}, {\"entityId\": \"6263747\"}, {\"entityId\": \"6263864\"}, {\"entityId\": \"6263981\"}, {\"entityId\": \"6264098\"}, {\"entityId\": \"6264215\"}, {\"entityId\": \"6264332\"}, {\"entityId\": \"6264449\"}, {\"entityId\": \"6264566\"}, {\"entityId\": \"6264683\"}, {\"entityId\": \"6244754\"}, {\"entityId\": \"6245222\"}, {\"entityId\": \"6245339\"}, {\"entityId\": \"6245456\"}, {\"entityId\": \"6245573\"}, {\"entityId\": \"6245690\"}, {\"entityId\": \"6245807\"}, {\"entityId\": \"6245924\"}, {\"entityId\": \"6246041\"}, {\"entityId\": \"6246158\"}, {\"entityId\": \"6246275\"}, {\"entityId\": \"6246392\"}, {\"entityId\": \"6246509\"}, {\"entityId\": \"6246626\"}, {\"entityId\": \"6246743\"}, {\"entityId\": \"6246860\"}, {\"entityId\": \"6246977\"}, {\"entityId\": \"6247094\"}, {\"entityId\": \"6247211\"}, {\"entityId\": \"6247679\"}, {\"entityId\": \"6247796\"}, {\"entityId\": \"6247913\"}, {\"entityId\": \"6248030\"}, {\"entityId\": \"6248147\"}, {\"entityId\": \"6248264\"}, {\"entityId\": \"6059387\"}, {\"entityId\": \"6059504\"}, {\"entityId\": \"6059621\"}, {\"entityId\": \"6059738\"}, {\"entityId\": \"6059855\"}, {\"entityId\": \"6059972\"}, {\"entityId\": \"6060089\"}, {\"entityId\": \"6060206\"}, {\"entityId\": \"6060323\"}, {\"entityId\": \"6060557\"}, {\"entityId\": \"6060674\"}, {\"entityId\": \"6060791\"}, {\"entityId\": \"6060908\"}, {\"entityId\": \"6061025\"}, {\"entityId\": \"6061142\"}, {\"entityId\": \"6061259\"}, {\"entityId\": \"6061376\"}, {\"entityId\": \"6061493\"}, {\"entityId\": \"6061610\"}, {\"entityId\": \"6061844\"}, {\"entityId\": \"6061961\"}, {\"entityId\": \"6062078\"}, {\"entityId\": \"6062195\"}, {\"entityId\": \"9135239\"}, {\"entityId\": \"9135356\"}, {\"entityId\": \"9135473\"}, {\"entityId\": \"9135590\"}, {\"entityId\": \"9135707\"}, {\"entityId\": \"9135824\"}, {\"entityId\": \"9135941\"}, {\"entityId\": \"9136175\"}, {\"entityId\": \"9136292\"}, {\"entityId\": \"9136526\"}, {\"entityId\": \"9136643\"}, {\"entityId\": \"9136760\"}, {\"entityId\": \"9136877\"}, {\"entityId\": \"9136994\"}, {\"entityId\": \"9137111\"}, {\"entityId\": \"9137228\"}, {\"entityId\": \"9137345\"}, {\"entityId\": \"9137462\"}, {\"entityId\": \"9137579\"}, {\"entityId\": \"9137696\"}, {\"entityId\": \"9137813\"}, {\"entityId\": \"9137930\"}, {\"entityId\": \"9138281\"}, {\"entityId\": \"9138398\"}, {\"entityId\": \"9138515\"}, {\"entityId\": \"9138632\"}, {\"entityId\": \"9138749\"}, {\"entityId\": \"9139217\"}, {\"entityId\": \"9139334\"}, {\"entityId\": \"9139451\"}, {\"entityId\": \"9139568\"}, {\"entityId\": \"9139685\"}, {\"entityId\": \"9139802\"}, {\"entityId\": \"9139919\"}, {\"entityId\": \"9140036\"}, {\"entityId\": \"9140153\"}, {\"entityId\": \"9140270\"}, {\"entityId\": \"9140387\"}, {\"entityId\": \"9140504\"}, {\"entityId\": \"9140621\"}, {\"entityId\": \"9140738\"}, {\"entityId\": \"9140855\"}, {\"entityId\": \"9140972\"}, {\"entityId\": \"9141089\"}, {\"entityId\": \"9141206\"}, {\"entityId\": \"9141323\"}, {\"entityId\": \"9141440\"}, {\"entityId\": \"9141557\"}, {\"entityId\": \"6165896\"}, {\"entityId\": \"6166013\"}, {\"entityId\": \"6166247\"}, {\"entityId\": \"6166364\"}, {\"entityId\": \"6166481\"}, {\"entityId\": \"6166598\"}, {\"entityId\": \"6166715\"}, {\"entityId\": \"6166832\"}, {\"entityId\": \"6166949\"}, {\"entityId\": \"6167066\"}, {\"entityId\": \"6167183\"}, {\"entityId\": \"6186410\"}, {\"entityId\": \"6186527\"}, {\"entityId\": \"6186878\"}, {\"entityId\": \"6186995\"}, {\"entityId\": \"6187112\"}, {\"entityId\": \"6187229\"}, {\"entityId\": \"6187346\"}, {\"entityId\": \"6187463\"}, {\"entityId\": \"6187580\"}, {\"entityId\": \"6187697\"}, {\"entityId\": \"6187814\"}, {\"entityId\": \"6565022\"}, {\"entityId\": \"6565139\"}, {\"entityId\": \"6581597\"}, {\"entityId\": \"6310352\"}, {\"entityId\": \"6310469\"}, {\"entityId\": \"6310586\"}, {\"entityId\": \"6310703\"}, {\"entityId\": \"6310820\"}, {\"entityId\": \"6310937\"}, {\"entityId\": \"6311054\"}, {\"entityId\": \"6311171\"}, {\"entityId\": \"6311288\"}, {\"entityId\": \"6311405\"}, {\"entityId\": \"6311522\"}, {\"entityId\": \"6311639\"}, {\"entityId\": \"6311873\"}, {\"entityId\": \"6311990\"}, {\"entityId\": \"6312107\"}, {\"entityId\": \"6312224\"}, {\"entityId\": \"6312341\"}, {\"entityId\": \"6312458\"}, {\"entityId\": \"6312575\"}, {\"entityId\": \"6312692\"}, {\"entityId\": \"6312809\"}, {\"entityId\": \"6313043\"}, {\"entityId\": \"6313160\"}, {\"entityId\": \"6313277\"}, {\"entityId\": \"6313394\"}, {\"entityId\": \"6313511\"}, {\"entityId\": \"6313745\"}, {\"entityId\": \"6313862\"}, {\"entityId\": \"6313979\"}, {\"entityId\": \"6314096\"}, {\"entityId\": \"6314330\"}, {\"entityId\": \"6314447\"}, {\"entityId\": \"6314564\"}, {\"entityId\": \"6314798\"}, {\"entityId\": \"6314915\"}, {\"entityId\": \"6315032\"}, {\"entityId\": \"6315149\"}, {\"entityId\": \"6315266\"}, {\"entityId\": \"6315500\"}, {\"entityId\": \"6315617\"}, {\"entityId\": \"6315734\"}, {\"entityId\": \"6315851\"}, {\"entityId\": \"6315968\"}, {\"entityId\": \"6316085\"}, {\"entityId\": \"6316202\"}, {\"entityId\": \"6316319\"}, {\"entityId\": \"6316436\"}, {\"entityId\": \"6474347\"}, {\"entityId\": \"6474464\"}, {\"entityId\": \"6474581\"}, {\"entityId\": \"6474698\"}, {\"entityId\": \"6474815\"}, {\"entityId\": \"6474932\"}, {\"entityId\": \"6475049\"}, {\"entityId\": \"6475166\"}, {\"entityId\": \"6475400\"}, {\"entityId\": \"6475517\"}, {\"entityId\": \"6475634\"}, {\"entityId\": \"6475751\"}, {\"entityId\": \"6475985\"}, {\"entityId\": \"6476219\"}, {\"entityId\": \"6476336\"}, {\"entityId\": \"6476687\"}, {\"entityId\": \"6476804\"}, {\"entityId\": \"6476921\"}, {\"entityId\": \"6477038\"}, {\"entityId\": \"6477155\"}, {\"entityId\": \"6477272\"}, {\"entityId\": \"6477389\"}, {\"entityId\": \"6477506\"}, {\"entityId\": \"6477623\"}, {\"entityId\": \"6477740\"}, {\"entityId\": \"6477857\"}, {\"entityId\": \"6477974\"}, {\"entityId\": \"6478091\"}, {\"entityId\": \"6507458\"}, {\"entityId\": \"6507575\"}, {\"entityId\": \"6507809\"}, {\"entityId\": \"6507926\"}, {\"entityId\": \"6508043\"}, {\"entityId\": \"6508160\"}, {\"entityId\": \"6508277\"}, {\"entityId\": \"6508394\"}, {\"entityId\": \"6508472\"}, {\"entityId\": \"6508589\"}, {\"entityId\": \"6508706\"}, {\"entityId\": \"6508823\"}, {\"entityId\": \"6508940\"}, {\"entityId\": \"6509057\"}, {\"entityId\": \"6509291\"}, {\"entityId\": \"6509408\"}, {\"entityId\": \"6509525\"}, {\"entityId\": \"6509642\"}, {\"entityId\": \"6509876\"}, {\"entityId\": \"6509993\"}, {\"entityId\": \"3063797\"}, {\"entityId\": \"3063914\"}, {\"entityId\": \"3064031\"}, {\"entityId\": \"3064148\"}, {\"entityId\": \"3064265\"}, {\"entityId\": \"3064382\"}, {\"entityId\": \"3064499\"}, {\"entityId\": \"3064616\"}, {\"entityId\": \"3064733\"}, {\"entityId\": \"3123272\"}, {\"entityId\": \"3123389\"}, {\"entityId\": \"3123506\"}, {\"entityId\": \"3123623\"}, {\"entityId\": \"3123740\"}, {\"entityId\": \"3123857\"}, {\"entityId\": \"3123974\"}, {\"entityId\": \"3124091\"}, {\"entityId\": \"3124208\"}, {\"entityId\": \"3124325\"}, {\"entityId\": \"3124442\"}, {\"entityId\": \"3124559\"}, {\"entityId\": \"3124676\"}, {\"entityId\": \"3124793\"}, {\"entityId\": \"3124910\"}, {\"entityId\": \"3172802\"}, {\"entityId\": \"3172919\"}, {\"entityId\": \"3173036\"}, {\"entityId\": \"3173153\"}, {\"entityId\": \"3173270\"}, {\"entityId\": \"3173387\"}, {\"entityId\": \"3173504\"}, {\"entityId\": \"3173621\"}, {\"entityId\": \"3173738\"}, {\"entityId\": \"3173855\"}, {\"entityId\": \"3173972\"}, {\"entityId\": \"3174089\"}, {\"entityId\": \"3174206\"}, {\"entityId\": \"3174323\"}, {\"entityId\": \"3174440\"}, {\"entityId\": \"3174557\"}, {\"entityId\": \"3174674\"}, {\"entityId\": \"3174791\"}, {\"entityId\": \"3175259\"}, {\"entityId\": \"3175376\"}, {\"entityId\": \"3175493\"}, {\"entityId\": \"3175610\"}, {\"entityId\": \"3175727\"}, {\"entityId\": \"3175844\"}, {\"entityId\": \"6404498\"}, {\"entityId\": \"6404732\"}, {\"entityId\": \"6404849\"}, {\"entityId\": \"6404966\"}, {\"entityId\": \"6405083\"}, {\"entityId\": \"6405317\"}, {\"entityId\": \"6405434\"}, {\"entityId\": \"6405668\"}, {\"entityId\": \"6405785\"}, {\"entityId\": \"6405902\"}, {\"entityId\": \"6406019\"}, {\"entityId\": \"6406253\"}, {\"entityId\": \"6406370\"}, {\"entityId\": \"6406604\"}, {\"entityId\": \"6406721\"}, {\"entityId\": \"6406838\"}, {\"entityId\": \"6406955\"}, {\"entityId\": \"6407072\"}, {\"entityId\": \"6407189\"}, {\"entityId\": \"6407306\"}, {\"entityId\": \"6407423\"}, {\"entityId\": \"6407540\"}, {\"entityId\": \"6429419\"}, {\"entityId\": \"6429536\"}, {\"entityId\": \"6429653\"}, {\"entityId\": \"6429770\"}, {\"entityId\": \"6429887\"}, {\"entityId\": \"6430004\"}, {\"entityId\": \"6430121\"}, {\"entityId\": \"6430238\"}, {\"entityId\": \"6430355\"}, {\"entityId\": \"6430823\"}, {\"entityId\": \"6430940\"}, {\"entityId\": \"6431057\"}, {\"entityId\": \"6431174\"}, {\"entityId\": \"6431291\"}, {\"entityId\": \"6431408\"}, {\"entityId\": \"6431525\"}, {\"entityId\": \"6431642\"}, {\"entityId\": \"6431759\"}, {\"entityId\": \"6431876\"}, {\"entityId\": \"6431993\"}, {\"entityId\": \"6432110\"}, {\"entityId\": \"6432227\"}, {\"entityId\": \"6432344\"}, {\"entityId\": \"6432461\"}, {\"entityId\": \"6432578\"}, {\"entityId\": \"6432656\"}, {\"entityId\": \"6069917\"}, {\"entityId\": \"6070034\"}, {\"entityId\": \"6070151\"}, {\"entityId\": \"6070268\"}, {\"entityId\": \"6070385\"}, {\"entityId\": \"6070502\"}, {\"entityId\": \"6070619\"}, {\"entityId\": \"6070736\"}, {\"entityId\": \"6070853\"}, {\"entityId\": \"6071204\"}, {\"entityId\": \"6071321\"}, {\"entityId\": \"6071438\"}, {\"entityId\": \"6071672\"}, {\"entityId\": \"6071789\"}, {\"entityId\": \"6071906\"}, {\"entityId\": \"6072023\"}, {\"entityId\": \"6072140\"}, {\"entityId\": \"6072257\"}, {\"entityId\": \"6072374\"}, {\"entityId\": \"6356840\"}, {\"entityId\": \"6356957\"}, {\"entityId\": \"6357074\"}, {\"entityId\": \"6357191\"}, {\"entityId\": \"6357308\"}, {\"entityId\": \"6357425\"}, {\"entityId\": \"6357542\"}, {\"entityId\": \"6357659\"}, {\"entityId\": \"6358127\"}, {\"entityId\": \"6358244\"}, {\"entityId\": \"6358361\"}, {\"entityId\": \"6358478\"}, {\"entityId\": \"6358595\"}, {\"entityId\": \"6358712\"}, {\"entityId\": \"6358829\"}, {\"entityId\": \"6358946\"}, {\"entityId\": \"6359063\"}, {\"entityId\": \"6359180\"}, {\"entityId\": \"6359297\"}, {\"entityId\": \"6359414\"}, {\"entityId\": \"6387416\"}, {\"entityId\": \"6387533\"}, {\"entityId\": \"6387650\"}, {\"entityId\": \"6387767\"}, {\"entityId\": \"6387884\"}, {\"entityId\": \"6388001\"}, {\"entityId\": \"6388235\"}, {\"entityId\": \"6388352\"}, {\"entityId\": \"6388469\"}, {\"entityId\": \"6127949\"}, {\"entityId\": \"6128300\"}, {\"entityId\": \"6128417\"}, {\"entityId\": \"6128534\"}, {\"entityId\": \"6128651\"}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://vericre-api-dev.ama-assn.org/users/physicians/onETLSync",
+							"protocol": "https",
+							"host": [
+								"vericre-api-dev",
+								"ama-assn",
+								"org"
+							],
+							"path": [
+								"users",
+								"physicians",
+								"onETLSync"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "onETLSync Copy",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"entityId\": \"6046751\"}, {\"entityId\": \"6046868\"}, {\"entityId\": \"6047102\"}, {\"entityId\": \"6047219\"}, {\"entityId\": \"6047336\"}, {\"entityId\": \"6047453\"}, {\"entityId\": \"6047570\"}, {\"entityId\": \"6047687\"}, {\"entityId\": \"6395684\"}, {\"entityId\": \"6395801\"}, {\"entityId\": \"6395918\"}, {\"entityId\": \"6396035\"}, {\"entityId\": \"6396152\"}, {\"entityId\": \"6396269\"}, {\"entityId\": \"6396503\"}, {\"entityId\": \"6396620\"}, {\"entityId\": \"6396737\"}, {\"entityId\": \"6396854\"}, {\"entityId\": \"6396971\"}, {\"entityId\": \"6397088\"}, {\"entityId\": \"6397205\"}, {\"entityId\": \"6397322\"}, {\"entityId\": \"6397439\"}, {\"entityId\": \"6397556\"}, {\"entityId\": \"3093476\"}, {\"entityId\": \"3093593\"}, {\"entityId\": \"3093710\"}, {\"entityId\": \"3093827\"}, {\"entityId\": \"3093944\"}, {\"entityId\": \"3094061\"}, {\"entityId\": \"3094178\"}, {\"entityId\": \"3094295\"}, {\"entityId\": \"3094412\"}, {\"entityId\": \"3094529\"}, {\"entityId\": \"3094646\"}, {\"entityId\": \"3094763\"}, {\"entityId\": \"3094880\"}, {\"entityId\": \"3094997\"}, {\"entityId\": \"3095114\"}, {\"entityId\": \"3095231\"}, {\"entityId\": \"3095348\"}, {\"entityId\": \"3114029\"}, {\"entityId\": \"3114146\"}, {\"entityId\": \"3114263\"}, {\"entityId\": \"3114614\"}, {\"entityId\": \"3114731\"}, {\"entityId\": \"3114848\"}, {\"entityId\": \"3114965\"}, {\"entityId\": \"3115082\"}, {\"entityId\": \"3115199\"}, {\"entityId\": \"3115316\"}, {\"entityId\": \"3115433\"}, {\"entityId\": \"3115550\"}, {\"entityId\": \"3163091\"}, {\"entityId\": \"3163208\"}, {\"entityId\": \"3163325\"}, {\"entityId\": \"3163442\"}, {\"entityId\": \"3163676\"}, {\"entityId\": \"3163793\"}, {\"entityId\": \"3163910\"}, {\"entityId\": \"3164144\"}, {\"entityId\": \"3164261\"}, {\"entityId\": \"3164612\"}, {\"entityId\": \"3164729\"}, {\"entityId\": \"3164846\"}, {\"entityId\": \"3165080\"}, {\"entityId\": \"3165197\"}, {\"entityId\": \"3165314\"}, {\"entityId\": \"3165431\"}, {\"entityId\": \"3165548\"}, {\"entityId\": \"3165665\"}, {\"entityId\": \"3165782\"}, {\"entityId\": \"9113243\"}, {\"entityId\": \"9113360\"}, {\"entityId\": \"9113477\"}, {\"entityId\": \"9113594\"}, {\"entityId\": \"9113711\"}, {\"entityId\": \"9113828\"}, {\"entityId\": \"9113945\"}, {\"entityId\": \"9114062\"}, {\"entityId\": \"9114179\"}, {\"entityId\": \"9114296\"}, {\"entityId\": \"9114413\"}, {\"entityId\": \"9114530\"}, {\"entityId\": \"9096083\"}, {\"entityId\": \"9096200\"}, {\"entityId\": \"9096317\"}, {\"entityId\": \"9096434\"}, {\"entityId\": \"9096551\"}, {\"entityId\": \"9096668\"}, {\"entityId\": \"9097136\"}, {\"entityId\": \"9097253\"}, {\"entityId\": \"9097370\"}, {\"entityId\": \"9097487\"}, {\"entityId\": \"9097604\"}, {\"entityId\": \"9097721\"}, {\"entityId\": \"9097838\"}, {\"entityId\": \"9097955\"}, {\"entityId\": \"9098072\"}, {\"entityId\": \"9098189\"}, {\"entityId\": \"9098306\"}, {\"entityId\": \"9098423\"}, {\"entityId\": \"9098540\"}, {\"entityId\": \"9098657\"}, {\"entityId\": \"9098774\"}, {\"entityId\": \"9098891\"}, {\"entityId\": \"9099008\"}, {\"entityId\": \"9099125\"}, {\"entityId\": \"9099593\"}, {\"entityId\": \"9099710\"}, {\"entityId\": \"9099827\"}, {\"entityId\": \"9099944\"}, {\"entityId\": \"9100061\"}, {\"entityId\": \"9100178\"}, {\"entityId\": \"9100295\"}, {\"entityId\": \"9100412\"}, {\"entityId\": \"9100529\"}, {\"entityId\": \"9100646\"}, {\"entityId\": \"9100763\"}, {\"entityId\": \"9100880\"}, {\"entityId\": \"6325055\"}, {\"entityId\": \"6325172\"}, {\"entityId\": \"6325289\"}, {\"entityId\": \"6325406\"}, {\"entityId\": \"6325523\"}, {\"entityId\": \"6325874\"}, {\"entityId\": \"6325991\"}, {\"entityId\": \"6326108\"}, {\"entityId\": \"6326225\"}, {\"entityId\": \"6326342\"}, {\"entityId\": \"6326459\"}, {\"entityId\": \"6326576\"}, {\"entityId\": \"6236798\"}, {\"entityId\": \"6236915\"}, {\"entityId\": \"6237032\"}, {\"entityId\": \"6237266\"}, {\"entityId\": \"6237500\"}, {\"entityId\": \"6237617\"}, {\"entityId\": \"6237734\"}, {\"entityId\": \"6237851\"}, {\"entityId\": \"6237968\"}, {\"entityId\": \"6238085\"}, {\"entityId\": \"6238202\"}, {\"entityId\": \"6238319\"}, {\"entityId\": \"6238436\"}, {\"entityId\": \"6238553\"}, {\"entityId\": \"6238670\"}, {\"entityId\": \"6238787\"}, {\"entityId\": \"6238904\"}, {\"entityId\": \"6239021\"}, {\"entityId\": \"6239138\"}, {\"entityId\": \"6239255\"}, {\"entityId\": \"6239489\"}, {\"entityId\": \"6239957\"}, {\"entityId\": \"6240074\"}, {\"entityId\": \"6240191\"}, {\"entityId\": \"6240308\"}, {\"entityId\": \"6240425\"}, {\"entityId\": \"6240542\"}, {\"entityId\": \"6240659\"}, {\"entityId\": \"6240776\"}, {\"entityId\": \"6240893\"}, {\"entityId\": \"6241010\"}, {\"entityId\": \"6241127\"}, {\"entityId\": \"6241244\"}, {\"entityId\": \"6241361\"}, {\"entityId\": \"6241478\"}, {\"entityId\": \"6241595\"}, {\"entityId\": \"6005996\"}, {\"entityId\": \"6006113\"}, {\"entityId\": \"6006230\"}, {\"entityId\": \"6006347\"}, {\"entityId\": \"6006464\"}, {\"entityId\": \"6006581\"}, {\"entityId\": \"6006698\"}, {\"entityId\": \"6006815\"}, {\"entityId\": \"6006932\"}, {\"entityId\": \"6029045\"}, {\"entityId\": \"6029162\"}, {\"entityId\": \"6029279\"}, {\"entityId\": \"6029396\"}, {\"entityId\": \"6029513\"}, {\"entityId\": \"6029630\"}, {\"entityId\": \"6029747\"}, {\"entityId\": \"6029864\"}, {\"entityId\": \"6029981\"}, {\"entityId\": \"6030098\"}, {\"entityId\": \"6030215\"}, {\"entityId\": \"6030332\"}, {\"entityId\": \"6030449\"}, {\"entityId\": \"6030566\"}, {\"entityId\": \"6030683\"}, {\"entityId\": \"6031034\"}, {\"entityId\": \"6031151\"}, {\"entityId\": \"6031268\"}, {\"entityId\": \"6031385\"}, {\"entityId\": \"6031502\"}, {\"entityId\": \"6031619\"}, {\"entityId\": \"6031736\"}, {\"entityId\": \"6031970\"}, {\"entityId\": \"6032087\"}, {\"entityId\": \"6032204\"}, {\"entityId\": \"6032321\"}, {\"entityId\": \"6032438\"}, {\"entityId\": \"6032555\"}, {\"entityId\": \"6032672\"}, {\"entityId\": \"6032789\"}, {\"entityId\": \"6032906\"}, {\"entityId\": \"6033023\"}, {\"entityId\": \"6033140\"}, {\"entityId\": \"6033257\"}, {\"entityId\": \"6033374\"}, {\"entityId\": \"6033491\"}, {\"entityId\": \"6033608\"}, {\"entityId\": \"6033725\"}, {\"entityId\": \"6033842\"}, {\"entityId\": \"6073505\"}, {\"entityId\": \"6073622\"}, {\"entityId\": \"6071867\"}, {\"entityId\": \"6071984\"}, {\"entityId\": \"6072101\"}, {\"entityId\": \"6072218\"}, {\"entityId\": \"6072335\"}, {\"entityId\": \"6072452\"}, {\"entityId\": \"6053810\"}, {\"entityId\": \"6053927\"}, {\"entityId\": \"6054044\"}, {\"entityId\": \"6054161\"}, {\"entityId\": \"6054278\"}, {\"entityId\": \"6054395\"}, {\"entityId\": \"6054629\"}, {\"entityId\": \"6054746\"}, {\"entityId\": \"6054863\"}, {\"entityId\": \"6054980\"}, {\"entityId\": \"6055097\"}, {\"entityId\": \"6055214\"}, {\"entityId\": \"6055682\"}, {\"entityId\": \"6055799\"}, {\"entityId\": \"6055916\"}, {\"entityId\": \"6056033\"}, {\"entityId\": \"6056150\"}, {\"entityId\": \"6056267\"}, {\"entityId\": \"6056384\"}, {\"entityId\": \"6056501\"}, {\"entityId\": \"6056618\"}, {\"entityId\": \"6056735\"}, {\"entityId\": \"6056852\"}, {\"entityId\": \"6056969\"}, {\"entityId\": \"6057086\"}, {\"entityId\": \"6057203\"}, {\"entityId\": \"6057320\"}, {\"entityId\": \"6057437\"}, {\"entityId\": \"6057554\"}, {\"entityId\": \"6057671\"}, {\"entityId\": \"6058022\"}, {\"entityId\": \"6058139\"}, {\"entityId\": \"6058256\"}, {\"entityId\": \"6058373\"}, {\"entityId\": \"6058490\"}, {\"entityId\": \"6058607\"}, {\"entityId\": \"6058724\"}, {\"entityId\": \"6058841\"}, {\"entityId\": \"6058958\"}, {\"entityId\": \"6059075\"}, {\"entityId\": \"3033845\"}, {\"entityId\": \"3033962\"}, {\"entityId\": \"3034079\"}, {\"entityId\": \"3016724\"}, {\"entityId\": \"3016841\"}, {\"entityId\": \"3016958\"}, {\"entityId\": \"3017075\"}, {\"entityId\": \"3017192\"}, {\"entityId\": \"3017309\"}, {\"entityId\": \"3017426\"}, {\"entityId\": \"3017543\"}, {\"entityId\": \"3017660\"}, {\"entityId\": \"3017777\"}, {\"entityId\": \"3017894\"}, {\"entityId\": \"3018011\"}, {\"entityId\": \"3018479\"}, {\"entityId\": \"3018596\"}, {\"entityId\": \"3018713\"}, {\"entityId\": \"3018830\"}, {\"entityId\": \"3018947\"}, {\"entityId\": \"3019064\"}, {\"entityId\": \"3019181\"}, {\"entityId\": \"3019298\"}, {\"entityId\": \"3019415\"}, {\"entityId\": \"3019532\"}, {\"entityId\": \"3019649\"}, {\"entityId\": \"3019766\"}, {\"entityId\": \"3019883\"}, {\"entityId\": \"3020000\"}, {\"entityId\": \"3020117\"}, {\"entityId\": \"3020234\"}, {\"entityId\": \"3020351\"}, {\"entityId\": \"3020468\"}, {\"entityId\": \"3020585\"}, {\"entityId\": \"3020702\"}, {\"entityId\": \"3020819\"}, {\"entityId\": \"3011849\"}, {\"entityId\": \"3011966\"}, {\"entityId\": \"3012083\"}, {\"entityId\": \"3012200\"}, {\"entityId\": \"3012317\"}, {\"entityId\": \"3012434\"}, {\"entityId\": \"3012551\"}, {\"entityId\": \"3012668\"}, {\"entityId\": \"3012785\"}, {\"entityId\": \"3012902\"}, {\"entityId\": \"3013019\"}, {\"entityId\": \"3013136\"}, {\"entityId\": \"1241327\"}, {\"entityId\": \"1241444\"}, {\"entityId\": \"1241561\"}, {\"entityId\": \"1241678\"}, {\"entityId\": \"1241795\"}, {\"entityId\": \"1241912\"}, {\"entityId\": \"1242029\"}, {\"entityId\": \"1242146\"}, {\"entityId\": \"1242263\"}, {\"entityId\": \"1239494\"}, {\"entityId\": \"1239611\"}, {\"entityId\": \"1239728\"}, {\"entityId\": \"1239845\"}, {\"entityId\": \"1239962\"}, {\"entityId\": \"1240079\"}, {\"entityId\": \"1240196\"}, {\"entityId\": \"1240313\"}, {\"entityId\": \"1240430\"}, {\"entityId\": \"1240547\"}, {\"entityId\": \"1240664\"}, {\"entityId\": \"1240781\"}, {\"entityId\": \"1240898\"}, {\"entityId\": \"1241015\"}, {\"entityId\": \"1241132\"}, {\"entityId\": \"1241600\"}, {\"entityId\": \"1241717\"}, {\"entityId\": \"1241834\"}, {\"entityId\": \"1241951\"}, {\"entityId\": \"1242068\"}, {\"entityId\": \"1242185\"}, {\"entityId\": \"1242302\"}, {\"entityId\": \"1242419\"}, {\"entityId\": \"1242536\"}, {\"entityId\": \"1242653\"}, {\"entityId\": \"1242770\"}, {\"entityId\": \"1242887\"}, {\"entityId\": \"1243004\"}, {\"entityId\": \"1243121\"}, {\"entityId\": \"1243238\"}, {\"entityId\": \"1243355\"}, {\"entityId\": \"1243472\"}, {\"entityId\": \"1243589\"}, {\"entityId\": \"1243823\"}, {\"entityId\": \"1243940\"}, {\"entityId\": \"1272566\"}, {\"entityId\": \"1272683\"}, {\"entityId\": \"1272800\"}, {\"entityId\": \"1272917\"}, {\"entityId\": \"9039338\"}, {\"entityId\": \"9039455\"}, {\"entityId\": \"9039572\"}, {\"entityId\": \"9039689\"}, {\"entityId\": \"9039806\"}, {\"entityId\": \"9039923\"}, {\"entityId\": \"9040157\"}, {\"entityId\": \"9040274\"}, {\"entityId\": \"9040391\"}, {\"entityId\": \"9040508\"}, {\"entityId\": \"9040742\"}, {\"entityId\": \"9040859\"}, {\"entityId\": \"9040976\"}, {\"entityId\": \"9041093\"}, {\"entityId\": \"9041210\"}, {\"entityId\": \"9041444\"}, {\"entityId\": \"9041561\"}, {\"entityId\": \"9041678\"}, {\"entityId\": \"9084110\"}, {\"entityId\": \"9084227\"}, {\"entityId\": \"9084344\"}, {\"entityId\": \"9084695\"}, {\"entityId\": \"9084812\"}, {\"entityId\": \"9084929\"}, {\"entityId\": \"9085046\"}, {\"entityId\": \"9085163\"}, {\"entityId\": \"9085280\"}, {\"entityId\": \"9085397\"}, {\"entityId\": \"9085514\"}, {\"entityId\": \"9085631\"}, {\"entityId\": \"9085748\"}, {\"entityId\": \"9085865\"}, {\"entityId\": \"9085982\"}, {\"entityId\": \"9086099\"}, {\"entityId\": \"9048464\"}, {\"entityId\": \"9048581\"}, {\"entityId\": \"9048698\"}, {\"entityId\": \"9048815\"}, {\"entityId\": \"9048932\"}, {\"entityId\": \"9049283\"}, {\"entityId\": \"9049400\"}, {\"entityId\": \"9049517\"}, {\"entityId\": \"9049634\"}, {\"entityId\": \"9049751\"}, {\"entityId\": \"9049868\"}, {\"entityId\": \"9049985\"}, {\"entityId\": \"9050102\"}, {\"entityId\": \"9050219\"}, {\"entityId\": \"1278884\"}, {\"entityId\": \"1279001\"}, {\"entityId\": \"1279118\"}, {\"entityId\": \"1279235\"}, {\"entityId\": \"1279352\"}, {\"entityId\": \"1279469\"}, {\"entityId\": \"1279937\"}, {\"entityId\": \"1280054\"}, {\"entityId\": \"1280171\"}, {\"entityId\": \"1280288\"}, {\"entityId\": \"1280405\"}, {\"entityId\": \"1280522\"}, {\"entityId\": \"1280639\"}, {\"entityId\": \"1280756\"}, {\"entityId\": \"1280873\"}, {\"entityId\": \"1280990\"}, {\"entityId\": \"1281107\"}, {\"entityId\": \"1281224\"}, {\"entityId\": \"1281341\"}, {\"entityId\": \"1281458\"}, {\"entityId\": \"1281575\"}, {\"entityId\": \"1288712\"}, {\"entityId\": \"1288829\"}, {\"entityId\": \"1288946\"}, {\"entityId\": \"1289063\"}, {\"entityId\": \"1289180\"}, {\"entityId\": \"1289297\"}, {\"entityId\": \"1289414\"}, {\"entityId\": \"1289531\"}, {\"entityId\": \"1289648\"}, {\"entityId\": \"1289765\"}, {\"entityId\": \"1289882\"}, {\"entityId\": \"1289999\"}, {\"entityId\": \"1290233\"}, {\"entityId\": \"1290350\"}, {\"entityId\": \"1290467\"}, {\"entityId\": \"1290584\"}, {\"entityId\": \"1290701\"}, {\"entityId\": \"1290818\"}, {\"entityId\": \"1290935\"}, {\"entityId\": \"1291052\"}, {\"entityId\": \"1291169\"}, {\"entityId\": \"1291286\"}, {\"entityId\": \"1244174\"}, {\"entityId\": \"1244291\"}, {\"entityId\": \"1244759\"}, {\"entityId\": \"1244876\"}, {\"entityId\": \"1244993\"}, {\"entityId\": \"9092534\"}, {\"entityId\": \"9092651\"}, {\"entityId\": \"9092768\"}, {\"entityId\": \"9092885\"}, {\"entityId\": \"9093002\"}, {\"entityId\": \"9093119\"}, {\"entityId\": \"9093236\"}, {\"entityId\": \"9093353\"}, {\"entityId\": \"9093470\"}, {\"entityId\": \"9093587\"}, {\"entityId\": \"9093704\"}, {\"entityId\": \"9093821\"}, {\"entityId\": \"9093938\"}, {\"entityId\": \"9094055\"}, {\"entityId\": \"9094172\"}, {\"entityId\": \"9094289\"}, {\"entityId\": \"9094406\"}, {\"entityId\": \"9094523\"}, {\"entityId\": \"9094640\"}, {\"entityId\": \"9094757\"}, {\"entityId\": \"9094874\"}, {\"entityId\": \"9094991\"}, {\"entityId\": \"9095108\"}, {\"entityId\": \"9095225\"}, {\"entityId\": \"9100256\"}, {\"entityId\": \"9100373\"}, {\"entityId\": \"9100490\"}, {\"entityId\": \"9100607\"}, {\"entityId\": \"9100724\"}, {\"entityId\": \"9100841\"}, {\"entityId\": \"9100958\"}, {\"entityId\": \"9101075\"}, {\"entityId\": \"9101192\"}, {\"entityId\": \"9101309\"}, {\"entityId\": \"9101426\"}, {\"entityId\": \"9101543\"}, {\"entityId\": \"9101660\"}, {\"entityId\": \"9101777\"}, {\"entityId\": \"9101894\"}, {\"entityId\": \"9102011\"}, {\"entityId\": \"9102128\"}, {\"entityId\": \"9102245\"}, {\"entityId\": \"9102713\"}, {\"entityId\": \"9102830\"}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://vericre-api-dev.ama-assn.org/users/physicians/onETLSync",
+							"protocol": "https",
+							"host": [
+								"vericre-api-dev",
+								"ama-assn",
+								"org"
+							],
+							"path": [
+								"users",
+								"physicians",
+								"onETLSync"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "onETLSync Copy 2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"entityId\": \"9102947\"}, {\"entityId\": \"9103064\"}, {\"entityId\": \"9103181\"}, {\"entityId\": \"9103298\"}, {\"entityId\": \"1258136\"}, {\"entityId\": \"1258253\"}, {\"entityId\": \"1258370\"}, {\"entityId\": \"1258487\"}, {\"entityId\": \"1258604\"}, {\"entityId\": \"1258721\"}, {\"entityId\": \"1258838\"}, {\"entityId\": \"1258955\"}, {\"entityId\": \"1259072\"}, {\"entityId\": \"1259423\"}, {\"entityId\": \"1259540\"}, {\"entityId\": \"1259657\"}, {\"entityId\": \"1259774\"}, {\"entityId\": \"1259891\"}, {\"entityId\": \"1260008\"}, {\"entityId\": \"1260125\"}, {\"entityId\": \"1260242\"}, {\"entityId\": \"1260359\"}, {\"entityId\": \"1260476\"}, {\"entityId\": \"1260593\"}, {\"entityId\": \"1260827\"}, {\"entityId\": \"1260944\"}, {\"entityId\": \"1261061\"}, {\"entityId\": \"1261178\"}, {\"entityId\": \"1261295\"}, {\"entityId\": \"1261412\"}, {\"entityId\": \"1261529\"}, {\"entityId\": \"1261997\"}, {\"entityId\": \"1262114\"}, {\"entityId\": \"1262231\"}, {\"entityId\": \"1262348\"}, {\"entityId\": \"1262465\"}, {\"entityId\": \"1262582\"}, {\"entityId\": \"1304351\"}, {\"entityId\": \"1304468\"}, {\"entityId\": \"1304585\"}, {\"entityId\": \"1304819\"}, {\"entityId\": \"1304936\"}, {\"entityId\": \"1305053\"}, {\"entityId\": \"1305170\"}, {\"entityId\": \"1305287\"}, {\"entityId\": \"1305404\"}, {\"entityId\": \"1305521\"}, {\"entityId\": \"1305638\"}, {\"entityId\": \"1305755\"}, {\"entityId\": \"1305989\"}, {\"entityId\": \"1306106\"}, {\"entityId\": \"1306223\"}, {\"entityId\": \"1276973\"}, {\"entityId\": \"1277090\"}, {\"entityId\": \"1277207\"}, {\"entityId\": \"1277324\"}, {\"entityId\": \"1277441\"}, {\"entityId\": \"1277558\"}, {\"entityId\": \"1277675\"}, {\"entityId\": \"1277792\"}, {\"entityId\": \"1277909\"}, {\"entityId\": \"1278026\"}, {\"entityId\": \"1278260\"}, {\"entityId\": \"1278377\"}, {\"entityId\": \"1278494\"}, {\"entityId\": \"1278611\"}, {\"entityId\": \"1278728\"}, {\"entityId\": \"1278962\"}, {\"entityId\": \"1279079\"}, {\"entityId\": \"1279196\"}, {\"entityId\": \"1279313\"}, {\"entityId\": \"1279430\"}, {\"entityId\": \"1279547\"}, {\"entityId\": \"1279664\"}, {\"entityId\": \"1279781\"}, {\"entityId\": \"1279898\"}, {\"entityId\": \"1280015\"}, {\"entityId\": \"1280249\"}, {\"entityId\": \"1280483\"}, {\"entityId\": \"1280600\"}, {\"entityId\": \"1280717\"}, {\"entityId\": \"1280834\"}, {\"entityId\": \"1280951\"}, {\"entityId\": \"1281068\"}, {\"entityId\": \"1281185\"}, {\"entityId\": \"1281653\"}, {\"entityId\": \"1281770\"}, {\"entityId\": \"1281887\"}, {\"entityId\": \"1282004\"}, {\"entityId\": \"1282121\"}, {\"entityId\": \"1282238\"}, {\"entityId\": \"1282355\"}, {\"entityId\": \"1282472\"}, {\"entityId\": \"1282589\"}, {\"entityId\": \"1282706\"}, {\"entityId\": \"1282823\"}, {\"entityId\": \"1282940\"}, {\"entityId\": \"1283057\"}, {\"entityId\": \"1283174\"}, {\"entityId\": \"1283291\"}, {\"entityId\": \"6079901\"}, {\"entityId\": \"6080018\"}, {\"entityId\": \"6080135\"}, {\"entityId\": \"6080252\"}, {\"entityId\": \"6080369\"}, {\"entityId\": \"6080486\"}, {\"entityId\": \"6080837\"}, {\"entityId\": \"6080954\"}, {\"entityId\": \"6081071\"}, {\"entityId\": \"6081188\"}, {\"entityId\": \"6081305\"}, {\"entityId\": \"6081422\"}, {\"entityId\": \"6081539\"}, {\"entityId\": \"6081656\"}, {\"entityId\": \"6081773\"}, {\"entityId\": \"6081890\"}, {\"entityId\": \"6091523\"}, {\"entityId\": \"6091757\"}, {\"entityId\": \"6091874\"}, {\"entityId\": \"6091991\"}, {\"entityId\": \"6092108\"}, {\"entityId\": \"6087155\"}, {\"entityId\": \"6087272\"}, {\"entityId\": \"6087389\"}, {\"entityId\": \"6087506\"}, {\"entityId\": \"6087623\"}, {\"entityId\": \"6087740\"}, {\"entityId\": \"6087857\"}, {\"entityId\": \"6087974\"}, {\"entityId\": \"6088208\"}, {\"entityId\": \"6088442\"}, {\"entityId\": \"6088559\"}, {\"entityId\": \"6088676\"}, {\"entityId\": \"6088793\"}, {\"entityId\": \"6088910\"}, {\"entityId\": \"6089027\"}, {\"entityId\": \"6089144\"}, {\"entityId\": \"6089261\"}, {\"entityId\": \"6089495\"}, {\"entityId\": \"6089612\"}, {\"entityId\": \"6089729\"}, {\"entityId\": \"6089846\"}, {\"entityId\": \"6089963\"}, {\"entityId\": \"6090080\"}, {\"entityId\": \"6090197\"}, {\"entityId\": \"6090314\"}, {\"entityId\": \"6090431\"}, {\"entityId\": \"6090665\"}, {\"entityId\": \"6117692\"}, {\"entityId\": \"6117809\"}, {\"entityId\": \"6117926\"}, {\"entityId\": \"6118043\"}, {\"entityId\": \"6118160\"}, {\"entityId\": \"6118277\"}, {\"entityId\": \"6118394\"}, {\"entityId\": \"6118511\"}, {\"entityId\": \"6118628\"}, {\"entityId\": \"6119096\"}, {\"entityId\": \"6119213\"}, {\"entityId\": \"6119447\"}, {\"entityId\": \"6119564\"}, {\"entityId\": \"6119681\"}, {\"entityId\": \"6119798\"}, {\"entityId\": \"6129431\"}, {\"entityId\": \"6129548\"}, {\"entityId\": \"6129665\"}, {\"entityId\": \"6129782\"}, {\"entityId\": \"6129899\"}, {\"entityId\": \"6130016\"}, {\"entityId\": \"6130133\"}, {\"entityId\": \"6130250\"}, {\"entityId\": \"6130367\"}, {\"entityId\": \"6130484\"}, {\"entityId\": \"6130601\"}, {\"entityId\": \"6130718\"}, {\"entityId\": \"6125882\"}, {\"entityId\": \"6125999\"}, {\"entityId\": \"6126116\"}, {\"entityId\": \"6126233\"}, {\"entityId\": \"6126350\"}, {\"entityId\": \"6126467\"}, {\"entityId\": \"6126935\"}, {\"entityId\": \"6127052\"}, {\"entityId\": \"6127169\"}, {\"entityId\": \"6127286\"}, {\"entityId\": \"6127403\"}, {\"entityId\": \"6127520\"}, {\"entityId\": \"6127637\"}, {\"entityId\": \"6127754\"}, {\"entityId\": \"6127871\"}, {\"entityId\": \"6127988\"}, {\"entityId\": \"6128105\"}, {\"entityId\": \"6128222\"}, {\"entityId\": \"6128339\"}, {\"entityId\": \"6128456\"}, {\"entityId\": \"6128573\"}, {\"entityId\": \"1293899\"}, {\"entityId\": \"1294016\"}, {\"entityId\": \"1294133\"}, {\"entityId\": \"1294367\"}, {\"entityId\": \"1294484\"}, {\"entityId\": \"1294601\"}, {\"entityId\": \"1294718\"}, {\"entityId\": \"1294835\"}, {\"entityId\": \"1294952\"}, {\"entityId\": \"1295186\"}, {\"entityId\": \"1295303\"}, {\"entityId\": \"1295420\"}, {\"entityId\": \"1295537\"}, {\"entityId\": \"1295654\"}, {\"entityId\": \"1295771\"}, {\"entityId\": \"1296005\"}, {\"entityId\": \"1296122\"}, {\"entityId\": \"1296239\"}, {\"entityId\": \"1296356\"}, {\"entityId\": \"1296473\"}, {\"entityId\": \"1296590\"}, {\"entityId\": \"1296824\"}, {\"entityId\": \"1296941\"}, {\"entityId\": \"1297058\"}, {\"entityId\": \"1297292\"}, {\"entityId\": \"1297409\"}, {\"entityId\": \"1297526\"}, {\"entityId\": \"1297643\"}, {\"entityId\": \"1297760\"}, {\"entityId\": \"1297877\"}, {\"entityId\": \"1297994\"}, {\"entityId\": \"1298111\"}, {\"entityId\": \"1298228\"}, {\"entityId\": \"1298345\"}, {\"entityId\": \"1298462\"}, {\"entityId\": \"1298579\"}, {\"entityId\": \"1305833\"}, {\"entityId\": \"1305950\"}, {\"entityId\": \"1306067\"}, {\"entityId\": \"1306184\"}, {\"entityId\": \"1306301\"}, {\"entityId\": \"1306418\"}, {\"entityId\": \"1306652\"}, {\"entityId\": \"1306769\"}, {\"entityId\": \"1306886\"}, {\"entityId\": \"1307003\"}, {\"entityId\": \"1307237\"}, {\"entityId\": \"1307354\"}, {\"entityId\": \"6107630\"}, {\"entityId\": \"6107747\"}, {\"entityId\": \"6107864\"}, {\"entityId\": \"6107981\"}, {\"entityId\": \"6108098\"}, {\"entityId\": \"6108215\"}, {\"entityId\": \"6108449\"}, {\"entityId\": \"6108566\"}, {\"entityId\": \"6108800\"}, {\"entityId\": \"6108917\"}, {\"entityId\": \"6109034\"}, {\"entityId\": \"6109151\"}, {\"entityId\": \"6109268\"}, {\"entityId\": \"6109385\"}, {\"entityId\": \"6109502\"}, {\"entityId\": \"6109619\"}, {\"entityId\": \"6109736\"}, {\"entityId\": \"6126506\"}, {\"entityId\": \"6126623\"}, {\"entityId\": \"6126740\"}, {\"entityId\": \"6126974\"}, {\"entityId\": \"6127091\"}, {\"entityId\": \"6127208\"}, {\"entityId\": \"6127325\"}, {\"entityId\": \"6127442\"}, {\"entityId\": \"6127559\"}, {\"entityId\": \"6127676\"}, {\"entityId\": \"6127793\"}, {\"entityId\": \"6127910\"}, {\"entityId\": \"6128027\"}, {\"entityId\": \"6128144\"}, {\"entityId\": \"6128261\"}, {\"entityId\": \"6128378\"}, {\"entityId\": \"6128495\"}, {\"entityId\": \"6128612\"}, {\"entityId\": \"6128729\"}, {\"entityId\": \"6128846\"}, {\"entityId\": \"6128963\"}, {\"entityId\": \"6129080\"}, {\"entityId\": \"6129197\"}, {\"entityId\": \"6129314\"}, {\"entityId\": \"6110672\"}, {\"entityId\": \"6110789\"}, {\"entityId\": \"6110906\"}, {\"entityId\": \"6111023\"}, {\"entityId\": \"6111140\"}, {\"entityId\": \"6111257\"}, {\"entityId\": \"6111608\"}, {\"entityId\": \"1431088\"}, {\"entityId\": \"1431205\"}, {\"entityId\": \"1431322\"}, {\"entityId\": \"1431556\"}, {\"entityId\": \"1431673\"}, {\"entityId\": \"1431790\"}, {\"entityId\": \"1431907\"}, {\"entityId\": \"1432024\"}, {\"entityId\": \"1432141\"}, {\"entityId\": \"1432258\"}, {\"entityId\": \"1432375\"}, {\"entityId\": \"1432492\"}, {\"entityId\": \"1432609\"}, {\"entityId\": \"1432726\"}, {\"entityId\": \"1432960\"}, {\"entityId\": \"1433194\"}, {\"entityId\": \"1433311\"}, {\"entityId\": \"1433428\"}, {\"entityId\": \"1433545\"}, {\"entityId\": \"1433662\"}, {\"entityId\": \"1433779\"}, {\"entityId\": \"1434013\"}, {\"entityId\": \"1434130\"}, {\"entityId\": \"1434247\"}, {\"entityId\": \"1434481\"}, {\"entityId\": \"1434598\"}, {\"entityId\": \"1434715\"}, {\"entityId\": \"1434832\"}, {\"entityId\": \"1434949\"}, {\"entityId\": \"1435066\"}, {\"entityId\": \"1435183\"}, {\"entityId\": \"1435300\"}, {\"entityId\": \"1435417\"}, {\"entityId\": \"1435534\"}, {\"entityId\": \"1435768\"}, {\"entityId\": \"1435885\"}, {\"entityId\": \"1436002\"}, {\"entityId\": \"1436119\"}, {\"entityId\": \"1436236\"}, {\"entityId\": \"1436353\"}, {\"entityId\": \"1436470\"}, {\"entityId\": \"1436587\"}, {\"entityId\": \"1427500\"}, {\"entityId\": \"1427617\"}, {\"entityId\": \"1427734\"}, {\"entityId\": \"1427851\"}, {\"entityId\": \"1427968\"}, {\"entityId\": \"1428085\"}, {\"entityId\": \"1374889\"}, {\"entityId\": \"1375006\"}, {\"entityId\": \"1375123\"}, {\"entityId\": \"1429177\"}, {\"entityId\": \"1429294\"}, {\"entityId\": \"1429411\"}, {\"entityId\": \"1429528\"}, {\"entityId\": \"1429645\"}, {\"entityId\": \"1429762\"}, {\"entityId\": \"1429879\"}, {\"entityId\": \"1429996\"}, {\"entityId\": \"1430113\"}, {\"entityId\": \"1430230\"}, {\"entityId\": \"1430347\"}, {\"entityId\": \"1430464\"}, {\"entityId\": \"1430581\"}, {\"entityId\": \"1430698\"}, {\"entityId\": \"1430932\"}, {\"entityId\": \"1431166\"}, {\"entityId\": \"1431283\"}, {\"entityId\": \"1431517\"}, {\"entityId\": \"1431634\"}, {\"entityId\": \"1431751\"}, {\"entityId\": \"1431868\"}, {\"entityId\": \"1431985\"}, {\"entityId\": \"1432102\"}, {\"entityId\": \"1432219\"}, {\"entityId\": \"1432336\"}, {\"entityId\": \"1432453\"}, {\"entityId\": \"1432570\"}, {\"entityId\": \"1432687\"}, {\"entityId\": \"1432804\"}, {\"entityId\": \"1432921\"}, {\"entityId\": \"1433038\"}, {\"entityId\": \"1433155\"}, {\"entityId\": \"1433272\"}, {\"entityId\": \"1433623\"}, {\"entityId\": \"1433740\"}, {\"entityId\": \"1433857\"}, {\"entityId\": \"1433974\"}, {\"entityId\": \"1434091\"}, {\"entityId\": \"1434208\"}, {\"entityId\": \"1434325\"}, {\"entityId\": \"1434442\"}, {\"entityId\": \"1434559\"}, {\"entityId\": \"1434676\"}, {\"entityId\": \"1434793\"}, {\"entityId\": \"1434910\"}, {\"entityId\": \"1275647\"}, {\"entityId\": \"1275764\"}, {\"entityId\": \"1275881\"}, {\"entityId\": \"1275998\"}, {\"entityId\": \"1276115\"}, {\"entityId\": \"1276232\"}, {\"entityId\": \"1276349\"}, {\"entityId\": \"1276466\"}, {\"entityId\": \"1276583\"}, {\"entityId\": \"1276700\"}, {\"entityId\": \"1276817\"}, {\"entityId\": \"1276934\"}, {\"entityId\": \"1277168\"}, {\"entityId\": \"1277285\"}, {\"entityId\": \"1277402\"}, {\"entityId\": \"1277519\"}, {\"entityId\": \"1277636\"}, {\"entityId\": \"1277753\"}, {\"entityId\": \"1361564\"}, {\"entityId\": \"1361681\"}, {\"entityId\": \"1361798\"}, {\"entityId\": \"1361915\"}, {\"entityId\": \"1365061\"}, {\"entityId\": \"1365178\"}, {\"entityId\": \"1365451\"}, {\"entityId\": \"1365568\"}, {\"entityId\": \"1365685\"}, {\"entityId\": \"1365802\"}, {\"entityId\": \"1365919\"}, {\"entityId\": \"1366036\"}, {\"entityId\": \"1366270\"}, {\"entityId\": \"1366387\"}, {\"entityId\": \"1366504\"}, {\"entityId\": \"1366621\"}, {\"entityId\": \"1366738\"}, {\"entityId\": \"1366855\"}, {\"entityId\": \"1366972\"}, {\"entityId\": \"1367089\"}, {\"entityId\": \"1367206\"}, {\"entityId\": \"1367323\"}, {\"entityId\": \"1367440\"}, {\"entityId\": \"1367557\"}, {\"entityId\": \"1367674\"}, {\"entityId\": \"1367791\"}, {\"entityId\": \"1367908\"}, {\"entityId\": \"1368142\"}, {\"entityId\": \"1368376\"}, {\"entityId\": \"1368493\"}, {\"entityId\": \"3057830\"}, {\"entityId\": \"3057947\"}, {\"entityId\": \"3058064\"}, {\"entityId\": \"3058298\"}, {\"entityId\": \"3058415\"}, {\"entityId\": \"3058532\"}, {\"entityId\": \"3058649\"}, {\"entityId\": \"3058766\"}, {\"entityId\": \"3030530\"}, {\"entityId\": \"3030647\"}, {\"entityId\": \"3030881\"}, {\"entityId\": \"3030998\"}, {\"entityId\": \"3031115\"}, {\"entityId\": \"3031232\"}, {\"entityId\": \"3031349\"}, {\"entityId\": \"3031466\"}, {\"entityId\": \"3031583\"}, {\"entityId\": \"3031700\"}, {\"entityId\": \"3004985\"}, {\"entityId\": \"3005102\"}, {\"entityId\": \"3005219\"}, {\"entityId\": \"3005336\"}, {\"entityId\": \"3005453\"}, {\"entityId\": \"3005570\"}, {\"entityId\": \"3006038\"}, {\"entityId\": \"3006155\"}, {\"entityId\": \"3006272\"}, {\"entityId\": \"3006389\"}, {\"entityId\": \"3006506\"}, {\"entityId\": \"3006623\"}, {\"entityId\": \"3006740\"}, {\"entityId\": \"3006857\"}, {\"entityId\": \"3006974\"}, {\"entityId\": \"3007091\"}, {\"entityId\": \"3007208\"}, {\"entityId\": \"3007325\"}, {\"entityId\": \"3007442\"}, {\"entityId\": \"3007559\"}, {\"entityId\": \"3007676\"}, {\"entityId\": \"3007793\"}, {\"entityId\": \"3007910\"}, {\"entityId\": \"3008027\"}, {\"entityId\": \"3008495\"}, {\"entityId\": \"3008612\"}, {\"entityId\": \"3008729\"}, {\"entityId\": \"3008846\"}, {\"entityId\": \"3008963\"}, {\"entityId\": \"3009080\"}, {\"entityId\": \"6183251\"}, {\"entityId\": \"6183368\"}, {\"entityId\": \"6203843\"}, {\"entityId\": \"6203960\"}, {\"entityId\": \"6204077\"}, {\"entityId\": \"6204194\"}, {\"entityId\": \"6204311\"}, {\"entityId\": \"6204428\"}, {\"entityId\": \"6204896\"}, {\"entityId\": \"6205013\"}, {\"entityId\": \"6205130\"}, {\"entityId\": \"6205247\"}, {\"entityId\": \"6205364\"}, {\"entityId\": \"6205481\"}, {\"entityId\": \"6205598\"}, {\"entityId\": \"6205715\"}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://vericre-api-dev.ama-assn.org/users/physicians/onETLSync",
+							"protocol": "https",
+							"host": [
+								"vericre-api-dev",
+								"ama-assn",
+								"org"
+							],
+							"path": [
+								"users",
+								"physicians",
+								"onETLSync"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "onETLSync (itg)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"entityId\": \"765\"}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://vericre-api-intg.ama-assn.org/users/physicians/onETLSync",
+							"protocol": "https",
+							"host": [
+								"vericre-api-intg",
+								"ama-assn",
+								"org"
+							],
+							"path": [
+								"users",
+								"physicians",
+								"onETLSync"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

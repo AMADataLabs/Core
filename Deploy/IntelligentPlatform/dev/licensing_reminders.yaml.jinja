@@ -6,10 +6,11 @@ LICENSING_REMINDERS:
 
         PLATFORM_DB_BACKEND: mysql+pymysql
         PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
-        PLATFORM_DB_NAME: usermgmt
-        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
         PLATFORM_DB_PORT: '3306'
         PLATFORM_DB_USERNAME: platform
+        PLATFORM_DB_PASSWORD: '{{platform_db_password}}'
+        PLATFORM_DB_NAME: usermgmt
+
         PLATFORM_DOMAIN: platform-${ENVIRONMENT}
 
         S3_BASE_PATH: AMA/Licensing
@@ -81,5 +82,5 @@ LICENSING_REMINDERS:
         DATABASE_PORT: ${PLATFORM_DB_PORT}
         DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
         MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.Groups
-        IGNORE_COLUMNS: id,name,organization_id,client_id,secret,environment_id,resource_id,valid_from,valid_to
+        IGNORE_COLUMNS: id,name,organization_id,client_id,secret,environment_id,resource_id,valid_from,valid_to,quote_id
         APPEND: 'True'
