@@ -43,14 +43,10 @@ class PracticeTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
     # pylint: disable=no-self-use
     def _create_entity(self, preprocessed_data):
-        (
-            medical_education_number,
-            ppd_party_ids,
-            employer_ids,
-            active_mpa_codes,
-            specialities,
-            pra_certifications,
-        ) = preprocessed_data
+        # fmt: off
+        medical_education_number, ppd_party_ids, employer_ids, active_mpa_codes, specialities, pra_certifications \
+            = preprocessed_data
+        # fmt: on
 
         pra_certifications.expiration_dt = pandas.to_datetime(pra_certifications.expiration_dt)
 
