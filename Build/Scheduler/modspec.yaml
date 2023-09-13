@@ -26,8 +26,6 @@ modspec:
     include:
       - transform
   - package: datalabs.etl.sns
-  - package: datalabs.example.etl.dag
-      - schedule
   - package: datalabs.messaging
     include:
       - email_message
