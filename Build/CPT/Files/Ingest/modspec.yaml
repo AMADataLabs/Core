@@ -15,6 +15,7 @@ modspec:
       - datastore
       - environment
       - orm
+  - package: datalabs.cache
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
   - package: datalabs.etl

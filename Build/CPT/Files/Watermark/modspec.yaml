@@ -11,6 +11,7 @@ modspec:
       - datastore
       - environment
   - package: datalabs.access.parameter
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.archive
   - package: datalabs.etl.dag

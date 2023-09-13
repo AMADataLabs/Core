@@ -15,6 +15,7 @@ modspec:
       - feature
       - task
       - parameter
+  - package: datalabs.cache
   - package: datalabs.curate
   - package: datalabs.etl
   - package: datalabs.etl.dag

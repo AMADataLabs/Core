@@ -19,6 +19,7 @@ modspec:
       - orm
       - sftp
       - sqlalchemy
+  - package: datalabs.cache
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.archive
@@ -32,7 +33,7 @@ modspec:
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.marketing
-  - package: datalabs.etl.marketing.aggregate 
+  - package: datalabs.etl.marketing.aggregate
   - package: datalabs.etl.manipulate
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
