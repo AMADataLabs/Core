@@ -397,7 +397,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     @classmethod
     def _generate_headers(cls, response):
         return {
-            'Content-Type': response.headers['Content-Type'],
+            'Content-Type': 'application/pdf', # response.headers['Content-Type'],
             'Content-Disposition': response.headers['Content-Disposition']
         }
 
