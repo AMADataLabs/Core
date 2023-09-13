@@ -43,27 +43,31 @@ class PracticeTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
     # pylint: disable=no-self-use
     def _create_entity(self, preprocessed_data):
-        # fmt: off
-        medical_education_number, ppd_party_ids, employer_ids, active_mpa_codes, specialities, pra_certifications \
-            = preprocessed_data
-        # fmt: on
+        (
+            medical_education_number,
+            ppd_party_ids,
+            employer_ids,
+            active_mpa_codes,
+            specialities,
+            pra_certifications,
+        ) = preprocessed_data
 
         pra_certifications.expiration_dt = pandas.to_datetime(pra_certifications.expiration_dt)
 
-        wards = (
+        current_certifications = (
             pra_certifications[pra_certifications.expiration_dt > datetime.today()]
             .sort_values("expiration_dt")
             .drop_duplicates("party_id", keep="last")
         )
 
-        ov_universe = pandas.merge(
+        entity = pandas.merge(
             ppd_party_ids,
             medical_education_number,
             left_on="me",
             right_on="medical_education_number",
         )
 
-        entity = pandas.merge(ov_universe, employer_ids, on="party_id", how="left")
+        entity = pandas.merge(entity, employer_ids, on="party_id", how="left")
 
         entity = pandas.merge(
             entity,
@@ -82,7 +86,7 @@ class PracticeTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         entity = pandas.merge(entity, active_mpa_codes, on=["top_id", "employer_id"], how="left")
 
-        entity = pandas.merge(entity, wards, on="party_id", how="left")
+        entity = pandas.merge(entity, current_certifications, on="party_id", how="left")
 
         return [entity]
 
