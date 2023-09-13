@@ -3,13 +3,16 @@ from   datalabs.etl.dag.dag import DAG
 from   datalabs.example.etl.hello_world.task import HelloWorldTask
 
 
-class DAG(DAG):
-    EXTRACT_SCHEDULE: HelloWorldTask
+class SchedulerDAG(DAG):
+    EXTRACT_SCHEDULES: HelloWorldTask
+    IDENTIFY_SCHEDULED_DAGS: HelloWorldTask
     SCHEDULE_DAGS: HelloWorldTask
-    NOTIFY_DAG_PROCESSOR: HelloWorldTask
+    EXTRACT_SCHEDULED_DAG_STATES: HelloWorldTask
+    SEND_DAG_REPORT: HelloWorldTask
 
 
 # pylint: disable=pointless-statement,undefined-variable
-    DAG.EXTRACT_SCHEDULE >> \
-    DAG.SCHEDULE_DAGS >> \
-    DAG.NOTIFY_DAG_PROCESSOR
+    SchedulerDAG.EXTRACT_SCHEDULES >> \
+    SchedulerDAG.IDENTIFY_SCHEDULED_DAGS >> \
+    SchedulerDAG.EXTRACT_SCHEDULED_DAG_STATES >> \
+    SchedulerDAG.SEND_DAG_REPORT
