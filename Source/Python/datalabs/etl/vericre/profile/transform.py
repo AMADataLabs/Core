@@ -127,16 +127,20 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
-        aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
         mailing_address = \
             demog_data[column.MAILING_ADDRESS_COLUMNS.keys()].rename(columns=column.MAILING_ADDRESS_COLUMNS)
-        demographics["mailingAddress"] = mailing_address.to_dict(orient="records")
+        demog_data["MAILING_ADDRESS"] = mailing_address.to_dict(orient="records")
+
         office_address = demog_data[column.OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=column.OFFICE_ADDRESS_COLUMNS)
         office_address["addressUndeliverable"] = None
-        demographics["officeAddress"] = office_address.to_dict(orient="records")
+        demog_data["OFFICE_ADDRESS"] = office_address.to_dict(orient="records")
+
         phone = demog_data[column.PHONE_COLUMNS.keys()].rename(columns=column.PHONE_COLUMNS)
-        demographics["phone"] = phone.to_dict(orient="records")
+        demog_data["PHONE"] = phone.to_dict(orient="records")
+
+        demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
+
+        aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_demographics["demographics"] = demographics.to_dict(orient="records")
 
         return aggregated_demographics
