@@ -8,9 +8,11 @@ DAG_REPORT:
         S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
     DAG:
         DAG_CLASS: 'datalabs.example.etl.dag.schedule.report.DAG'
+        #DAG_CLASS: 'datalabs.etl.dag.schedule.report.DAG'
         DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.file.DAGState'
-            BASE_PATH: './DAG State'
+            #BASE_PATH: './DAG State'
+            BASE_PATH: '/mnt/c/Users/rsun/OneDrive - American Medical Association/data/cpt/files/load/DAG State'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
     EXTRACT_SCHEDULE:
@@ -49,7 +51,7 @@ DAG_REPORT:
         CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
         CACHE_INPUT_FILES: 'scheduled_dag_statuses.csv'
 
-        TO_ADDRESSES: datalabs@ama-assn.org
+        TO_ADDRESSES: ronghua.sun@ama-assn.org
         SUBJECT: 'DataLabs DAG Report for %A (%b %-m, %Y)'
         MESSAGE: 'Dude, here is your deliciously direct, DataLabs daily DAG report!'
         FILES: scheduled_dag_statuses.csv
