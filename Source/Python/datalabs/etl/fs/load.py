@@ -44,11 +44,13 @@ class LocalFileLoaderTask(BasePathMixin, IncludesNamesMixin, FileLoaderTask):
 
     def _load_file(self, data, file):
         LOGGER.info('Writing file %s to the local file system...', file)
-        try:
-            with open(file, 'wb') as _file:
-                _file.write(data)
-        except Exception as exception:
-            raise ETLException(f"Unable to write file '{file}'") from exception
+        parent = os.path.dirname(file)
+
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+
+        with open(file, 'wb') as _file:
+            _file.write(data)
 
         return data
 
