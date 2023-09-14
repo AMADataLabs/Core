@@ -2,7 +2,6 @@
 from   io import BytesIO
 from   dataclasses import dataclass
 import logging
-import os
 import pickle
 from   pathlib import Path
 from   zipfile import ZipFile
