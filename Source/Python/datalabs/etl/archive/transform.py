@@ -23,8 +23,6 @@ class UnzipTransformerParameters:
     files: str = None
     ignore_path_depth: str = None
     execution_time: str = None
-    target_directory: str = None
-
 
 class UnzipTransformerTask(FileExtractorTask):
     PARAMETER_CLASS = UnzipTransformerParameters
@@ -39,7 +37,7 @@ class UnzipTransformerTask(FileExtractorTask):
         return self._client.files
 
     def _extract_file(self, file):
-        return self._client.extract(file, self._parameters.target_directory)
+        return self._client.extract(file)
 
     def _get_target_files(self, files):
         target_files = files
@@ -90,16 +88,8 @@ class ZipFiles:
     def files(self):
         return list(self._file_zip_map.keys())
 
-    def extract(self, file, target_directory):
+    def extract(self, file):
         zip_file = self._zip_files[self._file_zip_map[file]]
-
-        parent = os.path.dirname(file)
-
-        if parent:
-            if target_directory:
-                os.makedirs(target_directory + "/" + parent, exist_ok=True)
-            else:
-                os.makedirs(parent, exist_ok=True)
 
         return zip_file.read(file)
 
