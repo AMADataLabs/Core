@@ -1,0 +1,94 @@
+openapi: 3.0.2
+info:
+  title: Vignettes API
+  description: CPT Vignettes API
+  version: 1.0.0
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Vignette
+    description: A CPT code vignette
+    externalDocs:
+      url: 'http://swagger.io'
+paths:
+  /vignette/{cpt_code}:
+    get:
+      tags:
+        - Vignette
+      summary: Endpoint to search vignettes using cpt codes
+      description: Return vignette of given CPT Code
+      operationId: getVignette
+      parameters:
+        - name: cpt_code
+          in: path
+          description: CPT Code
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: additional_information
+          in: query
+          description: Return additional information for vingette
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vignette'
+        '404':
+          description: No Vignette for the given CPT Code.
+        "401":
+          description: Unauthorized
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:  
+    Vignette:
+      type: object
+      required:
+        - code
+        - patient
+        - pre_service
+        - intra_service
+        - post_service
+      properties:
+        code:
+          type: string
+        patient:
+          type: string
+        pre_service:
+          type: string
+        intra_service: 
+          type: string
+        post-service:
+          type: string
+        ruc:
+          type: string
+        specialty:
+          type: string
+        concept_id:
+          type: string
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+        type: token
+        authorizerUri: ${authorizer_uri}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/RNAJEEB_1/Vignettes_API/1.0.0
