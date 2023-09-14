@@ -4,7 +4,6 @@ import logging
 import os
 
 from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, BasePathMixin
-from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
