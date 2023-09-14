@@ -83,7 +83,9 @@ class CredentialTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
     # pylint: disable=no-self-use
     def _postprocess(self, entities):
         all_ids, all_certificates, *rest = entities
+
         all_ids.drop(columns=["me"], inplace=True)
+
         all_certificates.drop(columns=["party_id_from"], inplace=True)
 
         return [all_ids] + [all_certificates] + rest
