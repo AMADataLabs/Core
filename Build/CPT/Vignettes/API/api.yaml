@@ -68,7 +68,7 @@ components:
           type: string
         intra_service: 
           type: string
-        post-service:
+        post_service:
           type: string
         ruc:
           type: string
