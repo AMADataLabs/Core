@@ -1,14 +1,16 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag import dag
-from   datalabs.example.etl.hello_world.task import HelloWorldTask
+from   datalabs.etl.s3.extract import S3FileExtractorTask
+from   datalabs.etl.schedule.transform import DAGSchedulerTask
+from   datalabs.etl.smtp.load import SMTPFileLoaderTask
 
 
 @dag.register(name="DAG_REPORT")
 class DAG(dag.DAG):
-    EXTRACT_SCHEDULE: HelloWorldTask
-    IDENTIFY_SCHEDULED_DAGS: HelloWorldTask
-    EXTRACT_SCHEDULED_DAG_STATES: HelloWorldTask
-    SEND_DAG_REPORT: HelloWorldTask
+    EXTRACT_SCHEDULE: S3FileExtractorTask
+    IDENTIFY_SCHEDULED_DAGS: DAGSchedulerTask
+    EXTRACT_SCHEDULED_DAG_STATES: DAGSchedulerTask
+    SEND_DAG_REPORT: SMTPFileLoaderTask
 
 
 # pylint: disable=pointless-statement
