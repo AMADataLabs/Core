@@ -25,7 +25,7 @@ def event():
 def search_parameters():
     return dict(
         results=None,
-        index=None,
+        index="SampleIndexName",
         keywords="test|these|keywords",
         sections="test|sections",
         subsections="test|subsections",
