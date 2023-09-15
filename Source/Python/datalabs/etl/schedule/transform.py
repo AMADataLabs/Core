@@ -11,6 +11,7 @@ from   dateutil.parser import isoparse
 from   croniter import croniter
 import pandas
 
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.dag.state import Status, StatefulDAGMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
@@ -104,8 +105,22 @@ class DAGSchedulerTask(ExecutionTimeMixin, StatefulDAGMixin, Task):
         return status != Status.UNKNOWN
 
 # pylint: disable=line-too-long
-class ScheduledDAGIdentifierTask(DAGSchedulerTask):
+class ScheduledDAGIdentifierTask(DAGSchedulerTask, CSVReaderMixin, CSVWriterMixin):
     PARAMETER_CLASS = DAGSchedulerParameters
+
+    def run(self):
+        schedule = None
+
+        try:
+            schedule = pandas.read_csv(BytesIO(self._data[0]))
+            LOGGER.info("Schedule:\n%s", schedule)
+        except Exception as exception:
+            raise ValueError(f'Bad schedule data: {self._data[0]}') from exception
+
+        dags = self._determine_dags_to_run(schedule, super()._get_target_execution_time())
+        dags = dags.drop('index', axis=1)
+
+        return [self._dataframe_to_csv(dags)]
 
     # pylint: disable=too-many-locals
     def _determine_dags_to_run(self, schedule, target_execution_time):
