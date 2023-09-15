@@ -24,7 +24,7 @@ def event():
 @pytest.fixture
 def search_parameters():
     return dict(
-        results=None,
+        results=50,
         index="SampleIndexName",
         keywords="test|these|keywords",
         sections="test|sections",
