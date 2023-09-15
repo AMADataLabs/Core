@@ -24,11 +24,11 @@ def event():
 @pytest.fixture
 def search_parameters():
     return dict(
-        results=50,
-        index="SampleIndexName",
-        keywords="test|these|keywords",
-        sections="test|sections",
-        subsections="test|subsections",
-        updated_date_from="2022-01-01",
-        updated_date_to="2023-09-10"
+        results=None,
+        index='SampleIndexName',
+        keywords='test|these|keywords',
+        sections='test|sections',
+        subsections='test|subsections',
+        updated_date_from='2022-01-01',
+        updated_date_to='2023-09-10'
     )
