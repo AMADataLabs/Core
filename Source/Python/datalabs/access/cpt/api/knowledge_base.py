@@ -26,7 +26,7 @@ class MapSearchEndpointParameters:
 class SearchParameters:
     max_results: int
     index: int
-    keywords: list
+    keywords: str
     sections: list
     subsections: list
     updated_date_from: str
