@@ -110,7 +110,9 @@ def _assert_demographics_phone_comprises_aread_code_exchange_and_number(vericre_
     assert print_number == f"{area_code}{exchange}{number}"
 
 
+# pylint: disable=comparison-with-itself
 def _assert_demographics_phone_is_null_if_any_components_are_null(vericre_profiles):
+    ''' Check that area code is NaN and that a null phone number results. '''
     demographics = vericre_profiles.iloc[1].demographics
     print_number = demographics["phone"]["phoneNumber"]
     area_code = demographics["phone"]["areaCode"]
