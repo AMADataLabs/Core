@@ -233,7 +233,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, response_result):
-        return response_result
+        return response_result[:100]
 
 
 # pylint: disable=too-many-instance-attributes
