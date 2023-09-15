@@ -38,6 +38,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     def run(self):
         search_parameters = self._get_search_parameters(self._parameters.query)
+
         with AWSClient("opensearch") as opensearch:
             search_results = self._query_index(opensearch, search_parameters)
 
@@ -67,6 +68,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if search_parameters.keywords is not None:
             keywords = "|".join(search_parameters.keywords)
+
         if search_parameters.keywords:
             results = cls._get_search_results(opensearch, keywords, search_parameters)
 
@@ -75,6 +77,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_search_results(cls, opensearch, query, search_parameters):
         results = None
+
         query_parameters = cls._get_query_parameters(query, search_parameters)
         response = opensearch.search(index=search_parameters.index, body=query_parameters)
 
@@ -86,7 +89,9 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_query_parameters(cls, keywords, search_parameters):
         query_parameters = {}
+
         cls._add_pagination(query_parameters, search_parameters)
+
         query_parameters['query'] = cls._generate_query_section(keywords, search_parameters)
 
         return query_parameters
@@ -98,6 +103,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
+
         return dict(
             bool=cls._generate_bool_section(keywords, search_parameters)
         )
@@ -107,7 +113,9 @@ class MapSearchEndpointTask(APIEndpointTask):
         bool_section = dict(
             must=cls._generate_must_section(keywords, search_parameters)
         )
+
         filter_array = cls._generate_filter_section(search_parameters)
+
         if len(filter_array) > 0:
             bool_section["filter"] = filter_array
 
@@ -116,11 +124,11 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_must_section(cls, keywords, search_parameters):
         return dict(
-            multi_match=cls._generate_multi_match_object(keywords, search_parameters)
+            multi_match=cls._generate_multi_match_section(keywords, search_parameters)
         )
 
     @classmethod
-    def _generate_multi_match_object(cls, keywords, search_parameters):
+    def _generate_multi_match_section(cls, keywords, search_parameters):
         return dict(
             fields=[
                 "section^10000",
@@ -143,40 +151,46 @@ class MapSearchEndpointTask(APIEndpointTask):
         filters_array = []
 
         if search_parameters.sections is not None and len(search_parameters.sections) > 0:
-            filters_array.append(cls._generate_section_filter_object(search_parameters.sections))
+            filters_array.append(cls._generate_section_filter_section(search_parameters.sections))
+
         if search_parameters.subsections is not None and len(search_parameters.subsections) > 0:
-            filters_array.append(cls._generate_subsection_filter_object(search_parameters.subsections))
-        updated_on_range_object = cls._generate_range_object(search_parameters)
-        if updated_on_range_object is not None:
-            filter_object = {'range': updated_on_range_object}
-            filters_array.append(filter_object)
+            filters_array.append(cls._generate_subsection_filter_section(search_parameters.subsections))
+
+        updated_on_range_section = cls._generate_range_section(search_parameters)
+
+        if updated_on_range_section is not None:
+            filter_section = {'range': updated_on_range_section}
+            filters_array.append(filter_section)
 
         return filters_array
 
     @classmethod
-    def _generate_section_filter_object(cls, sections):
-        section_terms_object = {'section': sections}
-        filter_object = {'terms': section_terms_object}
+    def _generate_section_filter_section(cls, sections):
 
-        return filter_object
-
-    @classmethod
-    def _generate_subsection_filter_object(cls, subsections):
-        subsection_terms_object = {'subsection': subsections}
-        filter_object = {'terms': subsection_terms_object}
-
-        return filter_object
+        return dict(
+            terms=dict(
+                section=sections
+            )
+        )
 
     @classmethod
-    def _generate_range_object(cls, search_parameters):
-        updated_date_object = None
+    def _generate_subsection_filter_section(cls, subsections):
+
+        return dict(
+            terms=dict(
+                subsection=subsections
+            )
+        )
+
+    @classmethod
+    def _generate_range_section(cls, search_parameters):
+        updated_date_section = {}
 
         if search_parameters.updated_date_from is not None and len(search_parameters.updated_date_from) > 0:
-            updated_date_object = {'gte': search_parameters.updated_date_from}
-        if search_parameters.updated_date_to is not None and len(search_parameters.updated_date_to) > 0:
-            if updated_date_object is None:
-                updated_date_object = {}
-            updated_date_object['lte'] = search_parameters.updated_date_to
+            updated_date_section = {'gte': search_parameters.updated_date_from}
 
-        return updated_date_object
+        if search_parameters.updated_date_to is not None and len(search_parameters.updated_date_to) > 0:
+            updated_date_section["lte"] = search_parameters.updated_date_to if updated_date_section else None
+
+        return updated_date_section
 

@@ -19,3 +19,16 @@ def event():
         base_path='',
         url_duration=''
     )
+
+
+@pytest.fixture
+def search_parameters():
+    return dict(
+        results=None,
+        index=None,
+        keywords="test|these|keywords",
+        sections="test|sections",
+        subsections="test|subsections",
+        updated_date_from="2022-01-01",
+        updated_date_to="2023-09-10"
+    )
