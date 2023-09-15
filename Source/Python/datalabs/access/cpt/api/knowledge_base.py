@@ -46,8 +46,8 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
-        max_results = int(parameters.get("results")[0]) if parameters.get("results") else 50
-        index = parameters.get("index")[0] if parameters.get("index") else None
+        max_results = int(parameters.get("results")) if parameters.get("results") else 50
+        index = parameters.get("index") if parameters.get("index") else None
         keywords = parameters.get("keywords") if parameters.get("keywords") else None
         sections = parameters.get("sections").split('|') if parameters.get("sections") else []
         subsections = parameters.get("subsections").split('|') if parameters.get("subsections") else []
