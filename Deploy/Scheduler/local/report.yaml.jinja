@@ -12,7 +12,7 @@ DAG_REPORT:
         DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.file.DAGState'
             #BASE_PATH: './DAG State'
-            BASE_PATH: '/mnt/c/Users/rsun/OneDrive - American Medical Association/data/cpt/files/load/DAG State'
+            BASE_PATH: '/mnt/c/Users/rsun/OneDrive - American Medical Association/data/cpt/files/load/DAG'
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
     EXTRACT_SCHEDULE:
@@ -28,11 +28,9 @@ DAG_REPORT:
     IDENTIFY_SCHEDULED_DAGS:
         CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        #CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
-        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler'
+        #CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
         CACHE_INPUT_FILES: 'schedule.csv'
-
-        INTERVAL_MINUTES: '15'
 
         CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}

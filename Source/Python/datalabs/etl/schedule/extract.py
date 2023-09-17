@@ -4,6 +4,7 @@ from   io import BytesIO
 import logging
 
 import pandas
+import numpy
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.dag.state import StatefulDAGMixin
@@ -42,6 +43,8 @@ class ScheduledDAGStateExtractor(ExecutionTimeMixin, StatefulDAGMixin, Task, CSV
 
     def _get_dags(self, dag_runs):
         state = self._get_state_plugin(self._parameters)
+        dag_runs = dag_runs.fillna(numpy.nan).replace([numpy.nan], [None])
+
         dag_runs["status"] = dag_runs.apply(lambda dag: self._get_run_statuses(state, dag), axis = 1)
 
         return dag_runs
@@ -50,6 +53,10 @@ class ScheduledDAGStateExtractor(ExecutionTimeMixin, StatefulDAGMixin, Task, CSV
     def _get_run_statuses(cls, state, dag_runs):
         status = None
 
-        status = state.get_dag_status(dag_runs["dag"], pandas.to_datetime(dag_runs["execution_time"]).isoformat()).value
+        if dag_runs["execution_time"] is not None:
+            status = state.get_dag_status(
+                    dag_runs["dag"],
+                    pandas.to_datetime(dag_runs["execution_time"]).isoformat()
+            ).value
 
         return status

@@ -104,9 +104,17 @@ class DAGSchedulerTask(ExecutionTimeMixin, StatefulDAGMixin, Task):
 
         return status != Status.UNKNOWN
 
+
+@add_schema(unknowns=True)
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ScheduledDAGIdentifierParameters:
+    dag_state: str
+    execution_time: str
+
 # pylint: disable=line-too-long
 class ScheduledDAGIdentifierTask(DAGSchedulerTask, CSVReaderMixin, CSVWriterMixin):
-    PARAMETER_CLASS = DAGSchedulerParameters
+    PARAMETER_CLASS = ScheduledDAGIdentifierParameters
 
     def run(self):
         schedule = None
