@@ -1,0 +1,85 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+ENVIRONMENT=$1
+DATA_FILES=()
+
+
+main() {
+
+    determine_data_files
+
+    for data_file in ${DATA_FILES[@]}; do
+        setup_aws_cli
+
+        load_file $data_file
+    done
+}
+
+
+determine_data_files() {
+    DATA_FILES=($(printf '%s\n' ama_masterfile_*.json | egrep "ama_masterfile_[0-9]+.json"))
+}
+
+
+setup_aws_cli() {
+    if [[ $ENVIRONMENT == "itg" ]]; then
+        ENVIRONMENT=prd
+    fi
+
+    ${SCRIPT_BASE_PATH}/../../Script/apigw_assume_role.sh $ENVIRONMENT | grep source > assume_role.rc
+
+    source assume_role.rc
+}
+
+
+load_file() {
+    data_file=$1
+
+    create_configuration_template $data_file
+
+    run-python-task -p VeriCre/ETL/Profile -t load_ama_masterfile_table_chunk
+}
+
+
+create_configuration_template() {
+    data_file=$1
+
+    cat <<EOF > ${SCRIPT_BASE_PATH}/../../Build/VeriCre/ETL/Profile/load_ama_masterfile_table_chunk.env.jinja
+DATALABS_PYTHONPATH='{{pythonpath}}'
+
+
+# Project Settings
+PROJECT_NAME='ETL'
+
+
+TASK_CLASS=datalabs.etl.task.ETLTask
+TASK_WRAPPER_CLASS=datalabs.etl.task.ETLTaskWrapper
+
+
+# JSON Data Extractor
+EXTRACTOR__TASK_CLASS=datalabs.etl.fs.extract.LocalFileExtractorTask
+EXTRACTOR__BASE_PATH=./
+EXTRACTOR__FILES=${data_file}
+
+# QLDB Loader
+TRANSFORMER__TASK_CLASS=datalabs.etl.qldb.load.QLDBLoaderTask
+TRANSFORMER__TABLE=ama_masterfile
+TRANSFORMER__LEDGER=vericre-dev-ledger
+TRANSFORMER__PRIMARY_KEY=entityId
+
+# Loaded Data Loader
+LOADER__TASK_CLASS=datalabs.etl.fs.load.LocalFileLoaderTask
+LOADER__BASE_PATH=./
+LOADER__FILES=ama_masterfile_added.json, ama_masterfile_updated.json
+EOF
+
+}
+
+
+main "$@"
