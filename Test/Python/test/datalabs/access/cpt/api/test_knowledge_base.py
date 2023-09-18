@@ -10,4 +10,3 @@ def test_parameters_are_valid(search_parameters):
 
     assert formatted_parameters.max_results == 50
     assert formatted_parameters.index == 'SampleIndexName'
-
