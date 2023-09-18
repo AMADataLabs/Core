@@ -43,10 +43,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vignette'
-        '404':
-          description: No Vignette for the given CPT Code.
-        "401":
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+        '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+        '408':
+          description: Request Timedout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+        '500':
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
       security:
         - gateway_authorizer: []
 components:
@@ -68,7 +116,7 @@ components:
           type: string
         intra_service: 
           type: string
-        post_service:
+        post-service:
           type: string
         ruc:
           type: string
@@ -76,6 +124,18 @@ components:
           type: string
         concept_id:
           type: string
+    ErrorDetails:
+      type: object
+      properties:
+        ErrorCode:
+          type: string
+          nullable: true
+        ErrorClass:
+          type: string
+          nullable: true
+        Message:
+          type: string
+          nullable: true
   securitySchemes:
     gateway_authorizer:
       type: apiKey
