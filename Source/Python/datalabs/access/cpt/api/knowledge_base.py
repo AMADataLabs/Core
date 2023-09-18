@@ -70,15 +70,15 @@ class MapSearchEndpointTask(APIEndpointTask):
             keywords = "|".join(search_parameters.keywords)
 
         if search_parameters.keywords:
-            results = cls._get_search_results(opensearch, search_parameters)
+            results = cls._get_search_results(opensearch, keywords, search_parameters)
 
         return results
 
     @classmethod
-    def _get_search_results(cls, opensearch, search_parameters):
+    def _get_search_results(cls, opensearch, keywords, search_parameters):
         results = None
 
-        query_parameters = cls._get_query_parameters(search_parameters)
+        query_parameters = cls._get_query_parameters(keywords, search_parameters)
         response = opensearch.search(index=search_parameters.index, body=query_parameters)
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
@@ -87,12 +87,12 @@ class MapSearchEndpointTask(APIEndpointTask):
         return results
 
     @classmethod
-    def _get_query_parameters(cls, search_parameters):
+    def _get_query_parameters(cls, keywords, search_parameters):
         query_parameters = {}
 
         cls._add_pagination(query_parameters)
 
-        query_parameters['query'] = cls._generate_query_section(search_parameters)
+        query_parameters['query'] = cls._generate_query_section(keywords, search_parameters)
 
         return query_parameters
 
@@ -102,16 +102,16 @@ class MapSearchEndpointTask(APIEndpointTask):
         query_parameters['size'] = 30
 
     @classmethod
-    def _generate_query_section(cls, search_parameters):
+    def _generate_query_section(cls, keywords, search_parameters):
 
         return dict(
-            bool=cls._generate_bool_section(search_parameters)
+            bool=cls._generate_bool_section(keywords, search_parameters)
         )
 
     @classmethod
-    def _generate_bool_section(cls, search_parameters):
+    def _generate_bool_section(cls, keywords, search_parameters):
         bool_section = dict(
-            must=cls._generate_must_section()
+            must=cls._generate_must_section(keywords)
         )
 
         filter_array = cls._generate_filter_section(search_parameters)
@@ -122,14 +122,15 @@ class MapSearchEndpointTask(APIEndpointTask):
         return bool_section
 
     @classmethod
-    def _generate_must_section(cls):
+    def _generate_must_section(cls, keywords):
         return dict(
-            multi_match=cls._generate_multi_match_section()
+            multi_match=cls._generate_multi_match_section(keywords)
         )
 
     @classmethod
-    def _generate_multi_match_section(cls):
+    def _generate_multi_match_section(cls, keywords):
         return dict(
+            query=keywords,
             fields=[
                 "section^10000",
                 "subsection^1000",
