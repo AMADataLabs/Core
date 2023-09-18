@@ -7,8 +7,7 @@ from   datalabs.access.cpt.api.knowledge_base import MapSearchEndpointTask
 @pytest.mark.usefixtures("search_parameters")
 def test_parameters_are_valid(search_parameters):
     formatted_parameters = MapSearchEndpointTask._get_search_parameters(search_parameters)
-    assert 'max_results' in formatted_parameters
-    assert 'index' in formatted_parameters
+
     assert formatted_parameters.max_results == 50
     assert formatted_parameters.index == 'SampleIndexName'
 
