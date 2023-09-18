@@ -6,6 +6,8 @@ DAG_REPORT:
         TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
         S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
         S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
+        BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+
     DAG:
         DAG_CLASS: 'datalabs.example.etl.dag.schedule.report.DAG'
         DAG_STATE:
@@ -21,32 +23,32 @@ DAG_REPORT:
 
         CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_OUTPUT_BASE_PATH: ${BASE_PATH}
         CACHE_OUTPUT_FILES: 'schedule.csv'
     IDENTIFY_SCHEDULED_DAGS:
         CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_INPUT_BASE_PATH: ${BASE_PATH}
         CACHE_INPUT_FILES: 'schedule.csv'
 
         CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_OUTPUT_BASE_PATH: ${BASE_PATH}
         CACHE_OUTPUT_FILES: 'scheduled_dag_runs.csv'
     EXTRACT_SCHEDULED_DAG_STATES:
         CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_INPUT_BASE_PATH: ${BASE_PATH}
         CACHE_INPUT_FILES: 'scheduled_dag_runs.csv'
 
         CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_OUTPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_OUTPUT_BASE_PATH: ${BASE_PATH}
         CACHE_OUTPUT_FILES: 'scheduled_dag_statuses.csv'
     SEND_DAG_REPORT:
         CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_INPUT_BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+        CACHE_INPUT_BASE_PATH: ${BASE_PATH}
         CACHE_INPUT_FILES: 'scheduled_dag_statuses.csv'
 
         TO_ADDRESSES: datalabs@ama-assn.org
