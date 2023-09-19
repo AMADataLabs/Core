@@ -1,20 +1,28 @@
 ---
 DAG_REPORT:
     GLOBAL:
-        ENVIRONMENT: sbx
-        ACCOUNT: '644454719059'
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+
         TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
         S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
         S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
         BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
 
     DAG:
-        DAG_CLASS: 'datalabs.example.etl.dag.schedule.report.DAG'
+        LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-Scheduler'
+        DAG_CLASS: 'datalabs.etl.dag.schedule.report.DAG'
         DAG_STATE:
-            CLASS: 'datalabs.etl.dag.state.file.DAGState'
-            BASE_PATH: './DAG State'
-        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryDAGExecutorTask'
-        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+            CLASS: datalabs.etl.dag.state.dynamodb.DAGState
+            STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
+            LOCK_TABLE: DataLake-scheduler-locks-${ENVIRONMENT}
+        DAG_TOPIC_ARN: '${DAG_TOPIC_ARN}'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+
     EXTRACT_SCHEDULE:
         BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
         BASE_PATH: ''
@@ -51,7 +59,7 @@ DAG_REPORT:
         CACHE_INPUT_BASE_PATH: ${BASE_PATH}
         CACHE_INPUT_FILES: 'scheduled_dag_statuses.csv'
 
-        TO_ADDRESSES: datalabs@ama-assn.org
+        TO_ADDRESSES: DataLabs@ama-assn.org
         SUBJECT: 'DataLabs DAG Report for %A (%b %-m, %Y)'
         MESSAGE: 'Dude, here is your deliciously direct, DataLabs daily DAG report!'
         FILES: scheduled_dag_statuses.csv
