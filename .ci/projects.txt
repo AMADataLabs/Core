@@ -11,6 +11,7 @@ CPT/Files/Ingest
 CPT/Files/Watermark
 CPT/SNOMED/API
 CPT/SNOMED/ETL
+CPT/VIGNETTES/API
 DEUS/API
 DBL
 HelloWorld
