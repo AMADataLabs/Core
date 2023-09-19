@@ -119,14 +119,10 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask, CSVReaderMixin, CSVWriterMixi
     def run(self):
         schedule = None
 
-        try:
-            schedule = pandas.read_csv(BytesIO(self._data[0]))
-            LOGGER.info("Schedule:\n%s", schedule)
-        except Exception as exception:
-            raise ValueError(f'Bad schedule data: {self._data[0]}') from exception
+        schedule = pandas.read_csv(BytesIO(self._data[0]))
+        LOGGER.info("Schedule:\n%s", schedule)
 
         dags = self._determine_dags_to_run(schedule, super()._get_target_execution_time())
-        dags = dags.drop('index', axis=1)
 
         return [self._dataframe_to_csv(dags)]
 
@@ -136,7 +132,7 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask, CSVReaderMixin, CSVWriterMixi
 
         scheduled_dags = self._get_last_days_runs(schedule, target_execution_time)
 
-        scheduled_dags = scheduled_dags.rename(columns={"run": "execution_time"}).reset_index()
+        scheduled_dags = scheduled_dags.rename(columns={"run": "execution_time"})
 
         return scheduled_dags
 

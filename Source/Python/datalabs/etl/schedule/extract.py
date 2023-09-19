@@ -30,11 +30,8 @@ class ScheduledDAGStateExtractor(ExecutionTimeMixin, StatefulDAGMixin, Task, CSV
     def run(self):
         dag_runs = None
 
-        try:
-            dag_runs = pandas.read_csv(BytesIO(self._data[0]))
-            LOGGER.info("Dag Runs:\n%s", dag_runs)
-        except Exception as exception:
-            raise ValueError(f'Bad dag data: {self._data[0]}') from exception
+        dag_runs = pandas.read_csv(BytesIO(self._data[0]))
+        LOGGER.info("Dag Runs:\n%s", dag_runs)
 
         dag_runs_status = self._get_dags(dag_runs)
         LOGGER.info("Dags to Run:\n%s", dag_runs_status)
@@ -55,8 +52,8 @@ class ScheduledDAGStateExtractor(ExecutionTimeMixin, StatefulDAGMixin, Task, CSV
 
         if dag_runs["execution_time"] is not None:
             status = state.get_dag_status(
-                    dag_runs["dag"],
-                    pandas.to_datetime(dag_runs["execution_time"]).isoformat()
+                dag_runs["dag"],
+                pandas.to_datetime(dag_runs["execution_time"]).isoformat()
             ).value
 
         return status
