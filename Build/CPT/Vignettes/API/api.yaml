@@ -14,6 +14,10 @@ tags:
     description: A CPT code vignette
     externalDocs:
       url: 'http://swagger.io'
+  - name: Default 404 
+    description: Default invalid resource error response
+    externalDocs:
+      url: 'http://swagger.io'
 paths:
   /vignette/{cpt_code}:
     get:
@@ -36,6 +40,8 @@ paths:
           required: false
           schema:
             type: boolean
+      x-amazon-apigateway-integration:
+        uri: "${invocation_uri}"
       responses:
         '200':
           description: successful operation
@@ -61,6 +67,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetails'
+        '404':
+          description: No data available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
         '408':
           description: Request Timeout
           content:
@@ -75,6 +87,8 @@ paths:
                 $ref: '#/components/schemas/ErrorDetails'
   /{proxy+}:
     get:
+      tags:
+        - Default 404 
       parameters:
         - name: proxy
           in: path
@@ -82,7 +96,7 @@ paths:
           schema:
             type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
+        uri: "${invocation_uri}"
         responses:
           default:
             statusCode: 200
@@ -102,28 +116,33 @@ components:
     Vignette:
       type: object
       required:
-        - code
-        - patient
-        - pre_service
-        - intra_service
-        - post_service
+        - cpt_code
+        - typical_patient
+        - pre_service_info
+        - intra_service_info
+        - post_service_info
       properties:
-        code:
+        cpt_code:
           type: string
-        patient:
+          description: CPT code associated with vignette
+        typical_patient:
           type: string
-        pre_service:
+          description: Typical patient description or null
+        pre_service_info:
           type: string
-        intra_service: 
+          description: Physician work provided before the onset of the procedure
+        intra_service_info: 
           type: string
-        post-service:
+          description: Physician work provided during the onset of the procedure
+        post_service_info:
           type: string
-        ruc:
+          description: Physician work provided after the onset of the procedure
+        ruc_reviewed_date:
           type: string
-        specialty:
-          type: string
+          description: If applicable, date reviewed by RUC committee
         concept_id:
           type: string
+          description: AMA internal Concept identifier
     ErrorDetails:
       type: object
       properties:
