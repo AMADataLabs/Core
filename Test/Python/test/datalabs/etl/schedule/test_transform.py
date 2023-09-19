@@ -197,7 +197,7 @@ def test_scheduled_dags_to_run_are_correctly_identified_edge_cases(
     dags_to_run = scheduler._determine_dags_to_run(
             schedule_get_last_days_runs,
             target_execution_time_get_last_days_runs_test
-    )
+    ).reset_index()
 
     start_at =  target_execution_time_get_last_days_runs_test - timedelta(days=1)
     stop_at =  target_execution_time_get_last_days_runs_test
@@ -275,7 +275,6 @@ def empty_schedule(empty_schedule_csv):
 @pytest.fixture
 def parameters_get_last_days_runs(state_directory):
     return dict(
-        INTERVAL_MINUTES='15',
         DAG_STATE=json.dumps(
             dict(
                 CLASS='datalabs.etl.dag.state.file.DAGState',
@@ -289,7 +288,6 @@ def parameters_get_last_days_runs(state_directory):
 @pytest.fixture
 def parameters_get_last_days_runs_test(state_directory):
     return dict(
-        INTERVAL_MINUTES='15',
         DAG_STATE=json.dumps(
             dict(
                 CLASS='datalabs.etl.dag.state.file.DAGState',
