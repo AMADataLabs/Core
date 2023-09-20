@@ -88,7 +88,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
                     else \'Physician Provided\'
                 end as source_tag,
                 ff.type,
-                ff.values,
+                case when ff."type" = 'DATE' then get_formatted_date(ff."values")
+                	 else ff."values" 
+                end as values,
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
@@ -149,16 +151,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         for record in query_result:
             response_result = self._process_record(response_result, record)
 
-        response_result = [asdict(object) for object in list(response_result.values())]
-        
-        size = sys.getsizeof(str(response_result))
-        size_in_kb = int(size / 1024)
-        LOGGER.info('Response Result size: %s KB, %s B', size_in_kb, size)
-
-        response_json = {}
-        response_json['profiles'] = response_result
-
-        return response_json
+        return [asdict(object) for object in list(response_result.values())]
 
     def _process_record(self, response_result, record):
         if record['ama_entity_id'] not in response_result:
