@@ -87,7 +87,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
                     else \'Physician Provided\'
                 end as source_tag,
                 ff.type,
-                ff.values,
+                case when ff."type" = 'DATE' then get_formatted_date(ff."values")
+                	 else ff."values" 
+                end as values,
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
