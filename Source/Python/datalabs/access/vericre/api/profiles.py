@@ -151,7 +151,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         response_result = [asdict(object) for object in list(response_result.values())]
         
-        size = sys.getsizeof(response_result)
+        size = sys.getsizeof(str(response_result))
         size_in_kb = int(size / 1024)
         LOGGER.info('Response Result size: %s KB, %s B', size_in_kb, size)
 
