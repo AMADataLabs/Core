@@ -53,4 +53,3 @@ def invalid_parameters(invalid_search_parameters):
         path={},
         query=invalid_search_parameters,
     )
-

@@ -150,7 +150,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         )
 
     @classmethod
-    def _generate_filter(cls, search_parameters):
+    def _generate_filters(cls, search_parameters):
         filters = []
 
         filters += cls._generate_section_filter(search_parameters.sections)
