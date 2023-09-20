@@ -39,7 +39,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         try:
             search_parameters = self._get_search_parameters(self._parameters.query)
         except TypeError as type_error:
-            raise InvalidRequest("Invalid search parameters") from type_error
+            raise InvalidRequest("Non-integer 'results' parameter value") from type_error
 
         with AWSClient("opensearch") as opensearch:
             search_results = self._query_index(opensearch, search_parameters)
