@@ -155,7 +155,10 @@ class BaseProfileEndpointTask(APIEndpointTask):
         size_in_kb = int(size / 1024)
         LOGGER.info('Response Result size: %s KB, %s B', size_in_kb, size)
 
-        return response_result
+        response_json = {}
+        response_json['profiles'] = response_result
+
+        return response_json
 
     def _process_record(self, response_result, record):
         if record['ama_entity_id'] not in response_result:
