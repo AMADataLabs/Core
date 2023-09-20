@@ -1,10 +1,10 @@
 """ Release endpoint classes. """
 import logging
-from dataclasses import dataclass
+from   dataclasses import dataclass
 
-from datalabs.access.api.task import APIEndpointTask, InvalidRequest
-from datalabs.access.aws import AWSClient
-from datalabs.parameter import add_schema
+from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
+from   datalabs.access.aws import AWSClient
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -18,7 +18,6 @@ class MapSearchEndpointParameters:
     method: str
     path: dict
     query: dict
-    index: str
     unknowns: dict = None
 
 
@@ -26,9 +25,9 @@ class MapSearchEndpointParameters:
 class SearchParameters:
     max_results: int
     index: int
-    keywords: str
-    sections: list
-    subsections: list
+    keyword: list
+    section: list
+    subsection: list
     updated_date_from: str
     updated_date_to: str
 
@@ -37,7 +36,10 @@ class MapSearchEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = MapSearchEndpointParameters
 
     def run(self):
-        search_parameters = self._get_search_parameters(self._parameters.query)
+        try:
+            search_parameters = self._get_search_parameters(self._parameters.query)
+        except TypeError as type_error:
+            raise InvalidRequest("Invalid search parameters") from type_error
 
         with AWSClient("opensearch") as opensearch:
             search_results = self._query_index(opensearch, search_parameters)
@@ -46,16 +48,17 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
-        max_results = int(parameters.get("results")) if parameters.get("results") else 50
-        index = parameters.get("index") if parameters.get("index") else None
-        keywords = parameters.get("keywords") if parameters.get("keywords") else None
-        sections = parameters.get("sections").split('|') if parameters.get("sections") else []
-        subsections = parameters.get("subsections").split('|') if parameters.get("subsections") else []
-        updated_date_from = parameters.get("updated_date_from") if parameters.get("updated_date_from") else None
-        updated_date_to = parameters.get("updated_date_to") if parameters.get("updated_date_to") else None
+        max_results = int(parameters.get("results", 50))
+        index = parameters.get("index")
+        keywords = parameters.get("keyword", [])
+        sections = parameters.get("section", [])
+        subsections = parameters.get("subsection", [])
+        updated_date_from = parameters.get("updated_date_from")
+        updated_date_to = parameters.get("updated_date_to")
 
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
+
         if index is None:
             raise InvalidRequest("Invalid Index name. ")
 
@@ -77,8 +80,8 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_search_results(cls, opensearch, keywords, search_parameters):
         results = None
-
         query_parameters = cls._get_query_parameters(keywords, search_parameters)
+
         response = opensearch.search(index=search_parameters.index, body=query_parameters)
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
@@ -103,7 +106,6 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
-
         return dict(
             bool=cls._generate_bool_section(keywords, search_parameters)
         )
@@ -114,10 +116,10 @@ class MapSearchEndpointTask(APIEndpointTask):
             must=cls._generate_must_section(keywords)
         )
 
-        filter_array = cls._generate_filter_section(search_parameters)
+        filters = cls._generate_filters(search_parameters)
 
-        if len(filter_array) > 0:
-            bool_section["filter"] = filter_array
+        if len(filters) > 0:
+            bool_section["filter"] = filters
 
         return bool_section
 
@@ -148,40 +150,59 @@ class MapSearchEndpointTask(APIEndpointTask):
         )
 
     @classmethod
-    def _generate_filter_section(cls, search_parameters):
-        filters_array = []
+    def _generate_filter(cls, search_parameters):
+        filters = []
 
-        if search_parameters.sections is not None and len(search_parameters.sections) > 0:
-            filters_array.append(cls._generate_section_filter_section(search_parameters.sections))
+        filters += cls._generate_section_filter(search_parameters.sections)
 
-        if search_parameters.subsections is not None and len(search_parameters.subsections) > 0:
-            filters_array.append(cls._generate_subsection_filter_section(search_parameters.subsections))
+        filters += cls._generate_subsection_filter(search_parameters.subsections)
+
+        filters += cls._generate_range_filter(search_parameters)
+
+        return filters
+
+    @classmethod
+    def _generate_section_filter(cls, sections):
+        section_filter = []
+
+        if sections is not None and len(sections) > 0:
+            section_filter = [
+                dict(
+                    terms=dict(
+                        section=sections
+                    )
+                )
+            ]
+
+        return section_filter
+
+    @classmethod
+    def _generate_subsection_filter(cls, subsections):
+        subsection_filter = []
+
+        if subsections is not None and len(subsections) > 0:
+            subsection_filter = [
+                dict(
+                    terms=dict(
+                        subsection=subsections
+                    )
+                )
+            ]
+
+        return subsection_filter
+
+    @classmethod
+    def _generate_range_filter(cls, search_parameters):
+        range_filter = []
 
         updated_on_range_section = cls._generate_range_section(search_parameters)
 
         if updated_on_range_section is not None:
-            filter_section = {'range': updated_on_range_section}
-            filters_array.append(filter_section)
+            range_filter = [
+                {'range': updated_on_range_section}
+            ]
 
-        return filters_array
-
-    @classmethod
-    def _generate_section_filter_section(cls, sections):
-
-        return dict(
-            terms=dict(
-                section=sections
-            )
-        )
-
-    @classmethod
-    def _generate_subsection_filter_section(cls, subsections):
-
-        return dict(
-            terms=dict(
-                subsection=subsections
-            )
-        )
+        return range_filter
 
     @classmethod
     def _generate_range_section(cls, search_parameters):
