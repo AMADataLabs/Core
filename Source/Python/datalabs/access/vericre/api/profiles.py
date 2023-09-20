@@ -2,6 +2,7 @@
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import logging
+import sys
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
@@ -150,7 +151,17 @@ class BaseProfileEndpointTask(APIEndpointTask):
         for record in query_result:
             response_result = self._process_record(response_result, record)
 
-        return [asdict(object) for object in list(response_result.values())]
+        response_result = [asdict(object) for object in list(response_result.values())]
+        
+        response_json = {}
+        response_json['profiles'] = response_result
+        response_json['next'] = '/profile_api/profiles/lookup/c59b6080-ca78-4a13-a600-a5d5f567afad?index=999'
+
+        size = sys.getsizeof(str(response_json))
+        size_in_kb = int(size / 1024)
+        LOGGER.info('Response Result size: %s KB, %s B', size_in_kb, size)
+
+        return response_json
 
     def _process_record(self, response_result, record):
         if record['ama_entity_id'] not in response_result:
