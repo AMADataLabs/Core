@@ -2,7 +2,6 @@
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import logging
-import sys
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
 from   datalabs.access.orm import Database
