@@ -28,7 +28,7 @@ class SearchParameters:
     keyword: list
     section: list
     subsection: list
-    updated_date_from: str
+    updated_after_date: str
     updated_date_to: str
 
 
@@ -53,7 +53,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         keywords = parameters.get("keyword", [])
         sections = parameters.get("section", [])
         subsections = parameters.get("subsection", [])
-        updated_date_from = parameters.get("updated_date_from")
+        updated_after_date = parameters.get("updated_after_date")
         updated_date_to = parameters.get("updated_date_to")
 
         if max_results < 1:
@@ -62,7 +62,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         if index is None:
             raise InvalidRequest("Invalid Index name. ")
 
-        return SearchParameters(max_results, index, keywords, sections, subsections, updated_date_from, updated_date_to)
+        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date, updated_date_to)
 
     @classmethod
     def _query_index(cls, opensearch, search_parameters):
@@ -208,8 +208,8 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _generate_range_section(cls, search_parameters):
         updated_date_section = {}
 
-        if search_parameters.updated_date_from is not None and len(search_parameters.updated_date_from) > 0:
-            updated_date_section = {'gte': search_parameters.updated_date_from}
+        if search_parameters.updated_after_date is not None and len(search_parameters.updated_after_date) > 0:
+            updated_date_section = {'gte': search_parameters.updated_after_date}
 
         if search_parameters.updated_date_to is not None and len(search_parameters.updated_date_to) > 0:
             updated_date_section["lte"] = search_parameters.updated_date_to if updated_date_section else None
