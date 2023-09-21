@@ -72,7 +72,7 @@ class ModifierParser(Parser):
         self._state_processors = [
             None,
             AppendixAProcessor(self),
-            CetegoryOneProcessor(self),
+            CategoryOneProcessor(self),
             AnesthesiaPhysicalStatusProcessor(self),
             AmbulatoryServiceCenterProcessor(self),
             CategoryTwoProcessor(self),
@@ -132,7 +132,8 @@ class AppendixAProcessor(StateProcessor):
         return Context(state=None, event=event, data=data)
 
 
-class CetegoryOneProcessor(StateProcessor):
+# pylint: disable=too-many-statements
+class CategoryOneProcessor(StateProcessor):
     def process_line(self, context, line):
         event = context.event
         data = context.data
@@ -193,9 +194,9 @@ class AnesthesiaPhysicalStatusProcessor(StateProcessor):
         self._parser.add_modifier(ModifierType.ANESTHESIA_PHYSICAL_STATUS, code, description)
 
 
+# pylint: disable=too-many-statements
 class AmbulatoryServiceCenterProcessor(StateProcessor):
     def process_line(self, context, line):
-
         event = context.event
         data = context.data
         match = re.match('[1-9][0-9] ..*', line)
@@ -203,21 +204,17 @@ class AmbulatoryServiceCenterProcessor(StateProcessor):
         if line == 'Category II Modifiers':
             event = Event.CATEGORY_II_MODIFIERS
             data = ''
-
         elif context.event != Event.MODIFIER and match:
             event = Event.MODIFIER
             data = data + ' ' + line
-
         elif context.event == Event.MODIFIER and line != '':
             data = data + ' ' + line
-
         elif context.event == Event.MODIFIER and line == '':
             event = Event.BLANK
             self._process_match(data.strip())
             data = ''
         elif line != '':
             event = Event.TEXT
-
         elif line == '':
             event = Event.BLANK
 
@@ -228,9 +225,9 @@ class AmbulatoryServiceCenterProcessor(StateProcessor):
         self._parser.add_modifier(ModifierType.AMBULATORY_SERVICE_CENTER, code, description)
 
 
+# pylint: disable=too-many-statements
 class CategoryTwoProcessor(StateProcessor):
     def process_line(self, context, line):
-
         event = context.event
         data = context.data
         match = re.match('[1-9][A-Z] ..*', line)
@@ -238,21 +235,17 @@ class CategoryTwoProcessor(StateProcessor):
         if line == 'Level II (HCPCS/National) Modifiers':
             event = Event.LEVEL_II_MODIFIERS
             data = ''
-
         elif context.event != Event.MODIFIER and match:
             event = Event.MODIFIER
             data = data + ' ' + line
-
         elif context.event == Event.MODIFIER and line != '':
             data = data + ' ' + line
-
         elif context.event == Event.MODIFIER and line == '':
             event = Event.BLANK
             self._process_match(data.strip())
             data = ''
         elif line != '':
             event = Event.TEXT
-
         elif line == '':
             event = Event.BLANK
 

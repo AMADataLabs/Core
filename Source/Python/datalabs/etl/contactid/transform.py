@@ -1,13 +1,10 @@
 """ Contact ID assignment transformer. """
 from   bisect import bisect_left, insort_left
-import csv
-from   io import BytesIO
 import logging
 import random
 import string
 
 import numpy as np
-import pandas
 
 from   datalabs.task import Task
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
@@ -30,10 +27,6 @@ class ContactIDMergeTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return [
             self._dataframe_to_csv(data).encode() for data in [sfmc_contacts, active_subscription, users, api_orders]
         ]
-
-    @classmethod
-    def _dataframe_to_csv(cls, data):
-        return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
 
     # pylint: disable=redefined-builtin
     def _assign_id_to_contacts(self, sfmc_contacts):
@@ -62,7 +55,7 @@ class ContactIDMergeTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
             if email_counts.size > 0:
                 self._assign_exiting_contact_id(index_users, email_counts, contacts, users)
             else:
-                self._assign_new_contact_id(index_users, users, id_list)
+                self._assign_new_contact_id(index_users, contacts, users, id_list)
 
         return users, contacts
 
@@ -99,7 +92,7 @@ class ContactIDMergeTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
             cls._assign_flatfile_the_source_datalabs(email_counts, contacts)
 
     @classmethod
-    def _assign_new_contact_id(cls, index_users, users, id_list, contacts):
+    def _assign_new_contact_id(cls, index_users, contacts, users, id_list):
         cls._assign_new_id_to_users(index_users, users, id_list)
 
         cls._add_contact_from_users_to_flatfile(index_users, contacts, users)
