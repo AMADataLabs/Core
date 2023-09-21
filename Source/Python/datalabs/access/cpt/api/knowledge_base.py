@@ -62,7 +62,15 @@ class MapSearchEndpointTask(APIEndpointTask):
         if index is None:
             raise InvalidRequest("Invalid Index name. ")
 
-        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date, updated_before_date)
+        return SearchParameters(
+            max_results,
+            index,
+            keywords,
+            sections,
+            subsections,
+            updated_after_date,
+            updated_before_date
+        )
 
     @classmethod
     def _query_index(cls, opensearch, search_parameters):
