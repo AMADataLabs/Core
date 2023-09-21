@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
+# pylint: disable=too-many-statements
 def class_results(wslive_pred_df):
     num_0 = sum(wslive_pred_df['ACTUAL_CLASS'] == 0)
     num_1 = sum(wslive_pred_df['ACTUAL_CLASS'] == 1)
@@ -90,6 +91,7 @@ def binned_results(wslive_pred_df, bin_step, status_var):
     return pd.concat(bins, axis=0, ignore_index=True)
 
 
+# pylint: disable=too-many-statements
 def _bin_data(wslive_pred_df, status_var, bin_bounds):
     status_types = ['CONFIRMED', 'UPDATED', 'INCONCLUSIVE', 'KNOWN BAD', 'NO CONTACT']
 

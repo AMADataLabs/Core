@@ -35,7 +35,7 @@ class EDWData:
     party_key_data: pd.DataFrame = pd.DataFrame()
 
 
-# pylint: disable=too-many-instance-attributes,logging-fstring-interpolation,logging-too-many-args
+# pylint: disable=too-many-instance-attributes,logging-fstring-interpolation,logging-too-many-args,too-many-statements
 class VTPhysicianContactSampleGenerator:
     def __init__(self, archive: VTPhysicianContactArchive = None, survey_type: str = None):
         self._survey_type = survey_type

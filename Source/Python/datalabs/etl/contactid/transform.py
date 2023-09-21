@@ -95,45 +95,35 @@ class ContactIDMergeTransformerTask(Task):
         email_counts = []
         id_list = []
         empty = []
+
         users.insert(0, 'HSContact_ID', np.nan)
+
         for index_users in users.index:
             LOGGER.info(index_users)
 
             email_counts = self._count_instances_of_users_email_present_in_flatfile(index_users, contacts, users)
 
             if email_counts.size >= 1:
-                if str(contacts['NAME'][email_counts[0]]).lower() == 'nan':
+                self._assign_users_contact_same_id_as_flatfile(index_users, email_counts, contacts, users)
 
-                    self._assign_users_contact_same_id_as_flatfile(index_users, email_counts, contacts, users)
-
+                if  self.last_contact_for_email_is_null(contacts, email_counts):
                     self._copy_contact_name_from_users_to_flatfile(index_users, email_counts, contacts, users)
 
                     self._assign_flatfile_the_source_datalabs(email_counts, contacts)
-
-                elif (str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])).lower() == str(
-                        contacts['NAME'][email_counts[0]]).lower():
-
-                    self._assign_users_contact_same_id_as_flatfile(index_users, email_counts, contacts, users)
-
-                elif str(users['FIRST_NM'][index_users]).lower() == 'nan' and str(
-                        users['LAST_NM'][index_users]).lower() == 'nan':
-
-                    self._assign_users_contact_same_id_as_flatfile(index_users, email_counts, contacts, users)
-
-                else:
-                    self._assign_users_contact_same_id_as_flatfile(index_users, email_counts, contacts, users)
-
             elif email_counts.size == 0:
                 self._assign_new_id_to_users(index_users, users, id_list, empty)
+
                 self._add_contact_from_users_to_flatfile(index_users, contacts, users)
 
         return users, contacts
 
     @classmethod
-    def _count_instances_of_users_email_present_in_flatfile(cls, index_users, contacts, users):
-        count = np.where(contacts['BEST_EMAIL'].astype(str).str.contains(users['EMAIL'][index_users]))[0]
+    def last_contact_for_email_is_null(contacts, email_counts):
+        return str(contacts['NAME'][email_counts[0]]).lower() == 'nan'
 
-        return count
+    @classmethod
+    def _count_instances_of_users_email_present_in_flatfile(cls, index_users, contacts, users):
+        return np.where(contacts['BEST_EMAIL'].astype(str).str.contains(users['EMAIL'][index_users]))[0]
 
     @classmethod
     def _copy_contact_name_from_users_to_flatfile(cls, index_users, email_counts, contacts, users):
@@ -144,6 +134,22 @@ class ContactIDMergeTransformerTask(Task):
     @classmethod
     def _assign_flatfile_the_source_datalabs(cls, email_counts, contacts):
         contacts['SOURCE_ORD'][email_counts[0]] = 'DL'
+
+    @classmethod
+    def _contact_name_equals_first_name_last_name(cls, users, index_users, contacts, email_counts):
+        return (
+            (str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])).lower()
+            ==
+            str(contacts['NAME'][email_counts[0]]).lower()
+        )
+
+    @classmethod
+    def _name_components_are_null(cls, users, index_users):
+        return (
+            str(users['FIRST_NM'][index_users]).lower() == 'nan'
+            and
+            str(users['LAST_NM'][index_users]).lower() == 'nan'
+        )
 
     @classmethod
     def _assign_users_contact_same_id_as_flatfile(cls, index_users, email_counts, contacts, users):

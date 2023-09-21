@@ -45,6 +45,7 @@ class Validater:
     def tab_validations(self):
         return self._tab_validations
 
+    # pylint: disable=too-many-statements
     def _validate_tab1(self):
         """ChangeFileAudit"""
         tab_name = 'ChangeFileAudit'
@@ -78,6 +79,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
+    # pylint: disable=too-many-statements
     def _validate_tab2(self):
         """ReportByFieldFrom SAS"""
         tab_name = 'ReportByFieldFrom SAS'
@@ -181,6 +183,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
+    # pylint: disable=too-many-statements
     def _validate_tab6(self):
         """Present Employment Counts"""
         tab_name = 'PE Counts'
@@ -212,6 +215,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
+    # pylint: disable=too-many-statements
     def _validate_tab7(self):
         """TOP Counts"""
         tab_name = 'TOP Counts'
@@ -241,6 +245,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
+    # pylint: disable=too-many-statements
     def _validate_tab8(self):
         """TOP by PE"""
         tab_name = 'TOP by PE'
@@ -264,6 +269,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
+    # pylint: disable=too-many-statements
     def _validate_tab9(self):
         """PrimSpecbyMPA"""
         tab_name = 'PrimSpecbyMPA'
@@ -308,6 +314,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
+    # pylint: disable=too-many-statements
     def _validate_tab10(self):
         """SecSpecbyMPA"""
         tab_name = 'SecSpecbyMPA'

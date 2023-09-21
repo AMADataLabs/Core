@@ -60,6 +60,7 @@ class TaskProcessorParameters:
 class TaskProcessorTask(StatefulDAGMixin, PluginExecutorMixin, Task):
     PARAMETER_CLASS = TaskProcessorParameters
 
+    # pylint: disable=too-many-statements
     def run(self):
         LOGGER.debug('Task Processor Parameters: %s', self._parameters)
         dag = self._parameters.dag
