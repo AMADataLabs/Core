@@ -258,7 +258,7 @@ resource "aws_vpc_endpoint" "apigw" {
 
 ### OpenSearch ###
 
-
+# REMOVE WHEN KNOWLEDGE BASE DEMO LAMBDA IS REMOVED #
 module "opensearch_sg" {
   source  = "app.terraform.io/AMA/security-group/aws"
   version = "3.0.0"

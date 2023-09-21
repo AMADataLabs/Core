@@ -1,4 +1,4 @@
-''' DAG Report definition. '''
+''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag import dag
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.schedule.extract import ScheduledDAGStateExtractor
@@ -16,6 +16,6 @@ class DAG(dag.DAG):
 
 # pylint: disable=pointless-statement
 DAG.EXTRACT_SCHEDULE \
-        >> DAG.IDENTIFY_SCHEDULED_DAGS \
-        >> DAG.EXTRACT_SCHEDULED_DAG_STATES \
-        >> DAG.SEND_DAG_REPORT
+    >> DAG.IDENTIFY_SCHEDULED_DAGS \
+    >> DAG.EXTRACT_SCHEDULED_DAG_STATES \
+    >> DAG.SEND_DAG_REPORT

@@ -25,6 +25,10 @@ modspec:
   - package: datalabs.etl.schedule
     include:
       - transform
+      - extract
+  - package: datalabs.etl.smtp
+  - package: datalabs.example.etl.dag
+  - package: datalabs.example.etl.dag.schedule
   - package: datalabs.etl.sns
   - package: datalabs.messaging
     include:

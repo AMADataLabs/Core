@@ -33,12 +33,14 @@ class CredentialTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         return preprocessed_data
 
-    def _columns_to_lower(self, data):
+    @classmethod
+    def _columns_to_lower(cls, data):
         data.rename(columns=lambda x: x.lower(), inplace=True)
 
         return data
 
-    def _create_entity(self, preprocessed_data):
+    @classmethod
+    def _create_entity(cls, preprocessed_data):
         (
             medical_education_number,
             ppd_party_ids,
