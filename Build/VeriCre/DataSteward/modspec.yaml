@@ -18,6 +18,7 @@ modspec:
       - sftp
       - sqlalchemy
   - package: datalabs.access.parameter
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.archive
   - package: datalabs.etl.s3

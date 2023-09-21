@@ -29,8 +29,8 @@ def search_parameters():
         keyword=['test', 'these', 'keywords'],
         section=['test', 'sections'],
         subsection=['test', 'subsections'],
-        updated_date_from='2022-01-01',
-        updated_date_to='2023-09-10'
+        updated_after_date='2022-01-01',
+        updated_before_date='2023-09-10'
     )
 
 
@@ -42,8 +42,8 @@ def invalid_search_parameters():
         keyword=['test', 'these', 'keywords'],
         section=['test', 'sections'],
         subsection=['test', 'subsections'],
-        updated_date_from='2022-01-01',
-        updated_date_to='2023-09-10'
+        updated_after_date='2022-01-01',
+        updated_before_date='2023-09-10'
     )
 
 @pytest.fixture

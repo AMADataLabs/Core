@@ -20,6 +20,7 @@ modspec:
     - aws
     - system
     - dynamodb
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache

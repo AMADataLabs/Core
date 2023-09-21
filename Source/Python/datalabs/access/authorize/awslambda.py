@@ -42,3 +42,15 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _handle_success(self) -> (int, dict):
         LOGGER.info('Authorization:\n%s', self.task.authorization)
         return self.task.authorization
+
+    # pylint: disable=unused-argument
+    @classmethod
+    def _extract_cache_parameters(cls, task_parameters):
+        pass
+
+    def _get_task_input_data(self):
+        pass
+
+    # pylint: disable=unused-argument
+    def _put_task_output_data(self, data):
+        pass

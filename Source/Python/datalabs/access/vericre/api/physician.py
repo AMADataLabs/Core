@@ -9,7 +9,6 @@ from   sqlalchemy.exc import OperationalError, MultipleResultsFound
 from   zeep import Client
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError, InvalidRequest
-from   datalabs.access.orm import Database
 from   datalabs.access.vericre.api.wsdl import ENTERPRISE_SEARCH_WSDL
 from   datalabs.model.vericre.api import User
 from   datalabs.parameter import add_schema
@@ -46,8 +45,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         search_results = self._search_physicians(self._parameters.payload)
 
-        with Database.from_parameters(self._parameters) as database:
-            physicians = self._get_matching_physicians(database, search_results)
+        physicians = self._format_physicians(search_results)
 
         self._proceed_caqh_sync(physicians)
 
@@ -60,13 +58,13 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return self._submit_search_request(search_request, url)
 
     @classmethod
-    def _get_matching_physicians(cls, database, request_response):
+    def _format_physicians(cls, request_response):
         physicians = []
 
         if request_response is not None:
-            physicians = [cls._get_physician(physician, database) for physician in request_response]
+            physicians = [cls._get_physician(physician) for physician in request_response]
 
-        return [physician for physician in physicians if physician is not None]
+        return physicians
 
     def _generate_response(self, physicians):
         physicians = [
@@ -126,18 +124,14 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return 204 if not physicians else 200
 
     @classmethod
-    def _get_physician(cls, physician, database):
-        entity_id = cls._get_entity_id(physician.entityId, database)
-        physician_data = None
-
-        if entity_id is not None:
-            physician_data = dict(
-                entity_id=physician.entityId,
-                first_name=physician.legalFirstName,
-                last_name=physician.legalLastName,
-                date_of_birth=cls._get_date(physician.birthDate),
-                npi_number=physician.npiNumber.NPI[0].npiNumber
-            )
+    def _get_physician(cls, physician):
+        physician_data = dict(
+            entity_id=physician.entityId,
+            first_name=physician.legalFirstName,
+            last_name=physician.legalLastName,
+            date_of_birth=cls._get_date(physician.birthDate),
+            npi_number=physician.npiNumber.NPI[0].npiNumber
+        )
 
         return physician_data
 
@@ -230,7 +224,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         try:
             requests.post(
-                f'https://{self._parameters.vericre_alb_domain}/users/physicians/search/onCAQHSync',
+                f'https://{self._parameters.vericre_alb_domain}/users/physicians/search/onSync',
                 verify=False,
                 timeout=(None, 0.1),
                 json=physicians_payload

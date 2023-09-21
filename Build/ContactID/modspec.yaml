@@ -27,6 +27,7 @@ modspec:
   - package: datalabs.access.parameter
     include:
     - system
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache

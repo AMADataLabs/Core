@@ -1,0 +1,65 @@
+---
+DAG_REPORT:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+
+        TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
+        S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
+        BASE_PATH: 'AMA/DataLabs/Scheduler/Report'
+
+    DAG:
+        LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-Scheduler'
+        DAG_CLASS: 'datalabs.etl.dag.schedule.report.DAG'
+        DAG_STATE:
+            CLASS: datalabs.etl.dag.state.dynamodb.DAGState
+            STATE_TABLE: DataLake-dag-state-${ENVIRONMENT}
+            LOCK_TABLE: DataLake-scheduler-locks-${ENVIRONMENT}
+        DAG_TOPIC_ARN: '${DAG_TOPIC_ARN}'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+
+    EXTRACT_SCHEDULE:
+        BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
+        BASE_PATH: ''
+        FILES: 'schedule.csv'
+        INCLUDE_DATESTAMP: 'False'
+
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${BASE_PATH}
+        CACHE_OUTPUT_FILES: 'schedule.csv'
+    IDENTIFY_SCHEDULED_DAGS:
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${BASE_PATH}
+        CACHE_INPUT_FILES: 'schedule.csv'
+
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${BASE_PATH}
+        CACHE_OUTPUT_FILES: 'scheduled_dag_runs.csv'
+    EXTRACT_SCHEDULED_DAG_STATES:
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${BASE_PATH}
+        CACHE_INPUT_FILES: 'scheduled_dag_runs.csv'
+
+        CACHE_OUTPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${BASE_PATH}
+        CACHE_OUTPUT_FILES: 'scheduled_dag_statuses.csv'
+    SEND_DAG_REPORT:
+        CACHE_INPUT_CLASS: '${TASK_CACHE_CLASS}'
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${BASE_PATH}
+        CACHE_INPUT_FILES: 'scheduled_dag_statuses.csv'
+
+        TO_ADDRESSES: DataLabs@ama-assn.org
+        SUBJECT: 'DataLabs DAG Report for %A (%b %-m, %Y)'
+        MESSAGE: 'Dude, here is your deliciously direct, DataLabs daily DAG report!'
+        FILES: scheduled_dag_statuses.csv

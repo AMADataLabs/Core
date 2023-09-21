@@ -5,7 +5,7 @@ import smtplib
 from   email.message import EmailMessage # pylint: disable=no-name-in-module, import-error
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 logging.basicConfig()
 
 
