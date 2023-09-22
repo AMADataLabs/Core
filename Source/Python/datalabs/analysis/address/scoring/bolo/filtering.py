@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-# pylint: disable=anomalous-backslash-in-string, invalid-name
+# pylint: disable=anomalous-backslash-in-string, invalid-name, too-many-statements
 def remove_ste(street_address):
     text = re.sub('\W+', ' ', str(street_address).upper()).strip()
     tokens = text.split()
@@ -29,6 +29,7 @@ def remove_ste(street_address):
 
 
 # eventually move this to query the humach results archive database when it's stable and deployed
+# pylint: disable=too-many-statements
 def get_recent_verified_me_address_keys(within_days=365, from_date=datetime.now(), data=None):
     if data is None:
         LOGGER.info('LOADING WSLIVE DATA')
@@ -86,6 +87,7 @@ def get_recent_verified_me_address_keys(within_days=365, from_date=datetime.now(
 
 
 # specify ppd_path to match ppd version with same ppd used to find model application population. None -> get latest
+# pylint: disable=too-many-statements
 def get_polo_address_scores(data: pd.DataFrame, ppd=None) -> pd.DataFrame:
     """
     data: scored data with columns
@@ -180,6 +182,7 @@ def filter_on_score_difference(bolo_polo_data: pd.DataFrame, difference_threshol
     LOGGER.info('POST-FILTER: %s', len(data))
     return data
 
+# pylint: disable=too-many-statements
 def filter_recent_verified_addresses(
         bolo_polo_data: pd.DataFrame,
         within_days: int,

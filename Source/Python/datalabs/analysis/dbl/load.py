@@ -21,6 +21,7 @@ class DBLReportEmailLoaderParameters:
 class DBLReportEmailLoaderTask(Task):
     PARAMETER_CLASS = DBLReportEmailLoaderParameters
 
+    # pylint: disable=too-many-statements
     def run(self):
         today = str(datetime.now().date())
         subject = f'Weekly DBL Report - {today}'

@@ -4,6 +4,7 @@ import copy
 import marshmallow
 from   marshmallow.exceptions import ValidationError
 
+# pylint: disable=too-many-statements
 def add_schema(*args, **kwargs):
     def create_schema(model_class):
         model_fields = [key for key, value in model_class.__dict__.items() if not key.startswith('_')]

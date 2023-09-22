@@ -38,6 +38,7 @@ class CPTRelationalTableLoaderTask(Task):
 
             self._update_tables(self._data)
 
+    # pylint: disable=too-many-statements
     def _update_tables(self, data):
         release_table_updater = ReleaseTableUpdater(self._database)
         release_table_updater.update(data.release)

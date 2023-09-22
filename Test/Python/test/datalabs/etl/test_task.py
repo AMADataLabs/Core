@@ -93,6 +93,7 @@ def parameters():
     )
 
 
+# pylint: disable=too-many-statements
 @pytest.fixture
 def environment_variables():
     current_env = os.environ.copy()

@@ -68,6 +68,19 @@ class InputDataLoader():
 
     def _extract_entity_data_from_file(self, filenames, key):
         filename = getattr(filenames, key)
+
+        data = self._read_entity_data(filename)
+
+        if data.empty:
+            raise ValueError(f"No data loaded from file {filename}")
+
+        if self._expected_df_lengths:
+            self._assert_reasonable_dataframe_length(getattr(self._expected_df_lengths.entity, key), data)
+
+        return data
+
+    @classmethod
+    def _read_entity_data(cls, filename):
         extension = filename.rsplit('.')[-1]
         data = None
 
@@ -79,12 +92,6 @@ class InputDataLoader():
             data = pd.read_feather(filename)
         else:
             raise ValueError(f"unknown file extension '{extension}'")
-
-        if data.empty:
-            raise ValueError(f"No data loaded from file {filename}")
-
-        if self._expected_df_lengths:
-            self._assert_reasonable_dataframe_length(getattr(self._expected_df_lengths.entity, key), data)
 
         return data
 

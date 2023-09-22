@@ -211,6 +211,7 @@ def _reorder_batch_load_column_order(data: pd.DataFrame):
 
 
 class AddressLoadFileAggregationTransformerTask(Task):
+    # pylint: disable=too-many-statements
     def run(self) -> 'Transformed Data':
         # dataframes = [pd.read_csv(BytesIO(data)) for data in self._data]
         dataframes = [pd.read_csv(BytesIO(data[1])) for data in pk.loads(self._data[0])]
