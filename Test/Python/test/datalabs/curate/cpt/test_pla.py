@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, too-many-statements
 def test_pla_parser(text):
     parser = PLAParser()
     data = parser.parse(text)
