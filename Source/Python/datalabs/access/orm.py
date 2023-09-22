@@ -18,7 +18,7 @@ class Database(SQLAlchemyURLMixin, db.Database):
 
     def connect(self):
         LOGGER.info("Database connection URL: %s", self.connection_string)
-        engine = sqlalchemy.create_engine(self.connection_string, echo=True)
+        engine = sqlalchemy.create_engine(self.connection_string) #, echo=True)
         Session = sessionmaker(bind=engine)  # pylint: disable=invalid-name
 
         self._connection = Session()
