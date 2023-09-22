@@ -2808,7 +2808,7 @@ pipelines:
                 #         Deploy/Master/update-functions -e prd -s DEUS-API -p DEUS/API -p DEUS/API
                 #         DEUS-API=DEUS.zip
 
-        VIGNETTES-API:
+        Vignettes-API:
             - step:
                 name: Create Development Component Package
                 caches:
@@ -2928,7 +2928,8 @@ pipelines:
                 #         Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Vignettes
                 #         Vignettes-API=API.zip
 
-        VIGNETTES-ETL:
+        
+        Vignettes-ETL:
             - step:
                 name: Create Development Component Package
                 caches:
