@@ -73,23 +73,14 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 u.ama_entity_id,
                 ff.sub_section as section_identifier,
                 ff.identifier as field_identifier,
-                case
-                    when ff.is_source_field = True and ff.is_authoritative = True then True
-                    else False
-                end as is_authoritative,
+                ff.is_authoritative,
                 ff.is_source_field as is_source,
                 ff.name,
                 ff.read_only,
                 ff.source_key,
-                case
-                    when ff.is_source_field = True and ff.source = 1 then \'AMA\'
-                    when ff.is_source_field = True and ff.source = 2 then \'CAQH\'
-                    else \'Physician Provided\'
-                end as source_tag,
+                ff.source as source_tag,
                 ff.type,
-                case when ff."type" = 'DATE' then get_formatted_date(ff."values")
-                	 else ff."values" 
-                end as values,
+                ff."values",
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
