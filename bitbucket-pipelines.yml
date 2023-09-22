@@ -2815,7 +2815,7 @@ pipelines:
                 - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/deploy-package --project CPT/VIGNETTES/API
+                - bash Deploy/Master/deploy-package --project CPT/Vignettes/API
             - parallel:
                 - step:
                     name: Update Sandbox Lambda Bundle
@@ -2826,8 +2826,8 @@ pipelines:
                     - >-
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment sbx
-                        --project CPT/VIGNETTES/API
-                        --bundle CPT/VIGNETTES/API.zip
+                        --project CPT/Vignettes/API
+                        --bundle CPT/Vignettes/API.zip
                 # - step:
                 #     name: Update Development Bundle
                 #     caches:
@@ -2839,8 +2839,8 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 #         --environment dev
-                #         --project CPT/VIGNETTES/API
-                #         --bundle CPT/VIGNETTES/API.zip
+                #         --project CPT/Vignettes/API
+                #         --bundle CPT/Vignettes/API.zip
                 # - step:
                 #     name: Update Test Bundle
                 #     caches:
@@ -2852,8 +2852,8 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 #         --environment tst
-                #         --project CPT/VIGNETTES/API
-                #         --bundle CPT/VIGNETTES/API.zip
+                #         --project CPT/Vignettes/API
+                #         --bundle CPT/Vignettes/API.zip
                 # - step:
                 #     name: Update Staging Bundle
                 #     caches:
@@ -2865,8 +2865,8 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 #         --environment itg
-                #         --project CPT/VIGNETTES/API
-                #         --bundle CPT/VIGNETTES/API.zip
+                #         --project CPT/Vignettes/API
+                #         --bundle CPT/Vignettes/API.zip
                 # - step:
                 #     name: Update Production Bundle
                 #     caches:
@@ -2878,16 +2878,16 @@ pipelines:
                 #     - >-
                 #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 #         --environment prd
-                #         --project CPT/VIGNETTES/API
-                #         --bundle CPT/VIGNETTES/API.zip
+                #         --project CPT/Vignettes/API
+                #         --bundle CPT/Vignettes/API.zip
             - parallel:
                 - step:
                     name: Reload Sandbox Lambda Functions
                     script:
                     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     - >-
-                        bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/VIGNETTES
-                        VIGNETTES-API=API.zip
+                        bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Vignettes
+                        Vignettes-API=API.zip
                 # - step:
                 #     name: Reload Development Lambda Functions
                 #     script:
@@ -2895,8 +2895,8 @@ pipelines:
                 #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-API=API.zip
+                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Vignettes
+                #         Vignettes-API=API.zip
                 # - step:
                 #     name: Reload Test Lambda Functions
                 #     script:
@@ -2905,8 +2905,8 @@ pipelines:
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
                 #         bash --rcfile assume_role.rc -i
-                #         Deploy/Master/update-functions -e tst -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-API=API.zip
+                #         Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Vignettes
+                #         Vignettes-API=API.zip
                 # - step:
                 #     name: Reload Staging Lambda Functions
                 #     script:
@@ -2915,8 +2915,8 @@ pipelines:
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
                 #         bash --rcfile assume_role.rc -i
-                #         Deploy/Master/update-functions -e itg -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-API=API.zip
+                #         Deploy/Master/update-functions -e itg -s CPT-API -p CPT/Vignettes
+                #         Vignettes-API=API.zip
                 # - step:
                 #     name: Reload Production Lambda Functions
                 #     script:
@@ -2925,8 +2925,8 @@ pipelines:
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
                 #         bash --rcfile assume_role.rc -i
-                #         Deploy/Master/update-functions -e prd -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-API=API.zip
+                #         Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Vignettes
+                #         Vignettes-API=API.zip
 
         VIGNETTES-ETL:
             - step:
@@ -2935,7 +2935,7 @@ pipelines:
                     - environment-master
                 script:
                     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    - bash Deploy/Master/deploy-package --project CPT/VIGNETTES/ETL
+                    - bash Deploy/Master/deploy-package --project CPT/Vignettes/ETL
             - parallel:
                 - step:
                     name: Update Sandbox Lambda Bundle
@@ -2946,8 +2946,8 @@ pipelines:
                     - >-
                         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                         --environment sbx
-                        --project CPT/VIGNETTES/ETL
-                        --bundle CPT/VIGNETTES/ETL.zip
+                        --project CPT/Vignettes/ETL
+                        --bundle CPT/Vignettes/ETL.zip
             #     - step:
             #         name: Update Development Lambda Bundle
             #         caches:
@@ -2959,8 +2959,8 @@ pipelines:
             #         - >-
             #             bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #             --environment dev
-            #             --project CPT/VIGNETTES/ETL
-            #             --bundle CPT/VIGNETTES/ETL.zip
+            #             --project CPT/Vignettes/ETL
+            #             --bundle CPT/Vignettes/ETL.zip
             #     - step:
             #         name: Update Test Lambda Bundle
             #         caches:
@@ -2972,8 +2972,8 @@ pipelines:
             #         - >-
             #             bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #             --environment tst
-            #             --project CPT/VIGNETTES/ETL
-            #             --bundle CPT/VIGNETTES/ETL.zip
+            #             --project CPT/Vignettes/ETL
+            #             --bundle CPT/Vignettes/ETL.zip
             #     - step:
             #         name: Update Production Lambda Bundle
             #         caches:
@@ -2985,16 +2985,16 @@ pipelines:
             #         - >-
             #             bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #             --environment prd
-            #             --project CPT/VIGNETTES/ETL
-            #             --bundle CPT/VIGNETTES/ETL.zip
+            #             --project CPT/Vignettes/ETL
+            #             --bundle CPT/Vignettes/ETL.zip
             - parallel:
                 - step:
                     name: Reload Sandbox Lambda Functions
                     script:
                     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     - >-
-                        bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/VIGNETTES
-                        VIGNETTES-DAG=ETL.zip
+                        bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Vignettes
+                        Vignettes-DAG=ETL.zip
                 # - step:
                 #     name: Reload Development Lambda Functions
                 #     script:
@@ -3002,8 +3002,8 @@ pipelines:
                 #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-DAG=ETL.zip
+                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Vignettes
+                #         Vignettes-DAG=ETL.zip
                 # - step:
                 #     name: Reload Test Lambda Functions
                 #     script:
@@ -3011,8 +3011,8 @@ pipelines:
                 #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-DAG=ETL.zip
+                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Vignettes
+                #         Vignettes-DAG=ETL.zip
                 # - step:
                 #     name: Reload Staging Lambda Functions
                 #     script:
@@ -3020,8 +3020,8 @@ pipelines:
                 #         bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-DAG=ETL.zip
+                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/Vignettes
+                #         Vignettes-DAG=ETL.zip
                 # - step:
                 #     name: Reload Production Lambda Functions
                 #     script:
@@ -3029,8 +3029,8 @@ pipelines:
                 #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/VIGNETTES
-                #         VIGNETTES-DAG=ETL.zip
+                #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Vignettes
+                #         Vignettes-DAG=ETL.zip
 
 definitions:
   caches:
