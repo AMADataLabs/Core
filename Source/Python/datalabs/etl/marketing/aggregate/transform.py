@@ -58,6 +58,18 @@ class MarketingData:
     flatfile: pandas.DataFrame
 
 
+class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
+    def run(self):
+        data = InputDataParser.parse(self._data[0])
+
+        list_of_lists = data[data['list_of_files'].str.contains('List of Lists')]
+        adhoc = data[~data['list_of_files'].str.contains('List of Lists')]
+
+        file_lists = [list_of_lists, adhoc]
+
+        return [self._dataframe_to_csv(data) for data in file_lists]
+
+
 @add_schema
 @dataclass
 class InputDataCleanerTaskParameters:
