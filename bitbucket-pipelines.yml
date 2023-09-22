@@ -7,6 +7,11 @@ image:
 options:
   docker: true
 
+definitions:
+  services:
+    docker:
+      memory: 3072
+
 pipelines:
     branches:
         master:
@@ -2928,7 +2933,7 @@ pipelines:
                 #         Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Vignettes
                 #         Vignettes-API=API.zip
 
-        
+
         Vignettes-ETL:
             - step:
                 name: Create Development Component Package
