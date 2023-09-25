@@ -3,7 +3,7 @@
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-RUN="${SCRIPT_BASE_PATH}/run.py /usr/bin/python3"
+RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 
 main() {
