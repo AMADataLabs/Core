@@ -25,7 +25,7 @@ class MapSearchEndpointParameters:
 class SearchParameters:
     max_results: int
     index: int
-    keyword: list
+    keywords: list
     section: list
     subsection: list
     updated_after_date: str
@@ -49,7 +49,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
         max_results = int(parameters.get("results", 50))
-        index = parameters.get("index")
+        index = int(parameters.get("index", 0))
         keywords = parameters.get("keyword", [])
         sections = parameters.get("section", [])
         subsections = parameters.get("subsection", [])
