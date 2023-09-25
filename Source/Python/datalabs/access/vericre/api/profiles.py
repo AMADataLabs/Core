@@ -156,13 +156,12 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         response_result = [asdict(object) for object in list(response_result.values())]
 
-        size = sys.getsizeof(str(response_result))
-        size_in_kb = int(size / 1024)
+        response_size = self._get_response_size(response_result)
 
         next_url = None
-        if size_in_kb > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+        if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
             request_id = str(uuid.uuid4())
-            entity_ids = self._parameters.payload.get("entity_id")
+            entity_ids = response_result.keys()
             response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
             next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
 
@@ -172,7 +171,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         if next_url is not None:
             response_json['next'] = next_url
 
-        LOGGER.info('Response Result size: %s KB, %s B', size_in_kb, size)
+        LOGGER.info('Response Result size: %s KB', response_size)
 
         return response_json
 
@@ -192,7 +191,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
         response_parts = []
         for item in response_result:
             response_parts.append(item)
-            if sys.getsizeof(str(response_parts)) > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+            response_size = self._get_response_size(response_parts)
+
+            if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
                 response_parts.pop()
                 break
 
@@ -207,10 +208,17 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _generate_item(cls, request_id, entity_ids):
         item = dict(
             request_id=dict(S=request_id),
-            entity_ids=dict(S=("','".join(entity_ids)))
+            entity_ids=dict(S=(",".join(entity_ids)))
         )
 
         return item
+
+    @classmethod
+    def _get_response_size(cls, response_result):
+        size = sys.getsizeof(str(response_result))
+        size_in_kb = int(size / 1024)
+
+        return size_in_kb
 
     @classmethod
     def _add_entity_id_in_response(cls, response_result, record):
