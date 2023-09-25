@@ -207,7 +207,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _generate_item(cls, request_id, entity_ids):
         item = dict(
             request_id=dict(S=request_id),
-            entity_ids=dict(L=entity_ids)
+            entity_ids=dict(S=("','".join(entity_ids)))
         )
 
         return item

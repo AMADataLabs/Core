@@ -26,7 +26,7 @@ activate-virtual-environment-windows:
 activate-virtual-environment: activate-virtual-environment-linux activate-virtual-environment-windows
 
 test: setup_test_files
-	${RUN} ${VIRTUAL_ENV}/bin/pytest -vv Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+	${RUN} /usr/bin/python3 -m pytest -vv Test/Python/test/datalabs/access/vericre/api/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
 
 setup_test_files: ${TEMPLATE_FILES}
 	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/test/datalabs/environment/
@@ -35,7 +35,7 @@ clean-test:
 	rm -f ${CWD}/Test/Python/test/datalabs/environment/*_template.txt
 
 lint:
-	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy,math $(shell find ${CWD}/Source/Python/datalabs -name "*.py"  | grep -v ${CWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(shell find ${CWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy,math $(shell find ${CWD}/Source/Python/datalabs/access/vericre/api -name "*.py"  | grep -v ${CWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(shell find ${CWD}/Test/Python/test/datalabs/vericre/api -name "*.py" | tr '\n' ' ')
 
 lint-old:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${CWD}/Source/Python/datalabs/* ${CWD}/Test/Python/test/datalabs/*
@@ -47,7 +47,7 @@ lint-test:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Test/Python/*
 
 coverage:
-	${RUN} coverage run -m pytest Test/Python/ -W ignore::DeprecationWarning
+	${RUN} coverage run -m /usr/bin/python3 -m pytest Test/Python/ -W ignore::DeprecationWarning
 
 	coverage report
 
