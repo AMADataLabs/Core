@@ -20,7 +20,7 @@ resource "aws_internet_gateway" "datalake" {
 ### NAT Gateway ###
 
 resource "aws_eip" "nat_gateway" {
-    vpc = true
+    domain = "vpc"
 
     tags = merge(local.tags, {Name = "Data Lake NAT Gateway IP"})
 }
@@ -258,7 +258,7 @@ resource "aws_vpc_endpoint" "apigw" {
 
 ### OpenSearch ###
 
-
+# REMOVE WHEN KNOWLEDGE BASE DEMO LAMBDA IS REMOVED #
 module "opensearch_sg" {
   source  = "app.terraform.io/AMA/security-group/aws"
   version = "3.0.0"
@@ -301,19 +301,8 @@ module "opensearch_sg" {
 }
 
 
-
-resource "aws_vpc_endpoint" "opensearch" {
-  vpc_id            = aws_vpc.datalake.id
-  service_name      = "com.amazonaws.vpce.us-east-1.vpce-svc-0d108ae1e78cacc6c"
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids = [
-    module.apigw_sg.security_group_id
-  ]
-
-  subnet_ids        = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
-
-  private_dns_enabled = true
-
-  tags = merge(local.tags, {Name = "${lower(local.project)}-${local.environment}-opensearch-vpce"})
+resource "aws_opensearchserverless_vpc_endpoint" "opensearch" {
+  name       = "datalake-${local.environment}-opensearch-vpce"
+  subnet_ids = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+  vpc_id     = aws_vpc.datalake.id
 }

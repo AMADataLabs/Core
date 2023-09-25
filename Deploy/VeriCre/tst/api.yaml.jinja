@@ -18,6 +18,8 @@ VERICRE_API:
         CAQH_USERNAME: 'DeepakA123'
         CAQH_PASSWORD: '{{caqh_password}}'
         CAQH_ORG_ID: '6166'
+        CAQH_APPLICATION_TYPE: '100000001'
+        CAQH_DOMAIN: 'https://proview-demo.nonprod.caqh.org'
 
     ROUTE:
         PHYSICIANS_SEARCH: '/profile_api/physicians/search'
@@ -89,8 +91,8 @@ VERICRE_API:
         USERNAME: ${CAQH_USERNAME}
         PASSWORD: ${CAQH_PASSWORD}
         ORG_ID: ${CAQH_ORG_ID}
-        APPLICATION_TYPE: '100000001'
-        DOMAIN: 'https://proview-demo.nonprod.caqh.org'
+        APPLICATION_TYPE: ${CAQH_APPLICATION_TYPE}
+        DOMAIN: ${CAQH_DOMAIN}
         PROVIDER_API: 'DocumentAPI/api/providerdocs/download'
         STATUS_CHECK_API: 'RosterAPI/api/providerstatusbynpi'
 

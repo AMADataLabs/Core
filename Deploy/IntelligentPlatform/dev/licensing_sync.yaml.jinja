@@ -12,10 +12,8 @@ LICENSING_SYNC:
         PLATFORM_DB_NAME: frictionlesslicensing
 
         VISTEX_DB_BACKEND: mssql+pymssql
-        # VISTEX_DB_HOST: rdbt5681.ad.ama-assn.org
-        # VISTEX_DB_PORT: '1436'
-        VISTEX_DB_HOST: rdbt5302.ad.ama-assn.org
-        VISTEX_DB_PORT: '1433'
+        VISTEX_DB_HOST: rdbt5681.ad.ama-assn.org
+        VISTEX_DB_PORT: '1436'
         VISTEX_DB_USERNAME: dlabs_read
         VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
         VISTEX_DB_NAME: LicenseMaestro_CPT
@@ -88,7 +86,8 @@ LICENSING_SYNC:
         DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
         SQL: "
             SELECT
-                LTRIM(RTRIM(T1.licensee)) AS Organization
+                LTRIM(RTRIM(T1.licensee)) AS Organization,
+                T3.id as licensee_id
             FROM
                 v_cm_contracts T1
                     JOIN cm_contract T2
@@ -101,6 +100,7 @@ LICENSING_SYNC:
                                 LEFT JOIN (Select key_value, text_value from v_ts_custom_fields_details where customfield_id = 77) Zendesk ON T1.contract_key = Zendesk.key_value
 
             WHERE
+                T1.description NOT Like '%AFFINITY%' and
                 T1.description NOT Like '%AFFINITY%' and
                 T1.licensee <> '%ACME%' and
                 T1.account_exec Not In ('David Young', 'Brian Eaggleston') and

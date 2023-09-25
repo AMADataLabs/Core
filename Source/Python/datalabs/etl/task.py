@@ -36,6 +36,7 @@ class ETLTask(Task):
         self._subtasks = None
         self._output = None
 
+    # pylint: disable=too-many-statements
     def run(self):
         try:
             extractor = self._instantiate_component(self._parameters.extractor)

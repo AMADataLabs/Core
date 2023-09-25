@@ -129,12 +129,7 @@ class S3FileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorTas
         if feature.enabled("PROFILE"):
             LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
 
-        try:
-            response = self._client.get_object(Bucket=self._parameters.bucket, Key=quoted_file)
-        except Exception as exception:
-            raise ETLException(
-                f"Unable to get file '{quoted_file}' from S3 bucket '{self._parameters.bucket}'"
-            ) from exception
+        response = self._get_s3_object(self._parameters.bucket, quoted_file)
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
             data = self._cache_data_to_disk(response['Body'])
@@ -199,6 +194,16 @@ class S3FileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorTas
         )
 
         return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
+
+    def _get_s3_object(self, bucket, file):
+        try:
+            response = self._client.get_object(Bucket=bucket, Key=file)
+        except Exception as exception:
+            raise ETLException(
+                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
+            ) from exception
+
+        return response
 
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time

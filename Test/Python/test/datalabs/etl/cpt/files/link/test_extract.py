@@ -37,7 +37,8 @@ def test_mocked_list_dir_files(parameters, object_listing):
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
-def test_mocked_get_files(parameters, object_listing):
+def test_link_builder_input_files_are_correctly_identified(parameters, object_listing):
+    """ Test for 2022-08-25 (Annual 2023) distribution """
     task = InputFilesListExtractorTask(parameters)
     files = []
 
@@ -53,6 +54,15 @@ def test_mocked_get_files(parameters, object_listing):
         files = _get_input_files(task, files)
 
     assert len(files) == 17
+
+    _assert_prior_link_files_are_included(files)
+
+    _assert_annual_files_are_included(files)
+
+    _assert_core_files_are_included(files)
+
+
+def _assert_prior_link_files_are_included(files):
     assert "AMA/CPT/20220824/output/changes/History.txt" in files
     assert "AMA/CPT/20220824/output/changes/HistoryModifers.txt" in files
     assert "AMA/CPT/20220824/output/changes/HistoryReference.txt" in files
@@ -61,6 +71,8 @@ def test_mocked_get_files(parameters, object_listing):
     assert "AMA/CPT/20220824/output/internal_Property.txt" in files
     assert "AMA/CPT/20220824/output/RelationshipGroup.txt" in files
 
+
+def _assert_annual_files_are_included(files):
     assert "AMA/CPT/20210830/output/changes/History.txt" in files
     assert "AMA/CPT/20210830/output/changes/HistoryModifers.txt" in files
     assert "AMA/CPT/20210830/output/changes/HistoryReference.txt" in files
@@ -69,6 +81,8 @@ def test_mocked_get_files(parameters, object_listing):
     assert "AMA/CPT/20210830/output/internal_Property.txt" in files
     assert "AMA/CPT/20210830/output/RelationshipGroup.txt" in files
 
+
+def _assert_core_files_are_included(files):
     assert "AMA/CPT/20220825/output/internal_Property.txt" in files
     assert "AMA/CPT/20220825/output/internal_Type.txt" in files
     assert "AMA/CPT/20220825/output/RelationshipGroup.txt" in files

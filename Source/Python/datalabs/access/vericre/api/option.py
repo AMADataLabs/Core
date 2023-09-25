@@ -982,7 +982,7 @@ OPTION_VALUES_MAP = {
     },
     "certificateType": {
         "A0": "General",
-        "A1": "Subspecialty"
+        "A1": "Sub-specialty"
     },
     "specialtySCA": {
         "A0": "Anesthesiology",

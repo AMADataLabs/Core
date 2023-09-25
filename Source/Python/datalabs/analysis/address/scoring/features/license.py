@@ -63,7 +63,7 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
 
         return base_data
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments, too-many-statements
     @classmethod
     def _add_license_features(
             cls,
@@ -119,6 +119,7 @@ class LicenseFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Ta
 
         return license_lt_data
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_feature_active_license_states_newer_older_match(
             cls,

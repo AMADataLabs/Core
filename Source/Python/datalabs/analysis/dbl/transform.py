@@ -193,6 +193,7 @@ class DBLReportTransformer(Task):
         ).rename(columns={'All': 'Grand Total'}).rename(index={'All': 'Grand Total'})
         return table
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _make_excel_workbook(cls, sheet_dataframes):
         dummy_file = BytesIO()

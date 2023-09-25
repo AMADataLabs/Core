@@ -33,6 +33,7 @@ class DemographicsTransformerParameters:
 class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
     PARAMETER_CLASS = DemographicsTransformerParameters
 
+    # pylint: disable=too-many-statements
     def run(self):
         demog_data = self._csv_to_dataframe(self._data[0], sep='|')
 
@@ -50,6 +51,7 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         return [self._dataframe_to_feather(ama_masterfile)]
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _create_demographics(cls, demog_data):
         demog_data.FIRST_NAME = demog_data.FIRST_NAME.str.strip()
@@ -64,25 +66,34 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         demog_data.PHONE_AREA_CD = demog_data.PHONE_AREA_CD.str.strip()
         demog_data.MPA_DESC = demog_data.MPA_DESC.str.strip()
         demog_data.ECFMG_NBR = demog_data.ECFMG_NBR.str.strip()
+        demog_data["PRINT_NAME"] = demog_data[["FIRST_NAME", "LAST_NAME"]].astype(str).agg(' '.join, axis=1)
         demog_data["EMAIL_ADDRESS"] = demog_data[["EMAIL_NAME", "EMAIL_DOMAIN"]].astype(str).agg('@'.join, axis=1)
+        demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
         demog_data["PRINT_PHONE_NUMBER"] = (
             demog_data[["PHONE_AREA_CD", "PHONE_EXCHANGE", "PHONE_NUMBER"]]
             .astype(str)
             .agg(''.join, axis=1)
         )
-        demog_data.EMAIL_ADDRESS[demog_data.EMAIL_NAME.isna()] = None
+        demog_data.PRINT_PHONE_NUMBER[
+            demog_data.PHONE_AREA_CD.isna() | demog_data.PHONE_EXCHANGE.isna() | demog_data.PHONE_NUMBER.isna()
+        ] = None
+
         demog_data = demog_data[column.DEMOG_DATA_COLUMNS].copy()
 
-        aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
         mailing_address = \
             demog_data[column.MAILING_ADDRESS_COLUMNS.keys()].rename(columns=column.MAILING_ADDRESS_COLUMNS)
-        demographics["mailingAddress"] = mailing_address.to_dict(orient="records")
+        demog_data["MAILING_ADDRESS"] = mailing_address.to_dict(orient="records")
+
         office_address = demog_data[column.OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=column.OFFICE_ADDRESS_COLUMNS)
         office_address["addressUndeliverable"] = None
-        demographics["officeAddress"] = office_address.to_dict(orient="records")
+        demog_data["OFFICE_ADDRESS"] = office_address.to_dict(orient="records")
+
         phone = demog_data[column.PHONE_COLUMNS.keys()].rename(columns=column.PHONE_COLUMNS)
-        demographics["phone"] = phone.to_dict(orient="records")
+        demog_data["PHONE"] = phone.to_dict(orient="records")
+
+        demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
+
+        aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_demographics["demographics"] = demographics.to_dict(orient="records")
 
         return aggregated_demographics
@@ -527,7 +538,7 @@ class SanctionsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()] \
             = aggregated_state_sanctions.state[aggregated_state_sanctions.state.isnull()].apply(lambda x: [])
 
-        aggregated_state_sanctions["stateSanctionsValue"] = "ACTION_REPORTED"
+        aggregated_state_sanctions["stateSanctionsValue"] = "ACTION REPORTED"
         aggregated_state_sanctions["stateSanctionsValue"][aggregated_state_sanctions.state.isnull()] = \
             "NO ACTIONS REPORTED AT THIS TIME"
 
