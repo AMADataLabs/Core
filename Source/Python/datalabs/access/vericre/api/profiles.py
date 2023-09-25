@@ -154,6 +154,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         for record in query_result:
             response_result = self._process_record(response_result, record)
 
+        response_result_keys = list(response_result.keys())
         response_result = [asdict(object) for object in list(response_result.values())]
 
         response_size = self._get_response_size(response_result)
@@ -161,7 +162,8 @@ class BaseProfileEndpointTask(APIEndpointTask):
         next_url = None
         if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
             request_id = str(uuid.uuid4())
-            entity_ids = response_result.keys()
+            entity_ids = response_result_keys
+            
             response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
             next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
 
