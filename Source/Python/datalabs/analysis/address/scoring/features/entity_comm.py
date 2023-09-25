@@ -50,6 +50,7 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
 
         return [self._dataframe_to_csv(features, sep='|')]
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_entity_comm_at_features(cls, base_data, data_or_path_to_entity_comm_at_file, as_of_date, save_dir=None):
         base_data.columns = [col.upper() for col in base_data.columns]
@@ -147,6 +148,7 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
 
         return base_data
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_feature_physician_how_many_newer_addresses(
         cls,
@@ -181,6 +183,7 @@ class EntityCommFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin,
 
         return base_data
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_feature_address_sources(cls, base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame):
         """ Creates boolean flags for physician-address pairs for each address source """
