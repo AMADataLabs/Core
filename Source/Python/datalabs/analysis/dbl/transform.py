@@ -10,7 +10,8 @@ import pandas as pd
 import xlsxwriter
 
 # pylint: disable=import-error
-from datalabs.analysis.dbl.validation import Validater
+from   datalabs.analysis.dbl.spreadsheet import TAB_NAMES, DATA_HEADERS
+from   datalabs.analysis.dbl.validation import Validater
 from   datalabs.task import Task
 
 logging.basicConfig()
@@ -24,21 +25,17 @@ def get_letters_between(start, end):
 
 class DBLReportTransformer(Task):
     def run(self) -> 'Transformed Data':
-        dataframes = self._get_dataframes(self._data[:10])  # index 10 contains previous report (.xlsx)
+        previous_report = None
+        data = self._csvs_to_dataframes(self._data[:10])  # index 10 contains previous report (.xlsx)
 
-        for tab in range(10):
-            dataframes[tab] = getattr(self, f"_transform_tab{tab+1}")(dataframes[tab])
+        transformed_data = [getattr(self, f"_transform_{tab}_tab")(dataset) for tab, dataset in zip(TAB_NAMES, data)]
 
         if len(self._data) > 10:
             previous_report = self._data[10]
-        else:
-            previous_report = None
 
-        output = self._make_excel_workbook(sheet_dataframes=dataframes)
+        report = self._make_excel_workbook(sheet_dataframes=transformed_data)
 
-        validater = Validater(output, previous_report)
-
-        validater.validate()
+        validater = self._validate_tabs(report, previous_report)
 
         comparison = {
             'Passing': validater.passing,
@@ -47,64 +44,45 @@ class DBLReportTransformer(Task):
         }
 
         # output is returned twice because it's saved to two files, one datestamped, other as "latest" file
-        return [output, output, previous_report, pk.dumps(comparison)]
+        return [report, report, previous_report, pk.dumps(comparison)]
 
     @classmethod
-    def _get_dataframes(cls, data):
-        tab_1_data =  pd.read_csv(BytesIO(data[0]), delimiter='|', header=None)
-        tab_2_data =  pd.read_csv(BytesIO(data[1]), delimiter='|')
-        tab_3_data =  pd.read_csv(BytesIO(data[2]), delimiter='|')
-        tab_4_data =  pd.read_csv(BytesIO(data[3]), delimiter='|')
-        tab_5_data =  pd.read_csv(BytesIO(data[4]), delimiter='|')
-        tab_6_data =  pd.read_csv(BytesIO(data[5]), delimiter='|', header=None)
-        tab_7_data =  pd.read_csv(BytesIO(data[6]), delimiter='|', header=None)
-        tab_8_data =  pd.read_csv(BytesIO(data[7]), delimiter='|', header=None)
-        tab_9_data =  pd.read_csv(BytesIO(data[8]), delimiter='|', header=None)
-        tab_10_data = pd.read_csv(BytesIO(data[9]), delimiter='|', header=None)
+    def _csvs_to_dataframes(cls, spreadsheet_data):
         return [
-            tab_1_data,
-            tab_2_data,
-            tab_3_data,
-            tab_4_data,
-            tab_5_data,
-            tab_6_data,
-            tab_7_data,
-            tab_8_data,
-            tab_9_data,
-            tab_10_data
+            pd.read_csv(BytesIO(dataset), delimiter='|', header=header)
+            for dataset, header in zip(spreadsheet_data, DATA_HEADERS)
         ]
-
     @classmethod
-    def _transform_tab1(cls, data):
+    def _transform_change_file_audit_tab(cls, data):
         """ ChangeFileAudit """
         return data.drop_duplicates().fillna('')
 
     @classmethod
-    def _transform_tab2(cls, data):
+    def _transform_report_by_field_from_sas_tab(cls, data):
         """ ReportByFieldFrom SAS """
         # no transformation required
         return data.drop_duplicates().fillna('')
 
     @classmethod
-    def _transform_tab3(cls, data):
+    def _transform_count_of_changes_field_extract_tab(cls, data):
         """ ChangeByFieldCount """
         # no transformation required
         return data.drop_duplicates().fillna('')
 
     @classmethod
-    def _transform_tab4(cls, data):
+    def _transform_record_action_extract_tab(cls, data):
         """ RecordActionExtract """
         # no transformation required
         return data
 
     @classmethod
-    def _transform_tab5(cls, data):
+    def _transform_change_by_record_count_tab(cls, data):
         """ ChangeByRecordCount """
         # no transformation required
         return data.drop_duplicates().fillna('')
 
     @classmethod
-    def _transform_tab6(cls, data):
+    def _transform_present_employment_counts_tab(cls, data):
         """ PE Counts """
         data.drop_duplicates(inplace=True)
 
@@ -123,7 +101,7 @@ class DBLReportTransformer(Task):
         return table
 
     @classmethod
-    def _transform_tab7(cls, data):
+    def _transform_type_of_practice_counts_tab(cls, data):
         """ TOP Counts """
         data.drop_duplicates(inplace=True)
 
@@ -142,7 +120,7 @@ class DBLReportTransformer(Task):
         return table
 
     @classmethod
-    def _transform_tab8(cls, data):
+    def _transform_type_of_practice_by_present_employment_tab(cls, data):
         """ TOP by PE """
         data.drop_duplicates(inplace=True)
 
@@ -163,7 +141,7 @@ class DBLReportTransformer(Task):
         return table
 
     @classmethod
-    def _transform_tab9(cls, data):
+    def _transform_primary_specialty_tab(cls, data):
         """ PrimSpecbyMPA """
         data.drop_duplicates(inplace=True)
 
@@ -172,25 +150,12 @@ class DBLReportTransformer(Task):
         return table
 
     @classmethod
-    def _transform_tab10(cls, data):
+    def _transform_secondary_specialty_tab(cls, data):
         """ SecSpecbyMPA """
         data.drop_duplicates(inplace=True)
 
         data.columns = ['SPEC Code', 'Description', 'MPA', 'Count']
         table = cls._make_spec_pivot_table(data)
-        return table
-
-    @classmethod
-    def _make_spec_pivot_table(cls, data: pd.DataFrame):
-        table = pd.pivot_table(
-            data,
-            values='Count',
-            columns=['MPA'],
-            index=['SPEC Code', 'Description'],
-            aggfunc=np.sum,
-            fill_value=0,
-            margins=True
-        ).rename(columns={'All': 'Grand Total'}).rename(index={'All': 'Grand Total'})
         return table
 
     # pylint: disable=too-many-statements
@@ -219,6 +184,27 @@ class DBLReportTransformer(Task):
         output.seek(0)
 
         return output.read()
+
+    @classmethod
+    def _validate_tabs(cls, report, previous_report):
+        validater = Validater(report, previous_report)
+
+        validater.validate()
+
+        return validater
+
+    @classmethod
+    def _make_spec_pivot_table(cls, data: pd.DataFrame):
+        table = pd.pivot_table(
+            data,
+            values='Count',
+            columns=['MPA'],
+            index=['SPEC Code', 'Description'],
+            aggfunc=np.sum,
+            fill_value=0,
+            margins=True
+        ).rename(columns={'All': 'Grand Total'}).rename(index={'All': 'Grand Total'})
+        return table
 
     @classmethod
     def _format_workbook(cls, workbook: xlsxwriter.workbook):

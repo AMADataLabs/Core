@@ -18,16 +18,16 @@ class Validater:
 
     def validate(self):
         if self._old is not None:
-            self._validate_tab1()
-            self._validate_tab2()
-            self._validate_tab3()
-            self._validate_tab4()
-            self._validate_tab5()
-            self._validate_tab6()
-            self._validate_tab7()
-            self._validate_tab8()
-            self._validate_tab9()
-            self._validate_tab10()
+            self._validate_change_file_audit_tab()
+            self._validate_report_by_field_from_sas_tab()
+            self._validate_change_by_field_count_tab()
+            self._validate_record_action_extract_tab()
+            self._validate_change_by_record_count_tab()
+            self._validate_present_employment_counts_tab()
+            self._validate_type_of_practice_counts_tab()
+            self._validate_type_of_practice_by_present_employment_tab()
+            self._validate_primary_specialty_tab()
+            self._validate_specialty_by_mpa_tab()
 
         self._make_result_log_string()
 
@@ -46,7 +46,7 @@ class Validater:
         return self._tab_validations
 
     # pylint: disable=too-many-statements
-    def _validate_tab1(self):
+    def _validate_change_file_audit_tab(self):
         """ChangeFileAudit"""
         tab_name = 'ChangeFileAudit'
 
@@ -80,7 +80,7 @@ class Validater:
             self._tab_validations[tab_name]['errors'] = errors
 
     # pylint: disable=too-many-statements
-    def _validate_tab2(self):
+    def _validate_report_by_field_from_sas_tab(self):
         """ReportByFieldFrom SAS"""
         tab_name = 'ReportByFieldFrom SAS'
         change_threshold = 10
@@ -117,7 +117,7 @@ class Validater:
             self._tab_validations['ReportByFieldFrom SAS']['status'] = 'FAILING'
             self._tab_validations['ReportByFieldFrom SAS']['errors'] = errors
 
-    def _validate_tab3(self):
+    def _validate_change_by_field_count_tab(self):
         """ChangeByFieldCount"""
         tab_name = 'ChangeByFieldCount'
         data = pd.read_excel(self._new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
@@ -137,7 +137,7 @@ class Validater:
             self._tab_validations['ChangeByFieldCount']['status'] = 'FAILING'
             self._tab_validations['ChangeByFieldCount']['errors'] = errors
 
-    def _validate_tab4(self):
+    def _validate_record_action_extract_tab(self):
         """RecordActionExtract"""
         tab_name = 'RecordActionExtract'
 
@@ -162,7 +162,7 @@ class Validater:
             self._tab_validations[tab_name]['status'] = 'FAILING'
             self._tab_validations[tab_name]['errors'] = errors
 
-    def _validate_tab5(self):
+    def _validate_change_by_record_count_tab(self):
         """ChangeByRecordCount"""
         tab_name = 'ChangeByRecordCount'
 
@@ -184,7 +184,7 @@ class Validater:
             self._tab_validations[tab_name]['errors'] = errors
 
     # pylint: disable=too-many-statements
-    def _validate_tab6(self):
+    def _validate_present_employment_counts_tab(self):
         """Present Employment Counts"""
         tab_name = 'PE Counts'
         change_threshold = 5
@@ -216,7 +216,7 @@ class Validater:
             self._tab_validations[tab_name]['errors'] = errors
 
     # pylint: disable=too-many-statements
-    def _validate_tab7(self):
+    def _validate_type_of_practice_counts_tab(self):
         """TOP Counts"""
         tab_name = 'TOP Counts'
         change_threshold = 5
@@ -246,7 +246,7 @@ class Validater:
             self._tab_validations[tab_name]['errors'] = errors
 
     # pylint: disable=too-many-statements
-    def _validate_tab8(self):
+    def _validate_type_of_practice_by_present_employment_tab(self):
         """TOP by PE"""
         tab_name = 'TOP by PE'
         change_threshold = 5
@@ -270,7 +270,7 @@ class Validater:
             self._tab_validations[tab_name]['errors'] = errors
 
     # pylint: disable=too-many-statements
-    def _validate_tab9(self):
+    def _validate_primary_specialty_tab(self):
         """PrimSpecbyMPA"""
         tab_name = 'PrimSpecbyMPA'
         change_threshold = 5
@@ -315,7 +315,7 @@ class Validater:
             self._tab_validations[tab_name]['errors'] = errors
 
     # pylint: disable=too-many-statements
-    def _validate_tab10(self):
+    def _validate_specialty_by_mpa_tab(self):
         """SecSpecbyMPA"""
         tab_name = 'SecSpecbyMPA'
         change_threshold = 5
