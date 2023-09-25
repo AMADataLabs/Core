@@ -18,7 +18,7 @@ class APISpecDifferentiator:
 
         cls._report_missing_endpoints(spec1, spec2)
 
-        cls._report_differing_elements(spec1, spec2)
+        cls._report_differences(spec1, spec2)
 
     @classmethod
     def _load_api_spec(cls, spec_path) -> str:
@@ -56,28 +56,21 @@ class APISpecDifferentiator:
                 print(f"\t{endpoint}")
 
     @classmethod
-    def _report_differing_elements(cls, spec1, spec2):
+    def _report_differences(cls, spec1, spec2):
         new_elements = None
         missing_elements = None
         differing_elements = None
-        results = cls._find_differing_elements(spec1['paths'], spec2['paths'])
+
+        results = cls._find_differences(spec1['paths'], spec2['paths'])
+
         if results:
             new_elements, missing_elements, differing_elements = results
 
-        if new_elements:
-            for endpoint, elements in new_elements.items():
-                if elements:
-                    print(f'The following elements are new in endpoint {endpoint}: {elements}')
+        cls._report_new_elements(new_elements)
 
-        if missing_elements:
-            for endpoint, elements in missing_elements.items():
-                if elements:
-                    print(f'The following elements are missing from endpoint {endpoint}: {elements}')
+        cls._report_missing_elements(missing_elements)
 
-        if differing_elements:
-            for endpoint, elements in differing_elements.items():
-                if elements:
-                    print(f'The following elements differ in endpoint {endpoint}: {elements}')
+        cls._report_differing_elements(differing_elements)
 
     @classmethod
     def _find_new_elements(cls, spec1, spec2):
@@ -95,8 +88,9 @@ class APISpecDifferentiator:
 
         return missing_elements
 
+    # pylint: disable=too-many-statements
     @classmethod
-    def _find_differing_elements(cls, spec1, spec2):
+    def _find_differences(cls, spec1, spec2):
         elements1 = set(spec1.keys())
         elements2 = set(spec2.keys())
         common_elements = elements1.intersection(elements2)
@@ -115,7 +109,7 @@ class APISpecDifferentiator:
                 if elements:
                     missing_elements[element] = elements
 
-                elements = cls._find_differing_elements(spec1[element], spec2[element])
+                elements = cls._find_differences(spec1[element], spec2[element])
                 if elements:
                     differing_elements[element] = elements
 
@@ -123,3 +117,24 @@ class APISpecDifferentiator:
             results = (new_elements, missing_elements, differing_elements)
 
         return results
+
+    @classmethod
+    def _report_new_elements(cls, new_elements):
+        if new_elements:
+            for endpoint, elements in new_elements.items():
+                if elements:
+                    print(f'The following elements are new in endpoint {endpoint}: {elements}')
+
+    @classmethod
+    def _report_missing_elements(cls, missing_elements):
+        if missing_elements:
+            for endpoint, elements in missing_elements.items():
+                if elements:
+                    print(f'The following elements are missing from endpoint {endpoint}: {elements}')
+
+    @classmethod
+    def _report_differing_elements(cls, differing_elements):
+        if differing_elements:
+            for endpoint, elements in differing_elements.items():
+                if elements:
+                    print(f'The following elements differ in endpoint {endpoint}: {elements}')

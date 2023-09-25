@@ -31,6 +31,7 @@ class AddressKeyTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCleanerMixin
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
+    # pylint: disable=too-many-statements
     def _transform(self, data):
         col_street = self._parameters.street_address_column
         col_zip = self._parameters.zip_column

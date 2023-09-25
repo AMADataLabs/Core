@@ -71,6 +71,7 @@ class EntityCommUsgFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMix
 
         return features
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_feature_comm_id_usage_counts(cls, base_data: pd.DataFrame, entity_comm_usg_data: pd.DataFrame):
         """ Gets the ACTIVE and HISTORICAL counts of each usage a given comm_id has *throughout the physician universe*
@@ -97,6 +98,7 @@ class EntityCommUsgFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMix
 
         return features
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _flatten_usage_counts(cls, entity_comm_usg_data: pd.DataFrame, active: bool):
         """

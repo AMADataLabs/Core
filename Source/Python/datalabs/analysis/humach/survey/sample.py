@@ -26,6 +26,7 @@ class AIMSData:
     pe_descriptions: pd.DataFrame = pd.DataFrame()
 
 
+# pylint: disable=too-many-statements
 class HumachSampleGenerator:
     def __init__(
             self,

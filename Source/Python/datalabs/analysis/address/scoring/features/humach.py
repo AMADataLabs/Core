@@ -40,6 +40,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
 
         return [self._dataframe_to_csv(features, sep='|')]
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_humach_features(cls, base_data: pd.DataFrame, humach_data: pd.DataFrame, as_of_date: str, save_dir=None):
         base_data.columns = [col.upper() for col in base_data.columns]
@@ -65,6 +66,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
 
         return data
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _prepare_latest_humach_data(cls, humach_data: pd.DataFrame, as_of_date):
         log_info('PREPARING HUMACH DATA')
@@ -99,6 +101,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
 
         return humach_data.drop_duplicates()
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_survey_date_col_to_humach_data(cls, humach_data: pd.DataFrame):
         if 'SURVEY_DATE' not in humach_data.columns:
@@ -114,6 +117,7 @@ class HumachFeatureGenerationTransformerTask(CSVReaderMixin, CSVWriterMixin, Tas
                 humach_data['SURVEY_DATE'] = humach_data['SOURCE_DATE']
         return humach_data
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_address_status_info(cls, humach_data: pd.DataFrame):
         log_info('RESOLVING HUMACH RESULT ADDRESS STATUS')

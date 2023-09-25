@@ -14,11 +14,43 @@ from   neptune_python_utils.gremlin_utils import GremlinUtils
     reason="Normally skip integration tests to increase testing speed."
 )
 def test_connection(lineage):
+    _reset_graph(lineage)
+
+    verticies = _create_verticies(lineage)
+
+    _create_edges(lineage, verticies)
+
+    assert len(lineage.V().hasLabel('dataset-test').toList()) == 2
+
+    assert len(lineage.V().hasLabel('data-test').toList()) == 3
+
+    edge_count = len(lineage.E().toList())
+
     lineage.V().hasLabel('dataset-test').outE().drop().iterate()
-    lineage.V().hasLabel('dataset-test').drop().iterate()
+    assert len(lineage.E().toList()) == (edge_count - 4)
+
     lineage.V().hasLabel('data-test').outE().drop().iterate()
+    assert len(lineage.E().toList()) == (edge_count - 6)
+
+    lineage.V().hasLabel('dataset-test').drop().iterate()
+    assert len(lineage.V().hasLabel('dataset-test').toList()) == 0
+
+    lineage.V().hasLabel('data-test').drop().iterate()
+    assert len(lineage.V().hasLabel('data-test').toList()) == 0
+
+
+def _reset_graph(lineage):
+    lineage.V().hasLabel('dataset-test').outE().drop().iterate()
+
+    lineage.V().hasLabel('dataset-test').drop().iterate()
+
+    lineage.V().hasLabel('data-test').outE().drop().iterate()
+
     lineage.V().hasLabel('data-test').drop().iterate()
 
+
+
+def _create_verticies(lineage):
     raw_dataset = lineage.addV('dataset-test').property(
         'location', 's3://hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131'
     ).next()
@@ -40,6 +72,11 @@ def test_connection(lineage):
     pdf_zip = lineage.addV('data-test').property(
         'location', 's3://ama-hsg-datalabs-datalake-processed-sandbox/AMA/BOGUS/20200820/pdfs.zip'
     ).next()
+
+    return raw_dataset, pdf1, pdf2, processed_dataset, pdf_zip
+
+def _create_edges(lineage, verticies):
+    raw_dataset, pdf1, pdf2, processed_dataset, pdf_zip = verticies
 
     lineage.V(Bindings.of('id', raw_dataset)).addE('ParentOf').to(processed_dataset).property(
         'timestamp', '20200820T21:38:32+00:00'
@@ -64,24 +101,6 @@ def test_connection(lineage):
     lineage.V(Bindings.of('id', processed_dataset)).addE('Contains').to(pdf_zip).property(
         'timestamp', '20200820T21:38:32+00:00'
     ).iterate()
-
-    assert len(lineage.V().hasLabel('dataset-test').toList()) == 2
-
-    assert len(lineage.V().hasLabel('data-test').toList()) == 3
-
-    edge_count = len(lineage.E().toList())
-
-    lineage.V().hasLabel('dataset-test').outE().drop().iterate()
-    assert len(lineage.E().toList()) == (edge_count - 4)
-
-    lineage.V().hasLabel('data-test').outE().drop().iterate()
-    assert len(lineage.E().toList()) == (edge_count - 6)
-
-    lineage.V().hasLabel('dataset-test').drop().iterate()
-    assert len(lineage.V().hasLabel('dataset-test').toList()) == 0
-
-    lineage.V().hasLabel('data-test').drop().iterate()
-    assert len(lineage.V().hasLabel('data-test').toList()) == 0
 
 
 @pytest.fixture

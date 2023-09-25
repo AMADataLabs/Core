@@ -32,6 +32,7 @@ class AddressScoringTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
+    # pylint: disable=too-many-statements
     def _score(self, model, aggregate_features) -> pd.DataFrame:
         if 'me10' in aggregate_features.columns.values:  # lingering from triangulation
             del aggregate_features['me10']
