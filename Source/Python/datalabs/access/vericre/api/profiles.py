@@ -1,6 +1,7 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
+import json
 import logging
 import sys
 import uuid
@@ -148,6 +149,35 @@ class BaseProfileEndpointTask(APIEndpointTask):
         if len(query_result) == 0:
             raise ResourceNotFound("The profile was not found for the provided Entity Id")
 
+    # def _format_query_result(self, query_result):
+    #     response_result = {}
+
+    #     for record in query_result:
+    #         response_result = self._process_record(response_result, record)
+
+    #     response_result_keys = list(response_result.keys())
+    #     response_result = [asdict(object) for object in list(response_result.values())]
+
+    #     response_size = self._get_response_size(response_result)
+
+    #     next_url = None
+    #     if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+    #         request_id = str(uuid.uuid4())
+    #         entity_ids = response_result_keys
+
+    #         response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
+    #         next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
+
+    #     response_json = {}
+    #     response_json['profiles'] = response_result
+
+    #     if next_url is not None:
+    #         response_json['next'] = next_url
+
+    #     LOGGER.info('Response Result size: %s KB', response_size)
+
+    #     return response_json
+
     def _format_query_result(self, query_result):
         response_result = {}
 
@@ -188,7 +218,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         return response_result
 
     def _cache_request(self, request_id, entity_ids, response_result):
-        self._save_cache(request_id, entity_ids)
+        # self._save_cache(request_id, entity_ids)
 
         response_parts = []
         for item in response_result:
@@ -365,3 +395,65 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
         sql = f"{sql} and u.ama_entity_id = '{entity_id}'"
 
         return sql
+
+
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class MultiProfileLookupByIndexEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    dynamodb_name: str
+    payload: dict
+    unknowns: dict=None
+
+
+class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
+
+    def _filter_by_entity_id(self, sql):
+        request_id = self._parameters.path['entityId']
+        index = self._parameters.query['index']
+
+        entity_id = self._get_entity_ids_from_dynamodb(request_id, index)
+
+        sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
+
+        return sql
+
+    def _get_entity_ids_from_dynamodb(self, request_id, index):
+        key=dict(
+            request_id=dict(S=request_id)
+        )
+        response = None
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.get_item(
+                TableName=self._parameters.dynamodb_name,
+                Key=key
+            )
+
+        entity_ids = self._extract_parameters(response)
+        entity_id_list = entity_ids.split(',')
+        
+        return entity_id_list[index::]
+
+    @classmethod
+    def _extract_parameters(cls, response):
+        parameters = {}
+
+        if "Item" in response:
+            if "entity_ids" not in response["Item"]:
+                raise ValueError(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
+
+            parameters = json.loads(response["Item"]["entity_ids"]["S"])
+
+        return parameters
