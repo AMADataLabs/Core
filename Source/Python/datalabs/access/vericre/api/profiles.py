@@ -2,8 +2,11 @@
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import logging
+import sys
+import uuid
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
+from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
@@ -40,6 +43,8 @@ class StaticTaskParameters:
         'WorkHistory': "work_history",
         "Insurance": "insurance"
     }
+
+    PROFILE_RESPONSE_MAX_SIZE = 55
 
 
 class BaseProfileEndpointTask(APIEndpointTask):
@@ -93,8 +98,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
-            join form f on p.form = f.id
-            join form_field ff on ff.form = f.id 
+            join form_field ff on ff.form = p.form
                 and ff.sub_section is not null
             where 1=1
         '''
@@ -150,7 +154,27 @@ class BaseProfileEndpointTask(APIEndpointTask):
         for record in query_result:
             response_result = self._process_record(response_result, record)
 
-        return [asdict(object) for object in list(response_result.values())]
+        response_result = [asdict(object) for object in list(response_result.values())]
+
+        size = sys.getsizeof(str(response_result))
+        size_in_kb = int(size / 1024)
+
+        next_url = None
+        if size_in_kb > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+            request_id = str(uuid.uuid4())
+            entity_ids = self._parameters.payload.get("entity_id")
+            response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
+            next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
+
+        response_json = {}
+        response_json['profiles'] = response_result
+
+        if next_url is not None:
+            response_json['next'] = next_url
+
+        LOGGER.info('Response Result size: %s KB, %s B', size_in_kb, size)
+
+        return response_json
 
     def _process_record(self, response_result, record):
         if record['ama_entity_id'] not in response_result:
@@ -161,6 +185,32 @@ class BaseProfileEndpointTask(APIEndpointTask):
         response_result = self._append_record_to_response_result(response_result, record_section, record)
 
         return response_result
+
+    def _cache_request(self, request_id, entity_ids, response_result):
+        self._save_cache(request_id, entity_ids)
+
+        response_parts = []
+        for item in response_result:
+            response_parts.append(item)
+            if sys.getsizeof(str(response_parts)) > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+                response_parts.pop()
+                break
+
+        return response_result, len(response_parts)
+
+    def _save_cache(self, request_id, entity_ids):
+        with AWSClient("dynamodb") as dynamodb:
+            item = self._generate_item(request_id, entity_ids)
+            dynamodb.put_item(TableName=self._parameters.dynamodb_name, Item=item)
+
+    @classmethod
+    def _generate_item(cls, request_id, entity_ids):
+        item = dict(
+            request_id=dict(S=request_id),
+            entity_ids=dict(S=entity_ids)
+        )
+
+        return item
 
     @classmethod
     def _add_entity_id_in_response(cls, response_result, record):
