@@ -163,7 +163,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
             request_id = str(uuid.uuid4())
             entity_ids = response_result_keys
-            
+
             response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
             next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
 
@@ -199,7 +199,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 response_parts.pop()
                 break
 
-        return response_result, len(response_parts)
+        return response_parts, len(response_parts)
 
     def _save_cache(self, request_id, entity_ids):
         with AWSClient("dynamodb") as dynamodb:
