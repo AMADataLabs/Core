@@ -446,16 +446,16 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
         entity_ids = self._extract_parameters(response)
         entity_id_list = entity_ids.split(',')
         
-        return entity_id_list[index::]
+        return entity_id_list[index:]
 
     @classmethod
     def _extract_parameters(cls, response):
-        parameters = {}
+        parameters = None
 
         if "Item" in response:
             if "entity_ids" not in response["Item"]:
                 raise ValueError(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
 
-            parameters = json.loads(response["Item"]["entity_ids"]["S"])
+            parameters = response["Item"]["entity_ids"]["S"]
 
         return parameters
