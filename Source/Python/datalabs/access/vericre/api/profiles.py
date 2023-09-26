@@ -412,7 +412,6 @@ class MultiProfileLookupByIndexEndpointParameters:
     database_username: str
     database_password: str
     dynamodb_name: str
-    payload: dict
     unknowns: dict=None
 
 
