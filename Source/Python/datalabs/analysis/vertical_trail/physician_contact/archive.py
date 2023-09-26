@@ -159,6 +159,7 @@ class VTPhysicianContactArchive:
         self.connection.execute(sql)
         self.connection.commit()
 
+    # pylint: disable=too-many-statements
     def create_batch_load_file(self, sample_id=None):
         LOGGER.info(f'Creating IT Batch Load file for sample_id: {sample_id}')
         if sample_id is None:

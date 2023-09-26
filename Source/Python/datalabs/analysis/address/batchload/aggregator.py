@@ -37,6 +37,7 @@ class AddressBatchLoadAggregator:
         self.directory_staging_file_dict = {}  # {'dir1': ['C:/path/to/dir1/file1', 'C:/path/to/dir1/file2']}
         self.files = []
 
+    # pylint: disable=too-many-statements
     def run(self):
         self._validate_process_directories()
         valid_dataframe_list = []
@@ -85,7 +86,7 @@ class AddressBatchLoadAggregator:
             LOGGER.info(f'FOUND COMPONENT FILE - {file}')
         return files
 
-    # pylint: disable=unsupported-assignment-operation,unsubscriptable-object
+    # pylint: disable=unsupported-assignment-operation,unsubscriptable-object,too-many-statements
     def _process_component_file(self, path_to_file: str):
         this_file_data = pd.read_csv(path_to_file, dtype=str)
         for col in this_file_data.columns.values:
@@ -108,6 +109,7 @@ class AddressBatchLoadAggregator:
             ]
         return valid_data, invalid_data
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _process_aggregate_data(cls, aggregate_data: pd.DataFrame):
         """
@@ -145,6 +147,7 @@ class AddressBatchLoadAggregator:
 
         return valid_data, invalid_data
 
+    # pylint: disable=too-many-statements
     def _save_invalid_data(self, invalid_data: pd.DataFrame, component_files: list):
         invalid_data = self._reorder_batch_load_column_order(invalid_data).replace('nan', '')
 

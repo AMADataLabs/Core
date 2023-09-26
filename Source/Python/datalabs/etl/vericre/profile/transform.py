@@ -32,6 +32,7 @@ class AMAProfileTransformerParameters:
 class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
     PARAMETER_CLASS = AMAProfileTransformerParameters
 
+    # pylint: disable=too-many-statements
     def run(self):
         LOGGER.info("Reading physician profile PSV files...")
         abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
@@ -99,6 +100,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         LOGGER.info("Writing ama_masterfile table Feather file...")
         return [self._dataframe_to_feather(ama_masterfile)]
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _create_demographics(cls, demog_data):
         demog_data.FIRST_NAME = demog_data.FIRST_NAME.str.strip()

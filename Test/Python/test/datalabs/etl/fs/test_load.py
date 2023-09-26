@@ -91,7 +91,7 @@ def loader_directory():
         yield temp_directory
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, too-many-statements
 @pytest.fixture
 def environment(extractor_file, loader_directory):
     current_environment = os.environ.copy()
@@ -104,7 +104,6 @@ def environment(extractor_file, loader_directory):
     os.environ['EXTRACTOR__FILES'] = 'PhysicianProfessionalDataFile_*'
     os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'False'
 
-    # os.environ['TRANSFORMER__TASK_CLASS'] = 'test.datalabs.etl.fs.transform.FilenameStripperTransformerTask'
     os.environ['TRANSFORMER__TASK_CLASS'] = 'datalabs.etl.transform.PassThroughTransformerTask'
     os.environ['TRANSFORMER__LOG_DATA'] = 'True'
 

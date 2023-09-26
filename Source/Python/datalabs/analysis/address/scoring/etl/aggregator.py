@@ -29,6 +29,7 @@ KEEP_COLS__HUMACH = ['me', 'address_key', 'humach_*']
 KEEP_COLS__TRIANGULATION = ['me', 'address_key', 'triangulation_*']
 
 
+# pylint: disable=too-many-statements
 def reduce_to_keep_columns(data: pd.DataFrame, keep_columns: list):
     found_columns = data.columns.values
     found_columns = [col.lower() for col in found_columns]
@@ -54,6 +55,7 @@ def reduce_to_keep_columns(data: pd.DataFrame, keep_columns: list):
 
 
 class FeatureAggregatorTransformerTask(Task):
+    # pylint: disable=too-many-statements
     def run(self) -> 'list<bytes>':
         base_data = self._pipe_delim_txt_to_dataframe(self._data[0])
         features_entity_comm = self._pipe_delim_txt_to_dataframe(self._data[1])

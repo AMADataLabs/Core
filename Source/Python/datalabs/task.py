@@ -90,6 +90,7 @@ class TaskWrapper(ABC):
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
+    # pylint: disable=too-many-statements
     def run(self):
         response = None
 
