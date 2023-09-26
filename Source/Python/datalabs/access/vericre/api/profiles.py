@@ -149,35 +149,6 @@ class BaseProfileEndpointTask(APIEndpointTask):
         if len(query_result) == 0:
             raise ResourceNotFound("The profile was not found for the provided Entity Id")
 
-    # def _format_query_result(self, query_result):
-    #     response_result = {}
-
-    #     for record in query_result:
-    #         response_result = self._process_record(response_result, record)
-
-    #     response_result_keys = list(response_result.keys())
-    #     response_result = [asdict(object) for object in list(response_result.values())]
-
-    #     response_size = self._get_response_size(response_result)
-
-    #     next_url = None
-    #     if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
-    #         request_id = str(uuid.uuid4())
-    #         entity_ids = response_result_keys
-
-    #         response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
-    #         next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
-
-    #     response_json = {}
-    #     response_json['profiles'] = response_result
-
-    #     if next_url is not None:
-    #         response_json['next'] = next_url
-
-    #     LOGGER.info('Response Result size: %s KB', response_size)
-
-    #     return response_json
-
     def _format_query_result(self, query_result):
         response_result = {}
 
@@ -218,7 +189,12 @@ class BaseProfileEndpointTask(APIEndpointTask):
         return response_result
 
     def _cache_request(self, request_id, entity_ids, response_result):
-        # self._save_cache(request_id, entity_ids)
+        index = 0
+
+        if "POST" == self._parameters.method:
+            self._save_cache(request_id, entity_ids)
+        else:
+            index = int(self._parameters.query['index'][0])
 
         response_parts = []
         for item in response_result:
@@ -229,7 +205,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 response_parts.pop()
                 break
 
-        return response_parts, len(response_parts)
+        return response_parts, index + len(response_parts)
 
     def _save_cache(self, request_id, entity_ids):
         with AWSClient("dynamodb") as dynamodb:
