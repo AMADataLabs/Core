@@ -441,6 +441,8 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
                 Key=key
             )
 
+        LOGGER.info('Response from DynamoDB: %s', response)
+
         entity_ids = self._extract_parameters(response)
         entity_id_list = entity_ids.split(',')
         
