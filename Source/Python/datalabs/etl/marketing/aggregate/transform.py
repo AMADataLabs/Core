@@ -8,6 +8,7 @@ import pickle
 import random
 import string
 
+from   dateutil.parser import parse
 import pandas
 import numpy as np
 
@@ -58,17 +59,42 @@ class MarketingData:
     flatfile: pandas.DataFrame
 
 
+@add_schema
+@dataclass
+class SourceFileListTransformerParameters:
+    execution_time: str = None
+
+
 class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = SourceFileListTransformerParameters
+
     def run(self):
-        data = InputDataParser.parse(self._data[0])
+        adhoc_list_of_lists, aims, flatfile = [InputDataParser.parse(x) for x in self._data]
 
-        list_of_lists = data[data['list_of_files'].str.contains('List of Lists')]
-        adhoc = data[~data['list_of_files'].str.contains('List of Lists')]
+        list_of_lists = adhoc_list_of_lists[adhoc_list_of_lists['list_of_files'].str.contains('List of Lists')]
 
-        file_lists = [list_of_lists, adhoc]
+        adhoc = adhoc_list_of_lists[~adhoc_list_of_lists['list_of_files'].str.contains('List of Lists')]
+
+        execution_month = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S').month
+
+        aims = self._get_latest_file(aims, execution_month)
+
+        flatfile = self._get_latest_file(flatfile, execution_month)
+
+        file_lists = [adhoc, aims, list_of_lists, flatfile]
 
         return [self._dataframe_to_csv(data) for data in file_lists]
 
+    @classmethod
+    def _get_latest_file(cls, data, execution_month):
+        data = data.iloc[[-1]]
+
+        if len(data) > 0:
+            data = data[data.list_of_files.apply(
+                                                lambda x: parse(x, fuzzy=True).month
+                                                ).astype(str).str.contains(str(execution_month))
+                        ]
+        return data
 
 @add_schema
 @dataclass

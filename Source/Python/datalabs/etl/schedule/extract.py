@@ -36,13 +36,15 @@ class ScheduledDAGStateExtractor(ExecutionTimeMixin, StatefulDAGMixin, Task, CSV
         dag_runs_status = self._get_dags(dag_runs)
         LOGGER.info("Dags to Run:\n%s", dag_runs_status)
 
-        return [self._dataframe_to_csv(dag_runs_status)]
+        return [self._dataframe_to_csv(dag_runs_status, date_format='%Y-%m-%d %H:%M:%S')]
 
     def _get_dags(self, dag_runs):
         state = self._get_state_plugin(self._parameters)
         dag_runs = dag_runs.fillna(numpy.nan).replace([numpy.nan], [None])
 
         dag_runs["status"] = dag_runs.apply(lambda dag: self._get_run_statuses(state, dag), axis = 1)
+
+        dag_runs['execution_time'] = dag_runs['execution_time'].astype('datetime64[ns]')
 
         return dag_runs
 
