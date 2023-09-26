@@ -56,7 +56,7 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
         smtp.send_message(message)
 
 
-# pylint: disable=too-many-arguments, invalid-name, line-too-long
+# pylint: disable=too-many-arguments, invalid-name, line-too-long, too-many-statements
 def create_message(to, subject, cc=None, body=None, attachments: [Attachment] = None, from_account=None, html_content=None) -> EmailMessage:
     message = EmailMessage()
     message['To'] = to

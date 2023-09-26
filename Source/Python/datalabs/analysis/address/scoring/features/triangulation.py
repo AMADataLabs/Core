@@ -34,6 +34,7 @@ class TriangulationFeatureTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return [self._dataframe_to_csv(features, sep='|')]
 
+    # pylint: disable=too-many-statements
     @classmethod
     def _add_triangulation_features(
         cls,

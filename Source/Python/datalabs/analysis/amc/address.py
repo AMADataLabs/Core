@@ -28,6 +28,7 @@ class AMCAddressFlagger:
 
         self._output_file_password = None
 
+    # pylint: disable=too-many-statements
     def flag(self, data: pd.DataFrame = None):
         if data is None and feature.enabled("WINDOWS"):
             LOGGER.info('Querying active amc-sourced address data.')
@@ -90,6 +91,7 @@ class AMCAddressFlagger:
 
         return data.drop_duplicates()
 
+    # pylint: disable=too-many-statements
     def _get_flagged_data_and_summary(self, data):
         LOGGER.info('\tAdding flag indicator columns:')
         LOGGER.info('\t\taddr1')

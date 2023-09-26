@@ -9,9 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.0.5
-        [itg]=1.0.5
-        [prd]=1.0.5
+        [tst]=dev
+        [prd]=1.0.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -19,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-vericre-profile-api"
-    export RELEASE_DESCRIPTION="VeriCre Profile API implementations"
+    export RELEASE_NAME="datalabs-vignettes-etl"
+    export RELEASE_DESCRIPTION="Vignettes CPT API ETL DAG definition and tasks"
 }
 
 

@@ -106,6 +106,7 @@ class LicenseMovementFinder:
         match = self.filter_to_most_recent_license(match)
         return match
 
+    # pylint: disable=too-many-statements
     def filter_on_credentialing_zip_distance(self, data: pd.DataFrame, credentialing_data=None, ppd=None):
         LOGGER.info('FILTERING ON ZIP DISTANCE')
         LOGGER.info(f' - START: {str(len(data))}')

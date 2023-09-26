@@ -27,6 +27,7 @@ class WSLiveResultTransformerTask(SASReaderMixin, CSVWriterMixin, Task):
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
+    # pylint: disable=too-many-statements
     def _transform(self, data) -> 'Transformed Data':
         for col in data.columns.values:
             data[col] = data[col].fillna('').astype(str).apply(str.strip).apply(lambda x: ' '.join(x.split()))
