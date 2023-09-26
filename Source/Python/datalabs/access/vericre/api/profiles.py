@@ -423,6 +423,7 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
         index = self._parameters.query['index'][0]
 
         entity_id = self._get_entity_ids_from_dynamodb(request_id, index)
+        LOGGER.info('Entity Ids: %s', entity_id)
 
         sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
 
