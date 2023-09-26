@@ -16,9 +16,8 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class OpenSearchLoaderParameters:
-    table: str = None
+    index_name: str
     execution_time: str = None
-    index_name: str = None
 
 
 class OpensearchLoaderTask(Task):
@@ -26,12 +25,12 @@ class OpensearchLoaderTask(Task):
 
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
-        knowledge_base_data = json.loads(self._data[0])
+        knowledge_base_data = json.loads(self._data[0].decode())
 
         with AWSClient("opensearch") as opensearch_client:
-            if self._knowledge_base_index_does_not_exists(opensearch_client, self._parameters.index):
-                self._create_index(opensearch_client, self._parameters.index)
-            self._load_knowledge_base_data(knowledge_base_data, opensearch_client, self._parameters.index)
+            if self._knowledge_base_index_does_not_exists(opensearch_client, self._parameters.index_name):
+                self._create_index(opensearch_client, self._parameters.index_name)
+            self._load_knowledge_base_data(knowledge_base_data, opensearch_client, self._parameters.index_name)
 
     @classmethod
     def _knowledge_base_index_does_not_exists(cls, opensearch_client, index_name):

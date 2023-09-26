@@ -1,5 +1,5 @@
 ---
-SNOMED_CPT_ETL:
+CPT_KNOWLEDGE_BASE_ETL:
     GLOBAL:
         ENVIRONMENT: dev
         ACCOUNT: '191296302136'
@@ -10,11 +10,11 @@ SNOMED_CPT_ETL:
 
 
         S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-        S3_BASE_PATH: 'AMA/SNOMED'
+        S3_BASE_PATH: 'AMA/KNOWLEDGEBASE'
 
     DAG:
-        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-SNOMED-DAG'
-        DAG_CLASS: 'datalabs.etl.dag.cpt.snomed.DAG'
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-KnowledgeBase-DAG'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.knowledge_base.DAG'
         DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
             STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
@@ -24,31 +24,31 @@ SNOMED_CPT_ETL:
         DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
-    EXTRACT_SNOMED_FILE:
+    EXTRACT_KNOWLEDGE_BASE_FILE:
         BUCKET: ${S3_STAGED_DATA_BUCKET}
         BASE_PATH: ${S3_BASE_PATH}
-        FILES: snomed_cpt_map_fsn_descr_20230131.xlsx
+        FILES: knowledge_base_data.xlsx
         INCLUDE_DATESTAMP: 'False'
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_OUTPUT_FILES: 'snomed_mapping.xlsx'
+        CACHE_OUTPUT_FILES: 'knowledge_base_data.xlsx'
 
-    CREATE_SNOMED_MAPPINGS:
+    CREATE_KNOWLEDGE_BASE_DATA:
         CACHE_CLASS: ${S3_CACHE_CLASS}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
 
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        CACHE_INPUT_FILES: 'snomed_mapping.xlsx'
+        CACHE_INPUT_FILES: 'knowledge_base_data.xlsx'
 
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_OUTPUT_FILES: 'snomed_mapping.json'
+        CACHE_OUTPUT_FILES: 'knowledge_base_data.json'
 
-    LOAD_SNOMED_MAPPINGS:
-        TABLE: 'CPT-API-snomed-${ENVIRONMENT}'
-
+    LOAD_KNOWLEDGE_BASE_DATA:
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_INPUT_FILES: 'snomed_mapping.json'
+        CACHE_INPUT_FILES: 'knowledge_base_data.json'
+
+        INDEX_NAME: 'KNOWLEDGE-BASE'
