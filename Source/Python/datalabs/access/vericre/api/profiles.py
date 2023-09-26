@@ -45,7 +45,7 @@ class StaticTaskParameters:
         "Insurance": "insurance"
     }
 
-    PROFILE_RESPONSE_MAX_SIZE = 55
+    PROFILE_RESPONSE_MAX_SIZE = 5510
 
 
 class BaseProfileEndpointTask(APIEndpointTask):
