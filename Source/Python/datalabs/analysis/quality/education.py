@@ -17,9 +17,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
     def run(self):
-        dataset = self._parse_input(self._data)
+        data = self._parse_input(self._data)
 
-        preprocessed_data = self._preprocess_data(dataset)
+        preprocessed_data = self._preprocess_data(data)
 
         entities = self._create_entity(preprocessed_data)
 
@@ -27,11 +27,11 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         return self._pack(postprocessed_data)
 
-    def _parse_input(self, dataset):
-        return [self._csv_to_dataframe(data, sep=",") for data in dataset]
+    def _parse_input(self, data):
+        return [self._csv_to_dataframe(dataset, sep=",") for dataset in data]
 
-    def _preprocess_data(self, dataset):
-        dataset = [self._columns_to_lower(data) for data in dataset]
+    def _preprocess_data(self, data):
+        dataset = [self._columns_to_lower(dataset) for dataset in data]
 
         ppd_party_ids, hospital_names, school_ids, graduate_education_details, *rest = dataset
 
@@ -39,9 +39,7 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         hospital_names.thru_dt = pandas.to_datetime(hospital_names.thru_dt)
 
-        hospital_names = hospital_names.sort_values("thru_dt").drop_duplicates(
-            "party_hospital_id", keep="last"
-        )
+        hospital_names = hospital_names.sort_values("thru_dt").drop_duplicates("party_hospital_id", keep="last")
         school_ids = school_ids.drop_duplicates()
 
         graduate_education_details = graduate_education_details.drop_duplicates("party_id")
@@ -49,8 +47,8 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         return [ppd_party_ids, hospital_names, school_ids, graduate_education_details] + rest
 
     @classmethod
-    def _columns_to_lower(cls, data):
-        return data.rename(columns=lambda x: x.lower())
+    def _columns_to_lower(cls, dataset):
+        return dataset.rename(columns=lambda x: x.lower())
 
     def _create_entity(self, preprocessed_data):
         (
@@ -117,25 +115,19 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         school_attended_information["grad_date"] = (
             school_attended_information["grad_dt"]
             .replace(nan, None)
-            .apply(
-                lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None
-            )
+            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None)
         )
 
         graduate_education_information["begin_dt"] = (
             graduate_education_information["begin_dt"]
             .replace(nan, None)
-            .apply(
-                lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None
-            )
+            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None)
         )
 
         graduate_education_information["end_dt"] = (
             graduate_education_information["end_dt"]
             .replace(nan, None)
-            .apply(
-                lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None
-            )
+            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None)
         )
 
         school_attended_information = school_attended_information.sort_values("grad_date")
@@ -152,17 +144,13 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             lambda x: "2" if str(x) == "9" else "1" if str(x) == "54" else "0"
         )
 
-        school_attended_information = school_attended_information.sort_values(
-            ["status", "country", "grad_date"]
-        )
+        school_attended_information = school_attended_information.sort_values(["status", "country", "grad_date"])
 
         return school_attended_information
 
     @classmethod
     def _grab_latest_school_attended(cls, school_attended_information):
-        singular_school_attended = school_attended_information.drop_duplicates(
-            "party_id", keep=False
-        )
+        singular_school_attended = school_attended_information.drop_duplicates("party_id", keep=False)
 
         multiple_school_attended = school_attended_information[
             school_attended_information.duplicated("party_id", keep=False)
@@ -170,9 +158,7 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         latest_school_attended = multiple_school_attended.drop_duplicates("party_id", keep="last")
 
-        school_attended_information = pandas.concat(
-            [singular_school_attended, latest_school_attended]
-        )
+        school_attended_information = pandas.concat([singular_school_attended, latest_school_attended])
 
         return school_attended_information
 
@@ -204,7 +190,4 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         return [entities[0].drop(columns=["me", "grad_dt"]).replace(nan, None)]
 
     def _pack(self, postprocessed_data):
-        return [
-            self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC)
-            for data in postprocessed_data
-        ]
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
