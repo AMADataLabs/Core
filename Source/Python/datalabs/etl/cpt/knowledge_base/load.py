@@ -23,7 +23,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class OpenSearchLoaderParameters:
     index_name: str
-    host: str
+    collection_url: str
     execution_time: str = None
 
 
@@ -39,7 +39,7 @@ class OpensearchLoaderTask(Task):
         awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
                            region, service, session_token=credentials.token)
         opensearch_client = OpenSearch(
-            hosts=[{'host': self._parameters.host, 'port': 443}],
+            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
