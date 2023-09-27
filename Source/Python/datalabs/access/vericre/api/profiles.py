@@ -149,6 +149,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         if len(query_result) == 0:
             raise ResourceNotFound("The profile was not found for the provided Entity Id")
 
+    @run_time_logger
     def _format_query_result(self, query_result):
         response_result = {}
 
@@ -177,6 +178,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return response_json
 
+    @run_time_logger
     def _process_record(self, response_result, record):
         if record['ama_entity_id'] not in response_result:
             response_result = self._add_entity_id_in_response(response_result, record)
@@ -187,6 +189,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return response_result
 
+    @run_time_logger
     def _cache_request(self, entity_ids, response_result):
         index = 0
         request_id = ''
@@ -209,12 +212,14 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return request_id, response_parts, index + len(response_parts)
 
+    @run_time_logger
     def _save_cache(self, request_id, entity_ids):
         with AWSClient("dynamodb") as dynamodb:
             item = self._generate_item(request_id, entity_ids)
             dynamodb.put_item(TableName=self._parameters.dynamodb_name, Item=item)
 
     @classmethod
+    @run_time_logger
     def _generate_item(cls, request_id, entity_ids):
         item = dict(
             request_id=dict(S=request_id),
@@ -224,6 +229,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
         return item
 
     @classmethod
+    @run_time_logger
     def _get_response_size(cls, response_result):
         size = sys.getsizeof(str(response_result))
         size_in_kb = int(size / 1024)
