@@ -162,10 +162,9 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         next_url = None
         if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
-            request_id = str(uuid.uuid4())
             entity_ids = response_result_keys
 
-            response_result, next_index = self._cache_request(request_id, entity_ids, response_result)
+            request_id, response_result, next_index = self._cache_request(entity_ids, response_result)
             next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
 
         response_json = {}
@@ -190,10 +189,13 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
     def _cache_request(self, request_id, entity_ids, response_result):
         index = 0
+        request_id = ''
 
         if "POST" == self._parameters.method:
+            request_id = str(uuid.uuid4())
             self._save_cache(request_id, entity_ids)
         else:
+            request_id = self._parameters.path['request_id']
             index = int(self._parameters.query['index'][0])
 
         response_parts = []
@@ -205,7 +207,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 response_parts.pop()
                 break
 
-        return response_parts, index + len(response_parts)
+        return request_id, response_parts, index + len(response_parts)
 
     def _save_cache(self, request_id, entity_ids):
         with AWSClient("dynamodb") as dynamodb:
