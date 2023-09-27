@@ -1,0 +1,20 @@
+---
+KNOWLEDGE_BASE_API:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '191296302136'
+        DATABASE_TABLE: 'CPT-API-knowledge-base-${ENVIRONMENT}'
+
+    ROUTE:
+        ARTICLES_SUMMARY: '/knowledge_base/articles/summary'
+        ARTICLE: '/knowledge_base/article/*'
+        DEFAULT: '/*'
+
+    ARTICLES_SUMMARY:
+        TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
+
+    ARTICLE:
+        TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'
