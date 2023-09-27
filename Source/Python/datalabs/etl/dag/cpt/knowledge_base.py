@@ -2,7 +2,7 @@
 from   datalabs.etl.dag import dag
 
 
-@dag.register(name="CPT_KNOWLEDGE_BASE_ETL")
+@dag.register(name="KNOWLEDGE_BASE_ETL")
 class DAG(dag.DAG):
     EXTRACT_KNOWLEDGE_BASE_FILE: "datalabs.etl.s3.extract.S3FileExtractorTask"
     CREATE_KNOWLEDGE_BASE_DATA: "datalabs.etl.cpt.knowledge_base.transform.DataTransformerTask"
