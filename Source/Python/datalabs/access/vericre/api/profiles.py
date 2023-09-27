@@ -367,7 +367,7 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
     def _filter_by_entity_id(self, sql):
-        entity_id = self._parameters.path.get('entityId')
+        entity_id = self._parameters.path.get('entity_id')
         sql = f"{sql} and u.ama_entity_id = '{entity_id}'"
 
         return sql
@@ -395,7 +395,7 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
 
     def _filter_by_entity_id(self, sql):
-        request_id = self._parameters.path['requestId']
+        request_id = self._parameters.path['request_id']
         index = int(self._parameters.query['index'][0])
 
         entity_id = self._get_entity_ids_from_dynamodb(request_id, index)

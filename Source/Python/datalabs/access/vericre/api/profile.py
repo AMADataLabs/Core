@@ -169,7 +169,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         sql = self._query_for_documents(entity_id)
@@ -360,7 +360,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         access_token = self._get_ama_access_token()
@@ -505,7 +505,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         sql = self._query_for_provider_id(entity_id)
