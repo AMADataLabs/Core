@@ -1,8 +1,6 @@
 ''' DAG definition for KnowledgeBase-CPT API ETL '''
 from   datalabs.etl.dag import dag
 
-from Source.Python import datalabs
-
 
 @dag.register(name="KNOWLEDGE_BASE_ETL")
 class DAG(dag.DAG):
