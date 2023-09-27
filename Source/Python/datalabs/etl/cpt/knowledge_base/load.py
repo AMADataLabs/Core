@@ -1,11 +1,17 @@
 """AWS DynamoDB Loader"""
 import json
 import logging
+import boto3
+import os
 
 from   dataclasses import dataclass
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+from   opensearchpy.helpers import bulk
+from   requests_aws4auth import AWS4Auth
+from   opensearch_dsl import Search
+from   opensearchpy import OpenSearch, RequestsHttpConnection
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -17,6 +23,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class OpenSearchLoaderParameters:
     index_name: str
+    host: str
     execution_time: str = None
 
 
@@ -26,11 +33,23 @@ class OpensearchLoaderTask(Task):
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
         knowledge_base_data = json.loads(self._data[0].decode())
+        service = 'aoss'
+        region = 'us-east-1'
+        credentials = boto3.Session().get_credentials()
+        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
+                           region, service, session_token=credentials.token)
+        opensearch_client = OpenSearch(
+            hosts=[{'host': self._parameters.host, 'port': 443}],
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+            connection_class=RequestsHttpConnection,
+            timeout=15
+        )
 
-        with AWSClient("opensearch") as opensearch_client:
-            if self._knowledge_base_index_does_not_exists(opensearch_client, self._parameters.index_name):
-                self._create_index(opensearch_client, self._parameters.index_name)
-            self._load_knowledge_base_data(knowledge_base_data, opensearch_client, self._parameters.index_name)
+        if self._knowledge_base_index_does_not_exists(opensearch_client, self._parameters.index_name):
+            self._create_index(opensearch_client, self._parameters.index_name)
+        self._load_knowledge_base_data(knowledge_base_data, opensearch_client, self._parameters.index_name)
 
     @classmethod
     def _knowledge_base_index_does_not_exists(cls, opensearch_client, index_name):

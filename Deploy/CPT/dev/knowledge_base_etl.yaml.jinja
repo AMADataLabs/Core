@@ -1,5 +1,5 @@
 ---
-CPT_KNOWLEDGE_BASE_ETL:
+KNOWLEDGE_BASE_ETL:
     GLOBAL:
         ENVIRONMENT: dev
         ACCOUNT: '191296302136'
@@ -8,9 +8,9 @@ CPT_KNOWLEDGE_BASE_ETL:
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
         S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
 
-
         S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-        S3_BASE_PATH: 'AMA/KNOWLEDGEBASE'
+        S3_BASE_PATH: 'AMA/KnowledgeBase'
+        OPENSEARCH_URL: ''
 
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-KnowledgeBase-DAG'
@@ -51,4 +51,5 @@ CPT_KNOWLEDGE_BASE_ETL:
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
         CACHE_INPUT_FILES: 'knowledge_base_data.json'
 
-        INDEX_NAME: 'KNOWLEDGE-BASE'
+        INDEX_NAME: 'knowledge_base'
+        HOST: ${OPENSEARCH_URL}
