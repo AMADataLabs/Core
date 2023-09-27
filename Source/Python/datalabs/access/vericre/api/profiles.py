@@ -187,7 +187,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return response_result
 
-    def _cache_request(self, request_id, entity_ids, response_result):
+    def _cache_request(self, entity_ids, response_result):
         index = 0
         request_id = ''
 
