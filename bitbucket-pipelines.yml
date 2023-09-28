@@ -2494,7 +2494,7 @@ pipelines:
                     - environment-master
                 script:
                     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    - bash Deploy/Master/deploy-package --project CPT/KNOWLEDGEBASE/ETL
+                    - bash Deploy/Master/deploy-package --project CPT/KnowledgeBase/ETL
 #        - parallel:
         - step:
                 name: Update Sandbox Lambda Bundle
@@ -2505,8 +2505,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project CPT/KNOWLEDGEBASE/ETL
-                    --bundle CPT/KNOWLEDGEBASE/ETL.zip
+                    --project CPT/KnowledgeBase/ETL
+                    --bundle CPT/KnowledgeBase/ETL.zip
 #            - step:
 #                name: Update Development Lambda Bundle
 #                caches:
@@ -2552,7 +2552,7 @@ pipelines:
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
-                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/KNOWLEDGEBASE
+                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/KnowledgeBase
                     KNOWLEDGEBASE-DAG=ETL.zip
 #            - step:
 #                name: Reload Development Lambda Functions
