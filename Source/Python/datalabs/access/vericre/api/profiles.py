@@ -178,7 +178,6 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return response_json
 
-    @run_time_logger
     def _process_record(self, response_result, record):
         if record['ama_entity_id'] not in response_result:
             response_result = self._add_entity_id_in_response(response_result, record)
