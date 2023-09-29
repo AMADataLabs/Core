@@ -88,13 +88,13 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 end as source_tag,
                 ff.type,
                 case when ff."type" = 'DATE' then get_formatted_date(ff."values")
-                	 else ff."values" 
+                     else ff."values"
                 end as values,
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
             join form f on p.form = f.id
-            join form_field ff on ff.form = f.id 
+            join form_field ff on ff.form = f.id
                 and ff.sub_section is not null
             where 1=1
         '''
@@ -300,7 +300,7 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
     def _filter_by_entity_id(self, sql):
-        entity_id = self._parameters.path.get('entityId')
+        entity_id = self._parameters.path.get('entity_id')
         sql = f"{sql} and u.ama_entity_id = '{entity_id}'"
 
         return sql
