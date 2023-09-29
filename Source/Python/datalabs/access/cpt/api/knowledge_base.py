@@ -21,7 +21,7 @@ class MapSearchEndpointParameters:
     method: str
     path: dict
     query: dict
-    collection_url: str
+    #collection_url: str
     unknowns: dict = None
 
 
@@ -50,7 +50,8 @@ class MapSearchEndpointTask(APIEndpointTask):
         awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
                            region, service, session_token=credentials.token)
         opensearch_client = OpenSearch(
-            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            #hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            hosts=[{'host': 'https://kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com', 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
