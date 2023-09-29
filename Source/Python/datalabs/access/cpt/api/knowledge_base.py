@@ -1,5 +1,7 @@
 """ Release endpoint classes. """
 import logging
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
 from   requests_aws4auth import AWS4Auth
 from   dataclasses import dataclass
 
@@ -98,7 +100,8 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _get_search_results(cls, opensearch, keywords, search_parameters):
         results = None
         query_parameters = cls._get_query_parameters(keywords, search_parameters)
-
+        LOGGER.info("Query Parameters are")
+        LOGGER.info(str(query_parameters))
         response = opensearch.search(index=search_parameters.index, body=query_parameters)
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
