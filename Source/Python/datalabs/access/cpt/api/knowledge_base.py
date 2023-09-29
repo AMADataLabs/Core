@@ -1,10 +1,13 @@
 """ Release endpoint classes. """
 import logging
+from   requests_aws4auth import AWS4Auth
 from   dataclasses import dataclass
 
+import boto3
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
+from   opensearchpy import OpenSearch, RequestsHttpConnection
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -26,8 +29,8 @@ class SearchParameters:
     max_results: int
     index: int
     keywords: list
-    section: list
-    subsection: list
+    sections: list
+    subsections: list
     updated_after_date: str
     updated_before_date: str
 
@@ -40,7 +43,19 @@ class MapSearchEndpointTask(APIEndpointTask):
             search_parameters = self._get_search_parameters(self._parameters.query)
         except TypeError as type_error:
             raise InvalidRequest("Non-integer 'results' parameter value") from type_error
-
+        service = 'aoss'
+        region = 'us-east-1'
+        credentials = boto3.Session().get_credentials()
+        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
+                           region, service, session_token=credentials.token)
+        opensearch_client = OpenSearch(
+            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+            connection_class=RequestsHttpConnection,
+            timeout=15
+        )
         with AWSClient("opensearch") as opensearch:
             search_results = self._query_index(opensearch, search_parameters)
 
