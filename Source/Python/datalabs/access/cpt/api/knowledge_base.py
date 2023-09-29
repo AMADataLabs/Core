@@ -21,6 +21,7 @@ class MapSearchEndpointParameters:
     method: str
     path: dict
     query: dict
+    collection_url: str
     unknowns: dict = None
 
 

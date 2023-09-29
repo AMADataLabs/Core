@@ -5,6 +5,8 @@ KNOWLEDGE_BASE_API:
         ACCOUNT: '191296302136'
         DATABASE_TABLE: 'CPT-API-knowledge-base-${ENVIRONMENT}'
 
+        OPENSEARCH_URL: 'https://kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com'
+
     ROUTE:
         ARTICLES_SUMMARY: '/knowledge_base/articles/summary'
         ARTICLE: '/knowledge_base/article/*'
@@ -12,6 +14,7 @@ KNOWLEDGE_BASE_API:
 
     ARTICLES_SUMMARY:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
+        COLLECTION_URL: ${OPENSEARCH_URL}
 
     ARTICLE:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
