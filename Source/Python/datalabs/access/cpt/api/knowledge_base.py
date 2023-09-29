@@ -51,7 +51,7 @@ class MapSearchEndpointTask(APIEndpointTask):
                            region, service, session_token=credentials.token)
         opensearch_client = OpenSearch(
             #hosts=[{'host': self._parameters.collection_url, 'port': 443}],
-            hosts=[{'host': 'https://kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com', 'port': 443}],
+            hosts=[{'host': 'kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com', 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
