@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
-  title: SNOMED CPT API
-  description: SNOMED CPT API
-  version: "1.0.0"
+  title: Knowledge Base Search API
+  description: Knowledge Base Search API
+  version: 1.1.0
   termsOfService: 'http://swagger.io/terms/'
   contact:
     email: datalabs@ama-assn.org
@@ -10,125 +10,175 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
-  - name: Mapping
-    description: >-
-      A CPT code and descriptor to which a SNOMED concept maps.
-    externalDocs:
-      url: 'http://swagger.io'
-  - name: Map
-    description: >-
-      A SNOMED Concept ID, descriptor, and list of CPT mappings.
-  - name: Maps
-    description: >-
-      A list of SNOMED-CPT maps. If more results than returned are available,
-      a "next" property indicating the URL to fetch the next set of results
-      is included.
+  - name: Article Search
+    description: Search articles, returning summaries from which the client can isolate articles relevant to their needs.
+  - name: Article Fetch
+    description: Retrieve articles identified in search results.
+  - name: Default 404
+    description: Default invalid resource error response
 paths:
-  '/map/cpt/{concept}':
+  /articles/summary:
     get:
       tags:
-        - Map
-      summary: CPT codes by SNOMED Concept
-      description: Return all CPT codes and descriptors to which the given SNOMED Concept ID maps. Also return the mapping categories.
-      operationId: getCPTCodeMap
+        - Article Search
+      summary: Get article summaries using filters.
+      description: Provides best matches of CPT Knowledge Base articles for the provided filters. Only a preview of the answer field is provided. Call /article/{} to get the full article text.
+      operationId: getArticleSummaries
       parameters:
-        - name: concept
-          in: path
-          description: SNOMED Concept ID
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-        - name: category
-          in: query
-          description: Filter by mapping category.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-      x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        httpMethod: "POST"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Map'
-        '400':
-          description: Invalid query parameter
-        '404':
-          description: No SNOMED Concept for the given ID.
-      security:
-        - gateway_authorizer: []
-  /maps/cpt:
-    get:
-      tags:
-        - Maps
-      summary: All SNOMED Concepts and their CPT Code maps
-      description: Returns all SNOMED Concepts, descriptors along with the CPT Codes and descriptors to which they map.
-      operationId: getCPTCodeMaps
-      parameters:
-        - name: results
-          in: query
-          description: Maximum number of results to return (default 50)
-          required: false
-          schema:
-            type: integer
-            minimum: 1
         - name: keyword
           in: query
-          description: Filter by keyword across the text of any of the SNOMED descriptors.
+          description: 'A keyword for which to search in Knowledge Base articles'
           required: false
           schema:
             type: array
             items:
               type: string
-        - name: category
+        - name: section
           in: query
-          description: Filter by mapping category.
+          description: 'A section for which to filter articles'
           required: false
           schema:
             type: array
             items:
               type: string
-        - name: index
+        - name: subsection
           in: query
-          description: Start index of results (default 0)
+          description: 'A subsection for which to filter articles'
           required: false
           schema:
-            type: integer
-            minimum: 1
+            type: array
+            items:
+              type: string
+        - name: updated_after_date
+          in: query
+          description: 'Show article summaries updated after this date'
+          required: false
+          schema:
+            type: string
+        - name: updated_before_date
+          in: query
+          description: 'Show article summaries updated before this date'
+          required: false
+          schema:
+            type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
+        uri: "${invocation_uri}"
         responses:
           default:
-            statusCode: "200"
+            statusCode: 200
         passthroughBehavior: "when_no_match"
         httpMethod: "POST"
-        contentHandling: "CONVERT_TO_TEXT"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
         type: "aws_proxy"
       responses:
-        '200':
-          description: successful operation
+         "200":
+          description: Found data for search criteria
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Maps'
-        '400':
-          description: Invalid query parameter
+                $ref: '#/components/schemas/Articles'
+         "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "408":
+          description: Request Timedout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+      security:
+        - gateway_authorizer: []
+  /article/{id}:
+    get:
+      tags:
+        - Article Fetch
+      summary: Retrieve an article.
+      description: Retrieve an article from CPT Knowledge Base.
+      operationId: getArticle
+      parameters:
+        - name: id
+          in: path
+          description: 'Article ID'
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "${invocation_uri}"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+         "200":
+          description: 200 response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+         "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "408":
+          description: Request Timedout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+         "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
       security:
         - gateway_authorizer: []
   /{proxy+}:
     get:
+      tags:
+        - Default 404
       parameters:
         - name: proxy
           in: path
@@ -136,7 +186,7 @@ paths:
           schema:
             type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-SNOMED-API/invocations"
+        uri: "${invocation_uri}"
         responses:
           default:
             statusCode: 200
@@ -153,46 +203,41 @@ paths:
         - gateway_authorizer: []
 components:
   schemas:
-    Maps:
+    Articles:
+      type: array
+      items:
+            $ref: '#/components/schemas/Article'
+    Article:
       type: object
-      required:
-        - maps
       properties:
-        maps:
-          type: array
-          items:
-            $ref: '#/components/schemas/Map'
-        available:
-          type: integer
-        next:
+        id:
           type: string
-    Map:
+          nullable: false
+        section:
+          type: string
+          nullable: false
+        subsection:
+          type: string
+          nullable: false
+        question:
+          type: string
+          nullable: false
+        answer:
+          type: string
+          nullable: false
+    ErrorDetails:
       type: object
-      required:
-        - concept
-        - descriptor
       properties:
-        concept:
+        ErrorCode:
           type: string
-        descriptor:
+          nullable: true
+        ErrorClass:
           type: string
-        mappings:
-          type: array
-          items:
-            $ref: '#/components/schemas/Mapping'
-    Mapping:
-      type: object
-      required:
-        - code
-        - descriptor
-        - category
-      properties:
-        code:
+          nullable: true
+        Message:
           type: string
-        descriptor:
-          type: string
-        category:
-          type: string
+          nullable: true
+      additionalProperties: false
   securitySchemes:
     gateway_authorizer:
       type: apiKey
@@ -206,4 +251,6 @@ externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 servers:
-  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/SNOMED-CPT/1.0.0'
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/HS-DataLabs/KnowledgeBase/1.1.0

@@ -24,3 +24,4 @@ sqlalchemy==1.4.31
 urllib3==1.26.5
 xlrd==2.0.1
 opensearch-py==2.3.1
+requests-aws4auth==1.2.3
