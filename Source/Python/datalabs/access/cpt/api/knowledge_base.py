@@ -57,8 +57,8 @@ class MapSearchEndpointTask(APIEndpointTask):
             connection_class=RequestsHttpConnection,
             timeout=15
         )
-        with AWSClient("opensearch") as opensearch:
-            search_results = self._query_index(opensearch, search_parameters)
+
+        search_results = self._query_index(opensearch_client, search_parameters)
 
         return search_results
 
