@@ -169,7 +169,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         sql = self._query_for_documents(entity_id)
@@ -214,8 +214,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                     and u.is_deleted = false
                     and u.status = 'ACTIVE'
                 join form f on f.id = p.form
-                join form_field ff on ff.form = f.id 
-                    and ff."type" = 'FILE' 
+                join form_field ff on ff.form = f.id
+                    and ff."type" = 'FILE'
                     and ff.sub_section is not null
                 join "document" d on d.id = cast(ff."values" ->>0 as INT)
                     and d.is_deleted = false
@@ -361,7 +361,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         access_token = self._get_ama_access_token()
@@ -506,7 +506,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         sql = self._query_for_provider_id(entity_id)
