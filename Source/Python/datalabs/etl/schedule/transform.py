@@ -128,11 +128,13 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask, CSVReaderMixin, CSVWriterMixi
 
     # pylint: disable=too-many-locals
     def _determine_dags_to_run(self, schedule, target_execution_time):
-        scheduled_dags = pandas.DataFrame(columns=["dag", "execution_time"])
+        scheduled_dags = pandas.DataFrame(columns=["DAG", "Run"])
 
         scheduled_dags = self._get_last_days_runs(schedule, target_execution_time)
 
-        scheduled_dags = scheduled_dags.rename(columns={"run": "execution_time"})
+        scheduled_dags = scheduled_dags[~scheduled_dags.Run.isnull()]
+
+        scheduled_dags = scheduled_dags.rename(columns={"dag": "DAG"})
 
         return scheduled_dags
 
@@ -144,11 +146,11 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask, CSVReaderMixin, CSVWriterMixi
 
         dag_runs = schedule.schedule.apply(lambda cron_descriptor: croniter(cron_descriptor, base_time))
 
-        schedule["run"] = dag_runs.apply(lambda x: list(chain(*list(cls._get_dag_runs(x, now)))))
+        schedule["Run"] = dag_runs.apply(lambda x: list(chain(*list(cls._get_dag_runs(x, now)))))
 
         schedule.drop(columns="schedule", inplace=True)
 
-        return schedule.explode("run")
+        return schedule.explode("Run")
 
     @classmethod
     def _get_dag_runs(cls, dag_runs, now):
