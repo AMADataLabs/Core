@@ -69,32 +69,37 @@ class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWrite
     PARAMETER_CLASS = SourceFileListTransformerParameters
 
     def run(self):
-        adhoc_list_of_lists, aims, flatfile = [InputDataParser.parse(x) for x in self._data]
-
-        list_of_lists = adhoc_list_of_lists[adhoc_list_of_lists['list_of_files'].str.contains('List of Lists')]
-
-        adhoc = adhoc_list_of_lists[~adhoc_list_of_lists['list_of_files'].str.contains('List of Lists')]
-
+        adhoc_list_of_lists, aims, flatfile = [InputDataParser.parse(x, seperator = '\r\n') for x in self._data]
         execution_month = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S').month
+        file_lists = []
 
-        aims = self._get_latest_file(aims, execution_month)
+        file_lists.append(self._extract_adhoc_paths(adhoc_list_of_lists))
 
-        flatfile = self._get_latest_file(flatfile, execution_month)
+        file_lists.append(self._extract_flatfile_or_aims_path(aims, execution_month))
 
-        file_lists = [adhoc, aims, list_of_lists, flatfile]
+        file_lists.append(self._extract_list_of_lists_path(adhoc_list_of_lists))
+
+        file_lists.append(self._extract_flatfile_or_aims_path(flatfile, execution_month))
 
         return [self._dataframe_to_csv(data) for data in file_lists]
 
     @classmethod
-    def _get_latest_file(cls, data, execution_month):
-        data = data.iloc[[-1]]
+    def _extract_adhoc_paths(cls, data):
+        return data[~data['list_of_files'].str.contains('List of Lists')]
 
+    @classmethod
+    def _extract_list_of_lists_path(cls, data):
+        return data[data['list_of_files'].str.contains('List of Lists')]
+
+    @classmethod
+    def _extract_flatfile_or_aims_path(cls, data, execution_month):
         if len(data) > 0:
             data = data[data.list_of_files.apply(
-                                                lambda x: parse(x, fuzzy=True).month
-                                                ).astype(str).str.contains(str(execution_month))
-                        ]
+                lambda x: parse(x, fuzzy=True).month
+            ).astype(str).str.contains(str(execution_month))].iloc[[-1]]
+
         return data
+
 
 @add_schema
 @dataclass

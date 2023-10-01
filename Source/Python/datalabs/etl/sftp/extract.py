@@ -140,7 +140,7 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
                 .rename("list_of_files")\
                 .str.slice(start=0)\
                 .apply(lambda cell: os.path.join(directory, cell))\
-                .to_csv(index=False),
+                .to_csv(index=False, sep="\n"),
             encoding='utf-8'
         )
 
