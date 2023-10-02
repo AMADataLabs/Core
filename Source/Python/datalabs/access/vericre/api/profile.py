@@ -438,8 +438,9 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         response = self._request_ama_profile(entity_id)
 
         if response.status == 404:
-            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID')
-        elif response.status != 200:
+            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID.')
+
+        if response.status != 200:
             raise InternalServerError(
                 f'Internal Server error caused by: {response.reason}, status: {response.status}'
             )
@@ -457,8 +458,9 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         response = self._request_ama_profile_pdf(entity_id)
 
         if response.status == 404:
-            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID')
-        elif response.status != 200:
+            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID.')
+
+        if response.status != 200:
             raise InternalServerError(
                 f'Internal Server error caused by: {response.reason}, status: {response.status}'
             )
@@ -573,9 +575,11 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _verify_query_result(cls, query_result):
         if len(query_result) == 0:
             raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
-        elif len(query_result) > 1:
+
+        if len(query_result) > 1:
             raise InternalServerError("Multiple records were found in VeriCre for the given entity ID.")
-        elif isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
+
+        if isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
             raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
 
     def _set_parameter_defaults(self):

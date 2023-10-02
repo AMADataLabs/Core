@@ -166,7 +166,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     def _validate_payload(cls, payload):
         if "first_name" not in payload or "last_name" not in payload or "date_of_birth" not in payload:
             raise InvalidRequest(
-                "Invalid input parameters. Please provide either a combination of first_name, last_name, " \
+                "Please provide either a combination of first_name, last_name, "
                 "and date_of_birth; or any of npi_number, me_number, or ecfmg_number."
             )
 

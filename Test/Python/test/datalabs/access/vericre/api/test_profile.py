@@ -45,7 +45,7 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
         task._download_files_for_profile(empty_document_query_result, task._parameters.path.get('entityId'))
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'Document for the given entity ID is not found in VeriCre.'
+    assert str(except_info.value) == 'No documents where found in VeriCre for the given entity ID.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -81,9 +81,8 @@ def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_
 
         task._assert_profile_exists(task._parameters.path.get('entityId'))
 
-    assert except_info.type == InternalServerError
-    assert str(except_info.value) == \
-        f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
+    assert except_info.type == ResourceNotFound
+    assert str(except_info.value) == 'An AMA eProfiles profile was not found for the provided entity ID.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -91,18 +90,19 @@ def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_
 def test_get_profile_pdf_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
-    with pytest.raises(Exception) as except_info, \
+    with (
+        pytest.raises(Exception) as except_info,
         mock.patch(
             'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile_pdf',
             return_value = http_request_status_404
-        ):
+        )
+    ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
         task._get_profile_pdf(task._parameters.path.get('entityId'))
 
-    assert except_info.type == InternalServerError
-    assert str(except_info.value) == \
-        f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
+    assert except_info.type == ResourceNotFound
+    assert str(except_info.value) == 'An AMA eProfiles profile was not found for the provided entity ID.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -136,7 +136,7 @@ def test_verify_query_result_zero(caqh_profile_pdf_event, provider_id_query_resu
         task._verify_query_result(provider_id_query_result_empty)
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'Provider ID from the given entity ID is not found in VeriCre.'
+    assert str(except_info.value) == 'A provider ID was not found in VeriCre for the given entity ID.'
 
 
 ### query_result > 1
@@ -151,7 +151,7 @@ def test_verify_query_result_multi(caqh_profile_pdf_event, provider_id_query_res
         task._verify_query_result(provider_id_query_result_multi)
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == 'Multiple records found for the given Entity ID in VeriCre.'
+    assert str(except_info.value) == 'Multiple records were found in VeriCre for the given entity ID.'
 
 
 @pytest.mark.usefixtures("caqh_profile_pdf_event")
@@ -206,7 +206,7 @@ def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_even
         task._get_caqh_provider_id_from_npi('npi-11223344')
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'CAQH Provider ID from the given NPI ID is not found in CAQH ProView.'
+    assert str(except_info.value) == 'A provider ID was not found in CAQH ProView for the given NPI.'
 
 
 @pytest.fixture

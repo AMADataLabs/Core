@@ -3,7 +3,7 @@ from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import logging
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException, InvalidRequest
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
@@ -142,7 +142,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
     @classmethod
     def _verify_query_result(cls, query_result):
         if len(query_result) == 0:
-            raise ResourceNotFound("A profile was not found for the provided entity ID")
+            raise ResourceNotFound("No profile was found for the provided entity ID")
 
     def _format_query_result(self, query_result):
         response_result = {}
