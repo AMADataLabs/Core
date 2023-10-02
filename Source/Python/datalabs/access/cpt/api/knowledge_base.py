@@ -134,16 +134,16 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _get_query_parameters(cls, keywords, search_parameters):
         query_parameters = {}
 
-        cls._add_pagination(query_parameters)
+        cls._add_pagination(query_parameters, search_parameters)
 
         query_parameters['query'] = cls._generate_query_section(keywords, search_parameters)
 
         return query_parameters
 
     @classmethod
-    def _add_pagination(cls, query_parameters):
-        query_parameters['from'] = 0
-        query_parameters['size'] = 30
+    def _add_pagination(cls, query_parameters, search_parameters):
+        query_parameters['from'] = search_parameters.index
+        query_parameters['size'] = search_parameters.max_results
 
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
