@@ -9,9 +9,9 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.0.5
-        [itg]=1.0.5
-        [prd]=1.0.5
+        [tst]=1.0.7
+        [itg]=1.0.7
+        [prd]=1.0.7
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then

@@ -152,20 +152,20 @@ def test_previous_days_dag_runs_are_correctly_identified(
 
     assert len(dags_to_run) == 112
 
-    assert dags_to_run.dag[0] == 'CERNER_REPORT'
-    assert dags_to_run.execution_time[0] == datetime(2023, 8, 30, 13, 30)
-    assert dags_to_run.execution_time[95] == datetime(2023, 8, 31, 13, 15)
+    assert dags_to_run.DAG[0] == 'CERNER_REPORT'
+    assert dags_to_run.Run[0] == datetime(2023, 8, 30, 13, 30)
+    assert dags_to_run.Run[95] == datetime(2023, 8, 31, 13, 15)
 
-    assert dags_to_run.dag[96] == 'PLATFORM_USER_TOKENS'
-    assert dags_to_run.execution_time[96] == datetime(2023, 8, 31, 0, 13)
+    assert dags_to_run.DAG[96] == 'PLATFORM_USER_TOKENS'
+    assert dags_to_run.Run[96] == datetime(2023, 8, 31, 0, 13)
 
-    assert dags_to_run.dag[97] == 'LICENSE_MOVEMENT'
-    assert dags_to_run.execution_time[97] == datetime(2023, 8, 31, 13, 5)
+    assert dags_to_run.DAG[97] == 'LICENSE_MOVEMENT'
+    assert dags_to_run.Run[97] == datetime(2023, 8, 31, 13, 5)
 
-    assert dags_to_run.dag[98] == 'VERICRE_DATA_STEWARD'
-    assert dags_to_run.execution_time[98] == datetime(2023, 8, 31, 0, 0)
-    assert dags_to_run.execution_time[99] == datetime(2023, 8, 31, 1, 0)
-    assert dags_to_run.execution_time[111] == datetime(2023, 8, 31, 13, 0)
+    assert dags_to_run.DAG[98] == 'VERICRE_DATA_STEWARD'
+    assert dags_to_run.Run[98] == datetime(2023, 8, 31, 0, 0)
+    assert dags_to_run.Run[99] == datetime(2023, 8, 31, 1, 0)
+    assert dags_to_run.Run[111] == datetime(2023, 8, 31, 13, 0)
 
 
 def _assert_lower_execution_time_bounds_are_correct(lower_bound, target_execution_time):
