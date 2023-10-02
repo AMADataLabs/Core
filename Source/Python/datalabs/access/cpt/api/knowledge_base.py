@@ -1,6 +1,6 @@
 """ Release endpoint classes. """
-import json
 import logging
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 from   requests_aws4auth import AWS4Auth
@@ -8,7 +8,6 @@ from   dataclasses import dataclass
 
 import boto3
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
-from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 from   opensearchpy import OpenSearch, RequestsHttpConnection
 
@@ -55,7 +54,6 @@ class MapSearchEndpointTask(APIEndpointTask):
                            region, service, session_token=credentials.token)
         opensearch_client = OpenSearch(
             hosts=[{'host': self._parameters.collection_url, 'port': 443}],
-            #hosts=[{'host': 'kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com', 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
@@ -69,8 +67,8 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
-        max_results = int(parameters.get("results", 50))
-        index = int(parameters.get("index", 0))
+        max_results = cls._get_max_results(parameters)
+        index = cls._get_index(parameters)
         keywords = parameters.get("keyword", [])
         sections = parameters.get("section", [])
         subsections = parameters.get("subsection", [])
@@ -80,10 +78,22 @@ class MapSearchEndpointTask(APIEndpointTask):
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
 
-        if index is None:
-            raise InvalidRequest("Invalid Index name. ")
+        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date,
+                                updated_before_date)
 
-        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date, updated_before_date)
+    @classmethod
+    def _get_max_results(cls, parameters):
+        max_results = 50
+        if parameters.get('max_results') and len(parameters.get('max_results')) > 0:
+            max_results = int(parameters.get('max_results'))
+        return max_results
+
+    @classmethod
+    def _get_index(cls, parameters):
+        index = 0
+        if parameters.get('index') and len(parameters.get('index')) > 0:
+            max_results = int(parameters.get('index'))
+        return index
 
     @classmethod
     def _query_index(cls, opensearch, search_parameters, index_name):
