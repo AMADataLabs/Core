@@ -119,9 +119,12 @@ class MapSearchEndpointTask(APIEndpointTask):
         LOGGER.info(f'length of data_list is {len(data_list)}')
 
         for hit in data_list:
-            document_data = {}
-            document_data = hit['_source']
-            document_data['id'] = hit['_id']
+            document_data = {'id': hit['_source']['row_id'],
+                             'section': hit['_source']['section'],
+                             'subsection': hit['_source']['subsection'],
+                             'question': hit['_source']['question'],
+                             'answer': hit['_source']['answer']
+                             }
             results.append(document_data)
 
         LOGGER.info('returning these results.. ')
