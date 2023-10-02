@@ -173,21 +173,16 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _generate_filters(cls, search_parameters):
         filters = []
 
-        if len(search_parameters.sections) > 0:
-            filters += cls._generate_section_filter(search_parameters.sections)
+        cls._generate_section_filter(search_parameters.sections, filters)
 
-        if len(search_parameters.subsections) > 0:
-            filters += cls._generate_subsection_filter(search_parameters.subsections)
+        cls._generate_subsection_filter(search_parameters.subsections, filters)
 
-        if len(search_parameters.updated_after_date) > 0 or len(search_parameters.updated_before_date) > 0:
-            filters += cls._generate_range_filter(search_parameters)
+        cls._generate_range_filter(search_parameters, filters)
 
         return filters
 
     @classmethod
-    def _generate_section_filter(cls, sections):
-        section_filter = []
-
+    def _generate_section_filter(cls, sections, filters):
         if sections is not None and len(sections) > 0:
             section_filter = [
                 dict(
@@ -196,13 +191,10 @@ class MapSearchEndpointTask(APIEndpointTask):
                     )
                 )
             ]
-
-        return section_filter
+            filters += section_filter
 
     @classmethod
-    def _generate_subsection_filter(cls, subsections):
-        subsection_filter = []
-
+    def _generate_subsection_filter(cls, subsections, filters):
         if subsections is not None and len(subsections) > 0:
             subsection_filter = [
                 dict(
@@ -211,21 +203,17 @@ class MapSearchEndpointTask(APIEndpointTask):
                     )
                 )
             ]
-
-        return subsection_filter
+            filters += subsection_filter
 
     @classmethod
-    def _generate_range_filter(cls, search_parameters):
-        range_filter = []
-
+    def _generate_range_filter(cls, search_parameters, filters):
         updated_on_range_section = cls._generate_range_section(search_parameters)
 
-        if updated_on_range_section is not None:
+        if updated_on_range_section:
             range_filter = [
                 {'range': updated_on_range_section}
             ]
-
-        return range_filter
+            filters += range_filter
 
     @classmethod
     def _generate_range_section(cls, search_parameters):
