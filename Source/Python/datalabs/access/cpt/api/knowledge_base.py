@@ -105,7 +105,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         LOGGER.info(str(query_parameters))
         response = opensearch.search(index='knowledge_base', body=query_parameters)
         LOGGER.info("Query Results are")
-        LOGGER.info(json.loads(response))
+        LOGGER.info(str(response))
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
             results = response['hits']['hits']
 
