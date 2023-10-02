@@ -9,6 +9,15 @@ from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerT
 from datalabs.etl.vericre.profile.transform import JSONTransformerTask
 from datalabs.etl.vericre.profile.transform import AMAProfileTransformerTask
 from datalabs.etl.vericre.profile.transform import CAQHProfileTransformerTask
+from datalabs.etl.vericre.profile.transform import DemographicsTransformerTask
+from datalabs.etl.vericre.profile.transform import DeaTransformerTask
+from datalabs.etl.vericre.profile.transform import NPITransformerTask
+from datalabs.etl.vericre.profile.transform import MedicalSchoolsTransformerTask
+from datalabs.etl.vericre.profile.transform import ABMSTransformerTask
+from datalabs.etl.vericre.profile.transform import MedicalTrainingTransformerTask
+from datalabs.etl.vericre.profile.transform import LicensesTransformerTask
+from datalabs.etl.vericre.profile.transform import SanctionsTransformerTask
+from datalabs.etl.manipulate.transform import SplitTransformerTask
 from datalabs.etl.vericre.profile.load import VeriCreProfileSynchronizerTask
 from datalabs.etl.sftp.extract import SFTPFileExtractorTask
 
@@ -16,7 +25,24 @@ from datalabs.etl.sftp.extract import SFTPFileExtractorTask
 @dag.register(name="VERICRE_PROFILES_ETL")
 class DAG(dag.DAG):
     EXTRACT_AMA_PHYSICIAN_PROFILES: SFTPFileExtractorTask
-    STANDARDIZE_DATES: DateFormatTransformerTask
+    STANDARDIZE_ABMS_DATES: DateFormatTransformerTask
+    STANDARDIZE_DEA_DATES: DateFormatTransformerTask
+    STANDARDIZE_DEMOGRAPHICS_DATES: DateFormatTransformerTask
+    STANDARDIZE_LICENSES_DATES: DateFormatTransformerTask
+    STANDARDIZE_MEDICAL_SCHOOLS_DATES: DateFormatTransformerTask
+    STANDARDIZE_MEDICAL_TRAINING_DATES: DateFormatTransformerTask
+    STANDARDIZE_NPI_DATES: DateFormatTransformerTask
+    STANDARDIZE_SANCTIONS_DATES: DateFormatTransformerTask
+    SPLIT_DEMOGRAPHICS: SplitTransformerTask
+
+    CREATE_DEMOGRAPHICS: DemographicsTransformerTask
+    CREATE_DEA: DeaTransformerTask
+    CREATE_NPI: NPITransformerTask
+    CREATE_MEDICAL_SCHOOLS: MedicalSchoolsTransformerTask
+    CREATE_ABMS: ABMSTransformerTask
+    CREATE_MEDICAL_TRAINING: MedicalTrainingTransformerTask
+    CREATE_LICENSES: LicensesTransformerTask
+    CREATE_SANCTIONS: SanctionsTransformerTask
     CREATE_AMA_PROFILE_TABLE: AMAProfileTransformerTask
     CONVERT_AMA_MASTERFILE_TO_JSON: JSONTransformerTask
     LOAD_AMA_MASTERFILE_TABLE: dag.Repeat(QLDBLoaderTask, 20)
@@ -35,9 +61,57 @@ class DAG(dag.DAG):
 
 # pylint: disable=expression-not-assigned, pointless-statement
 if feature.enabled("SYNC_PROFILES"):
-    DAG.EXTRACT_AMA_PHYSICIAN_PROFILES \
-        >> DAG.STANDARDIZE_DATES \
-        >> DAG.CREATE_AMA_PROFILE_TABLE \
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_ABMS_DATES
+        >> DAG.CREATE_ABMS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_DEA_DATES
+        >> DAG.CREATE_DEA
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_DEMOGRAPHICS_DATES
+        >> DAG.CREATE_DEMOGRAPHICS
+        >> DAG.SPLIT_DEMOGRAPHICS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_LICENSES_DATES
+        >> DAG.CREATE_LICENSES
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_MEDICAL_SCHOOLS_DATES
+        >> DAG.CREATE_MEDICAL_SCHOOLS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_MEDICAL_TRAINING_DATES
+        >> DAG.CREATE_MEDICAL_TRAINING
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_NPI_DATES
+        >> DAG.CREATE_NPI
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_SANCTIONS_DATES
+        >> DAG.CREATE_SANCTIONS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+
+    DAG.CREATE_AMA_PROFILE_TABLE \
         >> DAG.CONVERT_AMA_MASTERFILE_TO_JSON \
         >> DAG.first('LOAD_AMA_MASTERFILE_TABLE')
 
@@ -45,9 +119,57 @@ if feature.enabled("SYNC_PROFILES"):
 
     DAG.last('LOAD_AMA_MASTERFILE_TABLE') >> DAG.SYNC_PROFILES_TO_DATABASE
 else:
-    DAG.EXTRACT_AMA_PHYSICIAN_PROFILES \
-        >> DAG.STANDARDIZE_DATES \
-        >> DAG.CREATE_AMA_PROFILE_TABLE \
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_ABMS_DATES
+        >> DAG.CREATE_ABMS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_DEA_DATES
+        >> DAG.CREATE_DEA
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_DEMOGRAPHICS_DATES
+        >> DAG.CREATE_DEMOGRAPHICS
+        >> DAG.SPLIT_DEMOGRAPHICS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_LICENSES_DATES
+        >> DAG.CREATE_LICENSES
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_MEDICAL_SCHOOLS_DATES
+        >> DAG.CREATE_MEDICAL_SCHOOLS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_MEDICAL_TRAINING_DATES
+        >> DAG.CREATE_MEDICAL_TRAINING
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_NPI_DATES
+        >> DAG.CREATE_NPI
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+    (
+        DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
+        >> DAG.STANDARDIZE_SANCTIONS_DATES
+        >> DAG.CREATE_SANCTIONS
+        >> DAG.CREATE_AMA_PROFILE_TABLE
+    )
+
+    DAG.CREATE_AMA_PROFILE_TABLE \
         >> DAG.CONVERT_AMA_MASTERFILE_TO_JSON \
         >> DAG.first('LOAD_AMA_MASTERFILE_TABLE')
 

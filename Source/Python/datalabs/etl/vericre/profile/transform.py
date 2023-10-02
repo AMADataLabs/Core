@@ -25,79 +25,29 @@ LOGGER.setLevel(logging.INFO)
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class AMAProfileTransformerParameters:
+class DemographicsTransformerParameters:
     execution_time: str = None
 
 
-class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
-    PARAMETER_CLASS = AMAProfileTransformerParameters
+class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = DemographicsTransformerParameters
 
     # pylint: disable=too-many-statements
     def run(self):
-        LOGGER.info("Reading physician profile PSV files...")
-        abms_data, dea_data, demog_data, license_data, med_sch_data, med_train_data, npi_data, sanctions_data \
-            = [self._csv_to_dataframe(d, sep='|') for d in self._data]
-        practice_specialties = demog_data[["ENTITY_ID"] + list(column.PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
-        mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
-        ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
-        me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
+        demog_data = self._csv_to_dataframe(self._data[0], sep='|')
 
-        LOGGER.info("Creating demographics...")
         ama_masterfile = self._create_demographics(demog_data)
-        del demog_data
 
-        LOGGER.info("Creating dea...")
-        ama_masterfile = self._create_dea(ama_masterfile, dea_data)
-        del dea_data
+        ama_masterfile = self._create_practice_specialties(ama_masterfile, demog_data)
 
-        LOGGER.info("Creating practiceSpecialties...")
-        ama_masterfile = self._create_practice_specialties(ama_masterfile, practice_specialties)
-        del practice_specialties
+        ama_masterfile = self._create_me_number(ama_masterfile, demog_data)
 
-        LOGGER.info("Creating npi...")
-        ama_masterfile = self._create_npi(ama_masterfile, npi_data)
-        del npi_data
+        ama_masterfile = self._create_ecfmg(ama_masterfile, demog_data)
 
-        LOGGER.info("Creating medicalSchools...")
-        ama_masterfile = self._create_medical_schools(ama_masterfile, med_sch_data)
-        del med_sch_data
+        ama_masterfile = self._create_mpa(ama_masterfile, demog_data)
 
-        LOGGER.info("Creating abms...")
-        ama_masterfile = self._create_abms(ama_masterfile, abms_data)
-        del abms_data
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        LOGGER.info("Creating medicalTraining...")
-        ama_masterfile = self._create_medical_training(ama_masterfile, med_train_data)
-        del med_train_data
-
-        LOGGER.info("Creating licenses...")
-        ama_masterfile = self._create_licenses(ama_masterfile, license_data)
-        del license_data
-
-        LOGGER.info("Creating sanctions...")
-        ama_masterfile = self._create_sanctions(ama_masterfile, sanctions_data)
-        del sanctions_data
-
-        LOGGER.info("Creating mpa...")
-        ama_masterfile = self._create_mpa(ama_masterfile, mpa)
-        del mpa
-
-        LOGGER.info("Creating ecfmg...")
-        ama_masterfile = self._create_ecfmg(ama_masterfile, ecfmg)
-        del ecfmg
-
-        LOGGER.info("Creating meNumber...")
-        ama_masterfile = self._create_me_number(ama_masterfile, me_number)
-        del me_number
-
-        LOGGER.info("Filling in null column values...")
-        ama_masterfile = self._fill_nulls(ama_masterfile)
-
-        LOGGER.info("Pickeling aggregated column values...")
-        for column_name in column.AGGREGATED_COLUMNS:
-            ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
-
-        LOGGER.info("Writing ama_masterfile table Feather file...")
         return [self._dataframe_to_feather(ama_masterfile)]
 
     # pylint: disable=too-many-statements
@@ -148,7 +98,78 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         return aggregated_demographics
 
     @classmethod
-    def _create_dea(cls, ama_masterfile, dea_data):
+    def _create_me_number(cls, ama_masterfile, demog_data):
+        me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
+
+        ama_masterfile = ama_masterfile.merge(me_number, on="entityId", how="left")
+
+        return ama_masterfile
+
+    @classmethod
+    def _create_practice_specialties(cls, ama_masterfile, demog_data):
+        practice_specialties = demog_data[["ENTITY_ID"] + list(column.PRACTICE_SPECIALTIES_COLUMNS.keys())].copy()
+        practice_specialties \
+            = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
+        aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
+
+        ama_masterfile = ama_masterfile.merge(aggregated_practice_specialties, on="entityId", how="left")
+
+        return ama_masterfile
+
+    @classmethod
+    def _create_ecfmg(cls, ama_masterfile, demog_data):
+        ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
+        ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
+        aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_ecfmg["ecfmg"] = ecfmg.to_dict(orient="records")
+
+        ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
+
+        return ama_masterfile
+
+    @classmethod
+    def _create_mpa(cls, ama_masterfile, demog_data):
+        mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
+        mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
+        aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
+        aggregated_mpa["mpa"] = mpa.to_dict(orient="records")
+
+        ama_masterfile = ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
+
+        return ama_masterfile
+
+    @classmethod
+    def _pickle_masterfile(cls, ama_masterfile):
+        for column_name in ["demographics", "mpa", "ecfmg", "meNumber", "practiceSpecialties"]:
+            ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class DeaTransformerParameters:
+    execution_time: str = None
+
+
+class DeaTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = DeaTransformerParameters
+
+    def run(self):
+        dea_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_dea(dea_data)
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile)]
+
+    @classmethod
+    def _create_dea(cls, dea_data):
         dea_data["DEA_NBR"] = dea_data.DEA_NBR.str.strip()
         dea_data["DEA_SCHEDULE"] = dea_data.DEA_SCHEDULE.str.strip()
         dea_data["CITY_NM"] = dea_data.CITY_NM.str.strip()
@@ -171,19 +192,44 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
             lambda x: sorted(x, key=lambda item: str(item['lastReportedDate']))
         )
 
-        return ama_masterfile.merge(aggregated_dea, on="entityId", how="left")
+        return aggregated_dea
 
     @classmethod
-    def _create_practice_specialties(cls, ama_masterfile, demog_data):
-        practice_specialties \
-            = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
-        aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile.dea = ama_masterfile.dea.fillna("").apply(list)
 
-        return ama_masterfile.merge(aggregated_practice_specialties, on="entityId", how="left")
+        return ama_masterfile
 
     @classmethod
-    def _create_npi(cls, ama_masterfile, npi_data):
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "dea"] = ama_masterfile.loc[:, "dea"].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class NPITransformerParameters:
+    execution_time: str = None
+
+
+class NPITransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = NPITransformerParameters
+
+    def run(self):
+        npi_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_npi(npi_data)
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile.reset_index())]
+
+    @classmethod
+    def _create_npi(cls, npi_data):
         npi_data.sort_values(by=['RPTD_DT'], ascending=False, inplace=True)
         npi_data.drop_duplicates(subset="ENTITY_ID", inplace=True)
         npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
@@ -191,10 +237,47 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_npi["npi"] = npi.to_dict(orient="records")
 
-        return ama_masterfile.merge(aggregated_npi, on="entityId", how="left")
+        return aggregated_npi
 
     @classmethod
-    def _create_medical_schools(cls, ama_masterfile, med_sch_data):
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"] = \
+            ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"].apply(
+                lambda x: {}
+            )
+
+        return ama_masterfile
+
+    @classmethod
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "npi"] = ama_masterfile.loc[:, "npi"].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class MedicalSchoolsTransformerParameters:
+    execution_time: str = None
+
+
+class MedicalSchoolsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = MedicalSchoolsTransformerParameters
+
+    def run(self):
+        med_sch_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_medical_schools(med_sch_data)
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile)]
+
+    @classmethod
+    def _create_medical_schools(cls, med_sch_data):
         med_sch_data.GRAD_STATUS = med_sch_data.GRAD_STATUS.str.strip()
         med_sch_data.GRAD_DT = med_sch_data.GRAD_DT.str.strip()
         med_sch_data.SCHOOL_CD = med_sch_data.SCHOOL_CD.str.strip()
@@ -211,10 +294,44 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
             lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
         )
 
-        return ama_masterfile.merge(aggregated_medical_schools, on="entityId", how="left")
+        return aggregated_medical_schools
 
     @classmethod
-    def _create_abms(cls, ama_masterfile, abms_data):
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile.medicalSchools = ama_masterfile.medicalSchools.fillna("").apply(list)
+
+        return ama_masterfile
+
+    @classmethod
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "medicalSchools"] = ama_masterfile.loc[:, "medicalSchools"].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ABMSTransformerParameters:
+    execution_time: str = None
+
+
+class ABMSTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = ABMSTransformerParameters
+
+    def run(self):
+        abms_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_abms(abms_data)
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile)]
+
+    @classmethod
+    def _create_abms(cls, abms_data):
         abms = abms_data[column.ABMS_COLUMNS.keys()].rename(columns=column.ABMS_COLUMNS)
         abms["disclaimer"] = "ABMS information is proprietary data maintained in a copyright database "
         abms["disclaimer"] += "compilation owned by the American Board of Medical Specialties.  "
@@ -227,10 +344,44 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
             lambda x: sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True)
         )
 
-        return ama_masterfile.merge(aggregated_abms, on="entityId", how="left")
+        return aggregated_abms
 
     @classmethod
-    def _create_medical_training(cls, ama_masterfile, med_train):
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile.abms = ama_masterfile.abms.fillna("").apply(list)
+
+        return ama_masterfile
+
+    @classmethod
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "abms"] = ama_masterfile.loc[:, "abms"].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class MedicalTrainingTransformerParameters:
+    execution_time: str = None
+
+
+class MedicalTrainingTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = MedicalTrainingTransformerParameters
+
+    def run(self):
+        med_train_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_medical_training(med_train_data)
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile)]
+
+    @classmethod
+    def _create_medical_training(cls, med_train):
         medical_training = \
             med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
@@ -242,10 +393,44 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
             lambda x: sorted(x, key=lambda item: item['beginDate'])
         )
 
-        return ama_masterfile.merge(aggregated_medical_training, on="entityId", how="left")
+        return aggregated_medical_training
 
     @classmethod
-    def _create_licenses(cls, ama_masterfile, license_data):
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile.medicalTraining = ama_masterfile.medicalTraining.fillna("").apply(list)
+
+        return ama_masterfile
+
+    @classmethod
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "medicalTraining"] = ama_masterfile.loc[:, "medicalTraining"].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class LicensesTransformerParameters:
+    execution_time: str = None
+
+
+class LicensesTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = LicensesTransformerParameters
+
+    def run(self):
+        license_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_licenses(license_data)
+
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile)]
+
+    @classmethod
+    def _create_licenses(cls, license_data):
         licenses = license_data[column.LICENSES_COLUMNS.keys()].rename(columns=column.LICENSES_COLUMNS)
         license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
         licenses["licenseName"] = license_name.to_dict(orient="records")
@@ -256,10 +441,44 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         aggregated_licenses['licenses'] \
             = aggregated_licenses['licenses'].apply(lambda x: sorted(x, key=lambda item: str(item['issueDate'])))
 
-        return ama_masterfile.merge(aggregated_licenses, on="entityId", how="left")
+        return aggregated_licenses
 
     @classmethod
-    def _create_sanctions(cls, ama_masterfile, sanctions):
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile.licenses = ama_masterfile.licenses.fillna("").apply(list)
+
+        return ama_masterfile
+
+    @classmethod
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "licenses"] = ama_masterfile.loc[:, "licenses"].apply(pickle.dumps)
+
+        return ama_masterfile
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SanctionsTransformerParameters:
+    execution_time: str = None
+
+
+class SanctionsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = SanctionsTransformerParameters
+
+    def run(self):
+        sanctions_data = self._csv_to_dataframe(self._data[0], sep='|')
+
+        ama_masterfile = self._create_sanctions(sanctions_data)
+
+        ama_masterfile = self._fill_null_sanctions(ama_masterfile)
+
+        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+
+        return [self._dataframe_to_feather(ama_masterfile)]
+
+    @classmethod
+    def _create_sanctions(cls, sanctions):
         sanctions = sanctions[["ENTITY_ID", "BOARD_CD"]]
 
         aggregated_non_state_sanctions = cls._create_non_state_sanctions(sanctions)
@@ -268,39 +487,7 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         aggregated_sanctions = cls._merge_sanctions(aggregated_non_state_sanctions, aggregated_state_sanctions)
 
-        return ama_masterfile.merge(aggregated_sanctions, on="entityId", how="left")
-
-    @classmethod
-    def _create_mpa(cls, ama_masterfile, demog_data):
-        mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
-
-        aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_mpa["mpa"] = mpa.to_dict(orient="records")
-
-        return ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
-
-    @classmethod
-    def _create_ecfmg(cls, ama_masterfile, demog_data):
-        ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
-
-        aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_ecfmg["ecfmg"] = ecfmg.to_dict(orient="records")
-
-        return ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
-
-    @classmethod
-    def _create_me_number(cls, ama_masterfile, me_number):
-        return ama_masterfile.merge(me_number, on="entityId", how="left")
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile = cls._fill_null_sanctions(ama_masterfile)
-
-        ama_masterfile = cls._fill_null_list_sections(ama_masterfile)
-
-        ama_masterfile = cls._fill_null_dict_sections(ama_masterfile)
-
-        return ama_masterfile
+        return aggregated_sanctions
 
     @classmethod
     def _create_non_state_sanctions(cls, sanctions):
@@ -410,6 +597,18 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         return aggregated_sanctions
 
     @classmethod
+    def _aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
+        sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
+
+        sanction[column_name] = "Y"
+
+        sanction[f"{column_name}Value"] = "ACTION_REPORTED"
+
+        aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
+
+        return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
+
+    @classmethod
     def _fill_null_sanctions(cls, ama_masterfile):
         null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
 
@@ -424,35 +623,33 @@ class AMAProfileTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         return ama_masterfile
 
     @classmethod
-    def _fill_null_list_sections(cls, ama_masterfile):
-        ama_masterfile.abms = ama_masterfile.abms.fillna("").apply(list)
-        ama_masterfile.dea = ama_masterfile.dea.fillna("").apply(list)
-        ama_masterfile.medicalSchools = ama_masterfile.medicalSchools.fillna("").apply(list)
-        ama_masterfile.medicalTraining = ama_masterfile.medicalTraining.fillna("").apply(list)
-        ama_masterfile.licenses = ama_masterfile.licenses.fillna("").apply(list)
+    def _pickle_masterfile(cls, ama_masterfile):
+        ama_masterfile.loc[:, "sanctions"] = ama_masterfile.loc[:, "sanctions"].apply(pickle.dumps)
 
         return ama_masterfile
 
-    @classmethod
-    def _fill_null_dict_sections(cls, ama_masterfile):
-        ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"] = \
-            ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"].apply(
-                lambda x: {}
-            )
 
-        return ama_masterfile
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class AMAProfileTransformerParameters:
+    execution_time: str = None
 
-    @classmethod
-    def _aggregate_sanction(cls, aggregated_sanctions, sanctions, board_code, column_name):
-        sanction = sanctions[sanctions.BOARD_CD == board_code].copy()
 
-        sanction[column_name] = "Y"
+class AMAProfileTransformerTask(FeatherReaderMixin, FeatherWriterMixin, Task):
+    PARAMETER_CLASS = AMAProfileTransformerParameters
 
-        sanction[f"{column_name}Value"] = "ACTION REPORTED"
+    def run(self):
+        LOGGER.info("Reading physician profile PSV files...")
 
-        aggregated_sanctions = aggregated_sanctions.merge(sanction, how="left", on="ENTITY_ID")
+        dataframes = [self._feather_to_dataframe(input_file) for input_file in self._data]
+        ama_masterfile = dataframes[0]
+        for dataframe in dataframes[1:]:
+            ama_masterfile = ama_masterfile.merge(dataframe, on="entityId", how="left")
 
-        return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
+        LOGGER.info("Writing ama_masterfile table Feather file...")
+        return [self._dataframe_to_feather(ama_masterfile)]
+
 
 @add_schema
 @dataclass
