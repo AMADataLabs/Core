@@ -102,7 +102,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         query_parameters = cls._get_query_parameters(keywords, search_parameters)
         LOGGER.info("Query Parameters are")
         LOGGER.info(str(query_parameters))
-        response = opensearch.search(index=search_parameters.index, body=query_parameters)
+        response = opensearch.search(index='knowledge_base', body=query_parameters)
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
             results = response['hits']['hits']
