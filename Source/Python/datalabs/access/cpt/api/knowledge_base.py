@@ -24,7 +24,8 @@ class MapSearchEndpointParameters:
     method: str
     path: dict
     query: dict
-    #collection_url: str
+    collection_url: str
+    index_name: str
     unknowns: dict = None
 
 
@@ -53,8 +54,8 @@ class MapSearchEndpointTask(APIEndpointTask):
         awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
                            region, service, session_token=credentials.token)
         opensearch_client = OpenSearch(
-            #hosts=[{'host': self._parameters.collection_url, 'port': 443}],
-            hosts=[{'host': 'kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com', 'port': 443}],
+            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            #hosts=[{'host': 'kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com', 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
@@ -103,11 +104,10 @@ class MapSearchEndpointTask(APIEndpointTask):
         query_parameters = cls._get_query_parameters(keywords, search_parameters)
         LOGGER.info("Query Parameters are")
         LOGGER.info(str(query_parameters))
-        response = opensearch.search(index='knowledge_base', body=query_parameters)
+        response = opensearch.search(index=cls._parameters.collection_url, body=query_parameters)
         LOGGER.info("Query Results are")
         LOGGER.info(str(response))
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
-            LOGGER.info("Got some results")
             results = cls._generate_results_object(response)
 
         return results
@@ -116,7 +116,6 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _generate_results_object(cls, response):
         results = []
         data_list = response['hits']['hits']
-        LOGGER.info(f'length of data_list is {len(data_list)}')
 
         for hit in data_list:
             document_data = {'id': hit['_source']['row_id'],
@@ -130,7 +129,6 @@ class MapSearchEndpointTask(APIEndpointTask):
         LOGGER.info('returning these results.. ')
         LOGGER.info(str(results))
         return results
-
 
     @classmethod
     def _get_query_parameters(cls, keywords, search_parameters):
