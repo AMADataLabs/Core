@@ -3,7 +3,7 @@ from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
 import logging
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, APIEndpointException, InvalidRequest
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
@@ -142,7 +142,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
     @classmethod
     def _verify_query_result(cls, query_result):
         if len(query_result) == 0:
-            raise ResourceNotFound("The profile was not found for the provided Entity Id")
+            raise ResourceNotFound("A profile was not found for the provided entity ID")
 
     def _format_query_result(self, query_result):
         response_result = {}
@@ -271,13 +271,15 @@ class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
     @classmethod
     def _verify_entity_id_count(cls, entity_id):
         if not isinstance(entity_id, list):
-            raise APIEndpointException("Invalid input parameters. entity_id is not found in the request body")
+            raise InvalidRequest("No entity_id values were found in the request body.")
 
         if len(entity_id) == 0:
-            raise APIEndpointException("Invalid input parameters. Please provide at least 1 Entity Id")
+            raise InvalidRequest("Please provide at least 1 entity ID.")
 
         if len(entity_id) > 1000:
-            raise APIEndpointException("Invalid input parameters. The request should have a limit of 1000 Entity Ids")
+            raise InvalidRequest(
+                f"The request contained {len(entity_id)} entity IDs, but the maximum allowed is 1,000."
+            )
 
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)

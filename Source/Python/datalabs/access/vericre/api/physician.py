@@ -166,8 +166,8 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     def _validate_payload(cls, payload):
         if "first_name" not in payload or "last_name" not in payload or "date_of_birth" not in payload:
             raise InvalidRequest(
-                "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
-                "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
+                "Invalid input parameters. Please provide either a combination of first_name, last_name, " \
+                "and date_of_birth; or any of npi_number, me_number, or ecfmg_number."
             )
 
         first_name = payload.get("first_name")
@@ -194,7 +194,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         except OperationalError as error:
             raise InternalServerError("VeriCre connection error. Please try again later.") from error
         except MultipleResultsFound:
-            LOGGER.error("Multiple results found for entity id : %s", entity_id)
+            LOGGER.error('Multiple results found for entity id "%s"', entity_id)
             response = None
 
         return response
