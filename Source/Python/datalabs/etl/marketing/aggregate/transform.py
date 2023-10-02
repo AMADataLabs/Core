@@ -69,36 +69,42 @@ class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWrite
     PARAMETER_CLASS = SourceFileListTransformerParameters
 
     def run(self):
-        adhoc_list_of_lists, aims, flatfile = [InputDataParser.parse(x, seperator = '\r\n') for x in self._data]
+        adhoc_list_of_lists, aims, flatfile = [self._csv_to_dataframe(
+                                                   x,
+                                                   sep = '\r\n',
+                                                   header=None,
+                                                   index_col=None
+                                              ) for x in self._data]
+
         execution_month = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S').month
         file_lists = []
 
         file_lists.append(self._extract_adhoc_paths(adhoc_list_of_lists))
 
-        file_lists.append(self._extract_flatfile_or_aims_path(aims, execution_month))
+        file_lists.append(self._extract_datestamped_path(aims, execution_month))
 
         file_lists.append(self._extract_list_of_lists_path(adhoc_list_of_lists))
 
-        file_lists.append(self._extract_flatfile_or_aims_path(flatfile, execution_month))
+        file_lists.append(self._extract_datestamped_path(flatfile, execution_month))
 
-        return [self._dataframe_to_csv(data) for data in file_lists]
-
-    @classmethod
-    def _extract_adhoc_paths(cls, data):
-        return data[~data['list_of_files'].str.contains('List of Lists')]
+        return [self._dataframe_to_csv(data, header=False) for data in file_lists]
 
     @classmethod
-    def _extract_list_of_lists_path(cls, data):
-        return data[data['list_of_files'].str.contains('List of Lists')]
+    def _extract_adhoc_paths(cls, paths):
+        return paths[~paths.iloc[:,0].str.contains('List of Lists')]
 
     @classmethod
-    def _extract_flatfile_or_aims_path(cls, data, execution_month):
-        if len(data) > 0:
-            data = data[data.list_of_files.apply(
-                lambda x: parse(x, fuzzy=True).month
-            ).astype(str).str.contains(str(execution_month))].iloc[[-1]]
+    def _extract_list_of_lists_path(cls, paths):
+        return paths[paths.iloc[:,0].str.contains('List of Lists')]
 
-        return data
+    @classmethod
+    def _extract_datestamped_path(cls, paths, execution_month):
+        if len(paths) == 0:
+            raise ValueError(f"No path loaded from file {paths}")
+
+        return paths[paths.iloc[:,0].apply(
+                   lambda x: parse(x, fuzzy=True).month
+               ).astype(str).str.contains(str(execution_month))].iloc[[-1]]
 
 
 @add_schema

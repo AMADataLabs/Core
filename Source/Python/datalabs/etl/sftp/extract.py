@@ -4,7 +4,6 @@ import io
 import logging
 import os
 
-from   pandas import Series
 from   paramiko.sftp import SFTPError
 
 from   datalabs.access import sftp
@@ -134,15 +133,7 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
         directory = file
         list_of_files = self._get_directory_listing(directory)
 
-        return bytes(
-            Series(list_of_files)\
-                .astype(str)\
-                .rename("list_of_files")\
-                .str.slice(start=0)\
-                .apply(lambda cell: os.path.join(directory, cell))\
-                .to_csv(index=False, sep="\n"),
-            encoding='utf-8'
-        )
+        return "\n".join(os.path.join(directory, file.strip()) for file in list_of_files).encode()
 
     def _get_directory_listing(self, directory):
         try:

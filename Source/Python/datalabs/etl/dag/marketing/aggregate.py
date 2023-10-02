@@ -16,7 +16,7 @@ from   datalabs.etl.sql.extract import SQLExtractorTask
 
 @dag.register(name='MARKETING_AGGREGATOR')
 class DAG(dag.DAG):
-    EXTRACT_INPUTS_PATHS: SFTPDirectoryListingExtractorTask
+    EXTRACT_INPUT_PATHS: SFTPDirectoryListingExtractorTask
     CREATE_SOURCE_FILE_LISTS: SourceFileListTransformerTask
     EXTRACT_CONTACTS: SQLExtractorTask
     CLEAN_INPUTS: InputDataCleanerTask
@@ -29,7 +29,7 @@ class DAG(dag.DAG):
     UPDATE_CONTACT_TABLE: ORMLoaderTask
 
 # pylint: disable=pointless-statement
-DAG.EXTRACT_INPUTS_PATHS >> DAG.CREATE_SOURCE_FILE_LISTS >> DAG.CLEAN_INPUTS
+DAG.EXTRACT_INPUT_PATHS >> DAG.CREATE_SOURCE_FILE_LISTS >> DAG.CLEAN_INPUTS
 
 DAG.EXTRACT_CONTACTS >> DAG.VALIDATE_EXISTING_EMAILS
 DAG.EXTRACT_CONTACTS >> DAG.UPDATE_FLATFILE
