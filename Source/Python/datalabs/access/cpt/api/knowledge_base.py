@@ -63,7 +63,7 @@ class MapSearchEndpointTask(APIEndpointTask):
             timeout=15
         )
 
-        search_results = self._query_index(opensearch_client, search_parameters)
+        search_results = self._query_index(opensearch_client, search_parameters, self._parameters.index_name)
 
         return search_results
 
@@ -86,7 +86,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date, updated_before_date)
 
     @classmethod
-    def _query_index(cls, opensearch, search_parameters):
+    def _query_index(cls, opensearch, search_parameters, index_name):
         keywords = None
         results = None
 
@@ -94,17 +94,17 @@ class MapSearchEndpointTask(APIEndpointTask):
             keywords = "|".join(search_parameters.keywords)
 
         if search_parameters.keywords:
-            results = cls._get_search_results(opensearch, keywords, search_parameters)
+            results = cls._get_search_results(opensearch, keywords, search_parameters, index_name)
 
         return results
 
     @classmethod
-    def _get_search_results(cls, opensearch, keywords, search_parameters):
+    def _get_search_results(cls, opensearch, keywords, search_parameters, index_name):
         results = None
         query_parameters = cls._get_query_parameters(keywords, search_parameters)
         LOGGER.info("Query Parameters are")
         LOGGER.info(str(query_parameters))
-        response = opensearch.search(index=cls._parameters.collection_url, body=query_parameters)
+        response = opensearch.search(index=index_name, body=query_parameters)
         LOGGER.info("Query Results are")
         LOGGER.info(str(response))
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
