@@ -115,15 +115,19 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_results_object(cls, response):
         results = []
-        data_ist = response['hits']['hits']
+        data_list = response['hits']['hits']
+        LOGGER.info(f'length of data_list is {len(data_list)}')
 
-        for hit in data_ist:
+        for hit in data_list:
             document_data = {}
             document_data = hit['_source']
             document_data['id'] = hit['_id']
             results.append(document_data)
 
+        LOGGER.info('returning these results.. ')
+        LOGGER.info(str(results))
         return results
+
 
     @classmethod
     def _get_query_parameters(cls, keywords, search_parameters):
