@@ -173,11 +173,14 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _generate_filters(cls, search_parameters):
         filters = []
 
-        filters += cls._generate_section_filter(search_parameters.sections)
+        if len(search_parameters.sections) > 0:
+            filters += cls._generate_section_filter(search_parameters.sections)
 
-        filters += cls._generate_subsection_filter(search_parameters.subsections)
+        if len(search_parameters.subsections) > 0:
+            filters += cls._generate_subsection_filter(search_parameters.subsections)
 
-        filters += cls._generate_range_filter(search_parameters)
+        if len(search_parameters.updated_after_date) > 0 or len(search_parameters.updated_before_date) > 0:
+            filters += cls._generate_range_filter(search_parameters)
 
         return filters
 
