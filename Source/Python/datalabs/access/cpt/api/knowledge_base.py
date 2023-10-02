@@ -107,6 +107,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         LOGGER.info("Query Results are")
         LOGGER.info(str(response))
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
+            LOGGER.info("Got some results")
             results = cls._generate_results_object(response)
 
         return results
