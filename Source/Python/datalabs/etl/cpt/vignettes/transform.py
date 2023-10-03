@@ -6,6 +6,7 @@ import logging
 
 import pandas
 
+from   datalabs.etl.cpt.vignettes.columns import VIGNETTES_COLUMNS, VIGNETTES_TABLE_COLUMNS
 from   datalabs.task import Task
 
 
@@ -30,20 +31,34 @@ class VignettesTransformerTask(Task):
     @classmethod
     def _parse_data(cls, data):
         parsed_vignettes = pandas.read_csv(
-            BytesIO(data[0]), delimiter='|', encoding='latin-1', skiprows=31, header=None, names=[
-                'cpt_code','long_descriptor','typical_patient', 'pre_service_info','intra_service_info',
-                'post_service_info', 'ruc_reviewed_date', 'survey_specialty'
-                ]
-            )
-        parsed_codes = pandas.read_excel(data[1]).rename(
-            columns={'Concept Id': 'concept_id', 'CPT Code': 'cpt_code'}
-            )
-        parsed_hcpcs_codes = pandas.read_csv(BytesIO(data[2]), delimiter='\t').rename(
-            columns={'Concept Id': 'concept_id','HCPCS II Code': 'cpt_code'}
-            )
-        parsed_administrative_codes = pandas.read_excel(data[3]).rename(
-            columns={'Concept Id': 'concept_id','Code': 'cpt_code'}
-            )
+            BytesIO(data[0]),
+            delimiter='|',
+            encoding='latin-1',
+            skiprows=31,
+            header=None,
+            names=['cpt_code',
+                   'long_descriptor',
+                   'typical_patient', 
+                   'pre_service_info',
+                   'intra_service_info',
+                   'post_service_info',
+                   'ruc_reviewed_date',
+                   'survey_specialty'
+            ]
+        )
+
+        parsed_codes = pandas.read_csv(BytesIO(data[1]),
+                                       delimiter='\t'
+                                       ).rename(columns={'Concept Id': 'concept_id', 'CPT Code': 'cpt_code'})
+
+        parsed_hcpcs_codes = pandas.read_csv(
+            BytesIO(data[2]),
+            delimiter='\t'
+        ).rename(columns={'Concept Id': 'concept_id', 'HCPCS II Code': 'cpt_code'})
+
+        parsed_administrative_codes = pandas.read_csv(BytesIO(data[3]), delimiter='\t').rename(
+            columns={'Concept Id': 'concept_id', 'Code': 'cpt_code'}
+        )
 
         return parsed_vignettes, parsed_codes, parsed_hcpcs_codes, parsed_administrative_codes
 
@@ -59,43 +74,46 @@ class VignettesTransformerTask(Task):
     def _match_codes_to_concepts(self, data, codes):
         matched_vignettes = pandas.merge(data, codes, on='cpt_code', how='left')
 
-        return matched_vignettes[['cpt_code','long_descriptor','typical_patient','pre_service_info',
-                                  'intra_service_info', 'post_service_info','ruc_reviewed_date','survey_specialty',
-                                  'concept_id']]
+        return matched_vignettes[VIGNETTES_COLUMNS]
 
     def _match_hcpcs_codes_to_concepts(self, data, codes):
         unmatched_vignettes  = data[data['concept_id'].isnull()]
 
-        matched_hcpcs_codes = pandas.merge(unmatched_vignettes, codes, on='cpt_code',how='left').rename(
-            columns={'concept_id_y': 'concept_id'}).drop(columns=['concept_id_x'])
-        matched_hcpcs_codes = matched_hcpcs_codes[['cpt_code','long_descriptor','typical_patient','pre_service_info',
-                                                   'intra_service_info','post_service_info','ruc_reviewed_date',
-                                                   'survey_specialty','concept_id']]
+        matched_hcpcs_codes = pandas.merge(
+            unmatched_vignettes,
+            codes,
+            on='cpt_code',
+            how='left'
+        ).rename(columns={'concept_id_y': 'concept_id'}).drop(columns=['concept_id_x'])
 
-        matched_vignettes = pandas.concat([data.dropna(subset=['concept_id']),matched_hcpcs_codes]
-                                          ).reset_index(drop=True)
+        matched_hcpcs_codes = matched_hcpcs_codes[VIGNETTES_COLUMNS]
+
+        matched_vignettes = pandas.concat(
+            [data.dropna(subset=['concept_id']), matched_hcpcs_codes]
+        ).reset_index(drop=True)
 
         return matched_vignettes
 
     def _match_administrative_code_to_concepts(self, data, codes):
         unmatched_vignettes  = data[data['concept_id'].isnull()]
 
-        matched_administrative_codes = pandas.merge(unmatched_vignettes, codes, on='cpt_code',how='left').rename(
-            columns={'concept_id_y': 'concept_id'}).drop(columns=['concept_id_x'])
+        matched_administrative_codes = pandas.merge(
+            unmatched_vignettes,
+            codes, on='cpt_code',
+            how='left'
+        ).rename(columns={'concept_id_y': 'concept_id'}).drop(columns=['concept_id_x'])
 
-        matched_administrative_codes = matched_administrative_codes[['cpt_code','long_descriptor','typical_patient',
-                                                                     'pre_service_info','intra_service_info',
-                                                                     'post_service_info','ruc_reviewed_date',
-                                                                     'survey_specialty','concept_id']]
+        matched_administrative_codes = matched_administrative_codes[VIGNETTES_COLUMNS]
 
-        matched_vignettes = pandas.concat([data.dropna(subset=['concept_id']), matched_administrative_codes]
-                                          ).reset_index(drop=True)
+        matched_vignettes = pandas.concat(
+            [data.dropna(subset=['concept_id']), matched_administrative_codes]
+        ).reset_index(drop=True)
 
         return matched_vignettes
 
     def _clean_data(self, data):
-        data['concept_id'] = data['concept_id'].astype('int32')
-        data['concept_id'] = data['concept_id'].astype(str)
+        data['concept_id'] = data['concept_id'].astype('int32').astype(str)
+        data['cpt_code'] = data['cpt_code'].astype(str)
 
         return data
 
@@ -103,7 +121,6 @@ class VignettesTransformerTask(Task):
         data.loc[:, 'pk'] = "CPT CODE:" + data['cpt_code']
         data.loc[:, 'sk'] = "CONCEPT:" + data['concept_id']
 
-        mapped_data = data.loc[:, ['pk', 'sk', 'typical_patient', 'pre_service_info', 'intra_service_info',
-                                   'post_service_info','ruc_reviewed_date']]
+        mapped_data = data[VIGNETTES_TABLE_COLUMNS]
 
         return mapped_data.to_dict('records')
