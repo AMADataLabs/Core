@@ -76,8 +76,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
 
-        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date,
-                                updated_before_date)
+        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date, updated_before_date)
 
     @classmethod
     def _get_max_results(cls, parameters):
