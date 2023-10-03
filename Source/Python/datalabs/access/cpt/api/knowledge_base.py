@@ -101,8 +101,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         if search_parameters.keywords is not None:
             keywords = "|".join(search_parameters.keywords)
 
-        if search_parameters.keywords:
-            results = cls._get_search_results(opensearch, keywords, search_parameters, index_name)
+        results = cls._get_search_results(opensearch, keywords, search_parameters, index_name)
 
         return results
 
@@ -161,12 +160,12 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_bool_section(cls, keywords, search_parameters):
-        bool_section = dict(
-            must=cls._generate_must_section(keywords)
-        )
+        bool_section = dict()
+
+        if keywords:
+            bool_section["must"] = cls._generate_must_section(keywords)
 
         filters = cls._generate_filters(search_parameters)
-
         if len(filters) > 0:
             bool_section["filter"] = filters
 
