@@ -1,4 +1,4 @@
-""" source: datalabs.etl.dynamodb.load """
+""" source: datalabs.etl.cpt.vignettes.transform """
 import logging
 import pytest
 
