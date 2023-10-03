@@ -85,14 +85,14 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _get_max_results(cls, parameters):
         max_results = 50
         if parameters.get('max_results') and len(parameters.get('max_results')) > 0:
-            max_results = int(parameters.get('max_results'))
+            max_results = int(parameters.get('max_results')[0])
         return max_results
 
     @classmethod
     def _get_index(cls, parameters):
         index = 0
         if parameters.get('index') and len(parameters.get('index')) > 0:
-            max_results = int(parameters.get('index'))
+            max_results = int(parameters.get('index')[0])
         return index
 
     @classmethod
