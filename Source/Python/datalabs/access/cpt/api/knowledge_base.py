@@ -61,9 +61,7 @@ class MapSearchEndpointTask(APIEndpointTask):
             timeout=15
         )
 
-        search_results = self._query_index(opensearch_client, search_parameters, self._parameters.index_name)
-
-        return search_results
+        self._response_body = self._query_index(opensearch_client, search_parameters, self._parameters.index_name)
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
