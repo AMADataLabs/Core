@@ -69,12 +69,10 @@ class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWrite
     PARAMETER_CLASS = SourceFileListTransformerParameters
 
     def run(self):
-        adhoc_list_of_lists, aims, flatfile = [self._csv_to_dataframe(
-                                                   x,
-                                                   sep = '\r\n',
-                                                   header=None,
-                                                   index_col=None
-                                              ) for x in self._data]
+        adhoc_list_of_lists, aims, flatfile = [
+                                              self._csv_to_dataframe(x, sep='\r\n', header=None, index_col=None)
+                                              for x in self._data
+                                          ]
 
         execution_month = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S').month
         file_lists = []
