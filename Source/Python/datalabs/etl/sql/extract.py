@@ -128,20 +128,14 @@ class SQLExtractorTask(Task):
                 chunk_size = query_indices.stop - index
 
             if chunk_size > 0:
-                resolved_query = self._resolve_chunked_query(query, index, chunk_size)
+                chunk = self._read_chunk(connection, query, index, chunk_size)
 
-                LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
-                chunk = self._read_single_query(resolved_query, connection)
-                read_count = len(chunk)
-                LOGGER.info('Read %d records.', read_count)
-                LOGGER.info('Chunk memory usage:\n%s', chunk.memory_usage(deep=True))
-
-            if query_indices.stop and index > query_indices.stop or chunk_size <= 0 or read_count == 0:
+            if query_indices.stop and index > query_indices.stop or chunk_size <= 0 or len(chunk) == 0:
                 iterating = False
             else:
                 yield chunk
 
-                index += read_count
+                index += len(chunk)
 
     @classmethod
     def _calculate_query_indices(cls, parameters: SQLExtractorParameters) -> QueryIndices:
@@ -165,6 +159,16 @@ class SQLExtractorTask(Task):
                 query_indices.stop = None
 
         return query_indices
+
+    def _read_chunk(self, connection, query, index, chunk_size):
+        resolved_query = self._resolve_chunked_query(query, index, chunk_size)
+
+        LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
+        chunk = self._read_single_query(resolved_query, connection)
+        LOGGER.info('Read %d records.', len(chunk))
+        LOGGER.info('Chunk memory usage:\n%s', chunk.memory_usage(deep=True))
+
+        return chunk
 
     # pylint: disable=no-self-use
     def _resolve_chunked_query(self, query, index, count):

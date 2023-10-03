@@ -13,7 +13,7 @@ VERICRE_API:
 
         PROFILE_API_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
         PROFILE_API_SECRET: {{profile_api_secret}}
-        PROFILE_API_ENVIRONMENT: 'wsexttest'
+        PROFILE_API_ENVIRONMENT: 'wsextstage'
 
         CAQH_USERNAME: 'DeepakA123'
         CAQH_PASSWORD: '{{caqh_password}}'
@@ -39,8 +39,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        AMA_DOMAIN: 'wsint'
-        VERICRE_ALB_DOMAIN: 'internal-vericre-itg-backend-api-alb-518045774.us-east-1.elb.amazonaws.com'
+        AMA_DOMAIN: 'wsint-staging'
+        VERICRE_ALB_DOMAIN: 'vericer-api-intg.ama-assn.org'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'

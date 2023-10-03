@@ -96,6 +96,7 @@ def test_generate_search_request_invalid(physician_event):
         task._generate_search_request(physician_event["payload"])
 
     assert except_info.type == InvalidRequest
-    assert str(except_info.value) == \
-        "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
-        "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
+    assert str(except_info.value) == (
+        "Please provide either a combination of first_name, last_name, "
+        "and date_of_birth; or any of npi_number, me_number, or ecfmg_number."
+    )

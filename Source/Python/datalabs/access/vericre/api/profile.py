@@ -94,14 +94,14 @@ class CommonEndpointUtilities:
                 version_id = cls._process_put_object_result(put_object_result)
         except ClientError as error:
             LOGGER.exception(error.response)
-            raise InternalServerError("Error occurred in saving file in S3") from error
+            raise InternalServerError("An error occurred when saving a file to S3") from error
 
         return version_id
 
     @classmethod
     def _process_put_object_result(cls, put_object_result):
         if put_object_result["ResponseMetadata"]["HTTPStatusCode"] != 200:
-            raise InternalServerError("Error occurred in saving file in S3")
+            raise InternalServerError("An error occurred when saving a file to S3")
 
         return put_object_result["VersionId"]
 
@@ -169,7 +169,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         sql = self._query_for_documents(entity_id)
@@ -214,8 +214,8 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                     and u.is_deleted = false
                     and u.status = 'ACTIVE'
                 join form f on f.id = p.form
-                join form_field ff on ff.form = f.id 
-                    and ff."type" = 'FILE' 
+                join form_field ff on ff.form = f.id
+                    and ff."type" = 'FILE'
                     and ff.sub_section is not null
                 join "document" d on d.id = cast(ff."values" ->>0 as INT)
                     and d.is_deleted = false
@@ -244,7 +244,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
     def _download_files_for_profile(self, query_result, entity_id):
         if len(query_result) == 0:
-            raise ResourceNotFound('Document for the given entity ID is not found in VeriCre.')
+            raise ResourceNotFound('No documents where found in VeriCre for the given entity ID.')
 
         self._create_folder_for_downloaded_files(entity_id)
 
@@ -361,7 +361,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         access_token = self._get_ama_access_token()
@@ -369,22 +369,22 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         self._assert_profile_exists(entity_id)
 
-        pdf_response = self._get_profile_pdf(entity_id)
+        response = self._get_profile_pdf(entity_id)
 
-        pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
+        filename = cgi.parse_header(response.headers['Content-Disposition'])[1]["filename"]
 
         audit_parameters = AuditLogParameters(
             entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
             authorization=self._parameters.authorization,
             document_bucket_name=self._parameters.document_bucket_name,
-            document_key=f'downloaded_documents/AMA_Profile_PDF/{pdf_filename}',
+            document_key=f'downloaded_documents/AMA_Profile_PDF/{filename}',
             request_ip=source_ip
         )
 
-        CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
+        CommonEndpointUtilities.save_audit_log(database, response.data, audit_parameters)
 
-        self._generate_response(pdf_response)
+        self._generate_response(response)
 
     def _generate_response(self, response):
         self._response_body = self._generate_response_body(response)
@@ -435,11 +435,14 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     @run_time_logger
     def _assert_profile_exists(self, entity_id):
-        profile_response = self._request_ama_profile(entity_id)
+        response = self._request_ama_profile(entity_id)
 
-        if profile_response.status != 200:
+        if response.status == 404:
+            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID.')
+
+        if response.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {profile_response.reason}, status: {profile_response.status}'
+                f'Internal Server error caused by: {response.reason}, status: {response.status}'
             )
 
     @run_time_logger
@@ -452,14 +455,17 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     @run_time_logger
     def _get_profile_pdf(self, entity_id):
-        pdf_resoponse = self._request_ama_profile_pdf(entity_id)
+        response = self._request_ama_profile_pdf(entity_id)
 
-        if pdf_resoponse.status != 200:
+        if response.status == 404:
+            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID.')
+
+        if response.status != 200:
             raise InternalServerError(
-                f'Internal Server error caused by: {pdf_resoponse.reason}, status: {pdf_resoponse.status}'
+                f'Internal Server error caused by: {response.reason}, status: {response.status}'
             )
 
-        return pdf_resoponse
+        return response
 
     @run_time_logger
     def _request_ama_profile_pdf(self, entity_id):
@@ -506,7 +512,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entityId']
+        entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
         sql = self._query_for_provider_id(entity_id)
@@ -519,9 +525,9 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
         provider = query_result[0]['caqh_profile_id']
 
-        pdf_response = self._fetch_caqh_pdf(provider)
+        response = self._fetch_caqh_pdf(provider)
 
-        pdf_filename = cgi.parse_header(pdf_response.headers['Content-Disposition'])[1]["filename"]
+        filename = cgi.parse_header(response.headers['Content-Disposition'])[1]["filename"]
 
         current_date_time = CommonEndpointUtilities.get_current_datetime()
 
@@ -531,13 +537,13 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             authorization=self._parameters.authorization,
             document_bucket_name=self._parameters.document_bucket_name,
             document_key= \
-                f'downloaded_documents/CAQH_Profile_PDF/{pdf_filename.replace(".pdf", f"_{current_date_time}.pdf")}',
+                f'downloaded_documents/CAQH_Profile_PDF/{filename.replace(".pdf", f"_{current_date_time}.pdf")}',
             request_ip=source_ip
         )
 
-        CommonEndpointUtilities.save_audit_log(database, pdf_response.data, audit_parameters)
+        CommonEndpointUtilities.save_audit_log(database, response.data, audit_parameters)
 
-        self._generate_response(pdf_response, current_date_time)
+        self._generate_response(response, current_date_time)
 
     @classmethod
     def _query_for_provider_id(cls, entity_id):
@@ -567,16 +573,14 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     @classmethod
     def _verify_query_result(cls, query_result):
-        exception = None
         if len(query_result) == 0:
-            exception = ResourceNotFound("Provider ID from the given entity ID is not found in VeriCre.")
-        elif len(query_result) > 1:
-            exception = InternalServerError("Multiple records found for the given Entity ID in VeriCre.")
-        elif isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
-            exception = ResourceNotFound("Provider ID from the given entity ID is not found in VeriCre.")
+            raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
 
-        if exception:
-            raise exception
+        if len(query_result) > 1:
+            raise InternalServerError("Multiple records were found in VeriCre for the given entity ID.")
+
+        if isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
+            raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
 
     def _set_parameter_defaults(self):
         self._parameters.authorization['auth_headers'] = urllib3.make_headers(
@@ -614,9 +618,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         response = self._request_caqh_pdf(parameters)
 
         if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.data}, status: {response.status}'
-            )
+            raise InternalServerError(f'Internal Server error caused by: {response.data}, status: {response.status}')
 
         return response
 
@@ -653,16 +655,12 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         response = self._request_caqh_provider_id_from_npi(parameters)
 
         if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.data}, status: {response.status}'
-            )
+            raise InternalServerError(f'Internal Server error caused by: {response.data}, status: {response.status}')
 
         provider_data = json.loads(response.data)
 
         if provider_data['provider_found_flag'] != "Y":
-            raise ResourceNotFound(
-                'CAQH Provider ID from the given NPI ID is not found in CAQH ProView.'
-            )
+            raise ResourceNotFound('A provider ID was not found in CAQH ProView for the given NPI.')
 
         return provider_data['caqh_provider_id']
 
