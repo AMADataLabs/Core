@@ -1,37 +1,25 @@
 ---
 VERICRE_API:
     GLOBAL:
-        ENVIRONMENT: dev
-        ACCOUNT: '191296302136'
-        WS_HOST_SUFFIX: 'test'
-        AWS_HOST_SUFFIX: 'dev'
+        ENVIRONMENT: prd
+        ACCOUNT: '194221139997'
 
-        DATABASE_HOST: vericre-dev-au-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+        DATABASE_HOST: vericre-prd-au-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
         DATABASE_PORT: '5432'
         DATABASE_BACKEND: 'postgresql+psycopg2'
         DATABASE_NAME: 'vericre'
         DATABASE_USERNAME:  vericreadmin
         DATABASE_PASSWORD:  '{{database_password}}'
 
-        DOCUMENT_BUCKET: ama-${ENVIRONMENT}-vericre-us-east-1
-
-        PROFILE_API_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
+        PROFILE_API_ID: 'a288fee4-2262-4c60-9014-da970d9a8bca'
         PROFILE_API_SECRET: {{profile_api_secret}}
-        PROFILE_API_ENVIRONMENT: 'wsext${WS_HOST_SUFFIX}'
-        PROFILE_TOKEN_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token'
-        PROFILE_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/profile/full'
-        PROFILE_PDF_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/pdf/full'
+        PROFILE_API_ENVIRONMENT: 'wsext'
 
-        CAQH_USERNAME: 'DeepakA123'
+        CAQH_USERNAME: 'dalankara'
         CAQH_PASSWORD: '{{caqh_password}}'
-        CAQH_ORG_ID: '6166'
+        CAQH_ORG_ID: '1641'
         CAQH_APPLICATION_TYPE: '100000001'
-        CAQH_DOMAIN: 'proview-demo.nonprod.caqh.org'
-        CAQH_PROVIDER_DOCS_URL: 'https://${CAQH_DOMAIN}/DocumentAPI/api/providerdocs/download'
-        CAQH_STATUS_CHECK_URL: 'https://${CAQH_DOMAIN}/RosterAPI/api/providerstatusbynpi'
-
-        PHYSICIAN_SEARCH_URL: 'https://wsint${WS_HOST_SUFFIX}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
-        SYNC_URL: 'https://vericre-api-${HOST_SUFFIX}.ama-assn.org/users/physicians/search/onSync'
+        CAQH_DOMAIN: 'https://proview.caqh.org'
 
     ROUTE:
         PHYSICIANS_SEARCH:          '/profile_api/physicians/search'
@@ -52,8 +40,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        PHYSICIAN_SEARCH_URL: ${PHYSICIAN_SEARCH_URL}
-        SYNC_URL: ${SYNC_URL}
+        AMA_DOMAIN: 'wsint'
+        VERICRE_ALB_DOMAIN: 'vericer-api.ama-assn.org'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
@@ -101,7 +89,7 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
+        DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
 
     PROFILE_CAQH_PDF:
         TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
@@ -111,14 +99,14 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
+        DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
         USERNAME: ${CAQH_USERNAME}
         PASSWORD: ${CAQH_PASSWORD}
         ORG_ID: ${CAQH_ORG_ID}
         APPLICATION_TYPE: ${CAQH_APPLICATION_TYPE}
-        PROVIDER_DOCS_URL: ${CAQH_PROVIDER_DOCS_URL}
-        STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
-
+        DOMAIN: ${CAQH_DOMAIN}
+        PROVIDER_API: 'DocumentAPI/api/providerdocs/download'
+        STATUS_CHECK_API: 'RosterAPI/api/providerstatusbynpi'
 
     PROFILE_AMA_PDF:
         TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
@@ -128,13 +116,10 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
+        DOCUMENT_BUCKET_NAME: ama-${ENVIRONMENT}-vericre-us-east-1
         CLIENT_ID: ${PROFILE_API_ID}
         CLIENT_SECRET: ${PROFILE_API_SECRET}
         CLIENT_ENV: ${PROFILE_API_ENVIRONMENT}
-        TOKEN_URL: ${PROFILE_TOKEN_URL}
-        PROFILE_URL: ${PROFILE_URL}
-        PDF_URL: ${PROFILE_PDF_URL}
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

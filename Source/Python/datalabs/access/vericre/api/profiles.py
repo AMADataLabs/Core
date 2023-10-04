@@ -1,9 +1,13 @@
 """ Release endpoint classes."""
 from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
+import json
 import logging
+import sys
+import uuid
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
+from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
@@ -41,6 +45,8 @@ class StaticTaskParameters:
         "Insurance": "insurance"
     }
 
+    PROFILE_RESPONSE_MAX_SIZE = 5510
+
 
 class BaseProfileEndpointTask(APIEndpointTask):
     def run(self):
@@ -62,9 +68,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         self._verify_query_result(query_result)
 
-        response_result = self._format_query_result(query_result)
-
-        self._response_body = self._generate_response_body(response_result)
+        self._response_body = self._generate_response_body(query_result)
 
     @classmethod
     def _query_for_profile(cls):
@@ -88,13 +92,12 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 end as source_tag,
                 ff.type,
                 case when ff."type" = 'DATE' then get_formatted_date(ff."values")
-                     else ff."values"
+                    else ff."values"
                 end as values,
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
-            join form f on p.form = f.id
-            join form_field ff on ff.form = f.id
+            join form_field ff on ff.form = p.form
                 and ff.sub_section is not null
             where 1=1
         '''
@@ -144,23 +147,95 @@ class BaseProfileEndpointTask(APIEndpointTask):
         if len(query_result) == 0:
             raise ResourceNotFound("No profile was found for the provided entity ID")
 
+    def _generate_response_body(self, query_result):
+        formatted_result_keys, formatted_result = self._format_query_result(query_result)
+
+        response_result = self._generate_response_result(formatted_result_keys, formatted_result)
+
+        return response_result
+
     def _format_query_result(self, query_result):
-        response_result = {}
-
         for record in query_result:
-            response_result = self._process_record(response_result, record)
+            formatted_result = self._process_record(formatted_result, record)
 
-        return [asdict(object) for object in list(response_result.values())]
+        formatted_result_keys = list(formatted_result.keys())
+        formatted_result = [asdict(object) for object in list(formatted_result.values())]
 
-    def _process_record(self, response_result, record):
-        if record['ama_entity_id'] not in response_result:
-            response_result = self._add_entity_id_in_response(response_result, record)
+        return formatted_result_keys, formatted_result
+
+    def _process_record(self, formatted_result, record):
+        if record['ama_entity_id'] not in formatted_result:
+            formatted_result = self._add_entity_id_in_response(formatted_result, record)
 
         record_section = self._format_section_identifier(record['section_identifier'])
 
-        response_result = self._append_record_to_response_result(response_result, record_section, record)
+        formatted_result = self._append_record_to_response_result(formatted_result, record_section, record)
+
+        return formatted_result
+
+    def _generate_response_result(self, formatted_result_keys, formatted_result):
+        response_result = {}
+        response_size = self._get_response_size(formatted_result)
+
+        LOGGER.info('Response Result size: %s KB', response_size)
+
+        if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+            response_profiles, next_url = self._save_query_entity_ids(formatted_result_keys, formatted_result)
+
+            response_result['profiles'] = response_profiles
+            response_result['next'] = next_url
+        else:
+            response_result['profiles'] = formatted_result
 
         return response_result
+
+    @run_time_logger
+    def _save_query_entity_ids(self, entity_ids, response_profiles):
+        index = 0
+        request_id = str(uuid.uuid4())
+
+        if "POST" == self._parameters.method:
+            self._save_cache(request_id, entity_ids)
+        else:
+            request_id = self._parameters.path['request_id']
+            index = int(self._parameters.query['index'][0])
+
+        response_parts = []
+        for item in response_profiles:
+            response_parts.append(item)
+            response_size = self._get_response_size(response_parts)
+
+            if response_size > StaticTaskParameters.PROFILE_RESPONSE_MAX_SIZE:
+                response_parts.pop()
+                break
+
+        next_index = index + len(response_parts)
+        next_url = f'/profile_api/profiles/lookup/{request_id}?index={next_index}'
+
+        return response_parts, next_url
+
+    @run_time_logger
+    def _save_cache(self, request_id, entity_ids):
+        with AWSClient("dynamodb") as dynamodb:
+            item = self._generate_item(request_id, entity_ids)
+            dynamodb.put_item(TableName=self._parameters.dynamodb_name, Item=item)
+
+    @classmethod
+    @run_time_logger
+    def _generate_item(cls, request_id, entity_ids):
+        item = dict(
+            request_id=dict(S=request_id),
+            entity_ids=dict(S=(",".join(entity_ids)))
+        )
+
+        return item
+
+    @classmethod
+    def _get_response_size(cls, response_result):
+        size = sys.getsizeof(str(response_result))
+        size_in_kb = int(size / 1024)
+
+        return size_in_kb
 
     @classmethod
     def _add_entity_id_in_response(cls, response_result, record):
@@ -233,10 +308,6 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return option_value_names
 
-    @classmethod
-    def _generate_response_body(cls, response_result):
-        return response_result
-
 
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
@@ -252,6 +323,7 @@ class MultiProfileLookupEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
+    dynamodb_name: str
     payload: dict
     unknowns: dict=None
 
@@ -306,3 +378,63 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
         sql = f"{sql} and u.ama_entity_id = '{entity_id}'"
 
         return sql
+
+
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class MultiProfileLookupByIndexEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    dynamodb_name: str
+    unknowns: dict=None
+
+
+class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
+
+    def _filter_by_entity_id(self, sql):
+        request_id = self._parameters.path['request_id']
+        index = int(self._parameters.query['index'][0])
+
+        entity_ids = self._get_entity_ids_from_dynamodb(request_id, index)
+
+        sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_ids)}')'''
+
+        return sql
+
+    def _get_entity_ids_from_dynamodb(self, request_id, index):
+        response = None
+        key=dict(
+            request_id=dict(S=request_id)
+        )
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.get_item(
+                TableName=self._parameters.dynamodb_name,
+                Key=key
+            )
+
+        entity_ids = self._extract_parameters(response)
+        
+        return entity_ids.split(',')[index:]
+
+    @classmethod
+    def _extract_parameters(cls, response):
+        parameters = None
+
+        if "Item" in response:
+            if "entity_ids" not in response["Item"]:
+                raise ValueError(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
+
+            parameters = response["Item"]["entity_ids"]["S"]
+
+        return parameters

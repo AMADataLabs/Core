@@ -22,14 +22,15 @@ VERICRE_API:
         CAQH_DOMAIN: 'https://proview-demo.nonprod.caqh.org'
 
     ROUTE:
-        PHYSICIANS_SEARCH: '/profile_api/physicians/search'
-        PROFILES_LOOKUP:   '/profile_api/profiles/lookup'
-        PROFILES:          '/profile_api/profiles'
-        PROFILE:           '/profile_api/profile/*'
-        PROFILE_DOCUMENTS: '/profile_api/profile/*/documents'
-        PROFILE_CAQH_PDF:  '/profile_api/profile/*/CAQH/pdf'
-        PROFILE_AMA_PDF:   '/profile_api/profile/*/AMA/pdf'
-        DEFAULT:           '/profile_api/*'
+        PHYSICIANS_SEARCH:          '/profile_api/physicians/search'
+        PROFILES_LOOKUP:            '/profile_api/profiles/lookup'
+        PROFILES_LOOKUP_BY_INDEX:   '/profile_api/profiles/lookup/*'
+        PROFILES:                   '/profile_api/profiles'
+        PROFILE:                    '/profile_api/profile/*'
+        PROFILE_DOCUMENTS:          '/profile_api/profile/*/documents'
+        PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
+        DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
         TASK_CLASS:  'datalabs.access.vericre.api.physician.PhysiciansSearchEndpointTask'
@@ -50,6 +51,17 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DYNAMODB_NAME: "vericre-${ENVIRONMENT}-us-east-1-api-request-cache"
+
+    PROFILES_LOOKUP_BY_INDEX:
+        TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupByIndexEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DYNAMODB_NAME: "vericre-${ENVIRONMENT}-us-east-1-api-request-cache"
 
     PROFILES:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
