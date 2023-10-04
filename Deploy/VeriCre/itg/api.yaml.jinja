@@ -22,7 +22,7 @@ VERICRE_API:
 
         PROFILE_API_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
         PROFILE_API_SECRET: {{profile_api_secret}}
-        PROFILE_API_ENVIRONMENT: 'wsextstage'
+        PROFILE_API_ENVIRONMENT: 'wsext${WS_HOST_SUFFIX}'
         PROFILE_TOKEN_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token'
         PROFILE_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/profile/full'
         PROFILE_PDF_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/pdf/full'
@@ -120,7 +120,10 @@ VERICRE_API:
         APPLICATION_TYPE: ${CAQH_APPLICATION_TYPE}
         PROVIDER_DOCS_URL: ${CAQH_PROVIDER_DOCS_URL}
         STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/vericre-api-test
 
     PROFILE_AMA_PDF:
         TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
