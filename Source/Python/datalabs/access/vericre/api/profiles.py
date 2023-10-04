@@ -405,10 +405,10 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
         request_id = self._parameters.path['request_id']
         index = int(self._parameters.query['index'][0])
 
-        entity_id = self._get_entity_ids_from_dynamodb(request_id, index)
-        LOGGER.info('Entity Ids: %s', entity_id)
+        entity_ids = self._get_entity_ids_from_dynamodb(request_id, index)
+        LOGGER.info('Entity Ids: %s', entity_ids)
 
-        sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
+        sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_ids)}')'''
 
         return sql
 
@@ -423,8 +423,6 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
                 TableName=self._parameters.dynamodb_name,
                 Key=key
             )
-
-        LOGGER.info('Response from DynamoDB: %s', response)
 
         entity_ids = self._extract_parameters(response)
         entity_id_list = entity_ids.split(',')
