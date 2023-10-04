@@ -15,7 +15,7 @@ def profile_documents_event():
         database_name='',
         database_username='',
         database_password='',
-        document_bucket_name=''
+        document_bucket=''
     )
 
 @pytest.fixture
@@ -31,10 +31,12 @@ def ama_profile_pdf_event():
         database_name='',
         database_username='',
         database_password='',
-        document_bucket_name='',
+        document_bucket='',
         client_id='',
         client_secret='',
-        client_env=''
+        token_url='',
+        profile_url='',
+        pdf_url=''
     )
 
 @pytest.fixture
@@ -50,7 +52,7 @@ def caqh_profile_pdf_event():
         database_name='',
         database_username='',
         database_password='',
-        document_bucket_name='',
+        document_bucket='',
         username='',
         password='',
         org_id='',
@@ -74,8 +76,8 @@ def physician_event():
         database_username='',
         database_password='',
         document_bucket_name='',
-        ama_domain='',
-        vericre_alb_domain='',
+        physician_search_url='',
+        sync_url='',
         payload={}
     )
 
