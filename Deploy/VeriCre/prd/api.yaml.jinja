@@ -1,10 +1,10 @@
 ---
 VERICRE_API:
     GLOBAL:
-        ENVIRONMENT: itg
-        ACCOUNT: '285887636563'
+        ENVIRONMENT: prd
+        ACCOUNT: '194221139997'
 
-        DATABASE_HOST: vericre-itg-au-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
+        DATABASE_HOST: vericre-prd-au-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
         DATABASE_PORT: '5432'
         DATABASE_BACKEND: 'postgresql+psycopg2'
         DATABASE_NAME: 'vericre'
@@ -13,13 +13,13 @@ VERICRE_API:
 
         PROFILE_API_ID: '428b5f8e-c591-4630-a565-de2b407a5db8'
         PROFILE_API_SECRET: {{profile_api_secret}}
-        PROFILE_API_ENVIRONMENT: 'wsextstage'
+        PROFILE_API_ENVIRONMENT: 'wsext'
 
         CAQH_USERNAME: 'DeepakA123'
         CAQH_PASSWORD: '{{caqh_password}}'
         CAQH_ORG_ID: '6166'
         CAQH_APPLICATION_TYPE: '100000001'
-        CAQH_DOMAIN: 'https://proview-demo.nonprod.caqh.org'
+        CAQH_DOMAIN: 'https://proview.caqh.org'
 
     ROUTE:
         PHYSICIANS_SEARCH:          '/profile_api/physicians/search'
@@ -40,8 +40,8 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        AMA_DOMAIN: 'wsint-staging'
-        VERICRE_ALB_DOMAIN: 'vericer-api-intg.ama-assn.org'
+        AMA_DOMAIN: 'wsint'
+        VERICRE_ALB_DOMAIN: 'vericer-api.ama-assn.org'
 
     PROFILES_LOOKUP:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
