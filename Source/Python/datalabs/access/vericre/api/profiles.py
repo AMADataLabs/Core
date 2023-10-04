@@ -218,7 +218,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
     def _save_cache(self, request_id, entity_ids):
         with AWSClient("dynamodb") as dynamodb:
             item = self._generate_item(request_id, entity_ids)
-            dynamodb.put_item(TableName=self._parameters.dynamodb_name, Item=item)
+            dynamodb.put_item(TableName=self._parameters.request_cache_table, Item=item)
 
     @classmethod
     @run_time_logger
@@ -323,7 +323,7 @@ class MultiProfileLookupEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    dynamodb_name: str
+    request_cache_table: str
     payload: dict
     unknowns: dict=None
 
@@ -394,7 +394,7 @@ class MultiProfileLookupByIndexEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    dynamodb_name: str
+    request_cache_table: str
     unknowns: dict=None
 
 
@@ -419,12 +419,12 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
 
         with AWSClient("dynamodb") as dynamodb:
             response = dynamodb.get_item(
-                TableName=self._parameters.dynamodb_name,
+                TableName=self._parameters.request_cache_table,
                 Key=key
             )
 
         entity_ids = self._extract_parameters(response)
-        
+
         return entity_ids.split(',')[index:]
 
     @classmethod
