@@ -48,6 +48,7 @@ class DatabaseTableCleanupTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCl
 
         return [self._dataframe_to_csv(transformed_data, sep='|')]
 
+    # pylint: disable=too-many-statements
     def _transform(self, data):
         col0 = data.columns[0]
         results = pd.DataFrame()

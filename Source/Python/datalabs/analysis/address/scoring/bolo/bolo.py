@@ -20,6 +20,7 @@ VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS = 5*365  # will not overwrite addre
 AS_OF_DATE = '2022-12-06'
 
 
+# pylint: disable=too-many-statements
 def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame=None):
     # Note from Peter: I don't know if post_addr_at_data is actually optionaly here, but there is a call to this
     # function below that only has one argument. This generates a pylint error.
@@ -57,6 +58,7 @@ def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame
 
 
 class BOLOPOLOPhoneAppendFileGenerator(Task):
+    # pylint: disable=too-many-statements
     def run(self) -> 'list<bytes>':
         scores = pd.read_csv(BytesIO(self._data[0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
         ppd = pd.read_csv(BytesIO(self._data[1]), sep=',', dtype=str).fillna('')

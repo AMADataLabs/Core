@@ -70,7 +70,7 @@ EXTRACTOR__FILES=${data_file}
 # QLDB Loader
 TRANSFORMER__TASK_CLASS=datalabs.etl.qldb.load.QLDBLoaderTask
 TRANSFORMER__TABLE=ama_masterfile
-TRANSFORMER__LEDGER=vericre-dev-ledger
+TRANSFORMER__LEDGER=vericre-${ENVIRONMENT}-ledger
 TRANSFORMER__PRIMARY_KEY=entityId
 
 # Loaded Data Loader

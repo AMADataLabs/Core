@@ -8,7 +8,7 @@ class Outlook:
     def __init__(self):
         self.outlook = win32.Dispatch('outlook.application')
 
-    #pylint: disable=invalid-name, too-many-arguments
+    #pylint: disable=invalid-name, too-many-arguments, too-many-statements
     def send_email(self, to, subject, cc=None, body='', attachments=None, from_account=None, auto_send=True):
         """
             Sends an email.

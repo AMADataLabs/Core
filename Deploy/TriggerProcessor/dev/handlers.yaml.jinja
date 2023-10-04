@@ -3,7 +3,9 @@ TRIGGER_PROCESSOR:
     GLOBAL:
         ACCOUNT: '191296302136'
         ENVIRONMENT: dev
+
     HANDLER:
         DAG_TOPIC_ARN: arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor
-    Scheduler:
+
+    Scheduler:  # DataLake-${ENVIRONMENT}-Scheduler SNS topic
         HANDLER_CLASS: datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask

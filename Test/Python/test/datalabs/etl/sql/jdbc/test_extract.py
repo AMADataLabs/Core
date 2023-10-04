@@ -82,7 +82,7 @@ def test_query_results_saved_as_parquet(parameters, read):
     assert 'column2' in data
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, too-many-statements
 def test_chunked_query_results_saved_as_parquet(parameters, chunked_read):
     parameters['CHUNK_SIZE'] = '5'
     extractor = JDBCParquetExtractorTask(parameters)
