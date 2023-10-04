@@ -75,7 +75,6 @@ def physician_event():
         database_name='',
         database_username='',
         database_password='',
-        document_bucket_name='',
         physician_search_url='',
         sync_url='',
         payload={}
@@ -94,6 +93,5 @@ def multi_profile_lookup_event():
         database_name='',
         database_username='',
         database_password='',
-        document_bucket_name='',
         payload={}
     )

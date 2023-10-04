@@ -379,7 +379,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
             authorization=self._parameters.authorization,
-            document_bucket_name=self._parameters.document_bucket_name,
+            document_bucket_name=self._parameters.document_bucket,
             document_key=f'downloaded_documents/AMA_Profile_PDF/{filename}',
             request_ip=source_ip
         )

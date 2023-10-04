@@ -31,7 +31,7 @@ VERICRE_API:
         CAQH_STATUS_CHECK_URL: 'https://${CAQH_DOMAIN}/RosterAPI/api/providerstatusbynpi'
 
         PHYSICIAN_SEARCH_URL: 'https://wsint${WS_HOST_SUFFIX}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
-        SYNC_URL: 'https://vericre-api-${HOST_SUFFIX}.ama-assn.org/users/physicians/search/onSync'
+        SYNC_URL: 'https://vericre-api-${AWS_HOST_SUFFIX}.ama-assn.org/users/physicians/search/onSync'
 
     ROUTE:
         PHYSICIANS_SEARCH: '/profile_api/physicians/search'
@@ -106,7 +106,6 @@ VERICRE_API:
         APPLICATION_TYPE: ${CAQH_APPLICATION_TYPE}
         PROVIDER_DOCS_URL: ${CAQH_PROVIDER_DOCS_URL}
         STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
-
 
     PROFILE_AMA_PDF:
         TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
