@@ -37,10 +37,12 @@ class DynamoDBLoaderTask(Task):
         current_hashes = self._get_current_hashes()
         LOGGER.debug("Current Hashes:\n%s", current_hashes)
 
-        # if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
-        #     self._delete_data(incoming_hashes, current_hashes)
+        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
+            self._delete_data(incoming_hashes, current_hashes)
 
         self._add_data(incoming_hashes, current_hashes)
+
+        self._update_data(incoming_hashes, current_hashes)
 
 
     @classmethod
@@ -64,7 +66,7 @@ class DynamoDBLoaderTask(Task):
         with AWSClient("dynamodb") as dynamodb:
             results = self._paginate(
                 dynamodb,
-                f"SELECT sk, pk, md5 FROM \"{self._parameters.table}\" WHERE sk = 'CONCEPT:' AND pk = 'CPT CODE:'"
+                f"SELECT sk, pk, md5 FROM \"{self._parameters.table}\""
             )
 
             current_hashes_rows = [(x["sk"]["S"], x["pk"]["S"], x["md5"]["S"]) for x in results]
@@ -73,17 +75,50 @@ class DynamoDBLoaderTask(Task):
 
         return current_hashes
 
+    def _delete_data(self, incoming_hashes, current_hashes):
+        deleted_hashes = self._select_deleted_hashes(incoming_hashes, current_hashes)
+
+        if len(deleted_hashes) > 0:
+            self._delete_from_table(deleted_hashes)
+
     def _add_data(self, incoming_hashes, current_hashes):
         new_hashes = self._select_new_hashes(incoming_hashes, current_hashes)
         new_hashes_table = [new_hashes[hash_pk] for hash_pk in new_hashes]
 
         self._add_to_table(new_hashes_table)
 
+    def _update_data(self, incoming_hashes, current_hashes):
+        updated_hashes = self._select_updated_hashes(incoming_hashes, current_hashes)
+        old_hashes = self._get_old_hashes(updated_hashes, current_hashes)
+
+        if len(updated_hashes) > 0:
+            self._replace_in_table(old_hashes, updated_hashes)
+
     @classmethod
-    def _select_new_hashes(cls, incoming_hashes, current_hashes):
+    def _select_deleted_hashes(cls, incoming_hashes, current_hashes):
+        deleted_hashes = current_hashes[~current_hashes.pk.isin(incoming_hashes.pk)].reset_index(drop=True)
+        
+        deleted_hashes = self._clean_hashes(deleted_hashes)
+
+        LOGGER.debug('Deleted Data: %s', deleted_hashes)
+
+        return deleted_hashes.to_dict(orient='records')
+
+    def _delete_from_table(self, data):
+        with self._get_table().batch_writer() as batch:
+            for item in data:
+                batch.delete_item(Key={
+                    'pk': item['pk'],
+                    'sk': item['sk']
+                })
+                LOGGER.debug('Deleted Item: %s', item['pk'])
+
+    def _select_new_hashes(self, incoming_hashes, current_hashes):
         new_or_updated_hashes = incoming_hashes[~incoming_hashes.sk.isin(current_hashes.sk)].reset_index(drop=True)
 
         new_hashes = new_or_updated_hashes[~new_or_updated_hashes.pk.isin(current_hashes.pk)].reset_index(drop=True)
+
+        new_hashes = self._clean_hashes(new_hashes)
 
         LOGGER.debug('New Hashes: %s', new_hashes)
 
@@ -95,6 +130,34 @@ class DynamoDBLoaderTask(Task):
                 LOGGER.debug('Adding item: %s', item['pk'])
                 batch.put_item(Item=item)
                 LOGGER.debug('Added Item: %s', item['pk'])
+
+    def _select_updated_hashes(self, incoming_hashes, current_hashes):
+        new_or_updated_hashes = incoming_hashes[~incoming_hashes.md5.isin(current_hashes.md5)]
+
+        updated_hashes = new_or_updated_hashes[new_or_updated_hashes.pk.isin(current_hashes.pk)]
+
+        updated_hashes = self._clean_hashes(updated_hashes)
+
+        LOGGER.debug('Updated Data: %s', updated_hashes)
+
+        return updated_hashes.to_dict(orient='records')
+
+    @classmethod
+    def _get_old_hashes(cls, updated_hashes, current_hashes):
+        current_hashes = current_hashes.to_dict(orient='records')
+        old_hashes = []
+
+        for updated_hash in updated_hashes:
+            for current_hash in current_hashes:
+                if current_hash['pk'] == updated_hash['pk']:
+                    old_hashes.append(current_hash)
+
+        return old_hashes
+
+    def _replace_in_table(self, old_data, new_data):
+        self._delete_from_table(old_data)
+
+        self._add_to_table(new_data)
 
     def _get_table(self):
         ''' Get a DyanmoDB table object. Since the boto3 client does not hold a connection open, we can
@@ -119,3 +182,15 @@ class DynamoDBLoaderTask(Task):
 
             for item in results["Items"]:
                 yield item
+
+    @classmethod
+    def _clean_hashes(cls, hashes):
+        hashes['pre_service_info'] = hashes['pre_service_info'].astype(str)
+        hashes['sk'] = hashes['sk'].astype(str)
+        hashes['pk'] = hashes['pk'].astype(str)
+        hashes['typical_patient'] = hashes['typical_patient'].astype(str)
+        hashes['intra_service_info'] = hashes['intra_service_info'].astype(str)
+        hashes['post_service_info'] = hashes['post_service_info'].astype(str)
+        hashes['ruc_reviewed_date'] = hashes['ruc_reviewed_date'].astype(str)
+
+        return hashes
