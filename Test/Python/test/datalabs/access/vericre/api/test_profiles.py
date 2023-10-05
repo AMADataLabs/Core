@@ -1,5 +1,4 @@
 """ source: datalabs.access.vericre.api.profiles """
-from   collections import namedtuple
 import logging
 
 import pytest
