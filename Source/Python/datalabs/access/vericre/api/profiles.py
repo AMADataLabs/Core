@@ -247,7 +247,7 @@ class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
 
     @classmethod
     def _add_parameter_filters_to_query(cls, query, parameters):
-        query = cls._filter_by_entity_id(query, parameters.query.get("entity_id"))
+        query = cls._filter_by_entity_id(query, parameters.path.get("entity_id"))
 
         return super()._add_parameter_filters_to_query(query, parameters)
 
