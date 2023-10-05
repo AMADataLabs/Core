@@ -2,10 +2,9 @@
 from   collections import namedtuple
 import logging
 
-import mock
 import pytest
 
-from   datalabs.access.api.task import ResourceNotFound, InvalidRequest
+from   datalabs.access.api.task import InvalidRequest
 from   datalabs.access.vericre.api.profiles import MultiProfileLookupEndpointTask
 
 logging.basicConfig()
@@ -14,7 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_entity_id_field_must_be_a_list(multi_profile_lookup_event, over_size_entity_ids):
+def test_entity_id_field_must_be_a_list(multi_profile_lookup_event):
     multi_profile_lookup_event["payload"] = dict(entity_id="12345")
 
     with pytest.raises(Exception) as except_info:
@@ -27,7 +26,7 @@ def test_entity_id_field_must_be_a_list(multi_profile_lookup_event, over_size_en
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_entity_id_count_cannot_be_zero(multi_profile_lookup_event, over_size_entity_ids):
+def test_entity_id_count_cannot_be_zero(multi_profile_lookup_event):
     multi_profile_lookup_event["payload"] = dict(entity_id=[])
 
     with pytest.raises(Exception) as except_info:
@@ -52,14 +51,13 @@ def test_entity_id_count_cannot_exceed_1000(multi_profile_lookup_event, over_siz
     assert str(except_info.value) == 'The request contained 1001 entity IDs, but the maximum allowed is 1,000.'
 
 
-# UNCOMMENT AND IMPROVE ASSERTIONS OF THE AGGREGATED RECORDS DATA ONCE profile_query_results IS FIXED
 # # pylint: disable=redefined-outer-name, protected-access
-# def test_query_results_aggregated_properly(multi_profile_lookup_event, profile_query_results):
-#     task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
+def test_query_results_aggregated_properly(multi_profile_lookup_event, profile_query_results):
+    task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
 
-#     aggregated_records = task._aggregate_records(profile_query_results)
+    aggregated_records = task._aggregate_records(profile_query_results)
 
-#     assert len(aggregated_records) == 1
+    assert len(aggregated_records) == 1
 
 
 @pytest.fixture
@@ -93,38 +91,35 @@ def over_size_entity_ids():
 def empty_query_result():
     return []
 
-# FIX THIS SO THAT IT SIMULATES ACTUAL SQL QUERY RESULT DATA
-# @pytest.fixture
-# def profile_query_results():
-#     Result = namedtuple('Result', \
-#         'ama_entity_id section_identifier field_identifier is_authoritative \
-#         is_source name read_only source_key source_tag type values')
-
-#     return [
-#         Result(
-#             ama_entity_id = '22212056',
-#             section_identifier = 'demographics',
-#             field_identifier = 'salutation',
-#             is_authoritative = False,
-#             is_source = False,
-#             name = 'Salutation',
-#             read_only = False,
-#             source_key = None,
-#             source_tag = 'Physician Provided',
-#             type = 'TEXT',
-#             values = []
-#         ),
-#         Result(
-#             ama_entity_id = '22212056',
-#             section_identifier = 'demographics',
-#             field_identifier = 'firstName',
-#             is_authoritative = True,
-#             is_source = True,
-#             name = 'First Name',
-#             read_only = False,
-#             source_key = 'demographics_firstName',
-#             source_tag = 'AMA',
-#             type = 'TEXT',
-#             values = ['Leilani']
-#         )
-#     ]
+@pytest.fixture
+def profile_query_results():
+    return [
+        {
+            "ama_entity_id": '22212056',
+            "section_identifier": 'demographics',
+            "field_identifier": 'salutation',
+            "is_authoritative": False,
+            "is_source": False,
+            "name": 'Salutation',
+            "read_only": False,
+            "source_key": None,
+            "source_tag": 'Physician Provided',
+            "type": 'TEXT',
+            "values": [],
+            "option": None
+        },
+        {
+            "ama_entity_id": '22212056',
+            "section_identifier": 'demographics',
+            "field_identifier": 'firstName',
+            "is_authoritative": True,
+            "is_source": True,
+            "name": 'First Name',
+            "read_only": False,
+            "source_key": 'demographics_firstName',
+            "source_tag": 'AMA',
+            "type": 'TEXT',
+            "values": ['Leilani'],
+            "option": None
+        }
+    ]
