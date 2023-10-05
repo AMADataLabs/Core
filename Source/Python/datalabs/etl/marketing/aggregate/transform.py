@@ -70,9 +70,9 @@ class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWrite
 
     def run(self):
         adhoc_list_of_lists, aims, flatfile = [
-                                              self._csv_to_dataframe(x, sep='\r\n', header=None, index_col=None)
-                                              for x in self._data
-                                          ]
+            self._csv_to_dataframe(x, sep='\r\n', header=None, index_col=None)
+            for x in self._data
+        ]
 
         execution_month = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S').month
         file_lists = []
@@ -101,8 +101,8 @@ class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWrite
             raise ValueError(f"No path loaded from file {paths}")
 
         return paths[paths.iloc[:,0].apply(
-                   lambda x: parse(x, fuzzy=True).month
-               ).astype(str).str.contains(str(execution_month))].iloc[[-1]]
+            lambda x: parse(x, fuzzy=True).month
+        ).astype(str).str.contains(str(execution_month))].iloc[[-1]]
 
 
 @add_schema
