@@ -6,16 +6,18 @@ from   datalabs.etl.marketing.aggregate.transform import FlatfileUpdaterTask
 from   datalabs.etl.marketing.aggregate.transform import InputDataCleanerTask
 from   datalabs.etl.marketing.aggregate.transform import InputsMergerTask
 from   datalabs.etl.marketing.aggregate.transform import SFMCPrunerTask
+from   datalabs.etl.marketing.aggregate.transform import SourceFileListTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
 
-from   datalabs.etl.s3.extract import S3FileExtractorTask
+from   datalabs.etl.sftp.extract import SFTPDirectoryListingExtractorTask
 from   datalabs.etl.sftp.load import SFTPFileLoaderTask
 from   datalabs.etl.sql.extract import SQLExtractorTask
 
 
 @dag.register(name='MARKETING_AGGREGATOR')
 class DAG(dag.DAG):
-    EXTRACT_INPUTS: S3FileExtractorTask
+    EXTRACT_INPUT_PATHS: SFTPDirectoryListingExtractorTask
+    CREATE_SOURCE_FILE_LISTS: SourceFileListTransformerTask
     EXTRACT_CONTACTS: SQLExtractorTask
     CLEAN_INPUTS: InputDataCleanerTask
     VALIDATE_EXISTING_EMAILS: EmailValidatorTask
@@ -27,7 +29,7 @@ class DAG(dag.DAG):
     UPDATE_CONTACT_TABLE: ORMLoaderTask
 
 # pylint: disable=pointless-statement
-DAG.EXTRACT_INPUTS >> DAG.CLEAN_INPUTS
+DAG.EXTRACT_INPUT_PATHS >> DAG.CREATE_SOURCE_FILE_LISTS >> DAG.CLEAN_INPUTS
 
 DAG.EXTRACT_CONTACTS >> DAG.VALIDATE_EXISTING_EMAILS
 DAG.EXTRACT_CONTACTS >> DAG.UPDATE_FLATFILE
