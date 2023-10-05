@@ -52,6 +52,7 @@ def test_entity_id_count_cannot_exceed_1000(multi_profile_lookup_event, over_siz
     assert str(except_info.value) == 'The request contained 1001 entity IDs, but the maximum allowed is 1,000.'
 
 
+# UNCOMMENT AND IMPROVE ASSERTIONS OF THE AGGREGATED RECORDS DATA ONCE profile_query_results IS FIXED
 # # pylint: disable=redefined-outer-name, protected-access
 # def test_query_results_aggregated_properly(multi_profile_lookup_event, profile_query_results):
 #     task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
