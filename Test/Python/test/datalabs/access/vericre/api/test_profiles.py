@@ -5,7 +5,7 @@ import logging
 import mock
 import pytest
 
-from   datalabs.access.api.task import APIEndpointException, ResourceNotFound
+from   datalabs.access.api.task import ResourceNotFound, InvalidRequest
 from   datalabs.access.vericre.api.profiles import MultiProfileLookupEndpointTask
 
 logging.basicConfig()
@@ -24,8 +24,8 @@ def test_verify_entity_id_count(multi_profile_lookup_event, over_size_entity_ids
 
         task._verify_entity_id_count(task._parameters.payload.get('entity_id'))
 
-    assert except_info.type == APIEndpointException
-    assert str(except_info.value) == 'Invalid input parameters. The request should have a limit of 1000 Entity Ids'
+    assert except_info.type == InvalidRequest
+    assert str(except_info.value) == 'The request contained 1001 entity IDs, but the maximum allowed is 1,000.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -39,7 +39,7 @@ def test_verify_query_result(multi_profile_lookup_event, empty_query_result):
         task._verify_query_result(empty_query_result)
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'The profile was not found for the provided Entity Id'
+    assert str(except_info.value) == 'No profile was found for the provided entity ID'
 
 
 # pylint: disable=redefined-outer-name, protected-access
