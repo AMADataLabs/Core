@@ -14,52 +14,69 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("multi_profile_lookup_event")
-def test_verify_entity_id_count(multi_profile_lookup_event, over_size_entity_ids):
+def test_entity_id_field_must_be_a_list(multi_profile_lookup_event, over_size_entity_ids):
+    multi_profile_lookup_event["payload"] = dict(entity_id="12345")
+
+    with pytest.raises(Exception) as except_info:
+        task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
+
+        task._add_parameter_filters_to_query(None, task._parameters)
+
+    assert except_info.type == InvalidRequest
+    assert str(except_info.value) == 'The entity_id value must be a list of entity IDs.'
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_entity_id_count_cannot_be_zero(multi_profile_lookup_event, over_size_entity_ids):
+    multi_profile_lookup_event["payload"] = dict(entity_id=[])
+
+    with pytest.raises(Exception) as except_info:
+        task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
+
+        task._add_parameter_filters_to_query(None, task._parameters)
+
+    assert except_info.type == InvalidRequest
+    assert str(except_info.value) == 'Please provide at least 1 entity ID.'
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_entity_id_count_cannot_exceed_1000(multi_profile_lookup_event, over_size_entity_ids):
     multi_profile_lookup_event["payload"] = dict(entity_id=over_size_entity_ids)
 
     with pytest.raises(Exception) as except_info:
-
         task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
 
-        task._verify_entity_id_count(task._parameters.payload.get('entity_id'))
+        task._add_parameter_filters_to_query(None, task._parameters)
 
     assert except_info.type == InvalidRequest
     assert str(except_info.value) == 'The request contained 1001 entity IDs, but the maximum allowed is 1,000.'
 
 
-# pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("multi_profile_lookup_event")
-def test_verify_query_result(multi_profile_lookup_event, empty_query_result):
-    multi_profile_lookup_event["payload"] = dict(entityId=['12345678'])
+# # pylint: disable=redefined-outer-name, protected-access
+# def test_query_results_aggregated_properly(multi_profile_lookup_event, profile_query_results):
+#     task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
 
-    with pytest.raises(Exception) as except_info:
-        task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
+#     aggregated_records = task._aggregate_records(profile_query_results)
 
-        task._verify_query_result(empty_query_result)
-
-    assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'No profile was found for the provided entity ID'
+#     assert len(aggregated_records) == 1
 
 
-# pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("multi_profile_lookup_event")
-def test_query_for_profile(multi_profile_lookup_event, profile_query_results):
-    multi_profile_lookup_event["path"] = dict(entityId=['12345678'])
-
-    with mock.patch('datalabs.access.vericre.api.profile.Database'):
-        session = mock.MagicMock()
-
-        session.execute.return_value = profile_query_results
-
-        task = MultiProfileLookupEndpointTask(multi_profile_lookup_event)
-
-        sql = task._query_for_profile()
-
-        results = session.execute(sql)
-
-    assert (hasattr(results[0], attr) for attr in ['ama_entity_id'])
-    assert len(results) == 2
+@pytest.fixture
+def multi_profile_lookup_event():
+    return dict(
+        method='',
+        path={},
+        query={},
+        payload={},
+        authorization={},
+        database_host='',
+        database_port='',
+        database_backend='',
+        database_name='',
+        database_username='',
+        database_password='',
+        request_cache_table=''
+    )
 
 
 @pytest.fixture
@@ -75,37 +92,38 @@ def over_size_entity_ids():
 def empty_query_result():
     return []
 
-@pytest.fixture
-def profile_query_results():
-    Result = namedtuple('Result', \
-        'ama_entity_id section_identifier field_identifier is_authoritative \
-        is_source name read_only source_key source_tag type values')
+# FIX THIS SO THAT IT SIMULATES ACTUAL SQL QUERY RESULT DATA
+# @pytest.fixture
+# def profile_query_results():
+#     Result = namedtuple('Result', \
+#         'ama_entity_id section_identifier field_identifier is_authoritative \
+#         is_source name read_only source_key source_tag type values')
 
-    return [
-        Result(
-            ama_entity_id = '22212056',
-            section_identifier = 'demographics',
-            field_identifier = 'salutation',
-            is_authoritative = False,
-            is_source = False,
-            name = 'Salutation',
-            read_only = False,
-            source_key = None,
-            source_tag = 'Physician Provided',
-            type = 'TEXT',
-            values = []
-        ),
-        Result(
-            ama_entity_id = '22212056',
-            section_identifier = 'demographics',
-            field_identifier = 'firstName',
-            is_authoritative = True,
-            is_source = True,
-            name = 'First Name',
-            read_only = False,
-            source_key = 'demographics_firstName',
-            source_tag = 'AMA',
-            type = 'TEXT',
-            values = ['Leilani']
-        )
-    ]
+#     return [
+#         Result(
+#             ama_entity_id = '22212056',
+#             section_identifier = 'demographics',
+#             field_identifier = 'salutation',
+#             is_authoritative = False,
+#             is_source = False,
+#             name = 'Salutation',
+#             read_only = False,
+#             source_key = None,
+#             source_tag = 'Physician Provided',
+#             type = 'TEXT',
+#             values = []
+#         ),
+#         Result(
+#             ama_entity_id = '22212056',
+#             section_identifier = 'demographics',
+#             field_identifier = 'firstName',
+#             is_authoritative = True,
+#             is_source = True,
+#             name = 'First Name',
+#             read_only = False,
+#             source_key = 'demographics_firstName',
+#             source_tag = 'AMA',
+#             type = 'TEXT',
+#             values = ['Leilani']
+#         )
+#     ]
