@@ -323,8 +323,8 @@ def caqh_profile_pdf_event():
         org_id='',
         application_type='',
         domain='',
-        provider_api='',
-        status_check_api=''
+        provider_docs_url='',
+        status_check_url=''
     )
 
 
