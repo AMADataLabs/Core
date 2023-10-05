@@ -213,8 +213,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                     and u.ama_entity_id = '{entity_id}'
                     and u.is_deleted = false
                     and u.status = 'ACTIVE'
-                join form f on f.id = p.form
-                join form_field ff on ff.form = f.id
+                join form_field ff on ff.form = p.form
                     and ff."type" = 'FILE'
                     and ff.sub_section is not null
                 join "document" d on d.id = cast(ff."values" ->>0 as INT)
@@ -379,7 +378,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
             authorization=self._parameters.authorization,
-            document_bucket_name=self._parameters.document_bucket_name,
+            document_bucket=self._parameters.document_bucket,
             document_key=f'downloaded_documents/AMA_Profile_PDF/{filename}',
             request_ip=source_ip
         )

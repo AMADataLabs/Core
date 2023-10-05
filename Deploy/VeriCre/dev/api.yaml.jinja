@@ -4,7 +4,7 @@ VERICRE_API:
         ENVIRONMENT: dev
         ACCOUNT: '191296302136'
         WS_HOST_SUFFIX: 'test'
-        AWS_HOST_SUFFIX: 'dev'
+        AWS_HOST_SUFFIX: '-dev'
 
         DATABASE_HOST: vericre-dev-au-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
         DATABASE_PORT: '5432'
@@ -12,6 +12,11 @@ VERICRE_API:
         DATABASE_NAME: 'vericre'
         DATABASE_USERNAME:  vericreadmin
         DATABASE_PASSWORD:  '{{database_password}}'
+
+        PHYSICIAN_SEARCH_URL: 'https://wsint${WS_HOST_SUFFIX}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
+        SYNC_URL: 'https://vericre-api${AWS_HOST_SUFFIX}.ama-assn.org/users/physicians/search/onSync'
+
+        REQUEST_CACHE_TABLE: "vericre-${ENVIRONMENT}-us-east-1-api-request-cache"
 
         DOCUMENT_BUCKET: ama-${ENVIRONMENT}-vericre-us-east-1
 
@@ -30,18 +35,16 @@ VERICRE_API:
         CAQH_PROVIDER_DOCS_URL: 'https://${CAQH_DOMAIN}/DocumentAPI/api/providerdocs/download'
         CAQH_STATUS_CHECK_URL: 'https://${CAQH_DOMAIN}/RosterAPI/api/providerstatusbynpi'
 
-        PHYSICIAN_SEARCH_URL: 'https://wsint${WS_HOST_SUFFIX}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
-        SYNC_URL: 'https://vericre-api-${HOST_SUFFIX}.ama-assn.org/users/physicians/search/onSync'
-
     ROUTE:
-        PHYSICIANS_SEARCH: '/profile_api/physicians/search'
-        PROFILES_LOOKUP:   '/profile_api/profiles/lookup'
-        PROFILES:          '/profile_api/profiles'
-        PROFILE:           '/profile_api/profile/*'
-        PROFILE_DOCUMENTS: '/profile_api/profile/*/documents'
-        PROFILE_CAQH_PDF:  '/profile_api/profile/*/CAQH/pdf'
-        PROFILE_AMA_PDF:   '/profile_api/profile/*/AMA/pdf'
-        DEFAULT:           '/*'
+        PHYSICIANS_SEARCH:          '/profile_api/physicians/search'
+        PROFILES_LOOKUP:            '/profile_api/profiles/lookup'
+        PROFILES_LOOKUP_BY_INDEX:   '/profile_api/profiles/lookup/*'
+        PROFILES:                   '/profile_api/profiles'
+        PROFILE:                    '/profile_api/profile/*'
+        PROFILE_DOCUMENTS:          '/profile_api/profile/*/documents'
+        PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
+        DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
         TASK_CLASS:  'datalabs.access.vericre.api.physician.PhysiciansSearchEndpointTask'
@@ -62,6 +65,17 @@ VERICRE_API:
         DATABASE_PORT: ${DATABASE_PORT}
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        REQUEST_CACHE_TABLE: ${REQUEST_CACHE_TABLE}
+
+    PROFILES_LOOKUP_BY_INDEX:
+        TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupByIndexEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        REQUEST_CACHE_TABLE: ${REQUEST_CACHE_TABLE}
 
     PROFILES:
         TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
@@ -106,7 +120,6 @@ VERICRE_API:
         APPLICATION_TYPE: ${CAQH_APPLICATION_TYPE}
         PROVIDER_DOCS_URL: ${CAQH_PROVIDER_DOCS_URL}
         STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
-
 
     PROFILE_AMA_PDF:
         TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
