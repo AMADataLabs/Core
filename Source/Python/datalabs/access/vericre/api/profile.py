@@ -496,9 +496,8 @@ class CAQHProfilePDFEndpointParameters:
     password: str
     org_id: str
     application_type: str
-    domain: str
-    provider_api: str
-    status_check_api: str
+    provider_docs_url: str
+    status_check_url: str
     unknowns: dict = None
 
 
@@ -626,7 +625,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_caqh_pdf(self, parameters):
         return self.HTTP.request(
             'GET',
-            f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
+            f'{self._parameters.provider_docs_url}?{parameters}',
             headers=self._parameters.authorization['auth_headers']
         )
 
@@ -668,6 +667,6 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_caqh_provider_id_from_npi(self, parameters):
         return self.HTTP.request(
             'GET',
-            f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
+            f'{self._parameters.status_check_url}?{parameters}',
             headers=self._parameters.authorization['auth_headers']
         )
