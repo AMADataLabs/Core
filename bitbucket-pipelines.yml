@@ -2581,7 +2581,7 @@ pipelines:
                                 - >-
                                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/KnowledgeBase
                                     KnowledgeBase-API=API.zip
-                                    Authorizer=API.zip
+                                    KnowledgeBase-API-Authorizer=API.zip
 #                    - step:
 #                            name: Reload Test Lambda Functions
 #                            script:
@@ -2592,7 +2592,7 @@ pipelines:
 #                                    bash --rcfile assume_role.rc -i
 #                                    Deploy/Master/update-functions -e tst -s CPT-API -p CPT/KnowledgeBase
 #                                    KnowledgeBase-API=API.zip
-#                                    Authorizer=API.zip
+#                                    KnowledgeBase-API-Authorizer=API.zip
 
                   # - step:
                   #     name: Reload Staging Lambda Functions
@@ -2614,7 +2614,7 @@ pipelines:
 #                                bash --rcfile assume_role.rc -i
 #                                Deploy/Master/update-functions -e prd -s CPT-API -p CPT/KnowledgeBase
 #                                KnowledgeBase-API=API.zip
-#                                Authorizer=API.zip
+#                                KnowledgeBase-API-Authorizer=API.zip
 
         KNOWLEDGEBASE-ETL:
         - step:
