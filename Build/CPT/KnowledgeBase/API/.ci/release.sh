@@ -19,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-snomed-cpt-api"
-    export RELEASE_DESCRIPTION="SNOMED CPT API"
+    export RELEASE_NAME="datalabs-knowledge-base-cpt-api"
+    export RELEASE_DESCRIPTION="CPT-KnowledgeBase API  API"
 }
 
 
