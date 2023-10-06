@@ -2611,7 +2611,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/API
-                    Profile-API=Profile.zip
+                    Profiles-API=Profile.zip
                     Authorizer=Profile.zip
 
 
