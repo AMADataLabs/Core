@@ -1,11 +1,11 @@
 """AWS DynamoDB Loader"""
+from   dataclasses import dataclass
 import hashlib
 import json
 import logging
 
 import pandas
 
-from   dataclasses import dataclass
 from   datalabs.access.aws import AWSClient, AWSResource
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
@@ -97,8 +97,6 @@ class DynamoDBLoaderTask(Task):
     @classmethod
     def _select_deleted_hashes(cls, incoming_hashes, current_hashes):
         deleted_hashes = current_hashes[~current_hashes.pk.isin(incoming_hashes.pk)].reset_index(drop=True)
-        
-        deleted_hashes = self._clean_hashes(deleted_hashes)
 
         LOGGER.debug('Deleted Data: %s', deleted_hashes)
 
@@ -113,12 +111,11 @@ class DynamoDBLoaderTask(Task):
                 })
                 LOGGER.debug('Deleted Item: %s', item['pk'])
 
-    def _select_new_hashes(self, incoming_hashes, current_hashes):
+    @classmethod
+    def _select_new_hashes(cls, incoming_hashes, current_hashes):
         new_or_updated_hashes = incoming_hashes[~incoming_hashes.sk.isin(current_hashes.sk)].reset_index(drop=True)
 
         new_hashes = new_or_updated_hashes[~new_or_updated_hashes.pk.isin(current_hashes.pk)].reset_index(drop=True)
-
-        new_hashes = self._clean_hashes(new_hashes)
 
         LOGGER.debug('New Hashes: %s', new_hashes)
 
@@ -131,12 +128,11 @@ class DynamoDBLoaderTask(Task):
                 batch.put_item(Item=item)
                 LOGGER.debug('Added Item: %s', item['pk'])
 
-    def _select_updated_hashes(self, incoming_hashes, current_hashes):
+    @classmethod
+    def _select_updated_hashes(cls, incoming_hashes, current_hashes):
         new_or_updated_hashes = incoming_hashes[~incoming_hashes.md5.isin(current_hashes.md5)]
 
         updated_hashes = new_or_updated_hashes[new_or_updated_hashes.pk.isin(current_hashes.pk)]
-
-        updated_hashes = self._clean_hashes(updated_hashes)
 
         LOGGER.debug('Updated Data: %s', updated_hashes)
 
@@ -182,15 +178,3 @@ class DynamoDBLoaderTask(Task):
 
             for item in results["Items"]:
                 yield item
-
-    @classmethod
-    def _clean_hashes(cls, hashes):
-        hashes['pre_service_info'] = hashes['pre_service_info'].astype(str)
-        hashes['sk'] = hashes['sk'].astype(str)
-        hashes['pk'] = hashes['pk'].astype(str)
-        hashes['typical_patient'] = hashes['typical_patient'].astype(str)
-        hashes['intra_service_info'] = hashes['intra_service_info'].astype(str)
-        hashes['post_service_info'] = hashes['post_service_info'].astype(str)
-        hashes['ruc_reviewed_date'] = hashes['ruc_reviewed_date'].astype(str)
-
-        return hashes
