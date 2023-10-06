@@ -87,7 +87,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_max_results(cls, parameters):
-        max_results = 50
+        max_results = 30
         if parameters.get('max_results') and len(parameters.get('max_results')) > 0:
             max_results = int(parameters.get('max_results')[0])
         return max_results
@@ -135,17 +135,24 @@ class MapSearchEndpointTask(APIEndpointTask):
         data_list = response['hits']['hits']
 
         for hit in data_list:
+            answer_preview = cls._generate_answer_preview(hit['_source']['answer'])
             document_data = {'id': hit['_source']['row_id'],
                              'section': hit['_source']['section'],
                              'subsection': hit['_source']['subsection'],
                              'question': hit['_source']['question'],
-                             'answer': hit['_source']['answer']
+                             'answer': answer_preview
                              }
             results.append(document_data)
 
         LOGGER.info('returning these results.. ')
         LOGGER.info(str(results))
         return results
+
+    @classmethod
+    def _generate_answer_preview(cls, answer):
+        answer_words = str(answer).split()
+
+        return ' '.join(answer_words[:10])
 
     @classmethod
     def _get_query_parameters(cls, keywords, search_parameters):
