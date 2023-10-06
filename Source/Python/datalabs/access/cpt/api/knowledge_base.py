@@ -1,7 +1,7 @@
 """ Release endpoint classes. """
 import logging
 
-from Source.Python.datalabs.access.aws import AWSClient
+from   datalabs.access.aws import AWSClient
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -14,7 +14,6 @@ from datalabs.parameter import add_schema
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from opensearchpy.helpers import bulk
-import csv
 import time
 import uuid
 
