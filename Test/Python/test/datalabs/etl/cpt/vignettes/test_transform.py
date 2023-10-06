@@ -40,8 +40,8 @@ def test_create_vignettes_mappings(transformer, data):
 
 @pytest.fixture
 def data(vignettes_data, comprehensive_data, hcpcs_data, administrative_data):
-
-    data = [vignettes_data,
+    data = [
+            vignettes_data,
             comprehensive_data,
             hcpcs_data,
             administrative_data
@@ -124,7 +124,7 @@ Concept Id\tHCPCS II Code
 """
 
     return data
-    
+
 @pytest.fixture
 def administrative_data():
     data = b"""\

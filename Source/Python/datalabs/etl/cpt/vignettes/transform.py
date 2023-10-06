@@ -36,14 +36,15 @@ class VignettesTransformerTask(Task):
             encoding='latin-1',
             skiprows=31,
             header=None,
-            names=['cpt_code',
-                   'long_descriptor',
-                   'typical_patient', 
-                   'pre_service_info',
-                   'intra_service_info',
-                   'post_service_info',
-                   'ruc_reviewed_date',
-                   'survey_specialty'
+            names=[
+                'cpt_code',
+                'long_descriptor',
+                'typical_patient',
+                'pre_service_info',
+                'intra_service_info',
+                'post_service_info',
+                'ruc_reviewed_date',
+                'survey_specialty'
             ]
         )
 
@@ -71,12 +72,14 @@ class VignettesTransformerTask(Task):
 
         return matched_vignettes
 
-    def _match_codes_to_concepts(self, data, codes):
+    @classmethod
+    def _match_codes_to_concepts(cls, data, codes):
         matched_vignettes = pandas.merge(data, codes, on='cpt_code', how='left')
 
         return matched_vignettes[VIGNETTES_COLUMNS]
 
-    def _match_hcpcs_codes_to_concepts(self, data, codes):
+    @classmethod
+    def _match_hcpcs_codes_to_concepts(cls, data, codes):
         unmatched_vignettes  = data[data['concept_id'].isnull()]
 
         matched_hcpcs_codes = pandas.merge(
@@ -94,7 +97,8 @@ class VignettesTransformerTask(Task):
 
         return matched_vignettes
 
-    def _match_administrative_code_to_concepts(self, data, codes):
+    @classmethod
+    def _match_administrative_code_to_concepts(cls, data, codes):
         unmatched_vignettes  = data[data['concept_id'].isnull()]
 
         matched_administrative_codes = pandas.merge(
@@ -111,13 +115,15 @@ class VignettesTransformerTask(Task):
 
         return matched_vignettes
 
-    def _clean_data(self, data):
+    @classmethod
+    def _clean_data(cls, data):
         data['concept_id'] = data['concept_id'].astype('int32').astype(str)
         data['cpt_code'] = data['cpt_code'].astype(str)
 
         return data
 
-    def _create_vignettes_mappings(self, data):
+    @classmethod
+    def _create_vignettes_mappings(cls, data):
         data.loc[:, 'pk'] = "CPT CODE:" + data['cpt_code']
         data.loc[:, 'sk'] = "CONCEPT:" + data['concept_id']
 
