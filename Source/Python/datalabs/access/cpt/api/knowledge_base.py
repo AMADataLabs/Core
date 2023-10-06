@@ -291,9 +291,11 @@ class OpenSearchDataImporter:
             for row in rows:
                 # Split each row into columns based on the '|' delimiter
                 columns = row.split('|')
-                record = {"_id": columns[0], "section": columns[1], "subsection": columns[2], "question": columns[3],
-                          "answer": columns[4],
-                          "updated_on": columns[5], "row_id": uuid.uuid1()}
+                length = len(columns)
+                record = {"_id": columns[0] if length >= 1 else "", "section": columns[1] if length >= 2 else "",
+                          "subsection": columns[2] if length >= 3 else "", "question": columns[3] if length >= 4 else "",
+                          "answer": columns[4] if length >= 5 else "",
+                          "updated_on": columns[5] if length >= 6 else "", "row_id": uuid.uuid1()}
                 records.append(record)
                 count += 1
                 if count == 500:
