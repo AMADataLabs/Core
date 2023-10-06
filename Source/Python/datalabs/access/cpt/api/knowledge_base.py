@@ -323,7 +323,7 @@ class OpenSearchDataImporter:
         indices = client.cat.indices()
         LOGGER.info(f"indices (Before import): {indices}")
         self._import_kb_data(index_name, client)
-        count = self._get_index_records_count(index_name)
+        count = self._get_index_records_count(index_name, client)
         LOGGER.info(f"Total number of records imported: {count}")
         indices = client.cat.indices()
         LOGGER.info(f"indices (After import): {indices}")
