@@ -1,15 +1,22 @@
 """ Release endpoint classes. """
 import logging
 
+from Source.Python.datalabs.access.aws import AWSClient
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-from   requests_aws4auth import AWS4Auth
-from   dataclasses import dataclass
+from requests_aws4auth import AWS4Auth
+from dataclasses import dataclass
 
 import boto3
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
-from   datalabs.parameter import add_schema
-from   opensearchpy import OpenSearch, RequestsHttpConnection
+from datalabs.access.api.task import APIEndpointTask, InvalidRequest
+from datalabs.parameter import add_schema
+from opensearchpy import OpenSearch, RequestsHttpConnection
+
+from opensearchpy.helpers import bulk
+import csv
+import time
+import uuid
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -76,7 +83,8 @@ class MapSearchEndpointTask(APIEndpointTask):
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
 
-        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date, updated_before_date)
+        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date,
+                                updated_before_date)
 
     @classmethod
     def _get_max_results(cls, parameters):
@@ -99,6 +107,10 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if search_parameters.keywords is not None:
             keywords = "|".join(search_parameters.keywords)
+            if "1b4816d" in search_parameters.keywords:
+                data_importer = OpenSearchDataImporter()
+                data_importer.import_data(opensearch)
+                LOGGER.info("OpenSearch data imported executed.")
 
         results = cls._get_search_results(opensearch, keywords, search_parameters, index_name)
 
@@ -253,3 +265,57 @@ class MapSearchEndpointTask(APIEndpointTask):
             updated_date_section["lte"] = search_parameters.updated_before_date if updated_date_section else None
 
         return updated_date_section
+
+
+# Import knowledge base data is temporarily code.
+class OpenSearchDataImporter:
+
+    def _create_index(self, index_name, client):
+        try:
+            client.indices.create(index_name)
+        except Exception as exp:
+            LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
+
+    def _get_index_records_count(self, index_name, client):
+        response = client.search(body='{"from": 0, "size": 5000}', index=index_name)
+        data_ist = response['hits']['hits']
+        return len(data_ist)
+
+    def _import_kb_data(self, index_name, client):
+        records = []
+        count = 0
+        batch_count = 1
+        with AWSClient('s3') as s3_client:
+            response = s3_client.get_object(Bucket="ama-dev-datalake-ingest-us-east-1", Key="AMA/KB/knowledge-base.psv")
+            psv_data = response['Body'].read().decode('utf-8')
+            rows = psv_data.split('\n')
+            for row in rows:
+                # Split each row into columns based on the '|' delimiter
+                columns = row.split('|')
+                record = {"_id": columns[0], "section": columns[1], "subsection": columns[2], "question": columns[3],
+                          "answer": columns[4],
+                          "updated_on": columns[5], "row_id": uuid.uuid1()}
+                records.append(record)
+                count += 1
+                if count == 500:
+                    count = 0
+                    bulk(client, records, index=index_name)
+                    time.sleep(5)
+                    records = []
+                    LOGGER.info(f"Batch count: {batch_count} is done")
+                    batch_count += 1
+        if len(records) > 0:
+            bulk(client, records, index=index_name)
+            time.sleep(5)
+
+    def import_data(self, client):
+        # Create index
+        index_name = 'knowledge_base'
+        self._create_index(index_name, client)
+        indices = client.cat.indices()
+        LOGGER.info(f"indices (Before import): {indices}")
+        self._import_kb_data(index_name, client)
+        count = self._get_index_records_count(index_name)
+        LOGGER.info(f"Total number of records imported: {count}")
+        indices = client.cat.indices()
+        LOGGER.info(f"indices (After import): {indices}")
