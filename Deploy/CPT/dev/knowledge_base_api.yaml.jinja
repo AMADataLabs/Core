@@ -8,9 +8,9 @@ KNOWLEDGE_BASE_API:
         OPENSEARCH_URL: 'hsudgkzt7rdoshk6po8b.us-east-1.aoss.amazonaws.com'
 
     ROUTE:
-        ARTICLES_SUMMARY: '/articles/summary'
-        ARTICLE: '/article/*'
-        DEFAULT: '/*'
+        ARTICLES_SUMMARY: '/knowledge_base/articles/summary'
+        ARTICLE: '/knowledge_base/article/*'
+        DEFAULT: '/knowledge_base/*'
 
     ARTICLES_SUMMARY:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
