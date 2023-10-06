@@ -47,7 +47,7 @@ class AuditLogParameters:
     entity_id: str
     request_type: str
     authorization: dict
-    document_bucket_name: str
+    document_bucket: str
     document_key: str
     request_ip: str
     document_version_id: str = ''
@@ -57,11 +57,11 @@ class CommonEndpointUtilities:
     @classmethod
     @run_time_logger
     def save_audit_log(cls, database, document_data, audit_log_parameters):
-        document_bucket_name = audit_log_parameters.document_bucket_name
+        document_bucket = audit_log_parameters.document_bucket
         document_key = audit_log_parameters.document_key
 
         audit_log_parameters.document_version_id = cls._upload_document_onto_s3(
-            document_bucket_name,
+            document_bucket,
             document_key,
             document_data
         )
@@ -77,7 +77,7 @@ class CommonEndpointUtilities:
 
     @classmethod
     @run_time_logger
-    def _upload_document_onto_s3(cls, document_bucket_name, document_key, data):
+    def _upload_document_onto_s3(cls, document_bucket, document_key, data):
         version_id = ''
 
         try:
@@ -85,7 +85,7 @@ class CommonEndpointUtilities:
 
             with AWSClient('s3') as aws_s3:
                 put_object_result = aws_s3.put_object(
-                    Bucket=document_bucket_name,
+                    Bucket=document_bucket,
                     Key=document_key,
                     Body=data,
                     ContentMD5=md5_hash.decode()
@@ -155,7 +155,7 @@ class ProfileDocumentsEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    document_bucket_name: str
+    document_bucket: str
     unknowns: dict = None
 
 
@@ -188,7 +188,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["Documents"],
             authorization=self._parameters.authorization,
-            document_bucket_name=self._parameters.document_bucket_name,
+            document_bucket=self._parameters.document_bucket,
             document_key=f'downloaded_documents/Documents/{entity_id}_documents_{current_date_time}.zip',
             request_ip=source_ip
         )
@@ -214,7 +214,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
                     and u.is_deleted = false
                     and u.status = 'ACTIVE'
                 join form_field ff on ff.form = p.form
-                    and ff."type" = 'FILE' 
+                    and ff."type" = 'FILE'
                     and ff.sub_section is not null
                 join "document" d on d.id = cast(ff."values" ->>0 as INT)
                     and d.is_deleted = false
@@ -268,7 +268,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         try:
             with AWSClient('s3') as aws_s3:
                 aws_s3.download_file(
-                    Bucket=self._parameters.document_bucket_name,
+                    Bucket=self._parameters.document_bucket,
                     Key=document_key,
                     Filename=f"{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{download_file_name}"
                 )
@@ -343,10 +343,12 @@ class AMAProfilePDFEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    document_bucket_name: str
+    document_bucket: str
     client_id: str
     client_secret: str
-    client_env: str
+    token_url: str
+    profile_url: str
+    pdf_url: str
     unknowns: dict = None
 
 
@@ -376,7 +378,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
             authorization=self._parameters.authorization,
-            document_bucket_name=self._parameters.document_bucket_name,
+            document_bucket=self._parameters.document_bucket,
             document_key=f'downloaded_documents/AMA_Profile_PDF/{filename}',
             request_ip=source_ip
         )
@@ -427,7 +429,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_ama_token(self, token_headers, token_body):
         return self.HTTP.request(
             'POST',
-            f'https://{self._parameters.client_env}.ama-assn.org/oauth2/endpoint/eprofilesprovider/token',
+            self._parameters.token_url,
             headers=token_headers,
             body=token_body
         )
@@ -448,7 +450,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_ama_profile(self, entity_id):
         return self.HTTP.request(
             'GET',
-            f'https://{self._parameters.client_env}.ama-assn.org/profiles/profile/full/{entity_id}',
+            f'{self._parameters.profile_url}/{entity_id}',
             headers=StaticTaskParameters.PROFILE_HEADERS
         )
 
@@ -470,7 +472,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_ama_profile_pdf(self, entity_id):
         return self.HTTP.request(
             'GET',
-            f'https://{self._parameters.client_env}.ama-assn.org/profiles/pdf/full/{entity_id}',
+            f'{self._parameters.pdf_url}/{entity_id}',
             headers=StaticTaskParameters.PROFILE_HEADERS
         )
 
@@ -489,14 +491,13 @@ class CAQHProfilePDFEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    document_bucket_name: str
+    document_bucket: str
     username: str
     password: str
     org_id: str
     application_type: str
-    domain: str
-    provider_api: str
-    status_check_api: str
+    provider_docs_url: str
+    status_check_url: str
     unknowns: dict = None
 
 
@@ -534,7 +535,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             entity_id=entity_id,
             request_type=StaticTaskParameters.REQUEST_TYPE["CAQH"],
             authorization=self._parameters.authorization,
-            document_bucket_name=self._parameters.document_bucket_name,
+            document_bucket=self._parameters.document_bucket,
             document_key= \
                 f'downloaded_documents/CAQH_Profile_PDF/{filename.replace(".pdf", f"_{current_date_time}.pdf")}',
             request_ip=source_ip
@@ -624,7 +625,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_caqh_pdf(self, parameters):
         return self.HTTP.request(
             'GET',
-            f'{self._parameters.domain}/{self._parameters.provider_api}?{parameters}',
+            f'{self._parameters.provider_docs_url}?{parameters}',
             headers=self._parameters.authorization['auth_headers']
         )
 
@@ -666,6 +667,6 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
     def _request_caqh_provider_id_from_npi(self, parameters):
         return self.HTTP.request(
             'GET',
-            f'{self._parameters.domain}/{self._parameters.status_check_api}?{parameters}',
+            f'{self._parameters.status_check_url}?{parameters}',
             headers=self._parameters.authorization['auth_headers']
         )
