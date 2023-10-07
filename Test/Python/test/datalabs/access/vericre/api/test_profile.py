@@ -15,7 +15,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("profile_documents_event")
 def test_query_for_documents(profile_documents_event, document_query_results):
     profile_documents_event["path"] = dict(entityId='12345678')
 
@@ -35,7 +34,6 @@ def test_query_for_documents(profile_documents_event, document_query_results):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("profile_documents_event")
 def test_download_files_for_profile(profile_documents_event, empty_document_query_result):
     profile_documents_event["path"] = dict(entityId='12345678')
 
@@ -45,11 +43,10 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
         task._download_files_for_profile(empty_document_query_result, task._parameters.path.get('entityId'))
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'Document for the given entity ID is not found in VeriCre.'
+    assert str(except_info.value) == 'No documents where found in VeriCre for the given entity ID.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("ama_profile_pdf_event")
 def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
@@ -68,7 +65,6 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("ama_profile_pdf_event")
 def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
@@ -81,32 +77,30 @@ def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_
 
         task._assert_profile_exists(task._parameters.path.get('entityId'))
 
-    assert except_info.type == InternalServerError
-    assert str(except_info.value) == \
-        f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
+    assert except_info.type == ResourceNotFound
+    assert str(except_info.value) == 'An AMA eProfiles profile was not found for the provided entity ID.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("ama_profile_pdf_event")
 def test_get_profile_pdf_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
-    with pytest.raises(Exception) as except_info, \
+    with (
+        pytest.raises(Exception) as except_info,
         mock.patch(
             'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile_pdf',
             return_value = http_request_status_404
-        ):
+        )
+    ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
         task._get_profile_pdf(task._parameters.path.get('entityId'))
 
-    assert except_info.type == InternalServerError
-    assert str(except_info.value) == \
-        f'Internal Server error caused by: {http_request_status_404.reason}, status: {http_request_status_404.status}'
+    assert except_info.type == ResourceNotFound
+    assert str(except_info.value) == 'An AMA eProfiles profile was not found for the provided entity ID.'
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("caqh_profile_pdf_event")
 def test_query_for_provider_id(caqh_profile_pdf_event, provider_id_query_results):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
@@ -126,7 +120,6 @@ def test_query_for_provider_id(caqh_profile_pdf_event, provider_id_query_results
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("caqh_profile_pdf_event")
 def test_verify_query_result_zero(caqh_profile_pdf_event, provider_id_query_result_empty):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
@@ -136,13 +129,11 @@ def test_verify_query_result_zero(caqh_profile_pdf_event, provider_id_query_resu
         task._verify_query_result(provider_id_query_result_empty)
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'Provider ID from the given entity ID is not found in VeriCre.'
+    assert str(except_info.value) == 'A provider ID was not found in VeriCre for the given entity ID.'
 
 
-### query_result > 1
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("caqh_profile_pdf_event")
-def test_verify_query_result_multi(caqh_profile_pdf_event, provider_id_query_result_multi):
+def test_verify_multi_query_returns_multiple_results(caqh_profile_pdf_event, provider_id_query_result_multi):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info:
@@ -151,10 +142,9 @@ def test_verify_query_result_multi(caqh_profile_pdf_event, provider_id_query_res
         task._verify_query_result(provider_id_query_result_multi)
 
     assert except_info.type == InternalServerError
-    assert str(except_info.value) == 'Multiple records found for the given Entity ID in VeriCre.'
+    assert str(except_info.value) == 'Multiple records were found in VeriCre for the given entity ID.'
 
 
-@pytest.mark.usefixtures("caqh_profile_pdf_event")
 def test_fetch_caqh_pdf(caqh_profile_pdf_event, http_request_status_404):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
@@ -172,9 +162,10 @@ def test_fetch_caqh_pdf(caqh_profile_pdf_event, http_request_status_404):
         f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
-### response.status != 200
-@pytest.mark.usefixtures("caqh_profile_pdf_event")
-def test_get_caqh_provider_id_from_npi(caqh_profile_pdf_event, http_request_status_404):
+def test_get_caqh_provider_id_from_bad_npi_returns_internal_server_error(
+        caqh_profile_pdf_event,
+        http_request_status_404
+):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
@@ -191,9 +182,10 @@ def test_get_caqh_provider_id_from_npi(caqh_profile_pdf_event, http_request_stat
         f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
-### provider_data['provider_found_flag'] != "Y"
-@pytest.mark.usefixtures("caqh_profile_pdf_event")
-def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_event, http_request_provider_found_flag_n):
+def test_get_caqh_provider_id_from_npi_returns_false_provider_found_flag(
+        caqh_profile_pdf_event,
+        http_request_provider_found_flag_n
+):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
@@ -206,7 +198,24 @@ def test_get_caqh_provider_id_from_npi_provider_found_flag(caqh_profile_pdf_even
         task._get_caqh_provider_id_from_npi('npi-11223344')
 
     assert except_info.type == ResourceNotFound
-    assert str(except_info.value) == 'CAQH Provider ID from the given NPI ID is not found in CAQH ProView.'
+    assert str(except_info.value) == 'A provider ID was not found in CAQH ProView for the given NPI.'
+
+
+@pytest.fixture
+def profile_documents_event():
+    return dict(
+        path={},
+        query={},
+        authorization={},
+        identity={},
+        database_host='',
+        database_port='',
+        database_backend='',
+        database_name='',
+        database_username='',
+        database_password='',
+        document_bucket=''
+    )
 
 
 @pytest.fixture
@@ -271,6 +280,53 @@ def provider_id_query_result_multi():
             caqh_profile_id = '12341234'
         )
     ]
+
+
+@pytest.fixture
+def ama_profile_pdf_event():
+    return dict(
+        path={},
+        query={},
+        authorization={},
+        identity={},
+        database_host='',
+        database_port='',
+        database_backend='',
+        database_name='',
+        database_username='',
+        database_password='',
+        document_bucket='',
+        client_id='',
+        client_secret='',
+        token_url='',
+        profile_url='',
+        pdf_url=''
+    )
+
+
+@pytest.fixture
+def caqh_profile_pdf_event():
+    return dict(
+        path={},
+        query={},
+        authorization={},
+        identity={},
+        database_host='',
+        database_port='',
+        database_backend='',
+        database_name='',
+        database_username='',
+        database_password='',
+        document_bucket='',
+        username='',
+        password='',
+        org_id='',
+        application_type='',
+        domain='',
+        provider_docs_url='',
+        status_check_url=''
+    )
+
 
 @pytest.fixture
 def http_request_provider_found_flag_n():

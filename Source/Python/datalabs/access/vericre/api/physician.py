@@ -31,8 +31,8 @@ class PhysiciansSearchEndpointParameters:
     database_port: str
     database_username: str
     database_password: str
-    ama_domain: str
-    vericre_alb_domain: str
+    physician_search_url: str
+    sync_url: str
     payload: dict
     unknowns: dict=None
 
@@ -52,10 +52,9 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return self._generate_response(physicians)
 
     def _search_physicians(self, payload):
-        url = f'https://{self._parameters.ama_domain}.ama-assn.org/enterprisesearch/EnterpriseSearchService'
         search_request = self._generate_search_request(payload)
 
-        return self._submit_search_request(search_request, url)
+        return self._submit_search_request(search_request, self._parameters.physician_search_url)
 
     @classmethod
     def _format_physicians(cls, request_response):
@@ -129,7 +128,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             entity_id=physician.entityId,
             first_name=physician.legalFirstName,
             last_name=physician.legalLastName,
-            date_of_birth=cls._get_date(physician.birthDate),
+            date_of_birth=cls._reformat_birth_date(physician.birthDate),
             npi_number=physician.npiNumber.NPI[0].npiNumber
         )
 
@@ -166,8 +165,8 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
     def _validate_payload(cls, payload):
         if "first_name" not in payload or "last_name" not in payload or "date_of_birth" not in payload:
             raise InvalidRequest(
-                "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
-                "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
+                "Please provide either a combination of first_name, last_name, "
+                "and date_of_birth; or any of npi_number, me_number, or ecfmg_number."
             )
 
         first_name = payload.get("first_name")
@@ -184,7 +183,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
             raise InvalidRequest("Invalid input parameters. date_of_birth cannot be empty.")
 
     @classmethod
-    def _get_entity_id(cls,entity_id, database):
+    def _get_entity_id(cls, entity_id, database):
         response = None
 
         try:
@@ -194,7 +193,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         except OperationalError as error:
             raise InternalServerError("VeriCre connection error. Please try again later.") from error
         except MultipleResultsFound:
-            LOGGER.error("Multiple results found for entity id : %s", entity_id)
+            LOGGER.error('Multiple results found for entity id "%s"', entity_id)
             response = None
 
         return response
@@ -204,19 +203,17 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
         return query.filter(User.is_deleted == 'False').filter(User.status == 'ACTIVE')
 
     @classmethod
-    def _get_date(cls, date_string):
-        formatted_date = None
+    def _reformat_birth_date(cls, date):
+        reformatted_date = None
 
         try:
-            date_object = datetime.strptime(date_string, "%Y%m%d")
-            formatted_date = date_object.strftime("%Y-%m-%d")
-        except (TypeError, ValueError) as error:
-            LOGGER.error("Exception in formatting the date : %s",error)
+            reformatted_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+        except ValueError as error:
+            raise InvalidRequest(f'Invalid birth date: {date}.') from error
 
-        return formatted_date
+        return reformatted_date
 
     def _proceed_caqh_sync(self, physicians):
-
         physicians_payload = [
             {"entityId": physician["entity_id"], "npiNumber": physician["npi_number"]}
             for physician in physicians
@@ -224,7 +221,7 @@ class PhysiciansSearchEndpointTask(APIEndpointTask):
 
         try:
             requests.post(
-                f'https://{self._parameters.vericre_alb_domain}/users/physicians/search/onSync',
+                self._parameters.sync_url,
                 verify=False,
                 timeout=(None, 0.1),
                 json=physicians_payload

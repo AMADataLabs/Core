@@ -75,6 +75,7 @@ POLO_ELIGIBLE_SOURCES = [
 
 
 class PoloEligibleDataTransformerTask(Task):
+    # pylint: disable=too-many-statements
     def run(self) -> 'list<bytes>':
         ppd = pd.read_csv(StringIO(self._data[0].decode()), sep=',', dtype=str)
         ppd.columns = [col.lower() for col in ppd.columns]

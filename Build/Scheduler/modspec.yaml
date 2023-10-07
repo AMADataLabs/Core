@@ -10,6 +10,7 @@ modspec:
       - environment
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
+  - package: datalabs.cache
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
@@ -24,6 +25,10 @@ modspec:
   - package: datalabs.etl.schedule
     include:
       - transform
+      - extract
+  - package: datalabs.etl.smtp
+  - package: datalabs.example.etl.dag
+  - package: datalabs.example.etl.dag.schedule
   - package: datalabs.etl.sns
   - package: datalabs.messaging
     include:

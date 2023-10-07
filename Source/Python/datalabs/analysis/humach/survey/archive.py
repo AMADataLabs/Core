@@ -1,6 +1,6 @@
 """ Humach Archive definitions - will be removed """
 
-# pylint: disable=trailing-whitespace,no-name-in-module,import-error,wildcard-import,undefined-variable,invalid-name,unnecessary-comprehension,unused-import,use-a-generator,singleton-comparison,f-string-without-interpolation,logging-fstring-interpolation,unused-variable,consider-using-sys-exit,bare-except,unused-wildcard-import
+# pylint: disable=trailing-whitespace,no-name-in-module,import-error,wildcard-import,undefined-variable,invalid-name,unnecessary-comprehension,unused-import,use-a-generator,singleton-comparison,f-string-without-interpolation,logging-fstring-interpolation,unused-variable,consider-using-sys-exit,bare-except,unused-wildcard-import,too-many-statements
 from dataclasses import dataclass
 from datetime import datetime
 import logging

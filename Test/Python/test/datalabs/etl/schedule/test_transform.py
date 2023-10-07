@@ -9,7 +9,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.schedule.transform import DAGSchedulerTask
+from   datalabs.etl.schedule.transform import DAGSchedulerTask, ScheduledDAGIdentifierTask
 from   datalabs.etl.dag.state.base import Status
 from   datalabs.etl.dag.state.file import DAGState
 
@@ -47,21 +47,9 @@ def test_execution_time_returns_next_execution_time(scheduler, target_execution_
 def test_execution_time_bounds_are_correct(scheduler, target_execution_time):
     lower_bound, upper_bound = scheduler._get_execution_time_bounds(target_execution_time)
 
-    assert lower_bound.year == target_execution_time.year
-    assert lower_bound.month == target_execution_time.month
-    assert lower_bound.day == target_execution_time.day
-    assert lower_bound.hour == target_execution_time.hour
-    assert lower_bound.minute == 30
-    assert lower_bound.second == 0
-    assert lower_bound.microsecond == 0
+    _assert_lower_execution_time_bounds_are_correct(lower_bound, target_execution_time)
 
-    assert upper_bound.year == target_execution_time.year
-    assert upper_bound.month == target_execution_time.month
-    assert upper_bound.day == target_execution_time.day
-    assert upper_bound.hour == target_execution_time.hour
-    assert upper_bound.minute == 45
-    assert upper_bound.second == 0
-    assert upper_bound.microsecond == 0
+    _assert_upper_execution_time_bounds_are_correct(upper_bound, target_execution_time)
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -149,6 +137,56 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
     for row in dags_to_run:
         assert all(column in row for column in ['dag', 'execution_time'])
 
+# pylint: disable=redefined-outer-name, protected-access, line-too-long
+def test_previous_days_dag_runs_are_correctly_identified(
+        parameters_get_last_days_runs,
+        schedule_get_last_days_runs,
+        target_execution_time_get_last_days_runs
+):
+    scheduler = ScheduledDAGIdentifierTask(parameters_get_last_days_runs)
+
+    dags_to_run = scheduler._determine_dags_to_run(
+            schedule_get_last_days_runs,
+            target_execution_time_get_last_days_runs
+    ).reset_index()
+
+    assert len(dags_to_run) == 112
+
+    assert dags_to_run.DAG[0] == 'CERNER_REPORT'
+    assert dags_to_run.Run[0] == datetime(2023, 8, 30, 13, 30)
+    assert dags_to_run.Run[95] == datetime(2023, 8, 31, 13, 15)
+
+    assert dags_to_run.DAG[96] == 'PLATFORM_USER_TOKENS'
+    assert dags_to_run.Run[96] == datetime(2023, 8, 31, 0, 13)
+
+    assert dags_to_run.DAG[97] == 'LICENSE_MOVEMENT'
+    assert dags_to_run.Run[97] == datetime(2023, 8, 31, 13, 5)
+
+    assert dags_to_run.DAG[98] == 'VERICRE_DATA_STEWARD'
+    assert dags_to_run.Run[98] == datetime(2023, 8, 31, 0, 0)
+    assert dags_to_run.Run[99] == datetime(2023, 8, 31, 1, 0)
+    assert dags_to_run.Run[111] == datetime(2023, 8, 31, 13, 0)
+
+
+def _assert_lower_execution_time_bounds_are_correct(lower_bound, target_execution_time):
+    assert lower_bound.year == target_execution_time.year
+    assert lower_bound.month == target_execution_time.month
+    assert lower_bound.day == target_execution_time.day
+    assert lower_bound.hour == target_execution_time.hour
+    assert lower_bound.minute == 30
+    assert lower_bound.second == 0
+    assert lower_bound.microsecond == 0
+
+
+def _assert_upper_execution_time_bounds_are_correct(upper_bound, target_execution_time):
+    assert upper_bound.year == target_execution_time.year
+    assert upper_bound.month == target_execution_time.month
+    assert upper_bound.day == target_execution_time.day
+    assert upper_bound.hour == target_execution_time.hour
+    assert upper_bound.minute == 45
+    assert upper_bound.second == 0
+    assert upper_bound.microsecond == 0
+
 
 @pytest.fixture
 def state_directory():
@@ -209,3 +247,45 @@ def schedule(schedule_csv):
 @pytest.fixture
 def empty_schedule(empty_schedule_csv):
     return pandas.read_csv(BytesIO(empty_schedule_csv.encode('utf8')))
+
+
+@pytest.fixture
+def parameters_get_last_days_runs(state_directory):
+    return dict(
+        DAG_STATE=json.dumps(
+            dict(
+                CLASS='datalabs.etl.dag.state.file.DAGState',
+                BASE_PATH=state_directory
+            )
+        ),
+        EXECUTION_TIME='2023-08-31T13:20:00.000000'
+    )
+
+
+@pytest.fixture
+def target_execution_time_get_last_days_runs():
+    return datetime(2023, 8, 31, 13, 20, 0)
+
+
+@pytest.fixture
+def schedule_get_last_days_runs_csv():
+    """ Given an execution_time of 2023-08-31 13:20:00, we would expect the following DAG runs:
+            CERNER_REPORT 2023-08-30 13:30:00
+            . . .
+            CERNER_REPORT 2023-08-31 13:15:00
+            PLATFORM_USER_TOKENS 2023-08-31 00:13:00
+            LICENSE_MOVEMENT 2023-08-31 13:05:00
+            VERICRE_DATA_STEWARD 2023-08-31 00:00:00
+            . . .
+            VERICRE_DATA_STEWARD 2023-08-31 13:00:00
+    """
+    return """dag,schedule
+CERNER_REPORT,*/15 * * * *
+PLATFORM_USER_TOKENS,13 0 * * tue-sat
+LICENSE_MOVEMENT,5 13 * * mon-fri
+VERICRE_DATA_STEWARD,0 * * * thu-fri
+"""
+
+@pytest.fixture
+def schedule_get_last_days_runs(schedule_get_last_days_runs_csv):
+    return pandas.read_csv(BytesIO(schedule_get_last_days_runs_csv.encode('utf8')))

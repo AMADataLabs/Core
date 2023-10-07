@@ -22,6 +22,7 @@ modspec:
   - package: datalabs.access.vericre.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
+  - package: datalabs.cache
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.state

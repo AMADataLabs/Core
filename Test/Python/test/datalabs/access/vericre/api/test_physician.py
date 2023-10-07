@@ -12,7 +12,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("physician_event")
 def test_generate_search_request_ecfmg_number(physician_event):
     physician_event["payload"] = dict(ecfmg_number='10411247')
 
@@ -24,7 +23,6 @@ def test_generate_search_request_ecfmg_number(physician_event):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("physician_event")
 def test_generate_search_request_npi_number(physician_event):
     physician_event["payload"] = dict(npi_number='1417167750')
 
@@ -36,7 +34,6 @@ def test_generate_search_request_npi_number(physician_event):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("physician_event")
 def test_generate_search_request_me_number(physician_event):
     physician_event["payload"] = dict(me_number='02501600230')
 
@@ -48,7 +45,6 @@ def test_generate_search_request_me_number(physician_event):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("physician_event")
 def test_generate_search_request_name(physician_event):
     physician_event["payload"] = dict(first_name='Jon', last_name='Snow', date_of_birth='1947-06-21')
 
@@ -64,7 +60,6 @@ def test_generate_search_request_name(physician_event):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("physician_event")
 def test_generate_search_request_name_and_state(physician_event):
     physician_event["payload"] = dict(
         first_name='Ilana',
@@ -86,7 +81,6 @@ def test_generate_search_request_name_and_state(physician_event):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.usefixtures("physician_event")
 def test_generate_search_request_invalid(physician_event):
     physician_event["payload"] = dict(first_name='Jon')
 
@@ -96,6 +90,26 @@ def test_generate_search_request_invalid(physician_event):
         task._generate_search_request(physician_event["payload"])
 
     assert except_info.type == InvalidRequest
-    assert str(except_info.value) == \
-        "Invalid input parameters. Please provide either a combination of First Name, Last Name, " \
-        "and Date of Birth, or any of NPI number, ME number, or ECFMG number."
+    assert str(except_info.value) == (
+        "Please provide either a combination of first_name, last_name, "
+        "and date_of_birth; or any of npi_number, me_number, or ecfmg_number."
+    )
+
+
+@pytest.fixture
+def physician_event():
+    return dict(
+        method='',
+        path={},
+        query={},
+        authorization={},
+        database_host='',
+        database_port='',
+        database_backend='',
+        database_name='',
+        database_username='',
+        database_password='',
+        physician_search_url='',
+        sync_url='',
+        payload={}
+    )
