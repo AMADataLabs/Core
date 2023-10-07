@@ -1177,7 +1177,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-package --project ExpressDAG
+            - bash Deploy/Master/deploy-package --project ExpressDAG/DAG
 
         - parallel:
             - step:
@@ -1189,7 +1189,7 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project ExpressDAG
+                    --project ExpressDAG/DAG
                     --bundle ExpressDAG.zip
             - step:
                 name: Update Development Bundle
@@ -1202,7 +1202,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project ExpressDAG
+                    --project ExpressDAG/DAG
                     --bundle ExpressDAG.zip
             - step:
                 name: Update Test Bundle
@@ -1215,7 +1215,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
-                    --project ExpressDAG
+                    --project ExpressDAG/DAG
                     --bundle ExpressDAG.zip
             - step:
                 name: Update Staging Bundle
@@ -1228,7 +1228,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment itg
-                    --project ExpressDAG
+                    --project ExpressDAG/DAG
                     --bundle ExpressDAG.zip
             - step:
                 name: Update Production Bundle
@@ -1241,7 +1241,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
-                    --project ExpressDAG
+                    --project ExpressDAG/DAG
                     --bundle ExpressDAG.zip
 
         - parallel:
