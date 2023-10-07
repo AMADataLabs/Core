@@ -6,7 +6,6 @@ import re
 from   pathlib import Path
 
 from   dateutil.parser.isoparser import isoparse
-import pytz
 
 from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
@@ -84,7 +83,7 @@ class DAGState(State):
             file.write(status.value)
 
     def _generate_state_path(self, dag: str, task: str, execution_time: str):
-        execution_time = isoparse(execution_time).astimezone(pytz.timezone("UTC"))
+        execution_time = isoparse(execution_time)
         datestamp = execution_time.strftime('%Y-%m-%d')
         timestamp = execution_time.strftime('%H:%M:%S')
 

@@ -3,6 +3,7 @@ import os
 
 import pytest
 
+from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.dag.resolve import TaskResolver
 
 
@@ -27,11 +28,8 @@ def test_invalid_dag_plugin_event_type(bad_type_parameters):
         TaskResolver.get_task_class(bad_type_parameters)
 
 
-class TestDAG:
-    # pylint: disable=unused-argument
-    @classmethod
-    def task_class(cls, name):
-        return TestTask
+class TestDAG(DAG):
+    TEST_TASK: "test.datalabs.etl.dag.test_resolve.TestTask"
 
 
 class TestTask:
@@ -64,7 +62,7 @@ def task_parameters():
     return dict(
         type="Task",
         execution_time="2021-01-21T12:24:38+00.00",
-        task="TestTask",
+        task="TEST_TASK",
         dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
 
@@ -74,6 +72,6 @@ def bad_type_parameters():
     return dict(
         type="Exercise",
         execution_time="2021-01-21T12:24:38+00.00",
-        task="TestTask",
+        task="TEST_TASK",
         dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
