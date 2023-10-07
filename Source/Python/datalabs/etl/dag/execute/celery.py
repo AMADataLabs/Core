@@ -44,6 +44,28 @@ class CeleryDAGExecutorTask(Task):
         task_wrapper.run()
 
 
+class CeleryExpressDAGExecutorTask(Task):
+    PARAMETER_CLASS = CeleryDAGExecutorParameters
+
+    def run(self):
+        parameters = dict(
+            dag=self._parameters.dag,
+            type="DAG",
+            execution_time=self._parameters.execution_time,
+            config_file=self._parameters.parameters.pop("config_file")
+        )
+
+        if self._parameters.parameters:
+            parameters["parameters"] = self._parameters.parameters
+
+        LOGGER.debug('Final Celery DAG parameters: %s', parameters)
+        task_wrapper = DAGTaskWrapper(parameters)
+
+        os.environ["TASK_RESOLVER_CLASS"] = "datalabs.etl.dag.dynamic.TaskResolver"
+
+        task_wrapper.run()
+
+
 @add_schema(unknowns=True)
 @dataclass
 class CeleryPythonTaskExecutorParameters:

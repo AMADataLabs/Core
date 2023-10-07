@@ -1,4 +1,6 @@
-''' Definition for the HelloWorld DAG. '''
+''' dynamic.datalabs.dag.hello_world.HelloWorldDAG
+    Definition for the HelloWorld DAG.
+'''
 from   datalabs.etl.dag.dag import DAG, register
 from   datalabs.example.etl.hello_world.task import HelloWorldTask
 
