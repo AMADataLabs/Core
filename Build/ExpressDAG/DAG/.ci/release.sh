@@ -19,7 +19,7 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-express-dag"
+    export RELEASE_NAME="datalabs-express-dag-dag"
     export RELEASE_DESCRIPTION="Express DAG Lambda package for dynamic DAGs"
 }
 

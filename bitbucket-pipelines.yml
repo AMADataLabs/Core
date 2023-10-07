@@ -1170,7 +1170,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile DBLReport=DBLReport.zip
 
-        ExpressDAG:
+        ExpressDAG-DAG:
         - step:
             name: Update Development Component Package
             caches:
@@ -1190,7 +1190,7 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project ExpressDAG/DAG
-                    --bundle ExpressDAG.zip
+                    --bundle ExpressDAG-DAG.zip
             - step:
                 name: Update Development Bundle
                 caches:
@@ -1203,7 +1203,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project ExpressDAG/DAG
-                    --bundle ExpressDAG.zip
+                    --bundle ExpressDAG-DAG.zip
             - step:
                 name: Update Test Bundle
                 caches:
@@ -1216,7 +1216,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
                     --project ExpressDAG/DAG
-                    --bundle ExpressDAG.zip
+                    --bundle ExpressDAG-DAG.zip
             - step:
                 name: Update Staging Bundle
                 caches:
@@ -1229,7 +1229,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment itg
                     --project ExpressDAG/DAG
-                    --bundle ExpressDAG.zip
+                    --bundle ExpressDAG-DAG.zip
             - step:
                 name: Update Production Bundle
                 caches:
@@ -1242,14 +1242,14 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
                     --project ExpressDAG/DAG
-                    --bundle ExpressDAG.zip
+                    --bundle ExpressDAG-DAG.zip
 
         - parallel:
             - step:
                 name: Reload Sandbox Lambda Function
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s DataLake ExpressDAG=ExpressDAG.zip
+                - bash Deploy/Master/update-functions -e sbx -s DataLake ExpressDAG-DAG=ExpressDAG-DAG.zip
             # - step:
             #     name: Reload Development Lambda Function
             #     script:
@@ -1258,7 +1258,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
-            #         ExpressDAG=ExpressDAG.zip
+            #         ExpressDAG-DAG=ExpressDAG-DAG.zip
             # - step:
             #     name: Reload Test Lambda Function
             #     script:
@@ -1267,7 +1267,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
-            #         ExpressDAG=ExpressDAG.zip
+            #         ExpressDAG-DAG=ExpressDAG-DAG.zip
             # - step:
             #     name: Reload Staging Lambda Function
             #     script:
@@ -1276,7 +1276,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
-            #         ExpressDAG=ExpressDAG.zip
+            #         ExpressDAG-DAG=ExpressDAG-DAG.zip
             # - step:
             #     name: Reload Production Lambda Function
             #     script:
@@ -1285,7 +1285,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
-            #         HelloWorld=HelloWorld.zip
+            #         ExpressDAG-DAG=ExpressDAG-DAG.zip
 
         HelloWorld:
         - step:
