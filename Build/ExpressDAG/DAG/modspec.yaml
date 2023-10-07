@@ -1,25 +1,34 @@
----
 modspec:
   - package: datalabs
     include:
+      - awslambda
       - feature
       - parameter
       - plugin
       - task
   - package: datalabs.access
     include:
-      - aws
       - credentials
       - datastore
       - environment
+      - aws
   - package: datalabs.access.parameter
+    include:
+      - system
+      - dynamodb
   - package: datalabs.cache
   - package: datalabs.etl
+  - package: datalabs.etl.s3
   - package: datalabs.etl.dag
-  - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
+    include:
+    - awslambda
+    - local
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+    include:
+    - base
+    - dynamodb
   - package: datalabs.messaging
     include:
       - email_message
