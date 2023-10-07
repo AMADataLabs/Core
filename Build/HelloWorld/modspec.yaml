@@ -24,3 +24,6 @@ modspec:
       - hello_world
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.messaging
+    include:
+      - email_message
