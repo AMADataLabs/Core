@@ -33,6 +33,7 @@ modspec:
   - package: datalabs.example.etl.dag
     include:
       - hello_world
+  - package: datalabs.example.etl.hello_world
   - package: datalabs.messaging
     include:
       - email_message
