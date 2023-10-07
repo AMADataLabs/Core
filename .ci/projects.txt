@@ -15,6 +15,8 @@ CPT/Vignettes/API
 CPT/Vignettes/ETL
 DEUS/API
 DBL
+ExpressDAG
+ExpressDAGTask
 HelloWorld
 HelloWorldJava/DAG
 HelloWorldJava/Task
