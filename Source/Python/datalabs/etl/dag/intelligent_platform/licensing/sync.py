@@ -5,8 +5,12 @@ from   datalabs.etl.dag import dag
 @dag.register(name="LICENSING_SYNC")
 class DAG(dag.DAG):
     CREATE_ACTIVE_ARTICLES_TABLE: "datalabs.etl.intelligent_platform.licensing.sync.transform.ArticlesTransformerTask"
-    # CREATE_CONTRACT_STATUS_TABLE: "datalabs.etl.intelligent_platform.licensing.sync.transform.ContractStatusTransformerTask"
-    CREATE_ORGANIZATIONS_TABLE: "datalabs.etl.intelligent_platform.licensing.sync.transform.LicensedOrganizationsTransformerTask"
+    # CREATE_CONTRACT_STATUS_TABLE: (
+        # "datalabs.etl.intelligent_platform.licensing.sync.transform.ContractStatusTransformerTask"
+    # )
+    CREATE_ORGANIZATIONS_TABLE: (
+        "datalabs.etl.intelligent_platform.licensing.sync.transform.LicensedOrganizationsTransformerTask"
+    )
     EXTRACT_ACTIVE_ARTICLES: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
     EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
     EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"

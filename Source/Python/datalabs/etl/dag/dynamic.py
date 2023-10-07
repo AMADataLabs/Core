@@ -8,7 +8,6 @@ import tempfile
 
 from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
-from   datalabs.plugin import import_plugin
 from   datalabs import task
 
 logging.basicConfig()
@@ -91,7 +90,6 @@ class DAGTask(task.Task):
     def _extract_dag_class(cls, dag):
         lines = dag.split("\n")
         index = 0
-        dag_class = None
 
         while lines[index] == "":
             index += 1
@@ -108,7 +106,7 @@ class DAGTask(task.Task):
 
         cls._create_packages(python_path, package_path)
 
-        with open(os.path.join(python_path, module_path), "w") as file:
+        with open(os.path.join(python_path, module_path), "w", encoding="utf8") as file:
             file.write(dag)
 
     @classmethod
@@ -116,10 +114,7 @@ class DAGTask(task.Task):
         while package_path:
             init_path = os.path.join(python_path, package_path, "__init__.py")
 
-            with open(init_path, "w"):
+            with open(init_path, "w", encoding="utf8"):
                 pass
 
             package_path  = os.path.dirname(package_path)
-
-
-

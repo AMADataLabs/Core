@@ -1,11 +1,9 @@
 """ Class for defining a DAG. """
-from   abc import ABC
 from   dataclasses import dataclass
 import re
 
 import paradag
 
-from   datalabs.plugin import import_plugin
 from   datalabs.etl.dag.state import Status
 
 

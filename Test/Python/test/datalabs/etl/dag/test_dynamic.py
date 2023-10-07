@@ -1,11 +1,11 @@
 """ Source: datalabs.etl.dag.dynamic """
 import pytest
 
-from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.dag.dynamic import DAGTask
 from   datalabs.etl.dag.state import Status
 
 
+# pylint: disable=redefined-outer-name
 def test_dag_is_executed(dag):
     dag_task = DAGTask({"task_statuses": {}}, [dag.encode()])
 

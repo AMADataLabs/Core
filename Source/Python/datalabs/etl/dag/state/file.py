@@ -6,7 +6,6 @@ import re
 from   pathlib import Path
 
 from   dateutil.parser.isoparser import isoparse
-import pytz
 
 from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema

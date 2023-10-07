@@ -2,7 +2,6 @@
 from   collections import Counter
 from   dataclasses import dataclass
 import logging
-import sys
 
 import paradag
 

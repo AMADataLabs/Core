@@ -64,8 +64,8 @@ class ParameterExtractorMixin:
         if "DAG" in parameters:
             try:
                 parameters = cls._add_task_classes(parameters)
-            except:
-                LOGGER.warn("Unable to add TASK_CLASS due to missing DAG %s", parameters["DAG"]["DAG_CLASS"])
+            except ModuleNotFoundError:
+                LOGGER.warning("Unable to add TASK_CLASS due to missing DAG %s", parameters["DAG"]["DAG_CLASS"])
 
         return parameters
 
