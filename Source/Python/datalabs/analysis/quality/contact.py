@@ -1,12 +1,10 @@
 """ Credential transformer for creating Credential entitiy """
-# pylint: disable=import-error
 import csv
 import logging
 import pandas
 
-# pylint: disable=wrong-import-order
-from datalabs.task import Task
-from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.task import Task
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
