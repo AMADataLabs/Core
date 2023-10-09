@@ -175,7 +175,8 @@ class MapSearchEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
         return dict(
-            bool=cls._generate_bool_section(keywords, search_parameters)
+            bool=cls._generate_bool_section(keywords, search_parameters),
+            sort=[dict(updated_on=dict(order="asc"))]
         )
 
     @classmethod
@@ -202,10 +203,10 @@ class MapSearchEndpointTask(APIEndpointTask):
         return dict(
             query=keywords,
             fields=[
-                "section^10000",
+                "section^3000",
                 "subsection^1000",
-                "question^10",
-                "answer"
+                "question^10000",
+                "answer^5000"
             ],
             boost=50,
             analyzer="stop",
