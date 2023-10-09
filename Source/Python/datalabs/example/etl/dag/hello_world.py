@@ -1,4 +1,4 @@
-''' dynamic.datalabs.dag.hello_world.HelloWorldDAG
+''' dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
     Definition for the HelloWorld DAG.
 '''
 from   datalabs.etl.dag.dag import DAG, register
