@@ -164,12 +164,15 @@ class FilesEndpointTask(APIEndpointTask):
             product_code.startswith(PRODUCT_CODE)
             and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
         ):
-            authorized_years.append(cls._parse_authorization_year(PRODUCT_CODE, product_code))
+            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE, product_code)
         elif (
             product_code.startswith(OLD_PRODUCT_CODE)
             and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
         ):
-            authorized_years.append(cls._parse_authorization_year(OLD_PRODUCT_CODE, product_code))
+            try:
+                authorized_years += cls._generate_years_from_product_code(OLD_PRODUCT_CODE, product_code)
+            except ValueError:
+                pass
 
         return authorized_years
 
@@ -211,8 +214,15 @@ class FilesEndpointTask(APIEndpointTask):
         return years
 
     @classmethod
-    def _parse_authorization_year(cls, base_product_code, product_code):
-        return int('20' + product_code[len(base_product_code):])
+    def _generate_years_from_product_code(cls, base_product_code, product_code):
+        authorized_years = []
+
+        try:
+            authorized_years.append(cls._parse_authorization_year(base_product_code, product_code))
+        except ValueError:
+            pass
+
+        return authorized_years
 
     def _list_files(self, prefix):
         files = []
@@ -226,3 +236,9 @@ class FilesEndpointTask(APIEndpointTask):
             files = [x["Key"] for x in response["Contents"]]
 
         return files
+
+    @classmethod
+    def _parse_authorization_year(cls, base_product_code, product_code):
+        two_digit_year = product_code[len(base_product_code):]
+
+        return int('20' + two_digit_year)

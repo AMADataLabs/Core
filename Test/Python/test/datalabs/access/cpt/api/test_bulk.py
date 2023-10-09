@@ -68,3 +68,12 @@ def test_get_authorized_years_handles_old_expiration_date_format():
 
     assert len(authorized_years) == 1
     assert authorized_years[0] == 2019
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_get_authorized_years_handles_other_product_codes_with_cptcs_in_base():
+    authorizations = dict(CPTCSP=dict(start="1945-01-11T00:00:00-05:00", end="2468-10-11T00:00:00-05:00"))
+
+    authorized_years = FilesEndpointTask._get_authorized_years(authorizations)
+
+    assert len(authorized_years) == 0
