@@ -16,8 +16,14 @@ def test_dynamodb_loader():
         task.run()
 
 
-# pylint: disable=protected-access
-def test_create_hash_entries():
+# pylint: disable=redefined-outer-name,protected-access
+def test_create_hash_entries(test_data, expected_data):
+    output = DynamoDBLoaderTask._create_hash_entries(test_data)
+
+    assert output.to_dict('records') == expected_data
+
+@pytest.fixture
+def test_data():
     data = [
         {
             "pk": "CPT CODE:1234",
@@ -38,7 +44,12 @@ def test_create_hash_entries():
             "ruc_reviewed_date": "nan"
         }
     ]
-    expected_output = [
+
+    return data
+
+@pytest.fixture
+def expected_data():
+    data = [
         {
             "pk": "CPT CODE:1234",
             "sk": "CONCEPT:0987",
@@ -61,6 +72,4 @@ def test_create_hash_entries():
         }
     ]
 
-    output = DynamoDBLoaderTask._create_hash_entries(data)
-
-    assert output.to_dict('records') == expected_output
+    return data
