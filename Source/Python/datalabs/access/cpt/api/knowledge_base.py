@@ -306,25 +306,31 @@ class GetArticleTask(APIEndpointTask):
             timeout=15
         )
         try:
-            search_parameters = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
+            self._response_body = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
         except Exception as ex:
             raise InvalidRequest("Article not found") from ex
 
     @classmethod
     def _get_article_data(cls, article_id, opensearch_client, index_name):
         response_data = None
-        try:
-            response_data = opensearch_client.get(index=index_name, id=article_id)
-        except NotFoundError:
-            raise InvalidRequest
+        query = {
+            "query": {
+                "match": {
+                    "row_id": article_id
+                }
+            }
+        }
 
-        if response_data:
-            article_data = response_data['_source']
-            return article_data
+        response = opensearch_client.search(index=index_name, body=query)
+
+        if response["hits"]["total"]["value"] > 0:
+            first_match = response["hits"]["hits"][0]
+            document_data = first_match["_source"]
+            LOGGER.info(document_data)
+            return document_data
         else:
-            return response_data
-
-
+            LOGGER.info("No matching document found.")
+            return None
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
