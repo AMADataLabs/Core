@@ -1,6 +1,7 @@
 ''' DAG definition for PROFILES '''
 from datalabs import feature
 from datalabs.etl.dag import dag
+from datalabs.etl.dag.dag import DAG, register, Repeat, JavaTask
 from datalabs.etl.http.extract import HTTPFileListExtractorTask
 from datalabs.etl.manipulate.transform import DateFormatTransformerTask
 from datalabs.etl.qldb.load import QLDBLoaderTask
@@ -35,7 +36,7 @@ class DAG(dag.DAG):
     STANDARDIZE_SANCTIONS_DATES: DateFormatTransformerTask
     SPLIT_DEMOGRAPHICS: SplitTransformerTask
 
-    CREATE_DEMOGRAPHICS: DemographicsTransformerTask
+    CREATE_DEMOGRAPHICS: Repeat("DemographicsTransformerTask", 3)
     CREATE_DEA: DeaTransformerTask
     CREATE_NPI: NPITransformerTask
     CREATE_MEDICAL_SCHOOLS: MedicalSchoolsTransformerTask
@@ -43,8 +44,8 @@ class DAG(dag.DAG):
     CREATE_MEDICAL_TRAINING: MedicalTrainingTransformerTask
     CREATE_LICENSES: LicensesTransformerTask
     CREATE_SANCTIONS: SanctionsTransformerTask
-    CREATE_AMA_PROFILE_TABLE: AMAProfileTransformerTask
-    CONVERT_AMA_MASTERFILE_TO_JSON: JSONTransformerTask
+    CREATE_AMA_PROFILE_TABLE: Repeat("AMAProfileTransformerTask", 3)
+    CONVERT_AMA_MASTERFILE_TO_JSON: Repeat("JSONTransformerTask", 3)
     LOAD_AMA_MASTERFILE_TABLE: dag.Repeat(QLDBLoaderTask, 20)
 
     if feature.enabled("CAQH_PROFILES"):
@@ -65,59 +66,57 @@ if feature.enabled("SYNC_PROFILES"):
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_ABMS_DATES
         >> DAG.CREATE_ABMS
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_ABMS', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_DEA_DATES
         >> DAG.CREATE_DEA
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_DEA', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_DEMOGRAPHICS_DATES
-        >> DAG.CREATE_DEMOGRAPHICS
         >> DAG.SPLIT_DEMOGRAPHICS
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('SPLIT_DEMOGRAPHICS', 'CREATE_DEMOGRAPHICS')
+        DAG.parallel('CREATE_DEMOGRAPHICS', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_LICENSES_DATES
         >> DAG.CREATE_LICENSES
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_LICENSES', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_MEDICAL_SCHOOLS_DATES
         >> DAG.CREATE_MEDICAL_SCHOOLS
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_MEDICAL_SCHOOLS', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_MEDICAL_TRAINING_DATES
         >> DAG.CREATE_MEDICAL_TRAINING
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_MEDICAL_TRAINING', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_NPI_DATES
         >> DAG.CREATE_NPI
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_NPI', 'CREATE_AMA_PROFILE_TABLE')
     )
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
         >> DAG.STANDARDIZE_SANCTIONS_DATES
         >> DAG.CREATE_SANCTIONS
-        >> DAG.CREATE_AMA_PROFILE_TABLE
+        DAG.fan_out('CREATE_SANCTIONS', 'CREATE_AMA_PROFILE_TABLE')
     )
 
-    DAG.CREATE_AMA_PROFILE_TABLE \
-        >> DAG.CONVERT_AMA_MASTERFILE_TO_JSON \
-        >> DAG.first('LOAD_AMA_MASTERFILE_TABLE')
+    DAG.parallel('CREATE_AMA_PROFILE_TABLE', 'CONVERT_AMA_MASTERFILE_TO_JSON')
 
-    DAG.sequence('LOAD_AMA_MASTERFILE_TABLE')
+    DAG.parrallel('CONVERT_AMA_MASTERFILE_TO_JSON', 'LOAD_AMA_MASTERFILE_TABLE')
+    DAG.fan_in('LOAD_AMA_MASTERFILE_TABLE', 'SYNC_PROFILES_TO_DATABASE')
 
-    DAG.last('LOAD_AMA_MASTERFILE_TABLE') >> DAG.SYNC_PROFILES_TO_DATABASE
 else:
     (
         DAG.EXTRACT_AMA_PHYSICIAN_PROFILES
