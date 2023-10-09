@@ -171,12 +171,12 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _add_pagination(cls, query_parameters, search_parameters):
         query_parameters['from'] = search_parameters.index
         query_parameters['size'] = search_parameters.max_results
+        query_parameters['sort'] = [dict(updated_on=dict(order="asc"))]
 
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
         return dict(
-            bool=cls._generate_bool_section(keywords, search_parameters),
-            sort=[dict(updated_on=dict(order="asc"))]
+            bool=cls._generate_bool_section(keywords, search_parameters)
         )
 
     @classmethod
