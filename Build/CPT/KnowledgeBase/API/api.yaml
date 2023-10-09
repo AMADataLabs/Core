@@ -204,9 +204,14 @@ paths:
 components:
   schemas:
     Articles:
-      type: array
-      items:
-            $ref: '#/components/schemas/Article'
+      type: object
+      properties:
+        total_records:
+          type: integer
+          nullable: false
+        items:
+          type: array
+          $ref: '#/components/schemas/Article'
     Article:
       type: object
       properties:

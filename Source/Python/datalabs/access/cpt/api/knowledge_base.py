@@ -5,15 +5,15 @@ from   datalabs.access.aws import AWSClient
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-from requests_aws4auth import AWS4Auth
-from dataclasses import dataclass
+from   requests_aws4auth import AWS4Auth
+from   dataclasses import dataclass
 
 import boto3
-from datalabs.access.api.task import APIEndpointTask, InvalidRequest
-from datalabs.parameter import add_schema
-from opensearchpy import OpenSearch, RequestsHttpConnection
+from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
+from   datalabs.parameter import add_schema
+from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
 
-from opensearchpy.helpers import bulk
+from   opensearchpy.helpers import bulk
 import time
 import uuid
 
@@ -131,7 +131,8 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_results_object(cls, response):
-        results = []
+        results = {}
+        items = []
         data_list = response['hits']['hits']
 
         for hit in data_list:
@@ -140,10 +141,12 @@ class MapSearchEndpointTask(APIEndpointTask):
                              'section': hit['_source']['section'],
                              'subsection': hit['_source']['subsection'],
                              'question': hit['_source']['question'],
-                             'answer': answer_preview
+                             'answer': answer_preview,
+                             'updated_on': hit['_source']['updated_on'],
                              }
-            results.append(document_data)
-
+            items.append(document_data)
+        results['items'] = items
+        results['total_records'] = response['hits']['total']['value']
         LOGGER.info('returning these results.. ')
         LOGGER.info(str(results))
         return results
@@ -152,7 +155,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _generate_answer_preview(cls, answer):
         answer_words = str(answer).split()
 
-        return ' '.join(answer_words[:10])
+        return ' '.join(answer_words[:20])
 
     @classmethod
     def _get_query_parameters(cls, keywords, search_parameters):
@@ -271,6 +274,61 @@ class MapSearchEndpointTask(APIEndpointTask):
             updated_date_section["lte"] = search_parameters.updated_before_date if updated_date_section else None
 
         return updated_date_section
+
+
+@add_schema(unknowns=True)
+@dataclass
+class GetArticleParameters:
+    method: str
+    path: dict
+    query: dict
+    collection_url: str
+    index_name: str
+    unknowns: dict = None
+
+
+class GetArticleTask(APIEndpointTask):
+    PARAMETER_CLASS = GetArticleParameters
+
+    def run(self):
+        article_id = self._get_article_id(self._parameters.query)
+        service = 'aoss'
+        region = 'us-east-1'
+        credentials = boto3.Session().get_credentials()
+        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
+                           region, service, session_token=credentials.token)
+        opensearch_client = OpenSearch(
+            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+            connection_class=RequestsHttpConnection,
+            timeout=15
+        )
+        try:
+            search_parameters = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
+        except Exception as ex:
+            raise InvalidRequest("Article not found") from ex
+
+    @classmethod
+    def _get_article_data(cls, article_id, opensearch_client, index_name):
+        response_data = None
+        try:
+            response_data = opensearch_client.get(index=index_name, id=article_id)
+        except NotFoundError:
+            raise InvalidRequest
+
+        if response_data:
+            article_data = response_data['_source']
+            return article_data
+        else:
+            return response_data
+
+
+
+    @classmethod
+    def _get_article_id(cls, parameters: dict):
+        return parameters.get("id")
 
 
 # Import knowledge base data is temporarily code.
