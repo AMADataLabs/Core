@@ -158,21 +158,19 @@ class FilesEndpointTask(APIEndpointTask):
         period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
         authorized_years = []
 
-        if product_code in (PRODUCT_CODE, OLD_PRODUCT_CODE):
+        if product_code == OLD_PRODUCT_CODE:
             authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
-        elif (
-            product_code.startswith(PRODUCT_CODE)
-            and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
-        ):
-            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE, product_code)
         elif (
             product_code.startswith(OLD_PRODUCT_CODE)
             and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
         ):
-            try:
-                authorized_years += cls._generate_years_from_product_code(OLD_PRODUCT_CODE, product_code)
-            except ValueError:
-                pass
+            authorized_years += cls._generate_years_from_product_code(OLD_PRODUCT_CODE, product_code)
+        elif (
+            product_code != PRODUCT_CODE
+            and product_code.startswith(PRODUCT_CODE)
+            and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
+        ):
+            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE, product_code)
 
         return authorized_years
 

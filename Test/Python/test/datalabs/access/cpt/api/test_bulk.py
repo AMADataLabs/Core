@@ -25,15 +25,14 @@ def test_get_authorized_years_with_explicit_cptcs_year():
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_get_authorized_years_with_cptcs_product_code():
+def test_cptcs_product_code_without_suffix_does_not_authorize():
     start_time = datetime.now(timezone.utc) - timedelta(days=1)
     start_timestamp = start_time.isoformat(sep='T')
     authorizations = dict(CPTCS=dict(start=start_timestamp, end="2468-12-31T23:59:59"))
 
     authorized_years = FilesEndpointTask._get_authorized_years(authorizations)
 
-    assert len(authorized_years) == 1
-    assert authorized_years[0] == start_time.year
+    assert len(authorized_years) == 0
 
 
 # pylint: disable=redefined-outer-name, protected-access
