@@ -291,7 +291,7 @@ class GetArticleTask(APIEndpointTask):
     PARAMETER_CLASS = GetArticleParameters
 
     def run(self):
-        article_id = self._get_article_id(self._parameters.query)
+        article_id = self._parameters.path["id"]
         service = 'aoss'
         region = 'us-east-1'
         credentials = boto3.Session().get_credentials()
