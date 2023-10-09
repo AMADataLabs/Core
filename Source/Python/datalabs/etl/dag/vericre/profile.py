@@ -1,7 +1,7 @@
 ''' DAG definition for PROFILES '''
 from datalabs import feature
 from datalabs.etl.dag import dag
-from datalabs.etl.dag.dag import DAG, register, Repeat, JavaTask
+from datalabs.etl.dag.dag import DAG, register, Repeat
 from datalabs.etl.http.extract import HTTPFileListExtractorTask
 from datalabs.etl.manipulate.transform import DateFormatTransformerTask
 from datalabs.etl.qldb.load import QLDBLoaderTask
