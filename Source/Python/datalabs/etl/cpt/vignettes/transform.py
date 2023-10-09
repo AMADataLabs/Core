@@ -119,6 +119,11 @@ class VignettesTransformerTask(Task):
     def _clean_data(cls, data):
         data['concept_id'] = data['concept_id'].astype('int32').astype(str)
         data['cpt_code'] = data['cpt_code'].astype(str)
+        data['pre_service_info'] = data['pre_service_info'].astype(str)
+        data['typical_patient'] = data['typical_patient'].astype(str)
+        data['intra_service_info'] = data['intra_service_info'].astype(str)
+        data['post_service_info'] = data['post_service_info'].astype(str)
+        data['ruc_reviewed_date'] = data['ruc_reviewed_date'].astype(str)
 
         return data
 
