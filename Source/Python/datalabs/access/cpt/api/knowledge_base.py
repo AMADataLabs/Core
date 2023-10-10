@@ -329,7 +329,7 @@ class GetArticleTask(APIEndpointTask):
             LOGGER.info(document_data)
             return document_data
         else:
-            raise ResourceNotFound(f'Article "{article_id}" not found.')
+            raise ResourceNotFound(f'Article {article_id} not found.')
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
