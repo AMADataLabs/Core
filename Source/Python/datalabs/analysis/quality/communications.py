@@ -1,4 +1,4 @@
-""" Contact transformer for creating Contact entitiy """
+""" Coomunications transformer for creating Contact entitiy """
 # pylint: disable=import-error
 import csv
 import logging
