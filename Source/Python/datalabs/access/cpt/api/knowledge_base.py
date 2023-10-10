@@ -349,8 +349,38 @@ class GetArticleTask(APIEndpointTask):
 class OpenSearchDataImporter:
 
     def _create_index(self, index_name, client):
+        mappings = {
+            "mappings": {
+                "properties": {
+                    "section": {
+                        "type": "text"
+                    },
+                    "subsection": {
+                        "type": "text"
+                    },
+                    "question": {
+                        "type": "text"
+                    },
+                    "answer": {
+                        "type": "text"
+                    },
+                    "updated_on": {
+                        "type": "date"
+                    },
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
         try:
-            client.indices.create(index_name)
+            client.indices.create(index_name, body=mappings)
+        except Exception as exp:
+            LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
+
+    def _delete_index(self, index_name, client):
+        try:
+            client.indices.delete(index_name)
         except Exception as exp:
             LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
 
@@ -391,6 +421,9 @@ class OpenSearchDataImporter:
     def import_data(self, client):
         # Create index
         index_name = 'knowledge_base'
+        if client.indices.exists(index=index_name):
+            self._delete_index(index_name, client)
+
         self._create_index(index_name, client)
         indices = client.cat.indices()
         LOGGER.info(f"indices (Before import): {indices}")
