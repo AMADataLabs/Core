@@ -9,7 +9,7 @@ from   requests_aws4auth import AWS4Auth
 from   dataclasses import dataclass
 
 import boto3
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
+from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound, InternalServerError
 from   datalabs.parameter import add_schema
 from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
 
@@ -413,18 +413,25 @@ class OpenSearchDataImporter:
                           "subsection": columns[2] if length >= 3 else "", "question": columns[3] if length >= 4 else "",
                           "answer": columns[4] if length >= 5 else "",
                           "updated_on": updated_date, "row_id": uuid.uuid1()}
-                records.append(record)
-                count += 1
-                if count == 500:
-                    count = 0
-                    bulk(client, records, index=index_name)
-                    time.sleep(5)
-                    records = []
-                    LOGGER.info(f"Batch count: {batch_count} is done")
-                    batch_count += 1
-        if len(records) > 0:
-            bulk(client, records, index=index_name)
-            time.sleep(5)
+                response = client.index(index=index_name, body=record)
+                if response['result'] == 'created':
+                    print(f'Document {columns[0]} indexed successfully.')
+                else:
+                    LOGGER.info(str(columns))
+                    raise InternalServerError(f"Failed to index document {columns[0]}")
+
+        #         records.append(record)
+        #         count += 1
+        #         if count == 500:
+        #             count = 0
+        #             bulk(client, records, index=index_name)
+        #             time.sleep(5)
+        #             records = []
+        #             LOGGER.info(f"Batch count: {batch_count} is done")
+        #             batch_count += 1
+        # if len(records) > 0:
+        #     bulk(client, records, index=index_name)
+        #     time.sleep(5)
 
     def import_data(self, client):
         # Create index
