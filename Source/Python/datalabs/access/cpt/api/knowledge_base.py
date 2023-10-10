@@ -164,6 +164,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         cls._add_pagination(query_parameters, search_parameters)
 
         query_parameters['query'] = cls._generate_query_section(keywords, search_parameters)
+        query_parameters['sort'] = cls._generate_sort_section()
 
         return query_parameters
 
@@ -276,6 +277,14 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         return updated_date_section
 
+    @classmethod
+    def _generate_sort_section(cls):
+        return dict(
+            updated_on=dict(
+                    order="desc"
+            )
+
+        )
 
 @add_schema(unknowns=True)
 @dataclass
