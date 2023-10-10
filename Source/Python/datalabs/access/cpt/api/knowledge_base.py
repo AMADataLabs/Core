@@ -369,6 +369,9 @@ class OpenSearchDataImporter:
                     },
                     "id": {
                         "type": "integer"
+                    },
+                    "row_id": {
+                        "type": "text"
                     }
                 }
             }
