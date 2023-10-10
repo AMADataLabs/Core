@@ -375,14 +375,14 @@ class OpenSearchDataImporter:
         }
         try:
             client.indices.create(index_name, body=mappings)
-            time.sleep(20)
+            time.sleep(5)
         except Exception as exp:
             LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
 
     def _delete_index(self, index_name, client):
         try:
             client.indices.delete(index_name)
-            time.sleep(20)
+            time.sleep(5)
         except Exception as exp:
             LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
 
