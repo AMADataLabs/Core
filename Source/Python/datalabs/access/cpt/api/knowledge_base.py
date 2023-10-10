@@ -308,8 +308,10 @@ class GetArticleTask(APIEndpointTask):
         )
         try:
             self._response_body = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
+        except ResourceNotFound:
+            raise ResourceNotFound(f'Article "{article_id}" not found.')
         except Exception as ex:
-            raise InvalidRequest("Article not found") from ex
+            raise InvalidRequest("Invalid request") from ex
 
     @classmethod
     def _get_article_data(cls, article_id, opensearch_client, index_name):
@@ -330,7 +332,7 @@ class GetArticleTask(APIEndpointTask):
             LOGGER.info(document_data)
             return document_data
         else:
-            raise ResourceNotFound(f'Article "{article_id}" not found.')
+            raise ResourceNotFound
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
