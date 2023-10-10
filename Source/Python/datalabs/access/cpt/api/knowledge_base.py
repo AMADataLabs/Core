@@ -9,7 +9,7 @@ from   requests_aws4auth import AWS4Auth
 from   dataclasses import dataclass
 
 import boto3
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
+from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.parameter import add_schema
 from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
 
@@ -171,7 +171,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _add_pagination(cls, query_parameters, search_parameters):
         query_parameters['from'] = search_parameters.index
         query_parameters['size'] = search_parameters.max_results
-        
+
 
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
@@ -330,8 +330,7 @@ class GetArticleTask(APIEndpointTask):
             LOGGER.info(document_data)
             return document_data
         else:
-            LOGGER.info("No matching document found.")
-            return None
+            raise ResourceNotFound(f'Article "{article_id}" not found.')
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
