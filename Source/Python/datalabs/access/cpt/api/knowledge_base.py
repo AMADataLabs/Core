@@ -306,7 +306,7 @@ class GetArticleTask(APIEndpointTask):
             connection_class=RequestsHttpConnection,
             timeout=15
         )
-        
+
         self._response_body = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
 
 
@@ -329,7 +329,7 @@ class GetArticleTask(APIEndpointTask):
             LOGGER.info(document_data)
             return document_data
         else:
-            raise ResourceNotFound
+            raise ResourceNotFound(f'Article "{article_id}" not found.')
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
