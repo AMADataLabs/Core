@@ -408,12 +408,12 @@ class OpenSearchDataImporter:
                 length = len(columns)
                 original_date = columns[5] if length >= 6 else ''
                 updated_date = original_date.replace("\r", "")
-
-                record = {"_id": columns[0] if length >= 1 else "", "section": columns[1] if length >= 2 else "",
+                document_id = columns[0] if length >= 1 else ""
+                record = {"section": columns[1] if length >= 2 else "",
                           "subsection": columns[2] if length >= 3 else "", "question": columns[3] if length >= 4 else "",
                           "answer": columns[4] if length >= 5 else "",
                           "updated_on": updated_date, "row_id": uuid.uuid1()}
-                response = client.index(index=index_name, body=record)
+                response = client.index(index=index_name, id=document_id, body=record)
                 if response['result'] == 'created':
                     print(f'Document {columns[0]} indexed successfully.')
                 else:
