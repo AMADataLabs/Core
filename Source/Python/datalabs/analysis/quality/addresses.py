@@ -1,12 +1,11 @@
 """ Addresses transformer for creating Contact entitiy """
 # pylint: disable=import-error
+from dataclasses import dataclass, fields
+
 import csv
 import logging
 
-# pylint: disable=wrong-import-order
 import pandas
-
-from dataclasses import dataclass, fields
 
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from datalabs.task import Task
@@ -19,7 +18,7 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class InputData:
     party_address_details: pandas.DataFrame
-    medical_education_number: pandas.DataFrame
+    medical_education_numbers: pandas.DataFrame
     ppd_party_ids: pandas.DataFrame
     party_post_codes: pandas.DataFrame
     zip_statistics: pandas.DataFrame
@@ -33,9 +32,9 @@ class AddressesTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         preprocessed_data = self._preprocess_data(input_data)
 
-        entities = self._create_entity(preprocessed_data)
+        addresses_entity = self._create_addresses(preprocessed_data)
 
-        postprocessed_data = self._postprocess(entities)
+        postprocessed_data = self._postprocess(addresses_entity)
 
         return self._pack(postprocessed_data)
 
@@ -66,9 +65,9 @@ class AddressesTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
     def _create_oneview_universe(cls, preprocessed_data):
         return pandas.merge(
             preprocessed_data.ppd_party_ids,
-            preprocessed_data.medical_education_number,
+            preprocessed_data.medical_education_numbers,
             left_on="me",
-            right_on="medical_education_number",
+            right_on="medical_education_numbers",
         ).drop(columns=["me"])
 
     @classmethod

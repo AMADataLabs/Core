@@ -1,12 +1,12 @@
 """ Coomunications transformer for creating Contact entitiy """
 # pylint: disable=import-error
+from dataclasses import dataclass, fields
+
 import csv
 import logging
 
 # pylint: disable=wrong-import-order
 import pandas
-
-from dataclasses import dataclass, fields
 
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from datalabs.task import Task
@@ -21,7 +21,7 @@ class InputData:
     party_address_details: pandas.DataFrame
     party_phone_numbers: pandas.DataFrame
     party_email_ids: pandas.DataFrame
-    medical_education_number: pandas.DataFrame
+    medical_education_numbers: pandas.DataFrame
     ppd_party_ids: pandas.DataFrame
     party_fax_numbers: pandas.DataFrame
 
@@ -46,12 +46,12 @@ class CommunicationsTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             *[self._columns_to_lower(getattr(input_data, field.name)) for field in fields(input_data)]
         )
 
-        input_data = self._strip_purpose_usg_cd(input_data)
+        input_data = self._strip_purpose_usage_code(input_data)
 
         return input_data
 
     @classmethod
-    def _strip_purpose_usg_cd(cls, input_data):
+    def _strip_purpose_usage_code(cls, input_data):
         input_data.party_address_details["purpose_usg_cd"] = input_data.party_address_details["purpose_usg_cd"].apply(
             lambda x: x.strip()
         )
@@ -89,7 +89,7 @@ class CommunicationsTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         preprocessed_data.all_ids = self._oneview_universe(
             preprocessed_data.ppd_party_ids,
-            preprocessed_data.medical_education_number,
+            preprocessed_data.medical_education_numbers,
         )
 
         return self._merge_party_entities(preprocessed_data) + self._merge_communication_entites(preprocessed_data)
@@ -149,12 +149,12 @@ class CommunicationsTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         )
 
     @classmethod
-    def _oneview_universe(cls, ppd_party_ids, medical_education_number):
+    def _oneview_universe(cls, ppd_party_ids, medical_education_numbers):
         return pandas.merge(
             ppd_party_ids,
-            medical_education_number,
+            medical_education_numbers,
             left_on="me",
-            right_on="medical_education_number",
+            right_on="medical_education_numbers",
         ).drop(columns=["me"])
 
     @classmethod
