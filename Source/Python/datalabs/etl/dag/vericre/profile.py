@@ -1,16 +1,13 @@
 ''' DAG definition for PROFILES '''
 from datalabs import feature
 from datalabs.etl.dag import dag
-from datalabs.etl.dag.dag import DAG, register, Repeat
+from datalabs.etl.dag.dag import Repeat
 from datalabs.etl.http.extract import HTTPFileListExtractorTask
 from datalabs.etl.manipulate.transform import DateFormatTransformerTask
 from datalabs.etl.qldb.load import QLDBLoaderTask
 from datalabs.etl.vericre.profile.transform import CAQHProfileURLListTranformerTask
 from datalabs.etl.vericre.profile.transform import CAQHStatusURLListTransformerTask
-from datalabs.etl.vericre.profile.transform import JSONTransformerTask
-from datalabs.etl.vericre.profile.transform import AMAProfileTransformerTask
 from datalabs.etl.vericre.profile.transform import CAQHProfileTransformerTask
-from datalabs.etl.vericre.profile.transform import DemographicsTransformerTask
 from datalabs.etl.vericre.profile.transform import DeaTransformerTask
 from datalabs.etl.vericre.profile.transform import NPITransformerTask
 from datalabs.etl.vericre.profile.transform import MedicalSchoolsTransformerTask
