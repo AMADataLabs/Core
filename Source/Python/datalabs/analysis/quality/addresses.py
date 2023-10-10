@@ -48,7 +48,7 @@ class AddressesTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
     def _columns_to_lower(cls, dataset):
         return dataset.rename(columns=lambda x: x.lower())
 
-    def _create_entity(self, preprocessed_data):
+    def _create_addresses(self, preprocessed_data):
         preprocessed_data.all_ids = self._create_oneview_universe(preprocessed_data)
 
         preprocessed_data.all_addresses = self._merge_universe_party_addresses(preprocessed_data)
