@@ -9,5 +9,5 @@ class DAG(dag.DAG):
     LOAD_VIGNETTES_MAPPINGS: "datalabs.etl.cpt.vignettes.load.DynamoDBLoaderTask"
 
 
-# pylint: disable=expression-not-assigned
+# pylint: disable=pointless-statement
 DAG.EXTRACT_VIGNETTES_FILE >> DAG.CREATE_VIGNETTES_MAPPINGS >> DAG.LOAD_VIGNETTES_MAPPINGS
