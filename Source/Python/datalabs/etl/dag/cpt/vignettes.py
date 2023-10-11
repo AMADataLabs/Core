@@ -1,8 +1,8 @@
-''' DAG definition for Vignettes-CPT API ETL '''
+''' DAG definition for CPT Vignettes API ETL '''
 from   datalabs.etl.dag import dag
 
 
-@dag.register(name="VIGNETTES_CPT_ETL")
+@dag.register(name="CPT_VIGNETTES_ETL")
 class DAG(dag.DAG):
     EXTRACT_VIGNETTES_FILE: "datalabs.etl.sftp.extract.SFTPFileExtractorTask"
     CREATE_VIGNETTES_MAPPINGS: "datalabs.etl.cpt.vignettes.transform.VignettesTransformerTask"
