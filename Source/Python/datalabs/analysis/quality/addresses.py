@@ -1,7 +1,6 @@
 """ Addresses transformer for creating Contact entitiy """
 # pylint: disable=import-error
 from   dataclasses import dataclass, fields
-
 import csv
 import logging
 
