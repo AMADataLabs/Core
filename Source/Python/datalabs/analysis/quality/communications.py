@@ -239,4 +239,3 @@ class CommunicationsTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
     def _pack(self, postprocessed_data):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
-
