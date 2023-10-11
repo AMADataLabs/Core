@@ -3019,7 +3019,7 @@ pipelines:
                     - >-
                         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Vignettes
                         Vignettes-API=API.zip
-                - step:
+                # - step:
                 #     name: Reload Test Lambda Functions
                 #     script:
                 #     - >-
