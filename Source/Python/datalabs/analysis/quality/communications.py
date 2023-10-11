@@ -1,6 +1,6 @@
 """ Coomunications transformer for creating Contact entitiy """
 # pylint: disable=import-error
-from dataclasses import dataclass, fields
+from   dataclasses import dataclass, fields
 
 import csv
 import logging
@@ -8,8 +8,8 @@ import logging
 # pylint: disable=wrong-import-order
 import pandas
 
-from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from datalabs.task import Task
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

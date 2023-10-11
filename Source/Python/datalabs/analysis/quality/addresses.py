@@ -1,14 +1,14 @@
 """ Addresses transformer for creating Contact entitiy """
 # pylint: disable=import-error
-from dataclasses import dataclass, fields
+from   dataclasses import dataclass, fields
 
 import csv
 import logging
 
 import pandas
 
-from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from datalabs.task import Task
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -108,5 +108,3 @@ class AddressesTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
     def _pack(self, postprocessed_data):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
-
-
