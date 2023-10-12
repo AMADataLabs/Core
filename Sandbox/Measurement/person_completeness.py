@@ -1,18 +1,34 @@
+import settings
 import measurement
+import person_data
+import connection
 import pandas as pd
+import os
+import logging
+from datetime import date
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
-methods_df = pd.read_excel('../../Data/Measurement/measurement_methods.xlsx')
-path = '../../Data/Measurement/'
-data_file = use.get_newest(path,'Person_Data')
-data = pd.read_csv(data_file)
-data.head()
+def person_completeness(get_new_data):
+    path = os.environ.get('LOCAL_OUT')
+    today = str(date.today())
+    methods_df = connection.get_measurement_methods()
+    if get_new_data:
+        data_file = person_data.person()
+    else:
+        data_file = connection.get_newest(path,'Person_Data')
+    data = pd.read_csv(data_file, low_memory=False)
+    data_dict = data.to_dict('records')
+    complete_list = []
+    for row in data_dict:
+        complete_list += measurement.measure_row(row, methods_df, 'COMPLETENESS')
+    person_completeness = pd.DataFrame(complete_list) 
+    person_filename = f'{path}Person_Completeness_{today}.csv'
+    person_completeness.to_csv(person_filename, index=False)
 
-#turn data into dictionary
-person_data = data.to_dict('records')
+    return person_completeness
 
-complete_list = []
-for row in person_data:
-    complete_list+=measurement.measure(row, methods_df, 'COMPLETENESS')
-
-pd.DataFrame(complete_list) 
+if __name__ == "__main__":
+    person_completeness(get_new_data=False)

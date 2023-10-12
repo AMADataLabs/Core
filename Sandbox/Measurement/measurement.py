@@ -47,26 +47,29 @@ def fill(raw_value, measurement_parameters):
     if type(raw_value) == float:
         if np.isnan(raw_value):
             measure = False
+        elif raw_value == None:
+            measure = False
         else:
-            bad_list = measurement_parameters.value.extend(['', '-1', ' '])
-            measure = str(raw_value).replace('.0') not in measurement_parameters.value
+            measurement_parameters.value.extend(['', '-1', ' '])
+            measure = str(raw_value).replace('.0', '') not in measurement_parameters.value
     else:
-        measure = str(raw_value).replace('.0') not in measurement_parameters.value
+        measurement_parameters.value.extend(['', '-1', ' '])
+        measure = str(raw_value).replace('.0', '') not in measurement_parameters.value
     return measure
 
 #in progress
 def conditional(row_dict, measurement_parameters):
     if measurement_parameters.condition_indicator:
         if measurement_parameters.condition_is_not:
-            eligible = row_dict[measurement_parameters.condition_column] not in values
+            eligible = row_dict[measurement_parameters.condition_column] not in measurement_parameters.value
         else:
-            eligible = row_dict[measurement_parameters.condition_column] in values
+            eligible = row_dict[measurement_parameters.condition_column] in measurement_parameters.value
     else:
         eligible = True
     return eligible
 
 def length(raw_value, measurement_parameters):
-    valid =  len(raw_value) == len(measurement_parameters.value())
+    valid =  len(raw_value) == len(measurement_parameters.value)
     return valid
 
 def valid_list(raw_value, measurement_parameters):
