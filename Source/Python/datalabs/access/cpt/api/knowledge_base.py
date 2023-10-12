@@ -163,7 +163,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         return results
 
     @classmethod
-    def generate_document_data(cls, hit, answer_preview):
+    def _generate_document_data(cls, hit, answer_preview):
 
         return {
             'id': hit['_source']['row_id'],
