@@ -7,7 +7,6 @@ KNOWLEDGE_BASE_ETL:
         S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
         S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
-
         S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
         S3_BASE_PATH: 'AMA/KnowledgeBase'
         OPENSEARCH_URL: 'hsudgkzt7rdoshk6po8b.us-east-1.aoss.amazonaws.com'
@@ -52,4 +51,4 @@ KNOWLEDGE_BASE_ETL:
         CACHE_INPUT_FILES: 'knowledge_base_data.json'
 
         INDEX_NAME: 'knowledge_base'
-        COLLECTION_URL: ${OPENSEARCH_URL}
+        HOST_URL: ${OPENSEARCH_URL}

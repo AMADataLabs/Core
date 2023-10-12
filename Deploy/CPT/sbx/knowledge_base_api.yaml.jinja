@@ -4,7 +4,6 @@ KNOWLEDGE_BASE_API:
         ENVIRONMENT: sbx
         ACCOUNT: '191296302136'
         DATABASE_TABLE: 'CPT-API-knowledge-base-${ENVIRONMENT}'
-
         OPENSEARCH_URL: 'kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com'
 
     ROUTE:
@@ -14,12 +13,12 @@ KNOWLEDGE_BASE_API:
 
     ARTICLES_SUMMARY:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
-        COLLECTION_URL:  ${OPENSEARCH_URL}
+        HOST_URL:  ${OPENSEARCH_URL}
         INDEX_NAME: 'knowledge_base'
 
     ARTICLE:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.GetArticleTask'
-        COLLECTION_URL:  ${OPENSEARCH_URL}
+        HOST_URL:  ${OPENSEARCH_URL}
         INDEX_NAME: 'knowledge_base'
 
     DEFAULT:

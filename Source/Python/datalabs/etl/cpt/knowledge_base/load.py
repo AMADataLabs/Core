@@ -2,16 +2,14 @@
 import json
 import logging
 import boto3
-import os
-
 from   dataclasses import dataclass
-from   datalabs.access.aws import AWSClient
+
+from   opensearchpy import OpenSearch, RequestsHttpConnection
+from   requests_aws4auth import AWS4Auth
+
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
-from   opensearchpy.helpers import bulk
-from   requests_aws4auth import AWS4Auth
-from   opensearch_dsl import Search
-from   opensearchpy import OpenSearch, RequestsHttpConnection
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,8 +21,9 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class OpenSearchLoaderParameters:
     index_name: str
-    collection_url: str
+    host_url: str
     execution_time: str = None
+    region: str = 'us-east-1'
 
 
 class OpensearchLoaderTask(Task):
@@ -34,12 +33,21 @@ class OpensearchLoaderTask(Task):
         LOGGER.debug('Input data: \n%s', self._data)
         knowledge_base_data = json.loads(self._data[0].decode())
         service = 'aoss'
-        region = 'us-east-1'
         credentials = boto3.Session().get_credentials()
-        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
-                           region, service, session_token=credentials.token)
+        awsauth = AWS4Auth(
+            credentials.access_key,
+            credentials.secret_key,
+            self._parameters.region,
+            service,
+            session_token=credentials.token
+        )
         opensearch_client = OpenSearch(
-            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            hosts=[
+                {
+                    'host': self._parameters.host_url,
+                    'port': 443
+                }
+            ],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
@@ -49,6 +57,7 @@ class OpensearchLoaderTask(Task):
 
         if self._knowledge_base_index_does_not_exists(opensearch_client, self._parameters.index_name):
             self._create_index(opensearch_client, self._parameters.index_name)
+
         self._load_knowledge_base_data(knowledge_base_data, opensearch_client, self._parameters.index_name)
 
     @classmethod

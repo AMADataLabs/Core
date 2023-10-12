@@ -1,21 +1,17 @@
 """ Release endpoint classes. """
 import logging
-
-from   datalabs.access.aws import AWSClient
-
-logging.basicConfig()
-LOGGER = logging.getLogger(__name__)
+import time
+import uuid
 from   requests_aws4auth import AWS4Auth
 from   dataclasses import dataclass
 
+from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
+from   opensearchpy.helpers import bulk
+
 import boto3
+from   datalabs.access.aws import AWSClient
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound, InternalServerError
 from   datalabs.parameter import add_schema
-from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
-
-from   opensearchpy.helpers import bulk
-import time
-import uuid
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -29,8 +25,9 @@ class MapSearchEndpointParameters:
     method: str
     path: dict
     query: dict
-    collection_url: str
+    host_url: str
     index_name: str
+    region: str = 'us-east-1'
     unknowns: dict = None
 
 
@@ -54,12 +51,16 @@ class MapSearchEndpointTask(APIEndpointTask):
         except TypeError as type_error:
             raise InvalidRequest("Non-integer 'results' parameter value") from type_error
         service = 'aoss'
-        region = 'us-east-1'
         credentials = boto3.Session().get_credentials()
-        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
-                           region, service, session_token=credentials.token)
+        awsauth = AWS4Auth(
+            credentials.access_key,
+            credentials.secret_key,
+            self._parameters.region,
+            service,
+            session_token=credentials.token
+        )
         opensearch_client = OpenSearch(
-            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            hosts=[{'host': self._parameters.host_url, 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
@@ -82,21 +83,32 @@ class MapSearchEndpointTask(APIEndpointTask):
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
 
-        return SearchParameters(max_results, index, keywords, sections, subsections, updated_after_date,
-                                updated_before_date)
+        return SearchParameters(
+            max_results,
+            index,
+            keywords,
+            sections,
+            subsections,
+            updated_after_date,
+            updated_before_date
+        )
 
     @classmethod
     def _get_max_results(cls, parameters):
         max_results = 30
+
         if parameters.get('max_results') and len(parameters.get('max_results')) > 0:
             max_results = int(parameters.get('max_results')[0])
+
         return max_results
 
     @classmethod
     def _get_index(cls, parameters):
         index = 0
+
         if parameters.get('index') and len(parameters.get('index')) > 0:
             index = int(parameters.get('index')[0])
+
         return index
 
     @classmethod
@@ -137,19 +149,26 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         for hit in data_list:
             answer_preview = cls._generate_answer_preview(hit['_source']['answer'])
-            document_data = {'id': hit['_source']['row_id'],
-                             'section': hit['_source']['section'],
-                             'subsection': hit['_source']['subsection'],
-                             'question': hit['_source']['question'],
-                             'answer': answer_preview,
-                             'updated_on': hit['_source']['updated_on'],
-                             }
+            document_data = cls._generate_document_data(hit, answer_preview)
             items.append(document_data)
         results['items'] = items
         results['total_records'] = response['hits']['total']['value']
         LOGGER.info('returning these results.. ')
         LOGGER.info(str(results))
+
         return results
+
+    @classmethod
+    def generate_document_data(cls, hit, answer_preview):
+
+        return {
+            'id': hit['_source']['row_id'],
+            'section': hit['_source']['section'],
+            'subsection': hit['_source']['subsection'],
+            'question': hit['_source']['question'],
+            'answer': answer_preview,
+            'updated_on': hit['_source']['updated_on'],
+        }
 
     @classmethod
     def _generate_answer_preview(cls, answer):
@@ -176,6 +195,7 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_query_section(cls, keywords, search_parameters):
+
         return dict(
             bool=cls._generate_bool_section(keywords, search_parameters)
         )
@@ -188,6 +208,7 @@ class MapSearchEndpointTask(APIEndpointTask):
             bool_section["must"] = cls._generate_must_section(keywords)
 
         filters = cls._generate_filters(search_parameters)
+
         if len(filters) > 0:
             bool_section["filter"] = filters
 
@@ -223,16 +244,16 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _generate_filters(cls, search_parameters):
         filters = []
 
-        cls._generate_section_filter(search_parameters.sections, filters)
+        cls._append_section_filter(search_parameters.sections, filters)
 
-        cls._generate_subsection_filter(search_parameters.subsections, filters)
+        cls._append_subsection_filter(search_parameters.subsections, filters)
 
-        cls._generate_range_filter(search_parameters, filters)
+        cls._append_range_filter(search_parameters, filters)
 
         return filters
 
     @classmethod
-    def _generate_section_filter(cls, sections, filters):
+    def _append_section_filter(cls, sections, filters):
         if sections is not None and len(sections) > 0:
             section_filter = [
                 dict(
@@ -244,7 +265,7 @@ class MapSearchEndpointTask(APIEndpointTask):
             filters += section_filter
 
     @classmethod
-    def _generate_subsection_filter(cls, subsections, filters):
+    def _append_subsection_filter(cls, subsections, filters):
         if subsections is not None and len(subsections) > 0:
             subsection_filter = [
                 dict(
@@ -256,7 +277,7 @@ class MapSearchEndpointTask(APIEndpointTask):
             filters += subsection_filter
 
     @classmethod
-    def _generate_range_filter(cls, search_parameters, filters):
+    def _append_range_filter(cls, search_parameters, filters):
         updated_on_range_section = cls._generate_range_section(search_parameters)
 
         if updated_on_range_section:
@@ -286,14 +307,16 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         )
 
+
 @add_schema(unknowns=True)
 @dataclass
 class GetArticleParameters:
     method: str
     path: dict
     query: dict
-    collection_url: str
+    host_url: str
     index_name: str
+    region: str = 'us-east-1'
     unknowns: dict = None
 
 
@@ -303,12 +326,21 @@ class GetArticleTask(APIEndpointTask):
     def run(self):
         article_id = self._parameters.path["id"]
         service = 'aoss'
-        region = 'us-east-1'
         credentials = boto3.Session().get_credentials()
-        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key,
-                           region, service, session_token=credentials.token)
+        awsauth = AWS4Auth(
+            credentials.access_key,
+            credentials.secret_key,
+            self._parameters.region,
+            service,
+            session_token=credentials.token
+        )
         opensearch_client = OpenSearch(
-            hosts=[{'host': self._parameters.collection_url, 'port': 443}],
+            hosts=[
+                {
+                    'host': self._parameters.host_url,
+                    'port': 443
+                }
+            ],
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
@@ -318,10 +350,8 @@ class GetArticleTask(APIEndpointTask):
 
         self._response_body = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
 
-
     @classmethod
     def _get_article_data(cls, article_id, opensearch_client, index_name):
-        response_data = None
         query = {
             "query": {
                 "match": {
