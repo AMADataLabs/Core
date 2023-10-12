@@ -68,7 +68,11 @@ class MapSearchEndpointTask(APIEndpointTask):
             timeout=15
         )
 
-        self._response_body = self._query_index(opensearch_client, search_parameters, self._parameters.index_name)
+        self._response_body = self._query_index(
+            opensearch_client,
+            search_parameters,
+            self._parameters.index_name
+        )
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
@@ -348,7 +352,11 @@ class GetArticleTask(APIEndpointTask):
             timeout=15
         )
 
-        self._response_body = self._get_article_data(article_id, opensearch_client, self._parameters.index_name)
+        self._response_body = self._get_article_data(
+            article_id,
+            opensearch_client,
+            self._parameters.index_name
+        )
 
     @classmethod
     def _get_article_data(cls, article_id, opensearch_client, index_name):
@@ -366,9 +374,10 @@ class GetArticleTask(APIEndpointTask):
             first_match = response["hits"]["hits"][0]
             document_data = first_match["_source"]
             LOGGER.info(document_data)
-            return document_data
         else:
             raise ResourceNotFound(f'Article {article_id} not found.')
+
+        return document_data
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
