@@ -14,7 +14,7 @@ CPT_VIGNETTES_ETL:
 
 
         S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-        S3_BASE_PATH: 'AMA/CPT/Vignettes'
+        S3_BASE_PATH: 'AMA/Vignettes'
 
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-Vignettes-DAG'
@@ -30,7 +30,7 @@ CPT_VIGNETTES_ETL:
 
     EXTRACT_VIGNETTES_FILE:
         BASE_PATH: 'CPT_DataProducts/'
-        FILE: 'Clinical Vignettes Data File/2023/CPT Vignettes 2023/Clinical Vignettes 2023 - Pipe.txt,CPT Link/2022/CPT_Link_20220909/CPT_Link_20220909/CPT Link/extracts/Comprehensive.xlsx,CPT Link/2023/CPT_Link_20230908/CPT_Link_20230908/CPT Link/extracts/HcpcsIICodes.txt,CPT Link/2022/CPT_Link_20220909/CPT_Link_20220909/CPT Link/extracts/MAAA.xlsx'
+        FILES: 'Clinical Vignettes Data File/2023/CPT Vignettes 2023/Clinical Vignettes 2023 - Pipe.txt,CPT Link/2022/CPT_Link_20220909/CPT_Link_20220909/CPT Link/extracts/Comprehensive.txt,CPT Link/2023/CPT_Link_20230908/CPT_Link_20230908/CPT Link/extracts/HcpcsIICodes.txt,CPT Link/2022/CPT_Link_20220909/CPT_Link_20220909/CPT Link/extracts/MAAA.txt'
         HOST: ${EFT_HOST}
         USERNAME: ${EFT_USERNAME}
         PASSWORD: ${EFT_PASSWORD}
@@ -44,12 +44,11 @@ CPT_VIGNETTES_ETL:
         CACHE_CLASS: ${S3_CACHE_CLASS}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
 
-        CACHE_INPUT_FILES: 'clinical_vignettes.txt,comprehensive_codes.txt,hcpcs_codes.txt,adminstrative_codes.tx'
+        CACHE_INPUT_FILES: 'clinical_vignettes.txt,comprehensive_codes.txt,hcpcs_codes.txt,adminstrative_codes.txt'
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
 
         CACHE_OUTPUT_FILES: 'vignettes_mappings.json'
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
     
     LOAD_VIGNETTES_MAPPINGS:
         TABLE: 'CPT-API-vignettes-${ENVIRONMENT}'
