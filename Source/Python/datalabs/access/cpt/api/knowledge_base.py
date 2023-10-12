@@ -417,14 +417,14 @@ class OpenSearchDataImporter:
         }
         try:
             client.indices.create(index_name, body=mappings)
-            time.sleep(5)
+            time.sleep(2)
         except Exception as exp:
             LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
 
     def _delete_index(self, index_name, client):
         try:
             client.indices.delete(index_name)
-            time.sleep(5)
+            time.sleep(2)
         except Exception as exp:
             LOGGER.warning(f"Exception while creating index: {index_name}, Exception: {exp}")
 
@@ -454,11 +454,11 @@ class OpenSearchDataImporter:
                           "updated_on": updated_date, "row_id": uuid.uuid1()}
                 response = client.index(index=index_name, id=document_id, body=record)
                 if response['result'] == 'created':
-                    print(f'Document {columns[0]} indexed successfully.')
+                    count += 1
                 else:
                     LOGGER.info(str(columns))
                     raise InternalServerError(f"Failed to index document {columns[0]}")
-
+            LOGGER.info(f'{count} documents have been indexed')
         #         records.append(record)
         #         count += 1
         #         if count == 500:
