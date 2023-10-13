@@ -47,3 +47,4 @@ modspec:
   - package: datalabs.etl.sftp
   - package: datalabs.etl.vericre.profile
   - package: datalabs.messaging
+  - package: pyqldb
