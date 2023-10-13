@@ -19,7 +19,7 @@ VERICRE_PROFILES_ETL:
         S3_BASE_PATH: 'AMA/VeriCre/Profiles'
 
     DAG:
-        LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-ETL'
+        LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-Profiles-DAG'
         DAG_CLASS: 'datalabs.etl.dag.vericre.profile.DAG'
         DAG_STATE:
             CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
