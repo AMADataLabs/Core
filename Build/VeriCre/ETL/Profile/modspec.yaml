@@ -37,6 +37,7 @@ modspec:
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.dag.vericre
   - package: datalabs.etl.orm
   - package: datalabs.etl.s3
   - package: datalabs.etl.sftp
