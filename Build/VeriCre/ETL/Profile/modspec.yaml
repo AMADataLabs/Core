@@ -27,6 +27,7 @@ modspec:
   - package: datalabs.etl
     include:
       - csv
+      - feather
       - task
       - extract
       - awslambda
@@ -39,7 +40,6 @@ modspec:
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.dag.vericre
-  - package: datalabs.etl.feather
   - package: datalabs.etl.http
   - package: datalabs.etl.manipulate
   - package: datalabs.etl.orm
