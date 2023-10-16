@@ -138,7 +138,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
         dag_task = cls.__task_classes__.get(task)
 
         if dag_task is None:
-            raise ValueError(f'DAG {cls.__name__} has no task {task}')
+            raise ValueError(f'DAG {cls.__name__} has no task {task}.')
 
         return dag_task.task_class
 
