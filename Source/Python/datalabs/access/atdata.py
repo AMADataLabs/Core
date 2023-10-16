@@ -17,25 +17,47 @@ class AtData:
         self._account = account
         self._api_key = api_key
 
-    def validate_emails(self, emails: list) -> dict:
+    def request_email_validation(self, emails: list) -> dict:
+        request_id = None
+
         api_endpoint = self._generate_endpoint_url("SendFile", parameters={})
 
         email_data = self._create_emails_dataframe(emails)
 
         emails_file = self._create_payload_file(email_data)
 
-        content = self._post_file_to_endpoint(api_endpoint, emails_file)
+        request_id = self._post_file_to_endpoint(api_endpoint, emails_file)
 
-        validation = self._wait_for_validation(content.json()['project'])
+        return request_id
 
-        return validation
+    def get_validation_status(self, request_id):
+        ''' Get the status of the validation, and a list of result files if finished:
+            {
+                "status": "Processing" | "Returned",
+                "files": [] | ["file ID"]
+            }
+        '''
+        status = None
+        file = None
+        url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=request_id))
 
-    def _generate_endpoint_url(self, endpoint, parameters:dict=None):
-        url = f"https://{self._host}/REST/{endpoint}?account={self._account}&apikey={self._api_key}"
+        response = requests.get(url).json()
 
-        url = url + ("".join(f"&{key}={value}" for key, value in parameters.items()))
+        if status == "Returned":
+            file = response['files'][0]
 
-        return url
+        return (response['status'], file)
+
+    def get_validation_results(self, request_id, file):
+        result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=request_id, file=file))
+
+        response = requests.get(result_url)
+
+        data = pd.read_csv(io.StringIO(response.text), sep = '\t')
+
+        valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
+
+        return list(valid_emails.EMAIL.values)
 
     @classmethod
     def _create_emails_dataframe(cls, emails):
@@ -59,37 +81,40 @@ class AtData:
 
     @classmethod
     def _post_file_to_endpoint(cls, api_endpoint, emails_file):
-        return requests.post(api_endpoint, files={'file':emails_file})
+        ''' Call the AtData API to submit the list of emails to validate, returning the request ID ("project" in the
+            response data).
+        '''
+        response = requests.post(api_endpoint, files={'file':emails_file})
 
-    def _wait_for_validation(self, project):
-        status ='Processing'
-        results, output = None, None
+        return response.json()['project']
 
-        url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=project))
+    # def _wait_for_validation(self, project):
+    #     status ='Processing'
+    #     results, output = None, None
 
-        while status == 'Processing':
-            time.sleep(60)
+    #     while status == 'Processing':
+    #         time.sleep(60)
 
-            status, results = self._get_validation_status(url)
+    #         status, results = self.get_validation_results(url)
 
-        if status == 'Returned':
-            output = self._get_output(project, results.json()['files'][0])
+    #     if status == 'Returned':
+    #         output = self._get_output(project, results.json()['files'][0])
 
-        return output
+    #     return output
 
-    @classmethod
-    def _get_validation_status(cls, url):
-        results = requests.get(url)
-        status = results.json()['status']
+    # AtDataPollingTask._is_ready():
+    #     ready = False
+    #
+    #     status, self._file = atdata.get_validation_results(url)
+    #
+    #     if status == "Returned":
+    #         ready = True
+    #
+    #    return ready
 
-        return (status, results)
+    def _generate_endpoint_url(self, endpoint, parameters:dict=None):
+        url = f"https://{self._host}/REST/{endpoint}?account={self._account}&apikey={self._api_key}"
 
-    def _get_output(self, project, file):
-        result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=project, file=file))
-        result = requests.get(result_url)
+        url = url + ("".join(f"&{key}={value}" for key, value in parameters.items()))
 
-        data = pd.read_csv(io.StringIO(result.text), sep = '\t')
-
-        valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
-
-        return list(valid_emails.EMAIL.values)
+        return url
