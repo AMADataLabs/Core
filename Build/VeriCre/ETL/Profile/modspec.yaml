@@ -20,6 +20,7 @@ modspec:
   - package: datalabs.access
     include:
       - aws
+      - datastore
       - sftp
       - environment
   - package: datalabs.access.parameter
