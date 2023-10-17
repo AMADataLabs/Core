@@ -44,16 +44,19 @@ class MapLookupEndpointTask(APIEndpointTask):
         return results["Items"]
 
     def _generate_response(self, mappings):
-        if self._parameter.query["additional_information"].upper() == 'TRUE':
+        if (
+        self._parameters.query.get('additional_information') and
+        self._parameters.query.get('additional_information')[0].upper() == 'TRUE'
+        ):
             response = {
-                "cpt_code": mappings[0]['pk']['S'].replace("CPT CODE:", ""),
-                "typical_patient": mappings[0]['typical_patient']['S'],
-                "pre_service_info": mappings[0]['pre_service_info']['S'],
-                "intra_service_info": mappings[0]['intra_service_info']['S'],
-                "post_service_info": mappings[0]['post_service_info']['S'],
-                "ruc_reviewed_date": mappings[0]['ruc_reviewed_date']['S'],
-                "concept_id": mappings[0]['sk']['S'].replace("CONCEPT:", "")
-            }
+                    "cpt_code": mappings[0]['pk']['S'].replace("CPT CODE:", ""),
+                    "typical_patient": mappings[0]['typical_patient']['S'],
+                    "pre_service_info": mappings[0]['pre_service_info']['S'],
+                    "intra_service_info": mappings[0]['intra_service_info']['S'],
+                    "post_service_info": mappings[0]['post_service_info']['S'],
+                    "ruc_reviewed_date": mappings[0]['ruc_reviewed_date']['S'],
+                    "concept_id": mappings[0]['sk']['S'].replace("CONCEPT:", "")
+                }
         else:
             response = {
                 "cpt_code": mappings[0]['pk']['S'].replace("CPT CODE:", ""),
