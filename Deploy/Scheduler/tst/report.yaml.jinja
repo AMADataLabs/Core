@@ -59,8 +59,7 @@ DAG_REPORT:
         CACHE_INPUT_BASE_PATH: ${BASE_PATH}
         CACHE_INPUT_FILES: 'scheduled_dag_statuses.csv'
 
-        # TO_ADDRESSES: DataLabs@ama-assn.org
         TO_ADDRESSES: DataLabs@ama-assn.org,peter.lane@ama-assn.org,andrew.trahan@ama-assn.org,rudainah.najeeb@ama-assn.org,ronghua.sun@ama-assn.org,nikhil.trivedi@ama-assn.org
-        SUBJECT: 'DataLabs DAG Report for %A (%b %-m, %Y)'
+        SUBJECT: 'DataLabs ${ENVIRONMENT} DAG Report for %A (%b %-m, %Y)'
         MESSAGE: 'Dude, here is your deliciously direct, DataLabs daily DAG report!'
         FILES: scheduled_dag_statuses.csv
