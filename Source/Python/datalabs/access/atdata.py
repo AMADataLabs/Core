@@ -1,6 +1,5 @@
 """ Generic interface to the API."""
 from datetime import datetime
-import time
 
 import io
 from io import BytesIO
@@ -37,27 +36,29 @@ class AtData:
                 "files": [] | ["file ID"]
             }
         '''
-        status = None
+        #status = None
         file = None
         url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=request_id))
 
         response = requests.get(url).json()
 
-        if status == "Returned":
+        if response['status'] == "Returned":
             file = response['files'][0]
 
         return (response['status'], file)
 
     def get_validation_results(self, request_id, file):
+        valid_emails, output = None, None
         result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=request_id, file=file))
 
         response = requests.get(result_url)
 
-        data = pd.read_csv(io.StringIO(response.text), sep = '\t')
+        if 'File not found' not in response.text:
+            data = pd.read_csv(io.StringIO(response.text), sep = '\t')
+            valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
+            output = list(valid_emails.EMAIL.values)
 
-        valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
-
-        return list(valid_emails.EMAIL.values)
+        return output
 
     @classmethod
     def _create_emails_dataframe(cls, emails):
@@ -101,16 +102,6 @@ class AtData:
     #         output = self._get_output(project, results.json()['files'][0])
 
     #     return output
-
-    # AtDataPollingTask._is_ready():
-    #     ready = False
-    #
-    #     status, self._file = atdata.get_validation_results(url)
-    #
-    #     if status == "Returned":
-    #         ready = True
-    #
-    #    return ready
 
     def _generate_endpoint_url(self, endpoint, parameters:dict=None):
         url = f"https://{self._host}/REST/{endpoint}?account={self._account}&apikey={self._api_key}"

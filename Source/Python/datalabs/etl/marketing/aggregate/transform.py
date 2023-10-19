@@ -516,7 +516,7 @@ class EmailValidatorTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Tas
         return data
 
     def _calculate_months_since_last_validated(self, dated_dataset_with_emails):
-        execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%d %H:%M:%S')
+        execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S')
 
         dated_dataset_with_emails["months_since_validated"] = (execution_time - pandas.to_datetime(dated_dataset_with_emails.email_last_validated[~dated_dataset_with_emails.email_last_validated.isnull()])).astype('timedelta64[M]')
 
@@ -560,16 +560,26 @@ class EmailValidatorTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Tas
 
         return expired_emails
 
+    # pylint: disable=unused-variable
     def _validate_emails(self, email_data_list):
+        status ='Processing'
+        request_id, file = None, None
+
         at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
 
-        validated_emails = at_data.validate_emails(email_data_list)
+        request_id = at_data.request_email_validation(email_data_list)
+
+        status, file = at_data.get_validation_status(request_id)
+
+        validated_emails = at_data.get_validation_results(request_id, file)
 
         return validated_emails
 
+    # pylint: disable=unused-argument
     @classmethod
     def _set_update_flag_for_valid_emails(cls, dated_dataset_with_emails, validated_emails):
-        dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
+        #dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
+        dated_dataset_with_emails.update = True
 
         return dated_dataset_with_emails
 
@@ -579,7 +589,7 @@ class EmailValidatorTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Tas
 
     # pylint: disable=singleton-comparison
     def _update_email_last_validated(self, dated_dataset_with_emails):
-        dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%d %H:%M:%S').strftime("%m/%d/%Y")
+        dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%dT%H:%M:%S').strftime("%m/%d/%Y")
 
         return dated_dataset_with_emails
 
