@@ -45,12 +45,7 @@ class DemographicsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_mpa(ama_masterfile, demog_data)
 
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
-
-        # Write a function that Converts all columsn in place (except entity id)
-        # to in place JSON
-
-        return [self._csv_to_dataframe(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     # pylint: disable=too-many-statements
     @classmethod
