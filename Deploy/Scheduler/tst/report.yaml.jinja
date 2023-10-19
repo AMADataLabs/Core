@@ -1,8 +1,8 @@
 ---
 DAG_REPORT:
     GLOBAL:
-        ENVIRONMENT: dev
-        ACCOUNT: '191296302136'
+        ENVIRONMENT: tst
+        ACCOUNT: '194221139997'
 
         TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
         DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'

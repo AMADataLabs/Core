@@ -19,6 +19,7 @@ import datalabs.etl.dag.masterfile.address_flagging_report
 import datalabs.etl.dag.masterfile.dbl_counts_report
 import datalabs.etl.dag.masterfile.oneview
 import datalabs.etl.dag.schedule.dag
+import datalabs.etl.dag.schedule.report
 import datalabs.example.etl.dag.hello_world_java
 from   datalabs.etl.dag.state.dynamodb import DAGState
 from   datalabs.plugin import import_plugin
