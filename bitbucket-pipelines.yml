@@ -2963,45 +2963,45 @@ pipelines:
                         --environment dev
                         --project CPT/Vignettes/API
                         --bundle CPT/Vignettes/API.zip
-                # - step:
-                #     name: Update Test Bundle
-                #     caches:
-                #         - environment-test
-                #     script:
-                #     - >-
-                #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                #         --environment tst
-                #         --project CPT/Vignettes/API
-                #         --bundle CPT/Vignettes/API.zip
-                # - step:
-                #     name: Update Staging Bundle
-                #     caches:
-                #         - environment-stage
-                #     script:
-                #     - >-
-                #         bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                #         --environment itg
-                #         --project CPT/Vignettes/API
-                #         --bundle CPT/Vignettes/API.zip
-                # - step:
-                #     name: Update Production Bundle
-                #     caches:
-                #         - environment-prod
-                #     script:
-                #     - >-
-                #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                #     - >-
-                #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                #         --environment prd
-                #         --project CPT/Vignettes/API
-                #         --bundle CPT/Vignettes/API.zip
+                - step:
+                    name: Update Test Bundle
+                    caches:
+                        - environment-test
+                    script:
+                    - >-
+                        bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                    - >-
+                        bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                        --environment tst
+                        --project CPT/Vignettes/API
+                        --bundle CPT/Vignettes/API.zip
+                - step:
+                    name: Update Staging Bundle
+                    caches:
+                        - environment-stage
+                    script:
+                    - >-
+                        bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                    - >-
+                        bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                        --environment itg
+                        --project CPT/Vignettes/API
+                        --bundle CPT/Vignettes/API.zip
+                - step:
+                    name: Update Production Bundle
+                    caches:
+                        - environment-prod
+                    script:
+                    - >-
+                        bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                        -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                    - >-
+                        bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                        --environment prd
+                        --project CPT/Vignettes/API
+                        --bundle CPT/Vignettes/API.zip
             - parallel:
                 - step:
                     name: Reload Sandbox Lambda Functions
