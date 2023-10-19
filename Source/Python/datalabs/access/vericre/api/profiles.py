@@ -1,9 +1,13 @@
 """ Release endpoint classes."""
-from   abc import abstractmethod
 from   dataclasses import dataclass, asdict
+from   collections import defaultdict
+import json
 import logging
+import sys
+import uuid
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
+from   datalabs.access.api.task import APIEndpointTask, APIEndpointException, ResourceNotFound, InvalidRequest
+from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
@@ -17,7 +21,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 @dataclass
 class ProfileRecords:
-    entity_id: str
+    entity_id: str=None
     demographics: list=None
     ecfmg: list=None
     medical_schools: list=None
@@ -32,8 +36,10 @@ class ProfileRecords:
     insurance: list=None
 
 
-class StaticTaskParameters:
-    PROFILE_RECORD_SECTION_MAPPING = {
+
+
+class BaseProfileEndpointTask(APIEndpointTask):
+    RECORD_SECTION_NAMES = {
         'medicalSchools': 'medical_schools',
         'medicalTraining': "medical_training",
         'ProviderCDS': "provider_cds",
@@ -41,8 +47,8 @@ class StaticTaskParameters:
         "Insurance": "insurance"
     }
 
+    RESPONSE_MAX_SIZE = 5510
 
-class BaseProfileEndpointTask(APIEndpointTask):
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
@@ -50,25 +56,54 @@ class BaseProfileEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        sql = self._query_for_profile()
+        query = self._generate_query(self._parameters)
 
-        sql = self._filter(sql)
+        query_results = self._execute_query(database, query)
 
-        sql = self._sort(sql)
+        aggregated_records = self._aggregate_records(query_results)
 
-        query = self._execute_sql(database, sql)
-
-        query_result = self._convert_query_result_to_list(query)
-
-        self._verify_query_result(query_result)
-
-        response_result = self._format_query_result(query_result)
-
-        self._response_body = self._generate_response_body(response_result)
+        self._response_body = self._generate_response_body(aggregated_records)
 
     @classmethod
-    def _query_for_profile(cls):
-        sql = '''
+    def _generate_query(cls, parameters):
+        query = cls._generate_base_query()
+
+        query = cls._add_parameter_filters_to_query(query, parameters)
+
+        query = cls._add_sorting_to_query(query)
+
+        return query
+
+    @classmethod
+    def _aggregate_records(cls, query_results):
+        aggregated_records = defaultdict(ProfileRecords)
+
+        for record in query_results:
+            cls._aggregate_record(aggregated_records, record)
+
+        return aggregated_records
+
+    @classmethod
+    @run_time_logger
+    def _execute_query(cls, database, query):
+        query = database.execute(query)
+        result = None
+
+        result = [dict(row) for row in query.fetchall()]
+
+        if len(result) == 0:
+            raise ResourceNotFound("No profile was found for the provided entity ID")
+
+        return result
+
+    # pylint: disable=no-self-use
+    @classmethod
+    def _generate_response_body(cls, aggregated_records):
+        return {"profiles": [asdict(object) for object in list(aggregated_records.values())]}
+
+    @classmethod
+    def _generate_base_query(cls):
+        return '''
             select
                 u.ama_entity_id,
                 ff.sub_section as section_identifier,
@@ -88,110 +123,67 @@ class BaseProfileEndpointTask(APIEndpointTask):
                 end as source_tag,
                 ff.type,
                 case when ff."type" = 'DATE' then get_formatted_date(ff."values")
-                     else ff."values"
+                    else ff."values"
                 end as values,
                 ff.option
             from "user" u
             join physician p on u.id = p."user"
-            join form f on p.form = f.id
-            join form_field ff on ff.form = f.id
+            join form_field ff on ff.form = p.form
                 and ff.sub_section is not null
             where 1=1
         '''
 
-        return sql
-
-    def _filter(self, sql):
-        sql = self._filter_by_entity_id(sql)
-        sql = self._filter_by_active_user(sql)
-        sql = self._filter_by_hidden_form_field(sql)
-
-        return sql
-
-    @abstractmethod
-    def _filter_by_entity_id(self, sql):
-        pass
-
+    # pylint: disable=unused-argument
     @classmethod
-    def _filter_by_active_user(cls, sql):
-        sql = f'{sql} and u.is_deleted = False and u.status = \'ACTIVE\''
-        return sql
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        query = cls._filter_by_active_user(query)
 
-    @classmethod
-    def _filter_by_hidden_form_field(cls, sql):
-        sql = f'{sql} and ff.is_hidden = False'
-        return sql
+        query = cls._filter_by_hidden_form_field(query)
 
-    @classmethod
-    def _sort(cls, sql):
-        sql = f'{sql} order by u.ama_entity_id asc, ff.sub_section asc, ff.order asc'
-        return sql
-
-    @classmethod
-    @run_time_logger
-    def _execute_sql(cls, database, sql):
-        query = database.execute(sql)
         return query
 
     @classmethod
-    @run_time_logger
-    def _convert_query_result_to_list(cls, query):
-        query_result = [dict(row) for row in query.fetchall()]
-        return query_result
+    def _add_sorting_to_query(cls, query):
+        query = f'{query} order by u.ama_entity_id asc, ff.sub_section asc, ff.order asc'
+
+        return query
 
     @classmethod
-    def _verify_query_result(cls, query_result):
-        if len(query_result) == 0:
-            raise ResourceNotFound("No profile was found for the provided entity ID")
+    def _aggregate_record(cls, aggregated_records, record):
+        section_name = cls.RECORD_SECTION_NAMES.get(record['section_identifier'], record['section_identifier'])
 
-    def _format_query_result(self, query_result):
-        response_result = {}
+        aggregated_records[record['ama_entity_id']].entity_id = record['ama_entity_id']
 
-        for record in query_result:
-            response_result = self._process_record(response_result, record)
+        cls._append_record_to_aggregated_records(aggregated_records, section_name, record)
 
-        return [asdict(object) for object in list(response_result.values())]
-
-    def _process_record(self, response_result, record):
-        if record['ama_entity_id'] not in response_result:
-            response_result = self._add_entity_id_in_response(response_result, record)
-
-        record_section = self._format_section_identifier(record['section_identifier'])
-
-        response_result = self._append_record_to_response_result(response_result, record_section, record)
-
-        return response_result
+        return aggregated_records
 
     @classmethod
-    def _add_entity_id_in_response(cls, response_result, record):
-        response_result[record['ama_entity_id']] = ProfileRecords(
-            entity_id = record['ama_entity_id']
-        )
-
-        return response_result
+    def _filter_by_active_user(cls, query):
+        query = f'{query} and u.is_deleted = False and u.status = \'ACTIVE\''
+        return query
 
     @classmethod
-    def _format_section_identifier(cls, section_identifier):
-        record_section = section_identifier
+    def _filter_by_hidden_form_field(cls, query):
+        query = f'{query} and ff.is_hidden = False'
+        return query
 
-        if section_identifier in StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING:
-            record_section = StaticTaskParameters.PROFILE_RECORD_SECTION_MAPPING[section_identifier]
+    @classmethod
+    def _add_entity_id_to_aggregated_records(cls, aggregated_records, entity_id):
+        aggregated_records[entity_id].entity_id = entity_id
 
-        return record_section
+    @classmethod
+    def _append_record_to_aggregated_records(cls, aggregated_records, section_name, record):
+        section_items = getattr(aggregated_records[record['ama_entity_id']], section_name)
 
-    def _append_record_to_response_result(self, response_result, record_section, record):
-        result_list = getattr(response_result[record['ama_entity_id']], record_section)
+        if section_items is None:
+            section_items = []
 
-        if result_list is None:
-            result_list = []
+        item = cls._create_record_item(record)
 
-        item = self._create_record_item(record)
+        section_items.append(item)
 
-        result_list.append(item)
-
-        setattr(response_result[record['ama_entity_id']], record_section, result_list)
-
-        return response_result
+        setattr(aggregated_records[record['ama_entity_id']], section_name, section_items)
 
     @classmethod
     def _create_record_item(cls, record):
@@ -233,54 +225,6 @@ class BaseProfileEndpointTask(APIEndpointTask):
 
         return option_value_names
 
-    @classmethod
-    def _generate_response_body(cls, response_result):
-        return response_result
-
-
-# pylint: disable=too-many-instance-attributes
-@add_schema(unknowns=True)
-@dataclass
-class MultiProfileLookupEndpointParameters:
-    method: str
-    path: dict
-    query: dict
-    authorization: dict
-    database_name: str
-    database_backend: str
-    database_host: str
-    database_port: str
-    database_username: str
-    database_password: str
-    payload: dict
-    unknowns: dict=None
-
-
-class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
-    PARAMETER_CLASS = MultiProfileLookupEndpointParameters
-
-    def _filter_by_entity_id(self, sql):
-        entity_id = self._parameters.payload.get("entity_id")
-
-        self._verify_entity_id_count(entity_id)
-
-        sql = f'''{sql} and u.ama_entity_id in ('{"','".join(entity_id)}')'''
-
-        return sql
-
-    @classmethod
-    def _verify_entity_id_count(cls, entity_id):
-        if not isinstance(entity_id, list):
-            raise InvalidRequest("No entity_id values were found in the request body.")
-
-        if len(entity_id) == 0:
-            raise InvalidRequest("Please provide at least 1 entity ID.")
-
-        if len(entity_id) > 1000:
-            raise InvalidRequest(
-                f"The request contained {len(entity_id)} entity IDs, but the maximum allowed is 1,000."
-            )
-
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
@@ -301,8 +245,197 @@ class SingleProfileLookupEndpointParameters:
 class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = SingleProfileLookupEndpointParameters
 
-    def _filter_by_entity_id(self, sql):
-        entity_id = self._parameters.path.get('entity_id')
-        sql = f"{sql} and u.ama_entity_id = '{entity_id}'"
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        query = cls._filter_by_entity_id(query, parameters.path.get("entity_id"))
 
-        return sql
+        return super()._add_parameter_filters_to_query(query, parameters)
+
+    @classmethod
+    def _filter_by_entity_id(cls, query, entity_id):
+        return f"{query} and u.ama_entity_id = '{entity_id}'"
+
+
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class MultiProfileLookupEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    request_cache_table: str
+    payload: dict
+    unknowns: dict=None
+
+
+class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupEndpointParameters
+
+    def _generate_response_body(self, aggregated_records):
+        response_body = super()._generate_response_body(aggregated_records)
+        response_size = self._get_response_size(response_body)
+        entity_ids = list(aggregated_records.keys())
+
+        LOGGER.info('Response Result size: %s KB', response_size)
+
+        if response_size > self.RESPONSE_MAX_SIZE:
+            request_id = self._save_entity_ids_to_dynamodb(self._parameters.request_cache_table, entity_ids)
+
+            response_body['profiles'] = self._extract_profiles_subset(response_body['profiles'])
+
+            response_body['next'] = self._generate_next_url(request_id, len(response_body['profiles']))
+
+        return response_body
+
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        query = cls._filter_by_entity_ids(query, parameters.payload.get("entity_id"))
+
+        return super()._add_parameter_filters_to_query(query, parameters)
+
+    @classmethod
+    def _filter_by_entity_ids(cls, query, entity_ids):
+        if not isinstance(entity_ids, list):
+            raise InvalidRequest("The entity_id value must be a list of entity IDs.")
+
+        if len(entity_ids) == 0:
+            raise InvalidRequest("Please provide at least 1 entity ID.")
+
+        if len(entity_ids) > 1000:
+            raise InvalidRequest(
+                f"The request contained {len(entity_ids)} entity IDs, but the maximum allowed is 1,000."
+            )
+
+        return f'''{query} and u.ama_entity_id in ('{"','".join(entity_ids)}')'''
+
+    @classmethod
+    def _get_response_size(cls, aggregated_records):
+        size = sys.getsizeof(str(aggregated_records))
+        size_in_kb = int(size / 1024)
+
+        return size_in_kb
+
+    @classmethod
+    @run_time_logger
+    def _save_entity_ids_to_dynamodb(cls, request_cache_table, entity_ids):
+        request_id = str(uuid.uuid4())
+
+        with AWSClient("dynamodb") as dynamodb:
+            item = cls._generate_item(request_id, entity_ids)
+            dynamodb.put_item(TableName=request_cache_table, Item=item)
+
+        return request_id
+
+    @classmethod
+    def _extract_profiles_subset(cls, profiles):
+        response_parts = []
+
+        for item in profiles:
+            response_parts.append(item)
+
+            response_size = cls._get_response_size(response_parts)
+
+            if response_size > cls.RESPONSE_MAX_SIZE:
+                response_parts.pop()
+                break
+
+        return response_parts
+
+    @classmethod
+    def _generate_next_url(cls, request_id, index):
+        return f'/profile_api/profiles/lookup/{request_id}?index={index}'
+
+    @classmethod
+    @run_time_logger
+    def _generate_item(cls, request_id, entity_ids):
+        item = dict(
+            request_id=dict(S=request_id),
+            entity_ids=dict(S=(",".join(entity_ids)))
+        )
+
+        return item
+
+
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class MultiProfileLookupByIndexEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    request_cache_table: str
+    unknowns: dict=None
+
+
+class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
+
+    def _generate_response_body(self, aggregated_records):
+        request_id = self._parameters.path['request_id']
+        index = self._parameters.path['request_id']
+        response_body = super()._generate_response_body(aggregated_records)
+        response_size = self._get_response_size(response_body)
+
+        LOGGER.info('Response Result size: %s KB', response_size)
+
+        if response_size > self.RESPONSE_MAX_SIZE:
+            response_body['profiles'] = self._extract_profiles_subset(response_body['profiles'])
+
+            response_body['next'] = self._generate_next_url(request_id, index + len(response_body['profiles']))
+
+        return response_body
+
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        request_cache_table = parameters.request_cache_table
+        request_id = parameters.path['request_id']
+        index = int(parameters.query['index'][0])
+        entity_ids = parameters.query.get("entity_id")
+
+        if request_id:
+            entity_ids = cls._get_entity_ids_from_dynamodb(request_cache_table, request_id, index)
+
+        query = cls._filter_by_entity_ids(query, entity_ids)
+
+        return super()._add_parameter_filters_to_query(query, parameters)
+
+    @classmethod
+    def _get_entity_ids_from_dynamodb(cls, request_cache_table, request_id, index):
+        response = None
+        key = dict(
+            request_id=dict(
+                S=request_id
+            )
+        )
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.get_item(TableName=request_cache_table, Key=key)
+
+        entity_ids = cls._extract_entity_ids(response)
+
+        return entity_ids.split(',')[index:]
+
+    @classmethod
+    def _filter_by_entity_ids(cls, query, entity_ids):
+        return f'''{query} and u.ama_entity_id in ('{"','".join(entity_ids)}')'''
+
+    @classmethod
+    def _extract_entity_ids(cls, response):
+        if "Item" not in response or "entity_ids" not in response["Item"]:
+            raise APIEndpointException(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
+
+        return response["Item"]["entity_ids"]["S"]

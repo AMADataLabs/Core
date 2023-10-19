@@ -52,4 +52,4 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
     def _get_task_class_from_dag(cls, dag_class, task_name):
         dag_class = import_plugin(dag_class)
 
-        return dag_class.task_class(task_name)
+        return import_plugin(dag_class.task_class(task_name))

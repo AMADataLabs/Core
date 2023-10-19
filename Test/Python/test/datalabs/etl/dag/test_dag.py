@@ -1,7 +1,7 @@
 """ Source: datalabs.etl.dag.dag """
 import pytest
 
-from   datalabs.etl.dag import DAG, Repeat, PythonTask, JavaTask
+from   datalabs.etl.dag import DAG, Repeat
 from   datalabs.task import Task
 
 
@@ -58,8 +58,7 @@ def test_dag_edges_are_created(dag_class):
 #pylint: disable=redefined-outer-name
 def test_python_task_annotation_yields_class(dag_class):
     assert hasattr(dag_class, 'CELEBRATE_GOOD_TIMES')
-    assert dag_class.CELEBRATE_GOOD_TIMES.task_class == TestTask1
-    assert dag_class.CELEBRATE_GOOD_TIMES.task_class.name == "test.datalabs.etl.dag.test_dag.TestTask1"
+    assert dag_class.CELEBRATE_GOOD_TIMES.task_class == "test.datalabs.etl.dag.test_dag.TestTask1"
 
 
 #pylint: disable=redefined-outer-name
@@ -198,7 +197,7 @@ def dag_class():
         POUR_CHAMPAIGN_INTO_GLASS: TestTask2
         WAX_ON_WITH_KARATE: Repeat(TestTask2, 3)
         WAX_OFF_WITH_KARATE: Repeat(TestTask2, 3)
-        CELEBRATE_GOOD_TIMES: PythonTask("test.datalabs.etl.dag.test_dag.TestTask1")
-        COME_ON: JavaTask("datalabs.etl.bogus.BeezelbubsBreakfastBiscuit")
+        CELEBRATE_GOOD_TIMES: "test.datalabs.etl.dag.test_dag.TestTask1"
+        COME_ON: "datalabs.etl.bogus.BeezelbubsBreakfastBiscuit"
 
     return TestDAG

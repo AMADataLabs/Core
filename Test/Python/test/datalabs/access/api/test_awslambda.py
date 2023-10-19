@@ -1,4 +1,5 @@
 """ source: datalabs.access.awslambda """
+import base64
 import json
 import os
 
@@ -48,6 +49,22 @@ def test_task_wrapper_handle_success(event, get_dag_task_parameters_from_dynamod
 
     assert response['statusCode'] == 200
     assert response['body'] == json.dumps({})
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_get_payload_returns_correct_json(encoded_payload):
+    payload = APIEndpointTaskWrapper._get_payload(encoded_payload, "application/json")
+
+    assert len(payload) == 1
+    assert "message" in payload
+    assert payload["message"] == "Hello!"
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_get_empty_payload_returns_none():
+    payload = APIEndpointTaskWrapper._get_payload(None, "application/json")
+
+    assert payload is None
 
 
 class MockTask(api.APIEndpointTask):
@@ -221,3 +238,8 @@ def event():
 
     os.environ.clear()
     os.environ.update(current_env)
+
+
+@pytest.fixture
+def encoded_payload():
+    return base64.b64encode('{"message":"Hello!"}'.encode())

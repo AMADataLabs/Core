@@ -88,8 +88,8 @@ if __name__ == '__main__':
     ap.add_argument(
         '-f', '--force', required=False, action='store_true', help='Force overwritting of the resolved .env template. (default)'
     )
-    ap.add_argument('-p', '--path', required=False, help='Path relative to Script/Environment to look for .env templates.')
-    ap.add_argument('-t', '--task', required=True, help='Task name used to load environment template.')
+    ap.add_argument('-p', '--path', required=False, help='Path relative to Build/ to look for .env templates.')
+    ap.add_argument('-t', '--task', required=True, help='Task name used to load environment template (base name of .env.jinja file).')
     ap.add_argument(
         '-v', '--variable', action='append', required=False, help='Template variable to set in the form name=value.'
     )

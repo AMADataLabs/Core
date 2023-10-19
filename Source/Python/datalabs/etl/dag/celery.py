@@ -101,7 +101,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
         state = self._get_state_plugin(self._task_parameters)
 
-        success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
+        success = state.set_dag_status(dag, execution_time, Status.RUNNING)
 
         if not success:
             LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)

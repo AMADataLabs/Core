@@ -135,14 +135,8 @@ class FilesEndpointTask(APIEndpointTask):
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
-        for name, period_of_validity in cpt_api_authorizations.items():
-            period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
-            period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
-
-            if name in (PRODUCT_CODE, OLD_PRODUCT_CODE):
-                authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
-            elif name.startswith(OLD_PRODUCT_CODE) and current_time <= period_of_validity["end"]:
-                authorized_years.append(cls._parse_authorization_year(name))
+        for product_code, period_of_validity in cpt_api_authorizations.items():
+            authorized_years += cls._generate_authorized_years(product_code, period_of_validity, current_time)
 
         return authorized_years
 
@@ -157,6 +151,28 @@ class FilesEndpointTask(APIEndpointTask):
         release_directory = release_date.strftime("%Y%m%d")
 
         return self._get_files_archive_path_for_user(release_directory, self._parameters.authorization["user_id"])
+
+    @classmethod
+    def _generate_authorized_years(cls, product_code, period_of_validity, current_time):
+        period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
+        period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
+        authorized_years = []
+
+        if product_code == OLD_PRODUCT_CODE:
+            authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
+        elif (
+            product_code.startswith(OLD_PRODUCT_CODE)
+            and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
+        ):
+            authorized_years += cls._generate_years_from_product_code(OLD_PRODUCT_CODE, product_code)
+        elif (
+            product_code != PRODUCT_CODE
+            and product_code.startswith(PRODUCT_CODE)
+            and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
+        ):
+            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE, product_code)
+
+        return authorized_years
 
     @classmethod
     def _get_release_date(cls, release_id, database):
@@ -196,8 +212,15 @@ class FilesEndpointTask(APIEndpointTask):
         return years
 
     @classmethod
-    def _parse_authorization_year(cls, name):
-        return int('20' + name[len(OLD_PRODUCT_CODE):])
+    def _generate_years_from_product_code(cls, base_product_code, product_code):
+        authorized_years = []
+
+        try:
+            authorized_years.append(cls._parse_authorization_year(base_product_code, product_code))
+        except ValueError:
+            pass
+
+        return authorized_years
 
     def _list_files(self, prefix):
         files = []
@@ -211,3 +234,9 @@ class FilesEndpointTask(APIEndpointTask):
             files = [x["Key"] for x in response["Contents"]]
 
         return files
+
+    @classmethod
+    def _parse_authorization_year(cls, base_product_code, product_code):
+        two_digit_year = product_code[len(base_product_code):]
+
+        return int('20' + two_digit_year)

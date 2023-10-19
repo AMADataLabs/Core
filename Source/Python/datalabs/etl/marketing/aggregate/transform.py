@@ -8,6 +8,7 @@ import pickle
 import random
 import string
 
+from   dateutil.parser import parse
 import pandas
 import numpy as np
 
@@ -56,6 +57,52 @@ class MarketingData:
     aims: pandas.DataFrame
     list_of_lists: pandas.DataFrame
     flatfile: pandas.DataFrame
+
+
+@add_schema
+@dataclass
+class SourceFileListTransformerParameters:
+    execution_time: str = None
+
+
+class SourceFileListTransformerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = SourceFileListTransformerParameters
+
+    def run(self):
+        adhoc_list_of_lists, aims, flatfile = [
+            self._csv_to_dataframe(x, sep='\r\n', header=None, index_col=None)
+            for x in self._data
+        ]
+
+        execution_month = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S').month
+        file_lists = []
+
+        file_lists.append(self._extract_adhoc_paths(adhoc_list_of_lists))
+
+        file_lists.append(self._extract_datestamped_path(aims, execution_month))
+
+        file_lists.append(self._extract_list_of_lists_path(adhoc_list_of_lists))
+
+        file_lists.append(self._extract_datestamped_path(flatfile, execution_month))
+
+        return [self._dataframe_to_csv(data, header=False) for data in file_lists]
+
+    @classmethod
+    def _extract_adhoc_paths(cls, paths):
+        return paths[~paths.iloc[:,0].str.contains('List of Lists')]
+
+    @classmethod
+    def _extract_list_of_lists_path(cls, paths):
+        return paths[paths.iloc[:,0].str.contains('List of Lists')]
+
+    @classmethod
+    def _extract_datestamped_path(cls, paths, execution_month):
+        if len(paths) == 0:
+            raise ValueError(f"No path loaded from file {paths}")
+
+        return paths[paths.iloc[:,0].apply(
+            lambda x: parse(x, fuzzy=True).month
+        ).astype(str).str.contains(str(execution_month))].iloc[[-1]]
 
 
 @add_schema

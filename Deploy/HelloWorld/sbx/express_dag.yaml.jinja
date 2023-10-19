@@ -1,0 +1,72 @@
+---
+HELLO_WORLD_EXPRESS:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '644454719059'
+        APPSTACK: DataLake
+
+    DAG:
+        CACHE_INPUT_CLASS: datalabs.cache.s3.S3TaskDataCache
+        CACHE_INPUT_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
+        CACHE_INPUT_BASE_PATH: AMA/Test
+        CACHE_INPUT_FILES: hello_world.py
+        CACHE_INPUT_INCLUDE_DATESTAMP: 'false'
+
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-ExpressDAG-DAG'
+        DAG_CLASS: dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+    PRINT_HELLO_WORLD:
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-HelloWorld'
+        DAG_CLASS: 'datalabs.example.etl.dag.hello_world.HelloWorldDAG'
+        TASK_CLASS: datalabs.example.etl.hello_world.task.HelloWorldTask
+
+        FIRST_NAME: 'Bob'
+        LAST_NAME: 'Marley'
+
+    PRINT_HELLO_WORLD1:
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-HelloWorld'
+        DAG_CLASS: dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
+        TASK_CLASS: datalabs.example.etl.hello_world.task.HelloWorldTask
+
+        FIRST_NAME: 'Alice'
+        LAST_NAME: 'Potter'
+
+    PRINT_HELLO_WORLD2:
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-HelloWorld'
+        DAG_CLASS: dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
+        TASK_CLASS: datalabs.example.etl.hello_world.task.HelloWorldTask
+
+        FIRST_NAME: 'Harry'
+        LAST_NAME: 'Maguire'
+
+    PRINT_HELLO_WORLD3:
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-HelloWorld'
+        DAG_CLASS: dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
+        TASK_CLASS: datalabs.example.etl.hello_world.task.HelloWorldTask
+
+        FIRST_NAME: 'Ron'
+        LAST_NAME: 'Alison'
+
+    # PRINT_HELLO_WORLD4:
+    #     LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-HelloWorld'
+    #     DAG_CLASS: dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
+    #     TASK_CLASS: datalabs.example.etl.hello_world.task.HelloWorldTask
+
+    #     FIRST_NAME: 'Chad'
+    #     LAST_NAME: 'Duning'
+
+    # PRINT_HELLO_WORLD5:
+    #     LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-HelloWorld'
+    #     DAG_CLASS: dynamic.datalabs.example.etl.dag.hello_world.HelloWorldDAG
+    #     TASK_CLASS: datalabs.example.etl.hello_world.task.HelloWorldTask
+
+    #     FIRST_NAME: 'Katee'
+    #     LAST_NAME: 'Sackhoff'

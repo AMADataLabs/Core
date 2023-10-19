@@ -1,0 +1,29 @@
+---
+HELLO_WORLD:
+    DAG:
+        CACHE_INPUT_CLASS: datalabs.cache.fs.LocalTaskDataCache
+        CACHE_INPUT_BASE_PATH: Source/Python/datalabs/example/etl/dag
+        CACHE_INPUT_FILES: hello_world.py
+
+        DAG_CLASS: 'dynamic.datalabs.dag.hello_world.HelloWorldDAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.file.DAGState'
+            BASE_PATH: './test_output_file_state'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryExpressDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.celery.CeleryPythonTaskExecutorTask'
+
+    PRINT_HELLO_WORLD:
+        FIRST_NAME: 'Bob'
+        LAST_NAME: 'Marley'
+
+    PRINT_HELLO_WORLD1:
+        FIRST_NAME: 'Alice'
+        LAST_NAME: 'Potter'
+
+    PRINT_HELLO_WORLD2:
+        FIRST_NAME: 'Harry'
+        LAST_NAME: 'Maguire'
+
+    PRINT_HELLO_WORLD3:
+        FIRST_NAME: 'Ron'
+        LAST_NAME: 'Alison'
