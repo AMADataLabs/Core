@@ -357,7 +357,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
 
     def run(self):
         LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s', self._parameters)
-
+        LOGGER.debug('AMAProfilePDFEndpointTask is running.')
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
