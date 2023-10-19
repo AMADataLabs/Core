@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-knowledge-base-cpt-etl"
-    export RELEASE_DESCRIPTION="CPT-KnowledgeBase API ETL DAG definition and tasks"
+    export RELEASE_NAME="datalabs-cpt-knowledge-base-etl"
+    export RELEASE_DESCRIPTION="CPT Knowledge Base API ETL DAG definition and tasks"
 }
 
 

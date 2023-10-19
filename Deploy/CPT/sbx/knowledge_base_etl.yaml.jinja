@@ -1,5 +1,5 @@
 ---
-KNOWLEDGE_BASE_ETL:
+CPT_KNOWLEDGE_BASE_ETL:
     GLOBAL:
         ENVIRONMENT: sbx
         ACCOUNT: '191296302136'
@@ -8,8 +8,9 @@ KNOWLEDGE_BASE_ETL:
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
         S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
         S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-        S3_BASE_PATH: 'AMA/KnowledgeBase'
-        OPENSEARCH_URL: 'https://kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com'
+        S3_BASE_PATH: 'AMA/CPT/KnowledgeBase'
+        OPENSEARCH_INDEX_HOST: 'https://kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com'
+        OPENSEARCH_INDEX_NAME: 'knowledge_base'
 
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-KnowledgeBase-DAG'
@@ -24,31 +25,33 @@ KNOWLEDGE_BASE_ETL:
         TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
     EXTRACT_KNOWLEDGE_BASE_FILE:
-        BUCKET: ${S3_STAGED_DATA_BUCKET}
-        BASE_PATH: ${S3_BASE_PATH}
-        FILES: knowledge_base_data.xlsx
-        INCLUDE_DATESTAMP: 'False'
+        EXTRACTOR__BASE_PATH: 'CPT_DataProducts/CPT Knowledge Base'
+        EXTRACTOR__FILES: '%Y/%B %Y/CPTKB_%B%Y%m%d/CPTKB_%B%Y%m%d.txt'
+        EXTRACTOR__INCLUDE_DATESTAMP: 'False'
+        EXTRACTOR__HOST: eft.ama-assn.org
+        EXTRACTOR__USERNAME: datalabs
+        EXTRACTOR__PASSWORD: '{{EFT_PASSWORD}}'
+        EXTRACTOR__INCLUDE_NAMES: True
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-        CACHE_OUTPUT_FILES: 'knowledge_base_data.xlsx'
-
+        CACHE_OUTPUT_FILES: 'knowledge_base.psv'
     CREATE_KNOWLEDGE_BASE_DATA:
         CACHE_CLASS: ${S3_CACHE_CLASS}
         CACHE_BASE_PATH: ${S3_BASE_PATH}
 
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-        CACHE_INPUT_FILES: 'knowledge_base_data.xlsx'
+        CACHE_INPUT_FILES: 'knowledge_base.psv'
 
         CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_OUTPUT_FILES: 'knowledge_base_data.json'
+        CACHE_OUTPUT_FILES: 'knowledge_base.json'
 
     LOAD_KNOWLEDGE_BASE_DATA:
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
         CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-        CACHE_INPUT_FILES: 'knowledge_base_data.json'
+        CACHE_INPUT_FILES: 'knowledge_base.json'
 
-        INDEX_NAME: 'knowledge_base'
-        HOST_URL: ${OPENSEARCH_URL}
+        INDEX_NAME: ${OPENSEARCH_INDEX_NAME}
+        INDEX_HOST: ${OPENSEARCH_INDEX_HOST}

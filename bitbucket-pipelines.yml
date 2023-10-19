@@ -2492,7 +2492,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/SNOMED
                     SNOMED-DAG=ETL.zip
 
-        KNOWLEDGEBASE-API:
+        KnowledgeBase-API:
             - step:
                   name: Create Development Component Package
                   caches:
@@ -2616,7 +2616,7 @@ pipelines:
 #                                KnowledgeBase-API=API.zip
 #                                KnowledgeBase-API-Authorizer=API.zip
 
-        KNOWLEDGEBASE-ETL:
+        KnowledgeBase-ETL:
         - step:
                 name: Create Development Component Package
                 caches:

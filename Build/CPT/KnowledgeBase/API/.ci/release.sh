@@ -19,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-knowledge-base-cpt-api"
-    export RELEASE_DESCRIPTION="CPT-KnowledgeBase API  API"
+    export RELEASE_NAME="datalabs-cpt-knowledge-base-api"
+    export RELEASE_DESCRIPTION="CPT Knowledge Base API"
 }
 
 

@@ -21,7 +21,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class OpenSearchLoaderParameters:
     index_name: str
-    host_url: str
+    index_host: str
     execution_time: str = None
     region: str = 'us-east-1'
 
@@ -44,7 +44,7 @@ class OpensearchLoaderTask(Task):
         opensearch_client = OpenSearch(
             hosts=[
                 {
-                    'host': self._parameters.host_url,
+                    'host': self._parameters.index_host,
                     'port': 443
                 }
             ],

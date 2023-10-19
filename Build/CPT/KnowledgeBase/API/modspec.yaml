@@ -6,7 +6,6 @@ modspec:
       - feature
       - parameter
       - plugin
-      - sqlalchemy
       - task
   - package: datalabs.access
     include:
@@ -15,8 +14,6 @@ modspec:
       - database
       - datastore
       - environment
-      - orm
-      - sqlalchemy
   - package: datalabs.access.api
   - package: datalabs.access.authorize
   - package: datalabs.access.cpt.api
