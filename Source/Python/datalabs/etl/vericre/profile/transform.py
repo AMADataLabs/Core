@@ -11,8 +11,7 @@ import numpy
 import pandas
 import xmltodict
 
-from   datalabs.etl.csv import CSVReaderMixin
-from   datalabs.etl.feather import FeatherReaderMixin, FeatherWriterMixin
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.vericre.profile import column
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
@@ -29,7 +28,7 @@ class DemographicsTransformerParameters:
     execution_time: str = None
 
 
-class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class DemographicsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = DemographicsTransformerParameters
 
     # pylint: disable=too-many-statements
@@ -46,9 +45,12 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._create_mpa(ama_masterfile, demog_data)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        # Write a function that Converts all columsn in place (except entity id)
+        # to in place JSON
+
+        return [self._csv_to_dataframe(ama_masterfile)]
 
     # pylint: disable=too-many-statements
     @classmethod
@@ -81,19 +83,19 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         mailing_address = \
             demog_data[column.MAILING_ADDRESS_COLUMNS.keys()].rename(columns=column.MAILING_ADDRESS_COLUMNS)
-        demog_data["MAILING_ADDRESS"] = mailing_address.to_dict(orient="records")
+        demog_data["MAILING_ADDRESS"] = mailing_address.to_json(orient="records")
 
         office_address = demog_data[column.OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=column.OFFICE_ADDRESS_COLUMNS)
         office_address["addressUndeliverable"] = None
-        demog_data["OFFICE_ADDRESS"] = office_address.to_dict(orient="records")
+        demog_data["OFFICE_ADDRESS"] = office_address.to_json(orient="records")
 
         phone = demog_data[column.PHONE_COLUMNS.keys()].rename(columns=column.PHONE_COLUMNS)
-        demog_data["PHONE"] = phone.to_dict(orient="records")
+        demog_data["PHONE"] = phone.to_json(orient="records")
 
         demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
 
         aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_demographics["demographics"] = demographics.to_dict(orient="records")
+        aggregated_demographics["demographics"] = demographics.to_json(orient="records")
 
         return aggregated_demographics
 
@@ -111,7 +113,7 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         practice_specialties \
             = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
         aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
+        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_json(orient="records")
 
         ama_masterfile = ama_masterfile.merge(aggregated_practice_specialties, on="entityId", how="left")
 
@@ -122,7 +124,7 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
         ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
         aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_ecfmg["ecfmg"] = ecfmg.to_dict(orient="records")
+        aggregated_ecfmg["ecfmg"] = ecfmg.to_json(orient="records")
 
         ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
 
@@ -133,7 +135,7 @@ class DemographicsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
         mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
         aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_mpa["mpa"] = mpa.to_dict(orient="records")
+        aggregated_mpa["mpa"] = mpa.to_json(orient="records")
 
         ama_masterfile = ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
 
@@ -154,7 +156,7 @@ class DeaTransformerParameters:
     execution_time: str = None
 
 
-class DeaTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class DeaTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = DeaTransformerParameters
 
     def run(self):
@@ -164,9 +166,9 @@ class DeaTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_dea(cls, dea_data):
@@ -180,10 +182,10 @@ class DeaTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         address = dea_data[column.ADDRESS_COLUMNS.keys()].rename(columns=column.ADDRESS_COLUMNS)
         address["addressUndeliverable"] = None
-        dea["address"] = address.to_dict(orient="records")
+        dea["address"] = address.to_json(orient="records")
 
         aggregated_dea = dea_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_dea["dea"] = dea.to_dict(orient="records")
+        aggregated_dea["dea"] = dea.to_json(orient="records")
         aggregated_dea = aggregated_dea.groupby("entityId")["dea"].apply(list).reset_index()
 
         aggregated_dea.sort_values('entityId')
@@ -214,7 +216,7 @@ class NPITransformerParameters:
     execution_time: str = None
 
 
-class NPITransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class NPITransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = NPITransformerParameters
 
     def run(self):
@@ -224,9 +226,9 @@ class NPITransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile.reset_index())]
+        return [self._dataframe_to_csv(ama_masterfile.reset_index())]
 
     @classmethod
     def _create_npi(cls, npi_data):
@@ -235,7 +237,7 @@ class NPITransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_npi["npi"] = npi.to_dict(orient="records")
+        aggregated_npi["npi"] = npi.to_json(orient="records")
 
         return aggregated_npi
 
@@ -262,7 +264,7 @@ class MedicalSchoolsTransformerParameters:
     execution_time: str = None
 
 
-class MedicalSchoolsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = MedicalSchoolsTransformerParameters
 
     def run(self):
@@ -272,9 +274,9 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_medical_schools(cls, med_sch_data):
@@ -286,7 +288,7 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
             med_sch_data[column.MEDICAL_SCHOOL_COLUMNS.keys()].rename(columns=column.MEDICAL_SCHOOL_COLUMNS)
         medical_schools["medicalEducationType"] = None
         aggregated_medical_schools = med_sch_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_medical_schools["medicalSchools"] = medical_schools.to_dict(orient="records")
+        aggregated_medical_schools["medicalSchools"] = medical_schools.to_json(orient="records")
         aggregated_medical_schools \
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
 
@@ -316,7 +318,7 @@ class ABMSTransformerParameters:
     execution_time: str = None
 
 
-class ABMSTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class ABMSTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ABMSTransformerParameters
 
     def run(self):
@@ -326,9 +328,9 @@ class ABMSTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_abms(cls, abms_data):
@@ -337,7 +339,7 @@ class ABMSTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
         abms["disclaimer"] += "compilation owned by the American Board of Medical Specialties.  "
         abms["disclaimer"] += "Copyright (2022) American Board of Medical Specialties.  All rights reserved."
         aggregated_abms = abms_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_abms["abms"] = abms.to_dict(orient="records")
+        aggregated_abms["abms"] = abms.to_json(orient="records")
         aggregated_abms = aggregated_abms.groupby("entityId")["abms"].apply(list).reset_index()
 
         aggregated_abms['abms'] = aggregated_abms['abms'].apply(
@@ -366,7 +368,7 @@ class MedicalTrainingTransformerParameters:
     execution_time: str = None
 
 
-class MedicalTrainingTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class MedicalTrainingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = MedicalTrainingTransformerParameters
 
     def run(self):
@@ -376,16 +378,16 @@ class MedicalTrainingTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_medical_training(cls, med_train):
         medical_training = \
             med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
+        aggregated_medical_training["medicalTraining"] = medical_training.to_json(orient="records")
         aggregated_medical_training \
             = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
 
@@ -415,7 +417,7 @@ class LicensesTransformerParameters:
     execution_time: str = None
 
 
-class LicensesTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class LicensesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = LicensesTransformerParameters
 
     def run(self):
@@ -425,17 +427,17 @@ class LicensesTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_licenses(cls, license_data):
         licenses = license_data[column.LICENSES_COLUMNS.keys()].rename(columns=column.LICENSES_COLUMNS)
         license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
-        licenses["licenseName"] = license_name.to_dict(orient="records")
+        licenses["licenseName"] = license_name.to_json(orient="records")
         aggregated_licenses = license_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
+        aggregated_licenses["licenses"] = licenses.to_json(orient="records")
         aggregated_licenses = aggregated_licenses.groupby("entityId")["licenses"].apply(list).reset_index()
 
         aggregated_licenses['licenses'] \
@@ -463,7 +465,7 @@ class SanctionsTransformerParameters:
     execution_time: str = None
 
 
-class SanctionsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
+class SanctionsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = SanctionsTransformerParameters
 
     def run(self):
@@ -473,9 +475,9 @@ class SanctionsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         ama_masterfile = self._fill_null_sanctions(ama_masterfile)
 
-        ama_masterfile = self._pickle_masterfile(ama_masterfile)
+        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_sanctions(cls, sanctions):
@@ -562,7 +564,7 @@ class SanctionsTransformerTask(CSVReaderMixin, FeatherWriterMixin, Task):
 
         aggregated_sanctions = cls._fill_null_state_sanctions(aggregated_sanctions)
 
-        aggregated_sanctions["sanctions"] = aggregated_sanctions[merge_columns].to_dict(orient="records")
+        aggregated_sanctions["sanctions"] = aggregated_sanctions[merge_columns].to_json(orient="records")
 
         aggregated_sanctions.drop(columns=merge_columns, inplace=True)
 
@@ -636,19 +638,19 @@ class AMAProfileTransformerParameters:
     execution_time: str = None
 
 
-class AMAProfileTransformerTask(FeatherReaderMixin, FeatherWriterMixin, Task):
+class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = AMAProfileTransformerParameters
 
     def run(self):
         LOGGER.info("Reading physician profile PSV files...")
 
-        dataframes = [self._feather_to_dataframe(input_file) for input_file in self._data]
+        dataframes = [self._csv_to_dataframe(input_file) for input_file in self._data]
         ama_masterfile = dataframes[0]
         for dataframe in dataframes[1:]:
             ama_masterfile = ama_masterfile.merge(dataframe, on="entityId", how="left")
 
         LOGGER.info("Writing ama_masterfile table Feather file...")
-        return [self._dataframe_to_feather(ama_masterfile)]
+        return [self._dataframe_to_csv(ama_masterfile)]
 
 
 @add_schema
@@ -854,7 +856,7 @@ class FeatherSplitTransformerParameters:
     execution_time: str = None
 
 
-class FeatherSplitTransformerTask(FeatherReaderMixin, FeatherWriterMixin, Task):
+class FeatherSplitTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = FeatherSplitTransformerParameters
 
     def run(self):
@@ -862,7 +864,7 @@ class FeatherSplitTransformerTask(FeatherReaderMixin, FeatherWriterMixin, Task):
         ama_masterfile = self._feather_to_dataframe(self._data[0])
 
         LOGGER.info("Generating %d Feather files...", split_count)
-        return [self._dataframe_to_feather(x) for x in numpy.array_split(ama_masterfile, split_count)]
+        return [self._dataframe_to_csv(x) for x in numpy.array_split(ama_masterfile, split_count)]
 
 
 @add_schema
@@ -873,16 +875,16 @@ class JSONTransformerParameters:
     execution_time: str = None
 
 
-class JSONTransformerTask(FeatherReaderMixin, Task):
+class JSONTransformerTask(CSVReaderMixin, Task):
     PARAMETER_CLASS = JSONTransformerParameters
 
     def run(self):
         split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
-        ama_masterfile = self._feather_to_dataframe(self._data[0])
+        ama_masterfile = self._csv_to_dataframe(self._data[0])
 
-        LOGGER.info("Unpickling column values...")
-        for column_name in column.AGGREGATED_COLUMNS:
-            ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.loads)
+        # LOGGER.info("Unpickling column values...")
+        # for column_name in column.AGGREGATED_COLUMNS:
+        #     ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.loads)
 
         LOGGER.info("Generating %d JSON files...", split_count)
         return [x.to_json(orient="records").encode() for x in numpy.array_split(ama_masterfile, split_count)]
