@@ -1,6 +1,7 @@
 dag,schedule
-ADDRESS_LOAD_COMPILER,0 13 * * mon-fri
+ADDRESS_LOAD_COMPILER,0 12 * * mon-fri
 CERNER_REPORT,0 13 * * mon-fri
+DAG_REPORT,0 14 * * sun-fri
 DBL,13 0 * * tue-sat
 DEVELOPER_EMAILS,0 0 * * sun-thu
 LICENSING_REMINDERS,0 14 * * mon-fri
@@ -8,5 +9,5 @@ LICENSING_SYNC,0 0 * * sun-thu
 LICENSING_TRAFFIC,0 0 * * sun-thu
 ONEVIEW,0 0 * * tue-sat
 PLATFORM_USER_TOKENS,0 0 * * sun-thu
-LICENSE_MOVEMENT,10 19 * * mon-fri
-VERICRE_DATA_STEWARD,10 19 * * mon-fri
+LICENSE_MOVEMENT,0 13 * * mon-fri
+VERICRE_DATA_STEWARD,0 13 * * mon-fri
