@@ -116,7 +116,8 @@ class FilesEndpointTask(APIEndpointTask):
                     'Bucket': self._parameters.bucket_name,
                     'Key': files_archive_path
                 },
-                ExpiresIn=self._parameters.bucket_url_duration
+                ExpiresIn=self._parameters.bucket_url_duration,
+                ResponseContentDisposition='attachment; filename="files.zip"'
             )
         except ClientError as exception:
             LOGGER.error(exception)
