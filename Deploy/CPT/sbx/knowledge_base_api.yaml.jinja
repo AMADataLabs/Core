@@ -14,13 +14,13 @@ CPT_KNOWLEDGE_BASE_API:
 
     ARTICLES_SUMMARY:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.MapSearchEndpointTask'
-        INDEX_HOST:  ${OPENSEARCH_INDEX_HOST}
+        INDEX_HOST: ${OPENSEARCH_INDEX_HOST}
         INDEX_NAME: ${OPENSEARCH_INDEX_NAME}
 
     ARTICLE:
         TASK_CLASS: 'datalabs.access.cpt.api.knowledge_base.GetArticleTask'
-        INDEX_HOST:  ${OPENSEARCH_INDEX_HOST}
+        INDEX_HOST: ${OPENSEARCH_INDEX_HOST}
         INDEX_NAME: ${OPENSEARCH_INDEX_NAME}
 
     DEFAULT:
-        TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'
+        TASK_CLASS: 'datalabs.access.cpt.api.default.DefaultEndpointTask'
