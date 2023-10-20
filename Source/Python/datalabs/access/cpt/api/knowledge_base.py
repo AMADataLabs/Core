@@ -156,7 +156,9 @@ class MapSearchEndpointTask(APIEndpointTask):
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
             results['items'] = [cls._generate_search_result(hit) for hit in response['hits']['hits']]
-        results['total_records'] = len(results['items'])
+            results['total_records'] = len(results['items'])
+        else:
+            results['total_records'] = 0
 
         return results
 
