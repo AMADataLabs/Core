@@ -335,11 +335,11 @@ class ABMSTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         abms["disclaimer"] += "compilation owned by the American Board of Medical Specialties.  "
         abms["disclaimer"] += "Copyright (2022) American Board of Medical Specialties.  All rights reserved."
         aggregated_abms = abms_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_abms["abms"] = abms.to_json(orient="records")
+        aggregated_abms["abms"] = abms.to_dict(orient="records")
         aggregated_abms = aggregated_abms.groupby("entityId")["abms"].apply(list).reset_index()
 
         aggregated_abms['abms'] = aggregated_abms['abms'].apply(
-            lambda x: sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True)
+            lambda x: json.dumps(sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True))
         )
 
         return aggregated_abms
@@ -383,12 +383,12 @@ class MedicalTrainingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         medical_training = \
             med_train[column.MEDICAL_TRAINING_COLUMNS.keys()].rename(columns=column.MEDICAL_TRAINING_COLUMNS)
         aggregated_medical_training = med_train[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_medical_training["medicalTraining"] = medical_training.to_json(orient="records")
+        aggregated_medical_training["medicalTraining"] = medical_training.to_dict(orient="records")
         aggregated_medical_training \
             = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
 
         aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(
-            lambda x: sorted(x, key=lambda item: item['beginDate'])
+            lambda x: json.dumps(sorted(x, key=lambda item: item['beginDate']))
         )
 
         return aggregated_medical_training
@@ -433,11 +433,11 @@ class LicensesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
         licenses["licenseName"] = license_name.to_json(orient="records")
         aggregated_licenses = license_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_licenses["licenses"] = licenses.to_json(orient="records")
+        aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
         aggregated_licenses = aggregated_licenses.groupby("entityId")["licenses"].apply(list).reset_index()
 
         aggregated_licenses['licenses'] \
-            = aggregated_licenses['licenses'].apply(lambda x: sorted(x, key=lambda item: str(item['issueDate'])))
+            = aggregated_licenses['licenses'].apply(lambda x: json.dumps(sorted(x, key=lambda item: str(item['issueDate']))))
 
         return aggregated_licenses
 
