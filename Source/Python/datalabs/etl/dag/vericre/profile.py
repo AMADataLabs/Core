@@ -33,7 +33,7 @@ class DAG(dag.DAG):
     STANDARDIZE_SANCTIONS_DATES: DateFormatTransformerTask
     SPLIT_DEMOGRAPHICS: SplitTransformerTask
 
-    CREATE_DEMOGRAPHICS: Repeat("datalabs.etl.vericre.profile.transform.DemographicsTransformerTask", 3)
+    CREATE_DEMOGRAPHICS: Repeat("datalabs.etl.vericre.profile.transform.DemographicsTransformerTask", 10)
     CREATE_DEA: DeaTransformerTask
     CREATE_NPI: NPITransformerTask
     CREATE_MEDICAL_SCHOOLS: MedicalSchoolsTransformerTask
