@@ -148,7 +148,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         query_parameters = cls._get_query_parameters(keywords, search_parameters)
         LOGGER.info("Query Parameters are")
         LOGGER.info(str(query_parameters))
-        results = None
+        results = {}
 
         response = opensearch.search(index=index_name, body=query_parameters)
         LOGGER.info("Query Results are")
