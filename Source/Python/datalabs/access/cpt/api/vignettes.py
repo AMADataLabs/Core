@@ -57,7 +57,7 @@ class MapLookupEndpointTask(APIEndpointTask):
         ):
             response.update(
                 {
-                    "ruc_reviewed_date": mappings[0]['ruc_reviewed_date']['S'], 
+                    "ruc_reviewed_date": mappings[0]['ruc_reviewed_date']['S'],
                     "concept_id": mappings[0]['sk']['S'].replace("CONCEPT:", "")
                 }
             )
