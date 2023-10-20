@@ -41,8 +41,8 @@ class DAG(dag.DAG):
     CREATE_MEDICAL_TRAINING: MedicalTrainingTransformerTask
     CREATE_LICENSES: LicensesTransformerTask
     CREATE_SANCTIONS: SanctionsTransformerTask
-    CREATE_AMA_PROFILE_TABLE: Repeat("datalabs.etl.vericre.profile.transform.AMAProfileTransformerTask", 3)
-    CONVERT_AMA_MASTERFILE_TO_JSON: Repeat("datalabs.etl.vericre.profile.transform.JSONTransformerTask", 3)
+    CREATE_AMA_PROFILE_TABLE: Repeat("datalabs.etl.vericre.profile.transform.AMAProfileTransformerTask", 10)
+    CONVERT_AMA_MASTERFILE_TO_JSON: Repeat("datalabs.etl.vericre.profile.transform.JSONTransformerTask", 10)
     LOAD_AMA_MASTERFILE_TABLE: dag.Repeat(QLDBLoaderTask, 20)
 
     if feature.enabled("CAQH_PROFILES"):
