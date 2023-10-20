@@ -288,8 +288,7 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
 
         aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(
-            # lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
-            lambda x: sorted(x, key=lambda item: str(item.get('graduateDate', ''))) # TODO: Nikhil Trivedi change
+            lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
         )
 
         return aggregated_medical_schools
