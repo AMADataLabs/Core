@@ -283,12 +283,13 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
             med_sch_data[column.MEDICAL_SCHOOL_COLUMNS.keys()].rename(columns=column.MEDICAL_SCHOOL_COLUMNS)
         medical_schools["medicalEducationType"] = None
         aggregated_medical_schools = med_sch_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_medical_schools["medicalSchools"] = medical_schools.to_json(orient="records")
+        # aggregated_medical_schools["medicalSchools"] = medical_schools.to_json(orient="records")
+        aggregated_medical_schools["medicalSchools"] = medical_schools.to_dict(orient="records")
         aggregated_medical_schools \
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
 
         aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(
-            lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
+            lambda x: json.dumps(sorted(x, key=lambda item: str(item['graduateDate'])))
         )
 
         return aggregated_medical_schools
