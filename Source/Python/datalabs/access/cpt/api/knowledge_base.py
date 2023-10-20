@@ -133,7 +133,11 @@ class MapSearchEndpointTask(APIEndpointTask):
         results = None
 
         if search_parameters.keywords is not None:
-            keywords = "|".join(search_parameters.keywords)
+            if len(search_parameters.keywords) == 1:
+                if search_parameters.keywords[0].isdigit():
+                    keywords = f'*{search_parameters.keywords[0]}*'
+            else:
+                keywords = "|".join(search_parameters.keywords)
             if "1b4816d" in search_parameters.keywords:
                 data_importer = OpenSearchDataImporter()
                 data_importer.import_data(opensearch)
