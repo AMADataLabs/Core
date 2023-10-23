@@ -131,12 +131,17 @@ class MapSearchEndpointTask(APIEndpointTask):
     def _query_index(cls, opensearch, search_parameters, index_name):
         keywords = None
         results = None
-
+        LOGGER.info("search_parameters.keywords is ")
+        LOGGER.info(str(search_parameters.keywords))
         if search_parameters.keywords is not None:
+            LOGGER.info("search_parameters.keywords is not none")
             if len(search_parameters.keywords) == 1:
+                LOGGER.info("Length of search_parameters.keywords is 1")
                 if search_parameters.keywords[0].isdigit():
+                    LOGGER.info("search_parameters.keywords is numeric")
                     keywords = f'*{search_parameters.keywords[0]}*'
             else:
+                LOGGER.info("Length of search_parameters.keywords > 1")
                 keywords = "|".join(search_parameters.keywords)
             if "1b4816d" in search_parameters.keywords:
                 data_importer = OpenSearchDataImporter()
