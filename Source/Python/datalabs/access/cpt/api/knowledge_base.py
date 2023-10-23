@@ -143,6 +143,7 @@ class MapSearchEndpointTask(APIEndpointTask):
                 data_importer.import_data(opensearch)
                 LOGGER.info("OpenSearch data imported executed.")
 
+        LOGGER.info(f"Keywords to be searched are {str(keywords)}")
         results = cls._get_search_results(opensearch, keywords, search_parameters, index_name)
 
         return results
