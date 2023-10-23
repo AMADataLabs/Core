@@ -140,6 +140,8 @@ class MapSearchEndpointTask(APIEndpointTask):
                 if search_parameters.keywords[0].isdigit():
                     LOGGER.info("search_parameters.keywords is numeric")
                     keywords = f'*{search_parameters.keywords[0]}*'
+                else:
+                    keywords = search_parameters.keywords
             else:
                 LOGGER.info("Length of search_parameters.keywords > 1")
                 keywords = "|".join(search_parameters.keywords)
