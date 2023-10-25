@@ -146,7 +146,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\n{\n    \"npi_number\": \"123456021\"\n}\n",
+							"raw": "\n{\n    \"npi_number\": \"1275562779\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -598,51 +598,6 @@
 								"profile",
 								"5457448",
 								"AMA",
-								"pdf"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Download CAQH PDF",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response code indicates success\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {
-							"host": true
-						}
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Host",
-								"value": "{{VERICRE_API_HOST_HEADER}}",
-								"type": "default"
-							}
-						],
-						"url": {
-							"raw": "{{VERICRE_API_URL}}/profile/3381907/CAQH/pdf",
-							"host": [
-								"{{VERICRE_API_URL}}"
-							],
-							"path": [
-								"profile",
-								"3381907",
-								"CAQH",
 								"pdf"
 							]
 						}

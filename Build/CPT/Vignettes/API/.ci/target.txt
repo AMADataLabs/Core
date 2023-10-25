@@ -1,1 +1,1 @@
-Vignettes-API
+CPT-Vignettes-API
