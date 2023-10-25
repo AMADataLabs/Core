@@ -1,20 +1,24 @@
 """ Release endpoint classes. """
+from   dataclasses import dataclass
+from   datetime import datetime
 import logging
 import time
 import uuid
+
 import boto3
+from   opensearchpy import OpenSearch, RequestsHttpConnection
 from   requests_aws4auth import AWS4Auth
-from   dataclasses import dataclass
-from   datetime import datetime, timezone
 
-from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
-from   opensearchpy.helpers import bulk
-
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound, InternalServerError
+from   datalabs.access.api.task import (
+    APIEndpointTask,
+    InvalidRequest,
+    ResourceNotFound,
+    Unauthorized,
+    InternalServerError
+)
 from   datalabs.access.aws import AWSClient
+from   datalabs.access.cpt.api.authorize import ProductCode, AuthorizedAPIMixin
 from   datalabs.parameter import add_schema
-from   datalabs.access.cpt.api.authorize import PRODUCT_CODE_KB
-import datalabs.access.cpt.api.knowledge_base_authorizer as knowledgebaseauthorizer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -46,35 +50,36 @@ class SearchParameters:
     updated_before_date: str
 
 
-class MapSearchEndpointTask(APIEndpointTask):
+class MapSearchEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
     PARAMETER_CLASS = MapSearchEndpointParameters
+    PRODUCT_CODE = ProductCode.KNOWLEDGE_BASE
 
     def run(self):
-        authorized = knowledgebaseauthorizer.authorized(self._parameters.authorization["authorizations"])
-        if authorized:
-            try:
-                search_parameters = self._get_search_parameters(self._parameters.query)
-            except TypeError as type_error:
-                raise InvalidRequest("Non-integer 'results' parameter value") from type_error
+        authorized = self._authorized(self._parameters.authorization["authorizations"], datetime.now().year)
+        opensearch = self._get_client(self._parameters.region, self._parameters.index_host)
 
-            opensearch_client = self._get_opensearch_client(
-                self._parameters.region,
-                self._parameters.index_host
-            )
+        # REMOVE ONCE ETL IS WORKING #
+        if "1b4816d" in search_parameters.keywords:
+            data_importer = OpenSearchDataImporter()
+            data_importer.import_data(opensearch)
+            LOGGER.info("OpenSearch data importer executed.")
+        ##############################
 
-            self._response_body = self._query_index(
-                opensearch_client,
-                search_parameters,
-                self._parameters.index_name
-            )
-        else:
-            self._status_code = 401
+        if not authorized:
+            raise Unauthorized()
+
+        search_parameters = self._get_search_parameters(self._parameters.query)
+
+        self._response_body = self._query_index(
+            opensearch,
+            search_parameters,
+            self._parameters.index_name
+        )
 
     @classmethod
-    def _get_opensearch_client(cls, region, index_host):
+    def _get_client(cls, region, index_host):
         service = 'aoss'
         credentials = boto3.Session().get_credentials()
-
         awsauth = AWS4Auth(
             credentials.access_key,
             credentials.secret_key,
@@ -83,7 +88,7 @@ class MapSearchEndpointTask(APIEndpointTask):
             session_token=credentials.token
         )
 
-        opensearch_client = OpenSearch(
+        return OpenSearch(
             hosts=[{'host': index_host, 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
@@ -91,8 +96,6 @@ class MapSearchEndpointTask(APIEndpointTask):
             connection_class=RequestsHttpConnection,
             timeout=15
         )
-
-        return opensearch_client
 
     @classmethod
     def _get_search_parameters(cls, parameters: dict) -> SearchParameters:
@@ -122,7 +125,10 @@ class MapSearchEndpointTask(APIEndpointTask):
         max_results = 30
 
         if parameters.get('max_results') and len(parameters.get('max_results')) > 0:
-            max_results = int(parameters.get('max_results')[0])
+            try:
+                max_results = int(parameters.get('max_results')[0])
+            except TypeError as type_error:
+                raise InvalidRequest("Non-integer 'max_results' parameter value") from type_error
 
         return max_results
 
@@ -137,50 +143,25 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_index(cls, opensearch, search_parameters, index_name):
-        keywords = None
-        results = None
-        LOGGER.info("search_parameters.keywords is ")
-        LOGGER.info(str(search_parameters.keywords))
-        if search_parameters.keywords is not None:
-            if len(search_parameters.keywords) == 1:
-                if search_parameters.keywords[0].isdigit():
-                    keywords = f'*{search_parameters.keywords[0]}*'
-                else:
-                    keywords = search_parameters.keywords[0]
-            else:
-                keywords = "|".join(search_parameters.keywords)
-            if "1b4816d" in search_parameters.keywords:
-                data_importer = OpenSearchDataImporter()
-                data_importer.import_data(opensearch)
-                LOGGER.info("OpenSearch data imported executed.")
-
-        LOGGER.info(f"Keywords to be searched are {str(keywords)}")
-        results = cls._get_search_results(opensearch, keywords, search_parameters, index_name)
-
-        return results
+        return cls._get_search_results(opensearch, search_parameters, index_name)
 
     @classmethod
-    def _get_search_results(cls, opensearch, keywords, search_parameters, index_name):
-        query_parameters = cls._get_query_parameters(keywords, search_parameters)
-        LOGGER.info("Query Parameters are")
-        LOGGER.info(str(query_parameters))
-        results = {}
+    def _get_search_results(cls, opensearch, search_parameters, index_name):
+        query_parameters = cls._get_query_parameters(search_parameters)
+        LOGGER.debug(f"Query Parameters:\n{query_parameters}")
+        results = {'total_records': 0}
 
         response = opensearch.search(index=index_name, body=query_parameters)
-        LOGGER.info("Query Results are")
-        LOGGER.info(str(response))
+        LOGGER.debug(f"Query Results:\n{response}")
 
         if response is not None and response.get('hits', {}).get('total', {}).get('value', 0) > 0:
             results['items'] = [cls._generate_search_result(hit) for hit in response['hits']['hits']]
             results['total_records'] = len(results['items'])
-        else:
-            results['total_records'] = 0
 
         return results
 
     @classmethod
     def _generate_search_result(cls, hit):
-
         answer_preview = cls._generate_answer_preview(hit['_source']['answer'])
 
         return {
@@ -199,12 +180,13 @@ class MapSearchEndpointTask(APIEndpointTask):
         return ' '.join(answer_words[:20])
 
     @classmethod
-    def _get_query_parameters(cls, keywords, search_parameters):
+    def _get_query_parameters(cls, search_parameters):
         query_parameters = {}
 
         cls._add_pagination(query_parameters, search_parameters)
 
-        query_parameters['query'] = cls._generate_query_section(keywords, search_parameters)
+        query_parameters['query'] = cls._generate_query_section(search_parameters)
+
         query_parameters['sort'] = cls._generate_sort_section()
 
         return query_parameters
@@ -216,17 +198,18 @@ class MapSearchEndpointTask(APIEndpointTask):
 
 
     @classmethod
-    def _generate_query_section(cls, keywords, search_parameters):
-
+    def _generate_query_section(cls, search_parameters):
         return dict(
-            bool=cls._generate_bool_section(keywords, search_parameters)
+            bool=cls._generate_bool_section(search_parameters)
         )
 
     @classmethod
-    def _generate_bool_section(cls, keywords, search_parameters):
+    def _generate_bool_section(cls, search_parameters):
         bool_section = dict()
 
-        if keywords:
+        if search_parameters.keywords is not None:
+            keywords = cls._generate_keywords(search_parameters)
+
             bool_section["must"] = cls._generate_must_section(keywords)
 
         filters = cls._generate_filters(search_parameters)
@@ -235,6 +218,20 @@ class MapSearchEndpointTask(APIEndpointTask):
             bool_section["filter"] = filters
 
         return bool_section
+
+    @classmethod
+    def _generate_keywords(cls, search_parameters):
+        keywords = None
+        LOGGER.debug(f"search_parameters.keywords:\n{search_parameters.keywords}")
+
+        if len(search_parameters.keywords) == 1 and search_parameters.keywords[0].isdigit():
+            search_parameters.keywords[0] = f'*{search_parameters.keywords[0]}*'
+
+        keywords = "|".join(search_parameters.keywords)
+
+        LOGGER.debug(f"Keywords to be searched are {str(keywords)}")
+
+        return keywords
 
     @classmethod
     def _generate_must_section(cls, keywords):
@@ -368,11 +365,11 @@ class GetArticleTask(APIEndpointTask):
 
             credentials = boto3.Session().get_credentials()
             awsauth = self._get_aws4auth(self._parameters.region, credentials, service)
-            opensearch_client = self._get_opensearch_client(self._parameters.index_host, awsauth)
+            opensearch = self._get_client(self._parameters.index_host, awsauth)
 
             self._response_body = self._get_article(
                 article_id,
-                opensearch_client,
+                opensearch,
                 self._parameters.index_name
             )
         else:
@@ -390,7 +387,7 @@ class GetArticleTask(APIEndpointTask):
         )
 
     @classmethod
-    def _get_opensearch_client(cls, index_host, awsauth):
+    def _get_client(cls, index_host, awsauth):
 
         return OpenSearch(
             hosts=[
@@ -407,7 +404,7 @@ class GetArticleTask(APIEndpointTask):
         )
 
     @classmethod
-    def _get_article(cls, article_id, opensearch_client, index_name):
+    def _get_article(cls, article_id, opensearch, index_name):
         article = None
 
         query = {
@@ -418,7 +415,7 @@ class GetArticleTask(APIEndpointTask):
             }
         }
 
-        response = opensearch_client.search(index=index_name, body=query)
+        response = opensearch.search(index=index_name, body=query)
 
         if response["hits"]["total"]["value"] > 0:
             first_match = response["hits"]["hits"][0]
@@ -435,7 +432,6 @@ class GetArticleTask(APIEndpointTask):
 
 # Import knowledge base data is temporarily code.
 class OpenSearchDataImporter:
-
     def _create_index(self, index_name, client):
         mappings = {
             "mappings": {

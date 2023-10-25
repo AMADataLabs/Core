@@ -3,9 +3,10 @@ CPT_KNOWLEDGE_BASE_API:
     GLOBAL:
         ENVIRONMENT: dev
         ACCOUNT: '191296302136'
-        DATABASE_TABLE: 'CPT-API-knowledge-base-${ENVIRONMENT}'
+
         OPENSEARCH_INDEX_HOST: 'hsudgkzt7rdoshk6po8b.us-east-1.aoss.amazonaws.com'
         OPENSEARCH_INDEX_NAME: 'knowledge_base'
+
     ROUTE:
         ARTICLES_SUMMARY: '/knowledge_base/articles/summary'
         ARTICLE: '/knowledge_base/article/*'

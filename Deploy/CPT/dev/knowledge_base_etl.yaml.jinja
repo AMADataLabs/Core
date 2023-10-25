@@ -4,13 +4,19 @@ CPT_KNOWLEDGE_BASE_ETL:
         ENVIRONMENT: dev
         ACCOUNT: '191296302136'
 
+        EFT_HOST: eft.ama-assn.org
+        EFT_USERNAME: datalabs
+        EFT_PASSWORD: '{{eft_password}}'
+
         S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
         S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
         S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
         S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
         S3_BASE_PATH: 'AMA/CPT/KnowledgeBase'
+
         OPENSEARCH_INDEX_HOST: 'hsudgkzt7rdoshk6po8b.us-east-1.aoss.amazonaws.com'
         OPENSEARCH_INDEX_NAME: 'knowledge_base'
+
     DAG:
         LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-KnowledgeBase-DAG'
         DAG_CLASS: 'datalabs.etl.dag.cpt.knowledge_base.DAG'
@@ -27,9 +33,9 @@ CPT_KNOWLEDGE_BASE_ETL:
         EXTRACTOR__BASE_PATH: 'CPT_DataProducts/CPT Knowledge Base'
         EXTRACTOR__FILES: '%Y/%B %Y/CPTKB_%B%Y%m%d/CPTKB_%B%Y%m%d.txt'
         EXTRACTOR__INCLUDE_DATESTAMP: 'False'
-        EXTRACTOR__HOST: eft.ama-assn.org
-        EXTRACTOR__USERNAME: datalabs
-        EXTRACTOR__PASSWORD: '{{EFT_PASSWORD}}'
+        EXTRACTOR__HOST: ${EFT_HOST}
+        EXTRACTOR__USERNAME: ${EFT_USERNAME}
+        EXTRACTOR__PASSWORD: ${EFT_PASSWORD}
         EXTRACTOR__INCLUDE_NAMES: True
 
         CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
