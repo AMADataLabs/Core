@@ -12,13 +12,9 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 
 def authorized(authorizations):
-    LOGGER.info(f"_authorized method of KnowledgeBaseAuthorizer class called.")
     authorized_years = get_authorized_years(authorizations)
-    LOGGER.info(f"Authorized years: {authorized_years}")
     authorized = False
     code_set = get_current_year_code_set()
-    LOGGER.info(f"Code Set: {code_set}")
-    LOGGER.info(f"Authorizations: {str(authorizations)}")
     if datetime.now().year in authorized_years:
         authorized = True
 
