@@ -66,7 +66,8 @@ class MapSearchEndpointTask(APIEndpointTask):
                 search_parameters,
                 self._parameters.index_name
             )
-
+        else:
+            self._status_code = 401
 
     @classmethod
     def _authorized(cls, authorizations):
