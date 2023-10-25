@@ -93,11 +93,11 @@ class MapSearchEndpointTask(APIEndpointTask):
             {PRODUCT_CODE}23: 2023-10-11T00:00:00-05:00
         '''
         cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_kb_product(key, value)}
-        current_year = datetime.now(timezone.utc).year
+        current_time = datetime.now(timezone.utc)
         authorized_years = []
 
         for product_code, period_of_validity in cpt_api_authorizations.items():
-            authorized_years += cls._generate_authorized_years(product_code, period_of_validity, current_year)
+            authorized_years += cls._generate_authorized_years(product_code, period_of_validity, current_time)
 
         return authorized_years
 
