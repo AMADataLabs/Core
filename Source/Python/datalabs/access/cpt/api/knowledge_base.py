@@ -50,39 +50,40 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     def run(self):
         authorized = self._authorized(self._parameters.authorization["authorizations"])
+        if authorized:
+            try:
+                search_parameters = self._get_search_parameters(self._parameters.query)
+            except TypeError as type_error:
+                raise InvalidRequest("Non-integer 'results' parameter value") from type_error
 
-        try:
-            search_parameters = self._get_search_parameters(self._parameters.query)
-        except TypeError as type_error:
-            raise InvalidRequest("Non-integer 'results' parameter value") from type_error
+            opensearch_client = self._get_opensearch_client(
+                self._parameters.region,
+                self._parameters.index_host
+            )
 
-        opensearch_client = self._get_opensearch_client(
-            self._parameters.region,
-            self._parameters.index_host
-        )
+            self._response_body = self._query_index(
+                opensearch_client,
+                search_parameters,
+                self._parameters.index_name
+            )
 
-        self._response_body = self._query_index(
-            opensearch_client,
-            search_parameters,
-            self._parameters.index_name
-        )
 
     @classmethod
     def _authorized(cls, authorizations):
-        #authorized_years = cls._get_authorized_years(authorizations)
+        authorized_years = cls._get_authorized_years(authorizations)
+        LOGGER.info(f"Authorized years: {authorized_years}")
         authorized = False
         code_set = cls._get_current_year_code_set()
         LOGGER.info(f"Code Set: {code_set}")
         LOGGER.info(f"Authorizations: {str(authorizations)}")
-#        if code_set in authorized_years:
-#            authorized = True
+        if code_set in authorized_years:
+            authorized = True
 
         return authorized
 
     @classmethod
     def _get_current_year_code_set(cls):
-        return f'{PRODUCT_CODE_KB}{datetime.now(timezone.utc).year}'
-
+        return f'{PRODUCT_CODE_KB}{str(datetime.now().year)[2:]}'
 
     @classmethod
     def _get_authorized_years(cls, authorizations):
@@ -102,11 +103,49 @@ class MapSearchEndpointTask(APIEndpointTask):
 
     @classmethod
     def _is_cpt_kb_product(cls, product, value):
-        is_allowed_cpt_kb_product = False
-        if product.startswith(PRODUCT_CODE_KB):
-            is_allowed_cpt_kb_product = True
+        return product.startswith(PRODUCT_CODE_KB)
 
-        return is_allowed_cpt_kb_product
+    @classmethod
+    def _generate_authorized_years(cls, product_code, period_of_validity, current_time):
+        period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
+        period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
+        authorized_years = []
+
+        if product_code == PRODUCT_CODE_KB:
+            authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
+        elif (
+                product_code.startswith(PRODUCT_CODE_KB)
+                and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
+        ):
+            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE_KB, product_code)
+
+        return authorized_years
+
+    @classmethod
+    def _generate_years_from_period(cls, period, current_time):
+        years = list(range(period["start"].year, current_time.year + 1))
+
+        if period["end"] <= current_time:
+            years.pop()
+
+        return years
+
+    @classmethod
+    def _generate_years_from_product_code(cls, base_product_code, product_code):
+        authorized_years = []
+
+        try:
+            authorized_years.append(cls._parse_authorization_year(base_product_code, product_code))
+        except ValueError:
+            pass
+
+        return authorized_years
+
+    @classmethod
+    def _parse_authorization_year(cls, base_product_code, product_code):
+        two_digit_year = product_code[len(base_product_code):]
+
+        return int('20' + two_digit_year)
 
     @classmethod
     def _get_opensearch_client(cls, region, index_host):
