@@ -1,7 +1,12 @@
 """ DAG task wrapper and runner classes. """
 import logging
+import time
 
+from   datalabs.access.aws import AWSClient
 from   datalabs.access.environment import VariableTree
+from   datalabs.etl.dag.event import EventDrivenDAGMixin
+from   datalabs.etl.dag.state import Status
+from   datalabs.poll import TaskNotReady
 from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
@@ -41,7 +46,7 @@ class DAGTaskIDMixin:
         return base_name, iteration
 
 
-class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
+class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper, EventDrivenDAGMixin):
     def _get_task_parameters(self):
         task_parameters = None
 
@@ -67,12 +72,34 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def _handle_exception(self, exception) -> str:
         super()._handle_exception(exception)
 
+        if isinstance(exception, TaskNotReady):
+            self.add_pause_dag()
         if self._task_parameters and self._get_task_id() == "DAG":
             self._handle_dag_exception(self.task)
         else:
             self._handle_task_exception(self.task)
 
         return f'Failed: {str(exception)}'
+
+    # pylint: disable=line-too-long, no-member
+    def add_pause_dag(self):
+        dag_id = self._get_dag_id()
+        execution_time = self._get_execution_time()
+        dag_state = self._get_state_plugin(self._task_parameters)
+
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            dynamodb.put_item(
+                TableName=self._parameters.table,
+                Item={'dag_id': {'S': dag_id}, 'execution_time': {'S': execution_time},'ttl': {'N': str(time.time()+60*15)}},
+                ConditionExpression="attribute_not_exists(#r)"
+            )
+
+        dag_state.set_task_status(
+            dag_id,
+            self._get_task_id(),
+            execution_time,
+            Status.PAUSED
+        )
 
     # pylint: disable=no-self-use
     def _get_dag_parameters(self):

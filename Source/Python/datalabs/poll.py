@@ -8,6 +8,9 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+class TaskNotReady(Exception):
+    pass
+
 
 # pylint: disable=assignment-from-no-return, inconsistent-return-statements
 class ExternalConditionPollingTask(TaskWrapper):

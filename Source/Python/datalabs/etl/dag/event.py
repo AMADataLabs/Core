@@ -4,6 +4,7 @@ import logging
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
 from   datalabs.etl.dag.notify.webhook import StatusWebHookNotifier
 from   datalabs.etl.dag.state import Status, StatefulDAGMixin
+from   datalabs.etl.dag.task import DAGTaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -47,6 +48,13 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
             self._get_task_id(),
             self._get_dag_id()
         )
+
+    def _handle_task_not_ready(self, task):
+        dag_state = self._get_state_plugin(self._task_parameters)
+
+        if dag_state:
+            DAGTaskWrapper.add_pause_dag(self)
+            self._update_task_status_on_exception(task, dag_state)
 
     def _update_dag_status_on_success(self, dag, dag_state):
         dag_id = self._get_dag_id()
