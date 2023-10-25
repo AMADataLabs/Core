@@ -14,7 +14,7 @@ from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, Resource
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 from   datalabs.access.cpt.api.authorize import PRODUCT_CODE_KB
-from   datalabs.access.cpt.api.knowledge_base_authorizer as KnowledgeBaseAuthorizer
+import datalabs.access.cpt.api.knowledge_base_authorizer as knowledgebaseauthorizer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class MapSearchEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = MapSearchEndpointParameters
 
     def run(self):
-        authorized = KnowledgeBaseAuthorizer.authorized(self._parameters.authorization["authorizations"])
+        authorized = knowledgebaseauthorizer.authorized(self._parameters.authorization["authorizations"])
         if authorized:
             try:
                 search_parameters = self._get_search_parameters(self._parameters.query)
