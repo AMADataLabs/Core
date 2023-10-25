@@ -142,16 +142,12 @@ class MapSearchEndpointTask(APIEndpointTask):
         LOGGER.info("search_parameters.keywords is ")
         LOGGER.info(str(search_parameters.keywords))
         if search_parameters.keywords is not None:
-            LOGGER.info("search_parameters.keywords is not none")
             if len(search_parameters.keywords) == 1:
-                LOGGER.info("Length of search_parameters.keywords is 1")
                 if search_parameters.keywords[0].isdigit():
-                    LOGGER.info("search_parameters.keywords is numeric")
                     keywords = f'*{search_parameters.keywords[0]}*'
                 else:
                     keywords = search_parameters.keywords[0]
             else:
-                LOGGER.info("Length of search_parameters.keywords > 1")
                 keywords = "|".join(search_parameters.keywords)
             if "1b4816d" in search_parameters.keywords:
                 data_importer = OpenSearchDataImporter()
@@ -427,7 +423,6 @@ class GetArticleTask(APIEndpointTask):
         if response["hits"]["total"]["value"] > 0:
             first_match = response["hits"]["hits"][0]
             article = first_match["_source"]
-            LOGGER.info(article)
         else:
             raise ResourceNotFound(f'Article {article_id} not found.')
 
