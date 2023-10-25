@@ -14,7 +14,7 @@ from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, Resource
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 from   datalabs.access.cpt.api.authorize import PRODUCT_CODE_KB
-from   datalabs.access.cpt.api.knowledge_base_authorizer import KnowledgeBaseAuthorizer
+from   datalabs.access.cpt.api.knowledge_base_authorizer as KnowledgeBaseAuthorizer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
