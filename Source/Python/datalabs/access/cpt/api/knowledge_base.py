@@ -76,7 +76,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         code_set = cls._get_current_year_code_set()
         LOGGER.info(f"Code Set: {code_set}")
         LOGGER.info(f"Authorizations: {str(authorizations)}")
-        if code_set in authorized_years:
+        if datetime.now().year in authorized_years:
             authorized = True
 
         return authorized
@@ -92,7 +92,7 @@ class MapSearchEndpointTask(APIEndpointTask):
            For example,
             {PRODUCT_CODE}23: 2023-10-11T00:00:00-05:00
         '''
-        cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_kb_product(key, value)}
+        cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_kb_product(key)}
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
@@ -102,7 +102,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         return authorized_years
 
     @classmethod
-    def _is_cpt_kb_product(cls, product, value):
+    def _is_cpt_kb_product(cls, product):
         return product.startswith(PRODUCT_CODE_KB)
 
     @classmethod
@@ -111,9 +111,7 @@ class MapSearchEndpointTask(APIEndpointTask):
         period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
         authorized_years = []
 
-        if product_code == PRODUCT_CODE_KB:
-            authorized_years += cls._generate_years_from_period(period_of_validity, current_time)
-        elif (
+        if (
                 product_code.startswith(PRODUCT_CODE_KB)
                 and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
         ):
