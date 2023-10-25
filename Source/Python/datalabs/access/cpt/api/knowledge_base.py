@@ -5,6 +5,7 @@ import uuid
 import boto3
 from   requests_aws4auth import AWS4Auth
 from   dataclasses import dataclass
+from   datetime import datetime, timezone
 
 from   opensearchpy import OpenSearch, RequestsHttpConnection, NotFoundError
 from   opensearchpy.helpers import bulk
@@ -12,6 +13,7 @@ from   opensearchpy.helpers import bulk
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound, InternalServerError
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
+from   datalabs.access.cpt.api.authorize import PRODUCT_CODE_KB
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -27,6 +29,7 @@ class MapSearchEndpointParameters:
     query: dict
     index_host: str
     index_name: str
+    authorization: dict
     region: str = 'us-east-1'
     unknowns: dict = None
 
@@ -46,6 +49,8 @@ class MapSearchEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = MapSearchEndpointParameters
 
     def run(self):
+        authorized = self._authorized(self._parameters.authorization["authorizations"])
+
         try:
             search_parameters = self._get_search_parameters(self._parameters.query)
         except TypeError as type_error:
@@ -61,6 +66,47 @@ class MapSearchEndpointTask(APIEndpointTask):
             search_parameters,
             self._parameters.index_name
         )
+
+    @classmethod
+    def _authorized(cls, authorizations):
+        #authorized_years = cls._get_authorized_years(authorizations)
+        authorized = False
+        code_set = cls._get_current_year_code_set()
+        LOGGER.info(f"Code Set: {code_set}")
+        LOGGER.info(f"Authorizations: {str(authorizations)}")
+#        if code_set in authorized_years:
+#            authorized = True
+
+        return authorized
+
+    @classmethod
+    def _get_current_year_code_set(cls):
+        return f'{PRODUCT_CODE_KB}{datetime.now(timezone.utc).year}'
+
+
+    @classmethod
+    def _get_authorized_years(cls, authorizations):
+        '''Get year from authorizations which are of one of the form:
+            {PRODUCT_CODE}YY: ISO-8601 Timestamp
+           For example,
+            {PRODUCT_CODE}23: 2023-10-11T00:00:00-05:00
+        '''
+        cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_kb_product(key, value)}
+        current_year = datetime.now(timezone.utc).year
+        authorized_years = []
+
+        for product_code, period_of_validity in cpt_api_authorizations.items():
+            authorized_years += cls._generate_authorized_years(product_code, period_of_validity, current_year)
+
+        return authorized_years
+
+    @classmethod
+    def _is_cpt_kb_product(cls, product, value):
+        is_allowed_cpt_kb_product = False
+        if product.startswith(PRODUCT_CODE_KB):
+            is_allowed_cpt_kb_product = True
+
+        return is_allowed_cpt_kb_product
 
     @classmethod
     def _get_opensearch_client(cls, region, index_host):
