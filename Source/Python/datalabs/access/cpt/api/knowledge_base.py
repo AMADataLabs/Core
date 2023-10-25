@@ -71,83 +71,6 @@ class MapSearchEndpointTask(APIEndpointTask):
             self._status_code = 401
 
     @classmethod
-    def _authorized(cls, authorizations):
-        authorized_years = cls._get_authorized_years(authorizations)
-        LOGGER.info(f"Authorized years: {authorized_years}")
-        authorized = False
-        code_set = cls._get_current_year_code_set()
-        LOGGER.info(f"Code Set: {code_set}")
-        LOGGER.info(f"Authorizations: {str(authorizations)}")
-        if datetime.now().year in authorized_years:
-            authorized = True
-
-        return authorized
-
-    @classmethod
-    def _get_current_year_code_set(cls):
-        return f'{PRODUCT_CODE_KB}{str(datetime.now().year)[2:]}'
-
-    @classmethod
-    def _get_authorized_years(cls, authorizations):
-        '''Get year from authorizations which are of one of the form:
-            {PRODUCT_CODE}YY: ISO-8601 Timestamp
-           For example,
-            {PRODUCT_CODE}23: 2023-10-11T00:00:00-05:00
-        '''
-        cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_kb_product(key)}
-        current_time = datetime.now(timezone.utc)
-        authorized_years = []
-
-        for product_code, period_of_validity in cpt_api_authorizations.items():
-            authorized_years += cls._generate_authorized_years(product_code, period_of_validity, current_time)
-
-        return authorized_years
-
-    @classmethod
-    def _is_cpt_kb_product(cls, product):
-        return product.startswith(PRODUCT_CODE_KB)
-
-    @classmethod
-    def _generate_authorized_years(cls, product_code, period_of_validity, current_time):
-        period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
-        period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
-        authorized_years = []
-
-        if (
-                product_code.startswith(PRODUCT_CODE_KB)
-                and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
-        ):
-            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE_KB, product_code)
-
-        return authorized_years
-
-    @classmethod
-    def _generate_years_from_period(cls, period, current_time):
-        years = list(range(period["start"].year, current_time.year + 1))
-
-        if period["end"] <= current_time:
-            years.pop()
-
-        return years
-
-    @classmethod
-    def _generate_years_from_product_code(cls, base_product_code, product_code):
-        authorized_years = []
-
-        try:
-            authorized_years.append(cls._parse_authorization_year(base_product_code, product_code))
-        except ValueError:
-            pass
-
-        return authorized_years
-
-    @classmethod
-    def _parse_authorization_year(cls, base_product_code, product_code):
-        two_digit_year = product_code[len(base_product_code):]
-
-        return int('20' + two_digit_year)
-
-    @classmethod
     def _get_opensearch_client(cls, region, index_host):
         service = 'aoss'
         credentials = boto3.Session().get_credentials()
@@ -433,6 +356,7 @@ class GetArticleParameters:
     query: dict
     index_host: str
     index_name: str
+    authorization: dict
     region: str = 'us-east-1'
     unknowns: dict = None
 
@@ -441,18 +365,22 @@ class GetArticleTask(APIEndpointTask):
     PARAMETER_CLASS = GetArticleParameters
 
     def run(self):
-        article_id = self._parameters.path["id"]
-        service = 'aoss'
+        authorized = knowledgebaseauthorizer.authorized(self._parameters.authorization["authorizations"])
+        if authorized:
+            article_id = self._parameters.path["id"]
+            service = 'aoss'
 
-        credentials = boto3.Session().get_credentials()
-        awsauth = self._get_aws4auth(self._parameters.region, credentials, service)
-        opensearch_client = self._get_opensearch_client(self._parameters.index_host, awsauth)
+            credentials = boto3.Session().get_credentials()
+            awsauth = self._get_aws4auth(self._parameters.region, credentials, service)
+            opensearch_client = self._get_opensearch_client(self._parameters.index_host, awsauth)
 
-        self._response_body = self._get_article(
-            article_id,
-            opensearch_client,
-            self._parameters.index_name
-        )
+            self._response_body = self._get_article(
+                article_id,
+                opensearch_client,
+                self._parameters.index_name
+            )
+        else:
+            self._status_code = 401
 
     @classmethod
     def _get_aws4auth(cls, region, credentials, service):
@@ -612,83 +540,3 @@ class OpenSearchDataImporter:
         LOGGER.info(f"Total number of records imported: {count}")
         indices = client.cat.indices()
         LOGGER.info(f"indices (After import): {indices}")
-
-
-# class KnowledgeBaseAuthorizer:
-#     @classmethod
-#     def _authorized(cls, authorizations):
-#         LOGGER.info(f"_authorized method of KnowledgeBaseAuthorizer class called.")
-#         authorized_years = cls._get_authorized_years(authorizations)
-#         LOGGER.info(f"Authorized years: {authorized_years}")
-#         authorized = False
-#         code_set = cls._get_current_year_code_set()
-#         LOGGER.info(f"Code Set: {code_set}")
-#         LOGGER.info(f"Authorizations: {str(authorizations)}")
-#         if datetime.now().year in authorized_years:
-#             authorized = True
-#
-#         return authorized
-#
-#     @classmethod
-#     def _get_current_year_code_set(cls):
-#         return f'{PRODUCT_CODE_KB}{str(datetime.now().year)[2:]}'
-#
-#     @classmethod
-#     def _get_authorized_years(cls, authorizations):
-#         '''Get year from authorizations which are of one of the form:
-#             {PRODUCT_CODE}YY: ISO-8601 Timestamp
-#            For example,
-#             {PRODUCT_CODE}23: 2023-10-11T00:00:00-05:00
-#         '''
-#         cpt_api_authorizations = {key:value for key, value in authorizations.items() if cls._is_cpt_kb_product(key)}
-#         current_time = datetime.now(timezone.utc)
-#         authorized_years = []
-#
-#         for product_code, period_of_validity in cpt_api_authorizations.items():
-#             authorized_years += cls._generate_authorized_years(product_code, period_of_validity, current_time)
-#
-#         return authorized_years
-#
-#     @classmethod
-#     def _is_cpt_kb_product(cls, product):
-#         return product.startswith(PRODUCT_CODE_KB)
-#
-#     @classmethod
-#     def _generate_authorized_years(cls, product_code, period_of_validity, current_time):
-#         period_of_validity["start"] = datetime.fromisoformat(period_of_validity["start"]).astimezone(timezone.utc)
-#         period_of_validity["end"] = datetime.fromisoformat(period_of_validity["end"]).astimezone(timezone.utc)
-#         authorized_years = []
-#
-#         if (
-#                 product_code.startswith(PRODUCT_CODE_KB)
-#                 and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
-#         ):
-#             authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE_KB, product_code)
-#
-#         return authorized_years
-#
-#     @classmethod
-#     def _generate_years_from_period(cls, period, current_time):
-#         years = list(range(period["start"].year, current_time.year + 1))
-#
-#         if period["end"] <= current_time:
-#             years.pop()
-#
-#         return years
-#
-#     @classmethod
-#     def _generate_years_from_product_code(cls, base_product_code, product_code):
-#         authorized_years = []
-#
-#         try:
-#             authorized_years.append(cls._parse_authorization_year(base_product_code, product_code))
-#         except ValueError:
-#             pass
-#
-#         return authorized_years
-#
-#     @classmethod
-#     def _parse_authorization_year(cls, base_product_code, product_code):
-#         two_digit_year = product_code[len(base_product_code):]
-#
-#         return int('20' + two_digit_year)
