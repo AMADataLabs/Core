@@ -43,9 +43,9 @@ class AMATokenEndpointTask(APIEndpointTask, HttpClient):
         token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
         token_fields = {
-            "grant_type": self._parameters.query.get("grant_type"),
-            "client_id": self._parameters.query.get("client_id"),
-            "client_secret": self._parameters.query.get("client_secret"),
+            "grant_type": self._parameters.query["grant_type"][0],
+            "client_id": self._parameters.query["client_id"][0],
+            "client_secret": self._parameters.query["client_secret"][0],
         }
 
         token_body = urllib.parse.urlencode(token_fields)
@@ -59,15 +59,10 @@ class AMATokenEndpointTask(APIEndpointTask, HttpClient):
 
         token_json = json.loads(token_response.data.decode("utf-8"))
 
-        return token_json['access_token']
+        return token_json
 
     def _generate_response(self, response):
-        self._response_body = self._generate_response_body(response)
-        self._headers = self._generate_headers(response)
-
-    @classmethod
-    def _generate_response_body(cls, response):
-        return response.data
+        self._response_body = response
 
     @run_time_logger
     def _request_ama_token(self, token_headers, token_body):
