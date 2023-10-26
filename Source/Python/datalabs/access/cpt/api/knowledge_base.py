@@ -202,7 +202,15 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
     @classmethod
     def _generate_query_section(cls, search_parameters):
-        return dict(bool=cls._generate_bool_section(search_parameters))
+        query = dict(bool=cls._generate_bool_section(search_parameters))
+
+        cls._add_fuzzy_section(query['bool']['must']['multi_match'])
+
+        return query
+
+    @classmethod
+    def _generate_cpt_code_query_section(cls, search_parameters):
+        return dict(bool=cls._generate_multi_match_section(search_parameters))
 
     @classmethod
     def _generate_bool_section(cls, search_parameters):
@@ -242,16 +250,20 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
     def _generate_multi_match_section(cls, keywords):
         return dict(
             query=keywords,
-            fields=["section^3000", "subsection^1000", "question^10000", "answer^5000"],
-            boost=50,
-            analyzer="stop",
-            auto_generate_synonyms_phrase_query=True,
-            fuzzy_transpositions=True,
-            fuzziness="AUTO",
-            minimum_should_match=1,
-            type="best_fields",
-            lenient=True,
+            fields=["section^3000", "subsection^1000", "question^10000", "answer^5000"]
         )
+
+    @classmethod
+    def _add_fuzzy_section(cls, multi_match_dictionary):
+
+        multi_match_dictionary['boost'] = 50
+        multi_match_dictionary['analyzer'] = "stop"
+        multi_match_dictionary['auto_generate_synonyms_phrase_query'] = True
+        multi_match_dictionary['fuzzy_transpositions'] = True
+        multi_match_dictionary['fuzziness'] = "AUTO"
+        multi_match_dictionary['minimum_should_match'] = 1
+        multi_match_dictionary['type'] = "best_fields"
+        multi_match_dictionary['lenient'] = True
 
     @classmethod
     def _generate_filters(cls, search_parameters):
