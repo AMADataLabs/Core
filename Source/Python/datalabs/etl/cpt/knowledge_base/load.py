@@ -26,6 +26,7 @@ class OpenSearchLoaderParameters:
     index_name: str
     index_host: str
     index_port: str = 443
+    index_operation_delay: str = 30
     region: str = 'us-east-1'
     execution_time: str = None
 
@@ -36,12 +37,13 @@ class OpenSearchLoaderTask(Task):
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
         knowledge_base = json.loads(self._data[0].decode())
+        index_operation_delay = int(self._parameters.index_operation_delay)
         opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
 
         if self._index_exists(opensearch, self._parameters.index_name):
-            self._delete_index(opensearch, self._parameters.index_name)
+            self._delete_index(opensearch, self._parameters.index_name, index_operation_delay)
 
-        self._create_index(opensearch, self._parameters.index_name)
+        self._create_index(opensearch, self._parameters.index_name, index_operation_delay)
 
         self._load_to_index(opensearch, self._parameters.index_name, knowledge_base)
 
@@ -71,13 +73,13 @@ class OpenSearchLoaderTask(Task):
     def _index_exists(cls, opensearch, index_name):
         return opensearch.indices.exists(index=index_name)
 
-    def _delete_index(self, opensearch, index_name):
+    def _delete_index(self, opensearch, index_name, index_operation_delay):
         LOGGER.info("Deleting index %s", index_name)
         opensearch.indices.delete(index_name)
-        time.sleep(10)
+        time.sleep(index_operation_delay)
 
     @classmethod
-    def _create_index(cls, opensearch, index_name):
+    def _create_index(cls, opensearch, index_name, index_operation_delay):
         LOGGER.info("Creating index %s", index_name)
         mappings = {
             "mappings": {
@@ -93,7 +95,7 @@ class OpenSearchLoaderTask(Task):
             }
         }
         opensearch.indices.create(index_name, body=mappings)
-        time.sleep(10)
+        time.sleep(index_operation_delay)
 
     @classmethod
     def _load_to_index(cls, opensearch, index_name, knowledge_base):
