@@ -6,6 +6,13 @@ from   datalabs.access.cpt.api.knowledge_base import MapSearchEndpointTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_authorized_for_explicit_cptkb_year():
+    authorizations = dict(CPTKB19=dict(start="2019-01-01T00:00:00-05:00", end="2468-10-11T00:00:00-05:00"))
+
+    assert MapSearchEndpointTask._authorized(authorizations, 2019)
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_parameters_are_valid(search_parameters):
     formatted_parameters = MapSearchEndpointTask._get_search_parameters(search_parameters)
 
