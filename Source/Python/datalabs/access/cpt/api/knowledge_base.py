@@ -189,7 +189,12 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         cls._add_pagination(query_parameters, search_parameters)
 
-        query_parameters["query"] = cls._generate_query_section(search_parameters)
+        keywords, cpt_code_search = cls._generate_keywords(search_parameters)
+
+        if cpt_code_search:
+            query_parameters["query"] = cls._generate_cpt_code_query_section(search_parameters, keywords)
+        else:
+            query_parameters["query"] = cls._generate_query_section(search_parameters, keywords)
 
         query_parameters["sort"] = cls._generate_sort_section()
 
@@ -201,24 +206,22 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         query_parameters["size"] = search_parameters.max_results
 
     @classmethod
-    def _generate_query_section(cls, search_parameters):
-        query = dict(bool=cls._generate_bool_section(search_parameters))
+    def _generate_query_section(cls, search_parameters, keywords):
+        query = dict(bool=cls._generate_bool_section(search_parameters, keywords))
 
         cls._add_fuzzy_section(query['bool']['must']['multi_match'])
 
         return query
 
     @classmethod
-    def _generate_cpt_code_query_section(cls, search_parameters):
-        return dict(bool=cls._generate_multi_match_section(search_parameters))
+    def _generate_cpt_code_query_section(cls, keywords):
+        return dict(bool=cls._generate_multi_match_section(keywords))
 
     @classmethod
-    def _generate_bool_section(cls, search_parameters):
+    def _generate_bool_section(cls, search_parameters, keywords):
         bool_section = {}
 
-        if search_parameters.keywords is not None:
-            keywords = cls._generate_keywords(search_parameters)
-
+        if keywords is not None:
             bool_section["must"] = cls._generate_must_section(keywords)
 
         filters = cls._generate_filters(search_parameters)
@@ -231,16 +234,18 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
     @classmethod
     def _generate_keywords(cls, search_parameters):
         keywords = None
+        cpt_code_search = False
         LOGGER.debug("search_parameters.keywords:\n%s", search_parameters.keywords)
 
         if len(search_parameters.keywords) == 1 and search_parameters.keywords[0].isdigit():
+            cpt_code_search = True
             search_parameters.keywords[0] = f"*{search_parameters.keywords[0]}*"
 
         keywords = "|".join(search_parameters.keywords)
 
         LOGGER.debug("Keywords to be searched are %s", keywords)
 
-        return keywords
+        return keywords, cpt_code_search
 
     @classmethod
     def _generate_must_section(cls, keywords):
