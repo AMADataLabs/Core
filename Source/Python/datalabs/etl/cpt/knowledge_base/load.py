@@ -1,12 +1,14 @@
-"""AWS DynamoDB Loader"""
-import json
-import logging
+"""AWS OpenSearch Loader"""
 import boto3
 from   dataclasses import dataclass
+import json
+import logging
+import time
 
 from   opensearchpy import OpenSearch, RequestsHttpConnection
 from   requests_aws4auth import AWS4Auth
 
+from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -33,12 +35,12 @@ class OpenSearchLoaderTask(Task):
     def run(self):
         LOGGER.debug('Input data: \n%s', self._data)
         knowledge_base = json.loads(self._data[0].decode())
-        opensearch = self._get_client(self._parameters.region, self._parameters.host, self._parameters.port)
+        opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
 
         if not self._index_exists(opensearch, self._parameters.index_name):
             self._create_index(opensearch, self._parameters.index_name)
 
-        self._load_index(opensearch, self._parameters.index_name, knowledge_base)
+        self._load_to_index(opensearch, self._parameters.index_name, knowledge_base)
 
     @classmethod
     def _get_client(cls, region, host, port):
@@ -75,12 +77,38 @@ class OpenSearchLoaderTask(Task):
 
     @classmethod
     def _create_index(cls, opensearch, index_name):
-        LOGGER.debug('Creating index: %s', index_name)
-        response = opensearch.indices.create(index_name)
-        LOGGER.debug('Created index: %s', index_name)
-        LOGGER.debug(response)
+        mappings = {
+            "mappings": {
+                "properties": {
+                    "section": {"type": "text"},
+                    "subsection": {"type": "text"},
+                    "question": {"type": "text"},
+                    "answer": {"type": "text"},
+                    "updated_on": {"type": "date"},
+                    "id": {"type": "integer"},
+                    "row_id": {"type": "text"},
+                }
+            }
+        }
+        opensearch.indices.create(index_name, body=mappings)
+        time.sleep(2)
 
     @classmethod
-    def _load_index(cls, opensearch, index_name, json_data):
-        for json_object in json_data:
-            opensearch.index(index=index_name, body=json_object)
+    def _load_to_index(cls, opensearch, index_name, knowledge_base):
+        for item in knowledge_base:
+            cls._load_document(opensearch, index_name, item)
+
+    @classmethod
+    def _load_document(cls, opensearch, index_name, item):
+        document_id, document = cls._extract_document(item)
+
+        response = opensearch.index(index=index_name, id=document_id, body=document)
+
+        if response["result"] != "created":
+            raise ETLException(f"Failed to index document {document_id}")
+
+    @classmethod
+    def _extract_document(cls, item):
+        document_id = item.pop("document_id")
+
+        return document_id, item

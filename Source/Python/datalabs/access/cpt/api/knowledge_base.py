@@ -169,7 +169,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         answer_preview = cls._generate_answer_preview(hit["_source"]["answer"])
 
         return {
-            "id": hit["_source"]["row_id"],
+            "id": hit["_source"]["id"],
             "section": hit["_source"]["section"],
             "subsection": hit["_source"]["subsection"],
             "question": hit["_source"]["question"],
@@ -332,7 +332,7 @@ class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
     def _get_article(cls, article_id, opensearch, index_name):
         article = None
 
-        query = {"query": {"match": {"row_id": article_id}}}
+        query = {"query": {"match": {"id": article_id}}}
 
         response = opensearch.search(index=index_name, body=query)
 
@@ -362,7 +362,7 @@ class OpenSearchDataImporter:
                     "answer": {"type": "text"},
                     "updated_on": {"type": "date"},
                     "id": {"type": "integer"},
-                    "row_id": {"type": "text"},
+                    "id": {"type": "text"},
                 }
             }
         }
@@ -408,7 +408,7 @@ class OpenSearchDataImporter:
                     "question": columns[3] if length >= 4 else "",
                     "answer": columns[4] if length >= 5 else "",
                     "updated_on": updated_date,
-                    "row_id": uuid.uuid1(),
+                    "id": uuid.uuid1(),
                 }
                 response = client.index(index=index_name, id=document_id, body=record)
                 if response["result"] == "created":
