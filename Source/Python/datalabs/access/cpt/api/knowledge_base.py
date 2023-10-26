@@ -318,7 +318,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
 class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
     def run(self):
-        article_id = self._parameters.path["article_id"]
+        article_id = self._parameters.path["id"]
         current_year = datetime.now().year
         authorized = self._authorized(self._parameters.authorization["authorizations"], current_year)
         opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
