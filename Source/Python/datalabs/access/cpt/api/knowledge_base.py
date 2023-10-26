@@ -192,7 +192,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         keywords, cpt_code_search = cls._generate_keywords(search_parameters)
 
         if cpt_code_search:
-            query_parameters["query"] = cls._generate_cpt_code_query_section(search_parameters, keywords)
+            query_parameters["query"] = cls._generate_cpt_code_query_section(keywords)
         else:
             query_parameters["query"] = cls._generate_query_section(search_parameters, keywords)
 
