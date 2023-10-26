@@ -28,6 +28,8 @@ class KnowledgeBaseTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def _convert_to_json(cls, knowledge_base):
         knowledge_base["document_id"] = knowledge_base["id"]
 
-        knowledge_base.loc[:, "id"] = knowledge_base.id.apply(lambda x: uuid.uuid1())
+        knowledge_base["row_id"] = knowledge_base.id.apply(lambda x: uuid.uuid1())
+
+        knowledge_base = knowledge_base.drop(columns="id")
 
         return knowledge_base.to_json(orient="records", default_handler=str)
