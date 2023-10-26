@@ -6,5 +6,5 @@ KNOWLEDGE_BASE_COLUMNS = [
     "subsection",
     "question",
     "answer",
-    "date"
+    "updated_on"
 ]

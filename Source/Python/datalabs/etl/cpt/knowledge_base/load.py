@@ -107,9 +107,9 @@ class OpenSearchLoaderTask(Task):
         for item in knowledge_base:
             bulk_items.append(cls._generate_bulk_item(index_name, item))
 
-        updated_count, errors = bulk(opensearch, bulk_items)
+        updated_count, errors = bulk(opensearch, bulk_items, raise_on_error=False, raise_on_exception=False)
 
-        LOGGER.debug("Bulk load results:\n%s", results)
+        LOGGER.debug("Bulk load results:\n%s", (updated_count, errors))
 
         if updated_count != len(bulk_items):
             raise ETLException(f"Failed to index {len(bulk_items) - updated_count} documents:\n{errors}")
