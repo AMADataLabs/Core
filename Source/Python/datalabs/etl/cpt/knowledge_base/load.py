@@ -73,7 +73,7 @@ class OpenSearchLoaderTask(Task):
 
     def _delete_index(self, opensearch, index_name):
         opensearch.indices.delete(index_name)
-        time.sleep(2)
+        time.sleep(10)
 
     @classmethod
     def _create_index(cls, opensearch, index_name):
@@ -91,7 +91,7 @@ class OpenSearchLoaderTask(Task):
             }
         }
         opensearch.indices.create(index_name, body=mappings)
-        time.sleep(2)
+        time.sleep(10)
 
     @classmethod
     def _load_to_index(cls, opensearch, index_name, knowledge_base):
