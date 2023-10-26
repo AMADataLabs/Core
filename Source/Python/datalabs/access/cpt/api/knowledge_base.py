@@ -169,7 +169,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         answer_preview = cls._generate_answer_preview(hit["_source"]["answer"])
 
         return {
-            "row_id": hit["_source"]["row_id"],
+            "article_id": hit["_source"]["article_id"],
             "section": hit["_source"]["section"],
             "subsection": hit["_source"]["subsection"],
             "question": hit["_source"]["question"],
@@ -318,7 +318,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
 class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
     def run(self):
-        article_id = self._parameters.path["row_id"]
+        article_id = self._parameters.path["article_id"]
         current_year = datetime.now().year
         authorized = self._authorized(self._parameters.authorization["authorizations"], current_year)
         opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
@@ -332,7 +332,7 @@ class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
     def _get_article(cls, article_id, opensearch, index_name):
         article = None
 
-        query = {"query": {"match": {"row_id": article_id}}}
+        query = {"query": {"match": {"article_id": article_id}}}
 
         response = opensearch.search(index=index_name, body=query)
 
@@ -346,7 +346,7 @@ class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
 
     @classmethod
     def _get_article_id(cls, parameters: dict):
-        return parameters.get("row_id")
+        return parameters.get("article_id")
 
 
 # REMOVE ONCE ETL IS WORKING #
@@ -362,7 +362,7 @@ class OpenSearchDataImporter:
                     "answer": {"type": "text"},
                     "updated_on": {"type": "date"},
                     "id": {"type": "integer"},
-                    "row_id": {"type": "text"},
+                    "article_id": {"type": "text"},
                 }
             }
         }
@@ -408,7 +408,7 @@ class OpenSearchDataImporter:
                     "question": columns[3] if length >= 4 else "",
                     "answer": columns[4] if length >= 5 else "",
                     "updated_on": updated_date,
-                    "row_id": uuid.uuid1(),
+                    "article_id": uuid.uuid1(),
                 }
                 response = client.index(index=index_name, id=document_id, body=record)
                 if response["result"] == "created":

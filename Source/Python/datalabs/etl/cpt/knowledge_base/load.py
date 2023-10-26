@@ -85,7 +85,7 @@ class OpenSearchLoaderTask(Task):
                     "answer": {"type": "text"},
                     "updated_on": {"type": "date"},
                     "id": {"type": "integer"},
-                    "row_id": {"type": "text"},
+                    "article_id": {"type": "text"},
                 }
             }
         }

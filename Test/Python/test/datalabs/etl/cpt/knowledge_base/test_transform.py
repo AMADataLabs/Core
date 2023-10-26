@@ -15,7 +15,7 @@ def test_data_is_converted_properly_to_json(knowledge_base_data, knowledge_base)
     assert len(index_data[0]) == 7
 
     for index in range(len(index_data)):
-        assert "row_id" in index_data[index]
+        assert "article_id" in index_data[index]
         assert index_data[index]["document_id"] == knowledge_base_data["id"][index]
         assert index_data[index]["section"] == knowledge_base_data["section"][index]
         assert index_data[index]["subsection"] == knowledge_base_data["subsection"][index]
