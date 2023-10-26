@@ -1,8 +1,11 @@
 """ Release endpoint classes. """
-import logging
 from   dataclasses import dataclass
+from   datetime import datetime
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
+import logging
+
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest, Unauthorized
+from   datalabs.access.cpt.api.authorize import ProductCode, AuthorizedAPIMixin
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 
@@ -23,10 +26,16 @@ class MapLookupEndpointParameters:
     unknowns: dict=None
 
 
-class MapLookupEndpointTask(APIEndpointTask):
+class MapLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
     PARAMETER_CLASS = MapLookupEndpointParameters
+    PRODUCT_CODE = ProductCode.VIGNETTES
 
     def run(self):
+        authorized = self._authorized(self._parameters.authorization["authorizations"], datetime.now().year)
+
+        if not authorized:
+            raise Unauthorized("Unauthorized")
+
         cpt_code, additional_information = self._get_query_parameters()
         mappings = self._get_mappings_for_code(cpt_code)
 
