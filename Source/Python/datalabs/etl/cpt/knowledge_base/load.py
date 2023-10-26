@@ -6,6 +6,7 @@ import logging
 import time
 
 from   opensearchpy import OpenSearch, RequestsHttpConnection
+from   opensearchpy.helpers import bulk
 from   requests_aws4auth import AWS4Auth
 
 from   datalabs.etl.task import ETLException
@@ -94,8 +95,25 @@ class OpenSearchLoaderTask(Task):
 
     @classmethod
     def _load_to_index(cls, opensearch, index_name, knowledge_base):
+        bulk_items = []
+
         for item in knowledge_base:
-            cls._load_document(opensearch, index_name, item)
+            bulk_items.append(cls._generate_bulk_item(index_name, item))
+
+        results = bulk(opensearch, bulk_items)
+
+        if results["aborted"]:
+            raise ETLException(f"Failed to index documents:\n{results}")
+
+    @classmethod
+    def _generate_bulk_item(cls, index_name, item):
+        document_id, document = cls._extract_document(item)
+
+        return dict(
+            _index=index_name,
+            _id=document_id,
+            _source=document
+        )
 
     @classmethod
     def _load_document(cls, opensearch, index_name, item):
