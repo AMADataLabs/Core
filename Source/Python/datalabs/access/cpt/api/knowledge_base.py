@@ -124,11 +124,11 @@ class MapSearchEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
     def _get_max_results(cls, parameters):
         max_results = 30
 
-        if parameters.get('max_results') and len(parameters.get('max_results')) > 0:
+        if parameters.get('results') and len(parameters.get('results')) > 0:
             try:
-                max_results = int(parameters.get('max_results')[0])
-            except TypeError as type_error:
-                raise InvalidRequest("Non-integer 'max_results' parameter value") from type_error
+                max_results = int(parameters.get('results'))
+            except ValueError as error:
+                raise InvalidRequest("Non-integer 'results' parameter value") from error
 
         return max_results
 
@@ -137,7 +137,10 @@ class MapSearchEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
         index = 0
 
         if parameters.get('index') and len(parameters.get('index')) > 0:
-            index = int(parameters.get('index')[0])
+            try:
+                index = int(parameters.get('index'))
+            except ValueError as error:
+                raise InvalidRequest("Non-integer 'index' parameter value") from error
 
         return index
 

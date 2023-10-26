@@ -37,7 +37,7 @@ class AuthorizedAPIMixin:
 
     @classmethod
     def _is_cpt_product(cls, product):
-        return product.startswith(PRODUCT_CODE)
+        return product.startswith(cls.PRODUCT_CODE.value)
 
     @classmethod
     def _generate_authorized_years(cls, product_code, period_of_validity, current_time):
@@ -46,11 +46,11 @@ class AuthorizedAPIMixin:
         authorized_years = []
 
         if (
-            product_code != PRODUCT_CODE
-            and product_code.startswith(PRODUCT_CODE)
+            product_code != cls.PRODUCT_CODE.value
+            and product_code.startswith(cls.PRODUCT_CODE.value)
             and current_time >= period_of_validity["start"] <= current_time <= period_of_validity["end"]
         ):
-            authorized_years += cls._generate_years_from_product_code(PRODUCT_CODE, product_code)
+            authorized_years += cls._generate_years_from_product_code(cls.PRODUCT_CODE.value, product_code)
 
         return authorized_years
 
