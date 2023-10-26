@@ -127,7 +127,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if parameters.get("results") and len(parameters.get("results")) > 0:
             try:
-                max_results = int(parameters.get("results"))
+                max_results = int(parameters.get("results")[0])
             except ValueError as error:
                 raise InvalidRequest("Non-integer 'results' parameter value") from error
 
@@ -139,7 +139,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if parameters.get("index") and len(parameters.get("index")) > 0:
             try:
-                index = int(parameters.get("index"))
+                index = int(parameters.get("index")[0])
             except ValueError as error:
                 raise InvalidRequest("Non-integer 'index' parameter value") from error
 
@@ -174,7 +174,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
             "subsection": hit["_source"]["subsection"],
             "question": hit["_source"]["question"],
             "answer": answer_preview,
-            "updated_on": hit["_source"]["updated_on"],
+            "updated_on": hit["_source"]["date"],
         }
 
     @classmethod
@@ -189,7 +189,12 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         cls._add_pagination(query_parameters, search_parameters)
 
-        query_parameters["query"] = cls._generate_query_section(search_parameters)
+        keywords, cpt_code_search = cls._generate_keywords(search_parameters)
+
+        if cpt_code_search:
+            query_parameters["query"] = cls._generate_cpt_code_query_section(keywords)
+        else:
+            query_parameters["query"] = cls._generate_query_section(search_parameters, keywords)
 
         query_parameters["sort"] = cls._generate_sort_section()
 
@@ -201,16 +206,22 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         query_parameters["size"] = search_parameters.max_results
 
     @classmethod
-    def _generate_query_section(cls, search_parameters):
-        return dict(bool=cls._generate_bool_section(search_parameters))
+    def _generate_query_section(cls, search_parameters, keywords):
+        query = dict(bool=cls._generate_bool_section(search_parameters, keywords))
+
+        cls._add_fuzzy_section(query['bool']['must']['multi_match'])
+
+        return query
 
     @classmethod
-    def _generate_bool_section(cls, search_parameters):
+    def _generate_cpt_code_query_section(cls, keywords):
+        return dict(multi_match=cls._generate_multi_match_section(keywords))
+
+    @classmethod
+    def _generate_bool_section(cls, search_parameters, keywords):
         bool_section = {}
 
-        if search_parameters.keywords is not None:
-            keywords = cls._generate_keywords(search_parameters)
-
+        if keywords is not None:
             bool_section["must"] = cls._generate_must_section(keywords)
 
         filters = cls._generate_filters(search_parameters)
@@ -223,16 +234,18 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
     @classmethod
     def _generate_keywords(cls, search_parameters):
         keywords = None
+        cpt_code_search = False
         LOGGER.debug("search_parameters.keywords:\n%s", search_parameters.keywords)
 
         if len(search_parameters.keywords) == 1 and search_parameters.keywords[0].isdigit():
+            cpt_code_search = True
             search_parameters.keywords[0] = f"*{search_parameters.keywords[0]}*"
 
         keywords = "|".join(search_parameters.keywords)
 
         LOGGER.debug("Keywords to be searched are %s", keywords)
 
-        return keywords
+        return keywords, cpt_code_search
 
     @classmethod
     def _generate_must_section(cls, keywords):
@@ -242,16 +255,20 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
     def _generate_multi_match_section(cls, keywords):
         return dict(
             query=keywords,
-            fields=["section^3000", "subsection^1000", "question^10000", "answer^5000"],
-            boost=50,
-            analyzer="stop",
-            auto_generate_synonyms_phrase_query=True,
-            fuzzy_transpositions=True,
-            fuzziness="AUTO",
-            minimum_should_match=1,
-            type="best_fields",
-            lenient=True,
+            fields=["section^3000", "subsection^1000", "question^10000", "answer^5000"]
         )
+
+    @classmethod
+    def _add_fuzzy_section(cls, multi_match_dictionary):
+
+        multi_match_dictionary['boost'] = 50
+        multi_match_dictionary['analyzer'] = "stop"
+        multi_match_dictionary['auto_generate_synonyms_phrase_query'] = True
+        multi_match_dictionary['fuzzy_transpositions'] = True
+        multi_match_dictionary['fuzziness'] = "AUTO"
+        multi_match_dictionary['minimum_should_match'] = 1
+        multi_match_dictionary['type'] = "best_fields"
+        multi_match_dictionary['lenient'] = True
 
     @classmethod
     def _generate_filters(cls, search_parameters):
@@ -318,7 +335,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
 class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
     def run(self):
-        article_id = self._parameters.path["article_id"]
+        article_id = self._parameters.path["id"]
         current_year = datetime.now().year
         authorized = self._authorized(self._parameters.authorization["authorizations"], current_year)
         opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
