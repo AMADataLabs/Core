@@ -72,11 +72,13 @@ class OpenSearchLoaderTask(Task):
         return opensearch.indices.exists(index=index_name)
 
     def _delete_index(self, opensearch, index_name):
+        LOGGER.info("Deleting index %s", index_name)
         opensearch.indices.delete(index_name)
         time.sleep(10)
 
     @classmethod
     def _create_index(cls, opensearch, index_name):
+        LOGGER.info("Creating index %s", index_name)
         mappings = {
             "mappings": {
                 "properties": {
@@ -95,12 +97,15 @@ class OpenSearchLoaderTask(Task):
 
     @classmethod
     def _load_to_index(cls, opensearch, index_name, knowledge_base):
+        LOGGER.info("Loading index %s with %d documents.", index_name, len(knowledge_base))
         bulk_items = []
 
         for item in knowledge_base:
             bulk_items.append(cls._generate_bulk_item(index_name, item))
 
         results = bulk(opensearch, bulk_items)
+
+        LOGGER.debug("Bulk load results:\n%s", results)
 
         if results["aborted"]:
             raise ETLException(f"Failed to index documents:\n{results}")
