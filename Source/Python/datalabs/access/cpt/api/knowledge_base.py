@@ -127,7 +127,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if parameters.get("results") and len(parameters.get("results")) > 0:
             try:
-                max_results = int(parameters.get("results"))
+                max_results = int(parameters.get("results")[0])
             except ValueError as error:
                 raise InvalidRequest("Non-integer 'results' parameter value") from error
 
@@ -139,7 +139,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if parameters.get("index") and len(parameters.get("index")) > 0:
             try:
-                index = int(parameters.get("index"))
+                index = int(parameters.get("index")[0])
             except ValueError as error:
                 raise InvalidRequest("Non-integer 'index' parameter value") from error
 
