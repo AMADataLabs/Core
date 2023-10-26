@@ -1080,6 +1080,7 @@ pipelines:
                                 - >-
                                     bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/KnowledgeBase
                                     KnowledgeBase-API=API.zip
+                                    KnowledgeBase-API-Authorizer=API.zip
                     - step:
                             name: Reload Development Lambda Functions
                             script:
