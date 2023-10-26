@@ -76,6 +76,7 @@ class OpenSearchLoaderTask(Task):
     def _delete_index(self, opensearch, index_name, index_operation_delay):
         LOGGER.info("Deleting index %s", index_name)
         opensearch.indices.delete(index_name)
+        LOGGER.info("Waiting %d seconds for delete to fully finish.", index_operation_delay)
         time.sleep(index_operation_delay)
 
     @classmethod
@@ -95,6 +96,7 @@ class OpenSearchLoaderTask(Task):
             }
         }
         opensearch.indices.create(index_name, body=mappings)
+        LOGGER.info("Waiting %d seconds for create to fully finish.", index_operation_delay)
         time.sleep(index_operation_delay)
 
     @classmethod
