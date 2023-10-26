@@ -29,7 +29,7 @@ def test_parameters_are_valid(search_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_parameters_invalid_results_parameter_raises_invalid_request(search_parameters):
-    search_parameters["results"] = 'SomeNonIntegerValue'
+    search_parameters["results"] = 'SomeNonListValue'
 
     with pytest.raises(InvalidRequest):
         MapSearchEndpointTask._get_search_parameters(search_parameters)
@@ -37,7 +37,7 @@ def test_parameters_invalid_results_parameter_raises_invalid_request(search_para
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_parameters_invalid_index_parameter_raises_invalid_request(search_parameters):
-    search_parameters["index"] = 'SomeNonIntegerValue'
+    search_parameters["index"] = 'SomeNonListValue'
 
     with pytest.raises(InvalidRequest):
         MapSearchEndpointTask._get_search_parameters(search_parameters)
@@ -46,32 +46,11 @@ def test_parameters_invalid_index_parameter_raises_invalid_request(search_parame
 @pytest.fixture
 def search_parameters():
     return dict(
-        results='10',
-        index='42',
+        results=['10'],
+        index=['42'],
         keyword=['test', 'these', 'keywords'],
         section=['test', 'sections'],
         subsection=['test', 'subsections'],
-        updated_after_date='2022-01-01',
-        updated_before_date='2023-09-10'
-    )
-
-
-@pytest.fixture
-def invalid_search_parameters():
-    return dict(
-        results=None,
-        index='SampleIndexName',
-        keyword=['test', 'these', 'keywords'],
-        section=['test', 'sections'],
-        subsection=['test', 'subsections'],
-        updated_after_date='2022-01-01',
-        updated_before_date='2023-09-10'
-    )
-
-@pytest.fixture
-def invalid_parameters(invalid_search_parameters):
-    return dict(
-        method="GET",
-        path={},
-        query=invalid_search_parameters,
+        updated_after_date=['2022-01-01'],
+        updated_before_date=['2023-09-10']
     )
