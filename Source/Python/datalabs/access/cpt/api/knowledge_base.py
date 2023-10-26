@@ -2,8 +2,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 import logging
-import time
-import uuid
 
 import boto3
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -13,10 +11,8 @@ from datalabs.access.api.task import (
     APIEndpointTask,
     InvalidRequest,
     ResourceNotFound,
-    Unauthorized,
-    InternalServerError,
+    Unauthorized
 )
-from datalabs.access.aws import AWSClient
 from datalabs.access.cpt.api.authorize import ProductCode, AuthorizedAPIMixin
 from datalabs.parameter import add_schema
 
