@@ -83,13 +83,24 @@ get_deployed_version() {
 }
 
 
+# build_container_image() {
+#     docker build \
+#         --build-arg ENVIRONMENT=${ENVIRONMENT} \
+#         --build-arg PROJECT=${PROJECT} \
+#         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
+#         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
+#         --build-arg MAVEN_VERSION=$(curl --silent https://apache.osuosl.org/maven/maven-3/ | grep 3.9 | sed 's/^..*href="\([^/][^/]*\)..*/\1/g') \
+#         -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
+# }
+
+# Nikhil Trivedi change
 build_container_image() {
     docker build \
         --build-arg ENVIRONMENT=${ENVIRONMENT} \
         --build-arg PROJECT=${PROJECT} \
         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
-        --build-arg MAVEN_VERSION=$(curl --silent https://apache.osuosl.org/maven/maven-3/ | grep 3.9 | sed 's/^..*href="\([^/][^/]*\)..*/\1/g') \
+        --build-arg MAVEN_VERSION=3.9.4 \
         -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
