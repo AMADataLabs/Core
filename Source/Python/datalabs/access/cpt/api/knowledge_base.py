@@ -215,7 +215,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
     @classmethod
     def _generate_cpt_code_query_section(cls, keywords):
-        return dict(bool=cls._generate_multi_match_section(keywords))
+        return dict(multi_match=cls._generate_multi_match_section(keywords))
 
     @classmethod
     def _generate_bool_section(cls, search_parameters, keywords):
