@@ -1,0 +1,63 @@
+---
+CPT_KNOWLEDGE_BASE_ETL:
+    GLOBAL:
+        ENVIRONMENT: sbx
+        ACCOUNT: '191296302136'
+
+        EFT_HOST: eft.ama-assn.org
+        EFT_USERNAME: datalabs
+        EFT_PASSWORD: '{{eft_password}}'
+
+        S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+        S3_STAGED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
+        S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/CPT/KnowledgeBase'
+
+        OPENSEARCH_INDEX_HOST: 'kquktp4hylgmwxg0e53e.us-east-1.aoss.amazonaws.com'
+        OPENSEARCH_INDEX_NAME: 'knowledge_base'
+
+    DAG:
+        LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-KnowledgeBase-DAG'
+        DAG_CLASS: 'datalabs.etl.dag.cpt.knowledge_base.DAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+    EXTRACT_KNOWLEDGE_BASE_FILE:
+        EXTRACTOR__BASE_PATH: 'CPT_DataProducts/CPT Knowledge Base'
+        EXTRACTOR__FILES: '%Y/%B %Y/CPTKB_%B%Y%m%d/CPTKB_%B%Y%m%d.txt'
+        EXTRACTOR__INCLUDE_DATESTAMP: 'False'
+        EXTRACTOR__HOST: ${EFT_HOST}
+        EXTRACTOR__USERNAME: ${EFT_USERNAME}
+        EXTRACTOR__PASSWORD: ${EFT_PASSWORD}
+        EXTRACTOR__INCLUDE_NAMES: True
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'knowledge_base.psv'
+
+    CREATE_KNOWLEDGE_BASE_DATA:
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'knowledge_base.psv'
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: 'knowledge_base.json'
+
+    LOAD_KNOWLEDGE_BASE_DATA:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: 'knowledge_base.json'
+
+        INDEX_NAME: ${OPENSEARCH_INDEX_NAME}
+        INDEX_HOST: ${OPENSEARCH_INDEX_HOST}
