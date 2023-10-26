@@ -25,31 +25,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class KnowledgeBaseEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
-    PRODUCT_CODE = ProductCode.KNOWLEDGE_BASE
-
-    @classmethod
-    def _get_client(cls, region, index_host):
-        service = "aoss"
-        credentials = boto3.Session().get_credentials()
-        awsauth = AWS4Auth(
-            credentials.access_key,
-            credentials.secret_key,
-            region,
-            service,
-            session_token=credentials.token,
-        )
-
-        return OpenSearch(
-            hosts=[{"host": index_host, "port": 443}],
-            http_auth=awsauth,
-            use_ssl=True,
-            verify_certs=True,
-            connection_class=RequestsHttpConnection,
-            timeout=15,
-        )
-
-
 @dataclass
 class SearchParameters:
     max_results: int
@@ -64,24 +39,50 @@ class SearchParameters:
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class MapSearchEndpointParameters:
+class KnowledgeBaseEndpointParameters:
     method: str
     path: dict
     query: dict
     index_host: str
     index_name: str
     authorization: dict
+    index_port: str = None
     region: str = "us-east-1"
     unknowns: dict = None
 
 
-class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
-    PARAMETER_CLASS = MapSearchEndpointParameters
+class KnowledgeBaseEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
+    PARAMETER_CLASS = KnowledgeBaseEndpointParameters
+    PRODUCT_CODE = ProductCode.KNOWLEDGE_BASE
 
+    @classmethod
+    def _get_client(cls, region, host, port):
+        port = int(port) if port else 443
+        service = "aoss"
+        credentials = boto3.Session().get_credentials()
+        awsauth = AWS4Auth(
+            credentials.access_key,
+            credentials.secret_key,
+            region,
+            service,
+            session_token=credentials.token,
+        )
+
+        return OpenSearch(
+            hosts=[{"host": host, "port": port}],
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+            connection_class=RequestsHttpConnection,
+            timeout=15,
+        )
+
+
+class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
     def run(self):
         current_year = datetime.now().year
         authorized = self._authorized(self._parameters.authorization["authorizations"], current_year)
-        opensearch = self._get_client(self._parameters.region, self._parameters.index_host)
+        opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
 
         if not authorized:
             raise Unauthorized(f"Not authorized for year {current_year}")
@@ -315,63 +316,17 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         return dict(updated_on=dict(order="desc"))
 
 
-@add_schema(unknowns=True)
-@dataclass
-class GetArticleParameters:
-    method: str
-    path: dict
-    query: dict
-    index_host: str
-    index_name: str
-    authorization: dict
-    region: str = "us-east-1"
-    unknowns: dict = None
-
-
-class GetArticleTask(AuthorizedAPIMixin, APIEndpointTask):
-    PARAMETER_CLASS = GetArticleParameters
-    PRODUCT_CODE = ProductCode.KNOWLEDGE_BASE
-
+class GetArticleEndpointTask(KnowledgeBaseEndpointTask):
     def run(self):
+        article_id = self._parameters.path["id"]
         current_year = datetime.now().year
         authorized = self._authorized(self._parameters.authorization["authorizations"], current_year)
-        opensearch = self._get_client(self._parameters.region, self._parameters.index_host)
+        opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
 
         if not authorized:
             raise Unauthorized(f"Not authorized for year {current_year}")
 
-        if authorized:
-            article_id = self._parameters.path["id"]
-            service = "aoss"
-
-            credentials = boto3.Session().get_credentials()
-            awsauth = self._get_aws4auth(self._parameters.region, credentials, service)
-            opensearch = self._get_client(self._parameters.index_host, awsauth)
-
-            self._response_body = self._get_article(article_id, opensearch, self._parameters.index_name)
-        else:
-            self._status_code = 401
-
-    @classmethod
-    def _get_aws4auth(cls, region, credentials, service):
-        return AWS4Auth(
-            credentials.access_key,
-            credentials.secret_key,
-            region,
-            service,
-            session_token=credentials.token,
-        )
-
-    @classmethod
-    def _get_client(cls, index_host, awsauth):
-        return OpenSearch(
-            hosts=[{"host": index_host, "port": 443}],
-            http_auth=awsauth,
-            use_ssl=True,
-            verify_certs=True,
-            connection_class=RequestsHttpConnection,
-            timeout=15,
-        )
+        self._response_body = self._get_article(article_id, opensearch, self._parameters.index_name)
 
     @classmethod
     def _get_article(cls, article_id, opensearch, index_name):

@@ -2,14 +2,21 @@
 import pytest
 
 from   datalabs.access.api.task import InvalidRequest
-from   datalabs.access.cpt.api.knowledge_base import MapSearchEndpointTask
+from   datalabs.access.cpt.api.knowledge_base import MapSearchEndpointTask, GetArticleEndpointTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_authorized_for_explicit_cptkb_year():
+def test_search_endpoint_authorized_for_explicit_cptkb_year():
     authorizations = dict(CPTKB19=dict(start="2019-01-01T00:00:00-05:00", end="2468-10-11T00:00:00-05:00"))
 
     assert MapSearchEndpointTask._authorized(authorizations, 2019)
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_get_article_endpoint_authorized_for_explicit_cptkb_year():
+    authorizations = dict(CPTKB19=dict(start="2019-01-01T00:00:00-05:00", end="2468-10-11T00:00:00-05:00"))
+
+    assert GetArticleEndpointTask._authorized(authorizations, 2019)
 
 
 # pylint: disable=redefined-outer-name, protected-access
