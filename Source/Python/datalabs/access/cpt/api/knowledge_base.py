@@ -46,7 +46,7 @@ class KnowledgeBaseEndpointParameters:
     index_host: str
     index_name: str
     authorization: dict
-    index_port: str = None
+    index_port: str = "443"
     region: str = "us-east-1"
     unknowns: dict = None
 
@@ -57,7 +57,7 @@ class KnowledgeBaseEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
 
     @classmethod
     def _get_client(cls, region, host, port):
-        port = int(port) if port else 443
+        port = int(port)
         service = "aoss"
         credentials = boto3.Session().get_credentials()
         awsauth = AWS4Auth(
