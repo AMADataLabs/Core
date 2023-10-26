@@ -174,7 +174,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
             "subsection": hit["_source"]["subsection"],
             "question": hit["_source"]["question"],
             "answer": answer_preview,
-            "updated_on": hit["_source"]["updated_on"],
+            "updated_on": hit["_source"]["date"],
         }
 
     @classmethod
