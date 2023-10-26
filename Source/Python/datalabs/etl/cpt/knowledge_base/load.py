@@ -37,8 +37,10 @@ class OpenSearchLoaderTask(Task):
         knowledge_base = json.loads(self._data[0].decode())
         opensearch = self._get_client(self._parameters.region, self._parameters.index_host, self._parameters.index_port)
 
-        if not self._index_exists(opensearch, self._parameters.index_name):
-            self._create_index(opensearch, self._parameters.index_name)
+        if self._index_exists(opensearch, self._parameters.index_name):
+            self._delete_index(opensearch, self._parameters.index_name)
+
+        self._create_index(opensearch, self._parameters.index_name)
 
         self._load_to_index(opensearch, self._parameters.index_name, knowledge_base)
 
@@ -66,14 +68,11 @@ class OpenSearchLoaderTask(Task):
 
     @classmethod
     def _index_exists(cls, opensearch, index_name):
-        index_exists = False
+        return opensearch.indices.exists(index=index_name)
 
-        existing_indices = opensearch.cat.indices()
-
-        if index_name in existing_indices:
-            index_exists = True
-
-        return index_exists
+    def _delete_index(self, opensearch, index_name):
+        opensearch.indices.delete(index_name)
+        time.sleep(2)
 
     @classmethod
     def _create_index(cls, opensearch, index_name):
