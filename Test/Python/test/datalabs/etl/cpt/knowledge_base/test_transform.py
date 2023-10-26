@@ -14,14 +14,14 @@ def test_data_is_converted_properly_to_json(knowledge_base_data, knowledge_base)
     assert len(index_data) == 2
     assert len(index_data[0]) == 7
 
-    for index in range(len(index_data)):
-        assert "article_id" in index_data[index]
-        assert index_data[index]["document_id"] == knowledge_base_data["id"][index]
-        assert index_data[index]["section"] == knowledge_base_data["section"][index]
-        assert index_data[index]["subsection"] == knowledge_base_data["subsection"][index]
-        assert index_data[index]["question"] == knowledge_base_data["question"][index]
-        assert index_data[index]["answer"] == knowledge_base_data["answer"][index]
-        assert index_data[index]["date"] == knowledge_base_data["date"][index]
+    for index, datum  in enumerate(index_data):
+        assert "article_id" in datum
+        assert datum["document_id"] == knowledge_base_data["id"][index]
+        assert datum["section"] == knowledge_base_data["section"][index]
+        assert datum["subsection"] == knowledge_base_data["subsection"][index]
+        assert datum["question"] == knowledge_base_data["question"][index]
+        assert datum["answer"] == knowledge_base_data["answer"][index]
+        assert datum["date"] == knowledge_base_data["date"][index]
 
 @pytest.fixture
 def knowledge_base_data():
