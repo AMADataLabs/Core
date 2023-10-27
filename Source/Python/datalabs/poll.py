@@ -1,33 +1,38 @@
 """ Release endpoint classes. """
+import json
 import logging
 
-from   datalabs.task import TaskWrapper
+from   abc import abstractmethod
+
+from   datalabs.task import Task
 
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+
+# pylint: disable=assignment-from-no-return, inconsistent-return-statements, f-string-without-interpolation
+class ExternalConditionPollingTask(Task):
+    def run(self):
+        request_parameters = [
+            json.loads(self._data[0].decode())["request_id"],
+            json.loads(self._data[0].decode())["results_filename"]
+        ]
+
+        if not self._is_ready(request_parameters)[0]:
+            raise TaskNotReady(f'Task waited for emails validation')
+
+        return [json.dumps(self._create_results_parameters(request_parameters)).encode()]
+
+    @classmethod
+    def _create_results_parameters(cls, request_parameters):
+        return dict(request_id=request_parameters[0], results_filename=request_parameters[1])
+
+    @abstractmethod
+    def _is_ready(self, request_parameters):
+        pass
+
+
 class TaskNotReady(Exception):
     pass
-
-
-# pylint: disable=assignment-from-no-return, inconsistent-return-statements
-class ExternalConditionPollingTask(TaskWrapper):
-
-    def run(self):
-        try:
-            pull_emails = self._is_ready()
-
-            if not pull_emails:
-                raise ValueError('Task waited for emails validation')
-            response = self._handle_success()
-
-        except Exception as exception:  # pylint: disable=broad-except
-            LOGGER.exception('Unable to run task.')
-            response = self._handle_exception(exception)
-
-            return response
-
-    def _is_ready(self):
-        pass

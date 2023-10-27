@@ -36,7 +36,6 @@ class AtData:
                 "files": [] | ["file ID"]
             }
         '''
-        #status = None
         file = None
         url = self._generate_endpoint_url("ProjectStatus", parameters=dict(project=request_id))
 
@@ -88,20 +87,6 @@ class AtData:
         response = requests.post(api_endpoint, files={'file':emails_file})
 
         return response.json()['project']
-
-    # def _wait_for_validation(self, project):
-    #     status ='Processing'
-    #     results, output = None, None
-
-    #     while status == 'Processing':
-    #         time.sleep(60)
-
-    #         status, results = self.get_validation_results(url)
-
-    #     if status == 'Returned':
-    #         output = self._get_output(project, results.json()['files'][0])
-
-    #     return output
 
     def _generate_endpoint_url(self, endpoint, parameters:dict=None):
         url = f"https://{self._host}/REST/{endpoint}?account={self._account}&apikey={self._api_key}"
