@@ -1,7 +1,9 @@
+""" Release endpoint classes."""
 from dataclasses import dataclass
 
-import urllib3
 import logging
+
+import urllib3
 
 from datalabs.access.api.task import APIEndpointTask
 from datalabs.parameter import add_schema
