@@ -42,7 +42,7 @@ class MapLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
         self._response_body = self._generate_response(mappings, additional_information)
 
     def _get_query_parameters(self):
-        if not self._parameters.path["cpt_code"] or not self._parameters.path["cpt_code"].isnumeric():
+        if not self._parameters.path["cpt_code"]:
             raise InvalidRequest("Bad Request", 400)
 
         if (self._parameters.query.get('additional_information')
