@@ -45,6 +45,7 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
     assert except_info.type == ResourceNotFound
     assert str(except_info.value) == 'No documents where found in VeriCre for the given entity ID.'
 
+
 @pytest.mark.skip("temporarily skipping")
 # pylint: disable=redefined-outer-name, protected-access
 def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
