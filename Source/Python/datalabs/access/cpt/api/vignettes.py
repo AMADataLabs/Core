@@ -45,12 +45,12 @@ class MapLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
         if not self._parameters.path["cpt_code"] or not self._parameters.path["cpt_code"].isnumeric():
             raise InvalidRequest("Bad Request", 400)
 
-        if self._parameters.query.get('additional_information'):
-            if not (
-                self._parameters.query.get('additional_information')[0].upper() == 'TRUE' or
-                self._parameters.query.get('additional_information')[0].upper() == 'FALSE'
-            ):
-                raise InvalidRequest("Bad Request", 400)
+        if (self._parameters.query.get('additional_information')
+            and not (self._parameters.query.get('additional_information')[0].upper() == 'TRUE' or
+                     self._parameters.query.get('additional_information')[0].upper() == 'FALSE'
+            )
+        ):
+            raise InvalidRequest("Bad Request", 400)
 
         return self._parameters.path["cpt_code"], self._parameters.query.get('additional_information')
 
