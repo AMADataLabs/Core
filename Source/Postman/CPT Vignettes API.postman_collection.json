@@ -561,7 +561,8 @@
 								"key": "x-customer-nbr",
 								"value": "6435",
 								"description": "Production",
-								"type": "text"
+								"type": "text",
+								"disabled": true
 							}
 						],
 						"url": {
