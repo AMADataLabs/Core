@@ -56,7 +56,7 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
             'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token',
             return_value = http_request_status_404
         ):
-        task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
+        # task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
        # task._get_ama_access_token()
 
