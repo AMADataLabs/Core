@@ -45,7 +45,7 @@ def get_ama_access_token(self, grant_type, client_id, client_secret):
 
     return json.loads(token_response.data.decode("utf-8"))
 
-
+# pylint: disable=protected-access
 def request_ama_token(self, token_headers, token_body):
     return self.HTTP.request(
         'POST',
