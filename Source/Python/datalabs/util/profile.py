@@ -26,7 +26,6 @@ def run_time_logger(func):
     return wrapper
 
 
-@run_time_logger
 def get_ama_access_token(self, grant_type, client_id, client_secret):
     token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
@@ -47,7 +46,6 @@ def get_ama_access_token(self, grant_type, client_id, client_secret):
     return json.loads(token_response.data.decode("utf-8"))
 
 
-@run_time_logger
 def request_ama_token(self, token_headers, token_body):
     return self.HTTP.request(
         'POST',
