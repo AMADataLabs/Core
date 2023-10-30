@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "1cab7d0c-0d92-4fa3-bf8c-71aca62ba512",
+		"_postman_id": "581932f1-963f-4081-8338-245bbb35d352",
 		"name": "CPT Vignettes API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "7392489"
+		"_exporter_id": "11295858"
 	},
 	"item": [
 		{
@@ -92,7 +92,7 @@
 						"header": [
 							{
 								"key": "x-customer-nbr",
-								"value": "1000263",
+								"value": "{{X_CUSTOMER_NBR}}",
 								"type": "text",
 								"description": "Dev/Test"
 							},
@@ -267,7 +267,7 @@
 						"header": [
 							{
 								"key": "x-customer-nbr",
-								"value": "1000263",
+								"value": "{{X_CUSTOMER_NBR}}",
 								"type": "text",
 								"description": "Dev/Test"
 							},
@@ -363,16 +363,16 @@
 						"header": [
 							{
 								"key": "x-customer-nbr",
-								"value": "1000263",
+								"value": "{{X_CUSTOMER_NBR}}",
 								"type": "text",
-								"description": "Dev/Test"
+								"description": "Dev/Test",
+								"disabled": true
 							},
 							{
 								"key": "x-customer-nbr",
-								"value": "6435",
+								"value": "1000263",
 								"type": "text",
-								"description": "Production",
-								"disabled": true
+								"description": "Production"
 							}
 						],
 						"url": {
@@ -459,7 +459,7 @@
 						"header": [
 							{
 								"key": "x-customer-nbr",
-								"value": "1000263",
+								"value": "{{X_CUSTOMER_NBR}}",
 								"type": "text",
 								"description": "Dev/Test"
 							},
@@ -467,13 +467,14 @@
 								"key": "x-customer-nbr",
 								"value": "6435",
 								"description": "Production",
-								"type": "text"
+								"type": "text",
+								"disabled": true
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}/vignette/:cpt_code?additional_information=true",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code?additional_information=true",
 							"host": [
-								"{{CPT_VIGNETTES_BASE_URL}"
+								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
 								"vignette",
@@ -553,7 +554,7 @@
 						"header": [
 							{
 								"key": "x-customer-nbr",
-								"value": "1000263",
+								"value": "{{X_CUSTOMER_NBR}}",
 								"type": "text",
 								"description": "Dev/Test"
 							},
@@ -566,12 +567,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignettes/vignette/:cpt_code?additional_information=true",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code?additional_information=true",
 							"host": [
 								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
-								"vignettes",
 								"vignette",
 								":cpt_code"
 							],
@@ -659,7 +659,7 @@
 						"header": [
 							{
 								"key": "x-customer-nbr",
-								"value": "1000263",
+								"value": "{{X_CUSTOMER_NBR}}",
 								"type": "text",
 								"description": "Dev/Test"
 							},
