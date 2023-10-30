@@ -409,7 +409,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
         if request_id:
             entity_ids = cls._get_entity_ids_from_dynamodb(request_cache_table, request_id, index)
 
-        parameters.payload["entity_id"] = entity_ids
+        parameters.payload = dict(entity_id=entity_ids)
 
         return super()._add_parameter_filters_to_query(query, parameters)
 
