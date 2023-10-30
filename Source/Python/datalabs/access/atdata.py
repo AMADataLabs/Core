@@ -47,17 +47,15 @@ class AtData:
         return (response['status'], file)
 
     def get_validation_results(self, request_id, file):
-        valid_emails, output = None, None
         result_url = self._generate_endpoint_url("GetFile", parameters=dict(project=request_id, file=file))
 
         response = requests.get(result_url)
 
-        if 'File not found' not in response.text:
-            data = pd.read_csv(io.StringIO(response.text), sep = '\t')
-            valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
-            output = list(valid_emails.EMAIL.values)
+        data = pd.read_csv(io.StringIO(response.text), sep = '\t')
 
-        return output
+        valid_emails = data[data.FINDING != 'W'].drop(columns=column.INVALID_EMAILS_COLUMNS)
+
+        return list(valid_emails.EMAIL.values)
 
     @classmethod
     def _create_emails_dataframe(cls, emails):

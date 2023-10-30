@@ -613,7 +613,11 @@ class EmailValidationResultsFetcherTask(ExecutionTimeMixin, CSVReaderMixin, CSVW
 
         dated_dataset_with_emails = self._update_email_last_validated(dated_dataset_with_emails)
 
-        return [self._dataframe_to_csv(dated_dataset_with_emails)]
+        validated_emails_results = pandas.DataFrame(data=dict(Emails=validated_emails))
+
+        validation_results = [validated_emails_results, dated_dataset_with_emails]
+
+        return [self._dataframe_to_csv(data) for data in validation_results]
 
     # pylint: disable=unused-variable
     def _validate_emails(self, request_parameters):
@@ -627,8 +631,8 @@ class EmailValidationResultsFetcherTask(ExecutionTimeMixin, CSVReaderMixin, CSVW
     # pylint: disable=unused-argument
     @classmethod
     def _set_update_flag_for_valid_emails(cls, dated_dataset_with_emails, validated_emails):
-        #dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
-        dated_dataset_with_emails.update = True
+        dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
+        #dated_dataset_with_emails.update = True
 
         return dated_dataset_with_emails
 
