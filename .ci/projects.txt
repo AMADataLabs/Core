@@ -9,12 +9,15 @@ CPT/Files/Build
 CPT/Files/Legacy
 CPT/Files/Ingest
 CPT/Files/Watermark
+CPT/KnowledgeBase/API
+CPT/KnowledgeBase/ETL
 CPT/SNOMED/API
 CPT/SNOMED/ETL
 CPT/Vignettes/API
 CPT/Vignettes/ETL
 DEUS/API
 DBL
+ExpressDAG/DAG
 HelloWorld
 HelloWorldJava/DAG
 HelloWorldJava/Task

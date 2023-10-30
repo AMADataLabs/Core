@@ -1,11 +1,11 @@
 ''' DAG definition for CPT Link Files Process '''
-from   datalabs.etl.dag.dag import DAG, register, JavaTask
+from   datalabs.etl.dag.dag import DAG, register
 
 
 # pylint: disable=line-too-long
 @register(name="CPT_LINK")
 class CPTLinkDAG(DAG):
-    BUILD_LINK: JavaTask("datalabs.etl.cpt.build.LinkBuilderTask")
+    BUILD_LINK: "datalabs.etl.cpt.build.LinkBuilderTask"
     UNZIP_BUILDER_OUTPUT: "datalabs.etl.archive.transform.UnzipTransformerTask"
     GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES: "datalabs.etl.cpt.files.link.transform.TabDelimitedToFixedWidthDescriptorTransformerTask"
     GENERATE_UPPER_CASE_DESCRIPTOR_FILES: "datalabs.etl.cpt.files.link.transform.UpperCaseDescriptorTransformerTask"

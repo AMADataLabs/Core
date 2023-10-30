@@ -1,12 +1,17 @@
 """ Helper class that loads DAG configuration from a YAML file into the environment. """
 from   dataclasses import dataclass
 import json
+import logging
 import os
 import yaml
 
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ParameterExtractorMixin:
@@ -57,7 +62,10 @@ class ParameterExtractorMixin:
         parameters = cls._expand_task_parameters(parameters)
 
         if "DAG" in parameters:
-            parameters = cls._add_task_classes(parameters)
+            try:
+                parameters = cls._add_task_classes(parameters)
+            except ModuleNotFoundError:
+                LOGGER.warning("Unable to add TASK_CLASS due to missing DAG %s", parameters["DAG"]["DAG_CLASS"])
 
         return parameters
 
@@ -83,6 +91,7 @@ class ParameterExtractorMixin:
     @classmethod
     def _add_task_classes(cls, parameters):
         dag_class = import_plugin(parameters["DAG"]["DAG_CLASS"])
+
 
         for task, task_parameters in parameters.items():
             if task not in ("GLOBAL", "DAG") and "TASK_CLASS" not in task_parameters:

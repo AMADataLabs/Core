@@ -34,7 +34,7 @@ DBL:
         STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
 
     EXTRACT_DBL:
-        BASE_PATH: '/Data Analytics/Data-Science/Data/DBL/testing'
+        BASE_PATH: './'
         FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
         HOST: ${EFT_HOST}
         USERNAME: ${EFT_USERNAME}
@@ -56,7 +56,7 @@ DBL:
         CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
         CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
         CACHE_OUTPUT_FILES: "Weekly DBL Report - Latest.xlsx"
-        EXECUTION_OFFSET: '{"weeks": 1}'
+        EXECUTION_OFFSET: '{"days": 1}'
 
     CREATE_DBL_REPORT:
         CACHE_CLASS: ${S3_CACHE_CLASS}

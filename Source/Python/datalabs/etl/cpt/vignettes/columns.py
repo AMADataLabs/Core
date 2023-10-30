@@ -4,7 +4,7 @@ VIGNETTES_COLUMNS = [
     'cpt_code',
     'concept_id',
     'long_descriptor',
-    'typical_patient', 
+    'typical_patient',
     'pre_service_info',
     'intra_service_info',
     'post_service_info',

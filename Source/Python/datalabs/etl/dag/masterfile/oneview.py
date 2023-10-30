@@ -1,5 +1,5 @@
 ''' DAG definition for the OneView ETL. '''
-from   datalabs.etl.dag.dag import DAG, register, Repeat, JavaTask
+from   datalabs.etl.dag.dag import DAG, register, Repeat
 
 
 @register(name="ONEVIEW")
@@ -10,12 +10,12 @@ class OneViewDAG(DAG):
     SUPPLEMENT_PPD_TABLE: "datalabs.etl.oneview.ppd.transform.PPDTransformerTask"
     SPLIT_PPD_TABLE: "datalabs.etl.manipulate.transform.SplitTransformerTask"
 
-    EXTRACT_PARTY_KEYS: Repeat(JavaTask("datalabs.etl.sql.SqlExtractorTask"), 3)
+    EXTRACT_PARTY_KEYS: Repeat("datalabs.etl.sql.SqlExtractorTask", 3)
     CONCATENATE_PARTY_KEYS: "datalabs.etl.manipulate.transform.ConcatenateTransformerTask"
     CREATE_PHYSICIAN_NPI_TABLE: "datalabs.etl.oneview.ppd.transform.NPITransformerTask"
 
-    EXTRACT_MEMBERSHIP_DATA: JavaTask("datalabs.etl.sql.SqlExtractorTask")
-    EXTRACT_PHYSICIAN_EMAIL_STATUS: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_MEMBERSHIP_DATA: "datalabs.etl.sql.SqlExtractorTask"
+    EXTRACT_PHYSICIAN_EMAIL_STATUS: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: "datalabs.etl.oneview.email.transform.PhysicianEmailStatusTransformer"
     CREATE_PHYSICIAN_TABLE: Repeat("datalabs.etl.oneview.ppd.transform.PhysicianTransformerTask", 10)
     CONCATENATE_PHYSICIAN_TABLE: "datalabs.etl.manipulate.transform.ConcatenateTransformerTask"
@@ -29,16 +29,16 @@ class OneViewDAG(DAG):
         "datalabs.etl.manipulate.transform.ConcatenateTransformerTask"
     LOAD_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_STATE: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_STATE: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_STATE_TABLE: "datalabs.etl.oneview.reference.transform.StateTransformerTask"
     LOAD_STATE_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_SPECIALTY: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_SPECIALTY: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_SPECIALTY_TABLE: "datalabs.etl.transform.PassThroughTransformerTask"
     LOAD_SPECIALTY_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
     REMOVE_UNUSED_SPECIALTIES: "datalabs.etl.oneview.reference.transform.SpecialtyMergeTransformerTask"
 
-    EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE: \
         "datalabs.etl.oneview.reference.transform.MajorProfessionalActivityTransformerTask"
     LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
@@ -48,11 +48,11 @@ class OneViewDAG(DAG):
         "datalabs.etl.oneview.reference.transform.CoreBasedStatisticalAreaTransformerTask"
     LOAD_CORE_BASED_STATISTICAL_AREA_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_PRESENT_EMPLOYMENT: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_PRESENT_EMPLOYMENT: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_PRESENT_EMPLOYMENT_TABLE: "datalabs.etl.oneview.reference.transform.PresentEmploymentTransformerTask"
     LOAD_PRESENT_EMPLOYMENT_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_TYPE_OF_PRACTICE: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_TYPE_OF_PRACTICE: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_TYPE_OF_PRACTICE_TABLE: "datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask"
     LOAD_TYPE_OF_PRACTICE_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
@@ -68,7 +68,7 @@ class OneViewDAG(DAG):
     CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: \
         "datalabs.etl.oneview.link.transform.ResidencyProgramPhysicianTransformerTask"
 
-    EXTRACT_MELISSA: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_MELISSA: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_MELISSA_TABLES: "datalabs.etl.oneview.melissa.transform.MelissaTransformerTask"
     LOAD_METROPOLITAN_STATISTICAL_AREA_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
     LOAD_COUNTY_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
@@ -78,14 +78,14 @@ class OneViewDAG(DAG):
     LOAD_CENSUS_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
     LOAD_ZIP_CODE_CORE_BASED_STATISTICAL_AREA_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_IQVIA_BUSINESS: Repeat(JavaTask("datalabs.etl.sql.SqlExtractorTask"), 6)
+    EXTRACT_IQVIA_BUSINESS: Repeat("datalabs.etl.sql.SqlExtractorTask", 6)
     CREATE_BUSINESS_TABLE: Repeat("datalabs.etl.oneview.iqvia.transform.IQVIABusinessTransformerTask", 6)
     CREATE_IQVIA_UPDATE_TABLE: "datalabs.etl.oneview.iqvia.transform.IQVIAUpdateTransformerTask"
     CONCATENATE_BUSINESS_TABLE: "datalabs.etl.manipulate.transform.ConcatenateTransformerTask"
     LOAD_BUSINESS_TABLE: Repeat("datalabs.etl.orm.load.ORMLoaderTask", 6)
-    EXTRACT_IQVIA_PROVIDER: JavaTask("datalabs.etl.sql.SqlExtractorTask")
-    EXTRACT_IQVIA_PROVIDER_AFFILIATION: JavaTask("datalabs.etl.sql.SqlExtractorTask")
-    EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_IQVIA_PROVIDER: "datalabs.etl.sql.SqlExtractorTask"
+    EXTRACT_IQVIA_PROVIDER_AFFILIATION: "datalabs.etl.sql.SqlExtractorTask"
+    EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_PROVIDER_TABLE: "datalabs.etl.oneview.iqvia.transform.IQVIAProviderTransformerTask"
     REMOVE_UNKNOWN_PROVIDERS: "datalabs.etl.oneview.iqvia.transform.IQVIAProviderPruningTransformerTask"
     SPLIT_IQVIA_PROVIDER_TABLE: "datalabs.etl.manipulate.transform.SplitTransformerTask"
@@ -94,9 +94,9 @@ class OneViewDAG(DAG):
     LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE: Repeat("datalabs.etl.orm.load.ORMLoaderTask", 6)
     LOAD_IQVIA_UPDATE_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_CREDENTIALING_CUSTOMER: JavaTask("datalabs.etl.sql.SqlExtractorTask")
-    EXTRACT_CREDENTIALING_PRODUCT: JavaTask("datalabs.etl.sql.SqlExtractorTask")
-    EXTRACT_CREDENTIALING_ORDER_YEARS: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_CREDENTIALING_CUSTOMER: "datalabs.etl.sql.SqlExtractorTask"
+    EXTRACT_CREDENTIALING_PRODUCT: "datalabs.etl.sql.SqlExtractorTask"
+    EXTRACT_CREDENTIALING_ORDER_YEARS: "datalabs.etl.sql.SqlExtractorTask"
     EXTRACT_CREDENTIALING_ORDER: Repeat("SqlParametricExtractorTask", 9)
     EXTRACT_CREDENTIALING_ADDRESSES: "datalabs.etl.sftp.extract.SFTPFileExtractorTask"
     CONCATENATE_CREDENTIALING_ORDER: "datalabs.etl.manipulate.transform.ConcatenateTransformerTask"
@@ -125,16 +125,16 @@ class OneViewDAG(DAG):
     SPLIT_HISTORICAL_RESIDENT_TABLE: "datalabs.etl.manipulate.transform.SplitTransformerTask"
     LOAD_HISTORICAL_RESIDENT_TABLE: Repeat("datalabs.etl.orm.load.ORMLoaderTask", 6)
 
-    EXTRACT_CLASS_OF_TRADE: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_CLASS_OF_TRADE: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_STATIC_REFERENCE_TABLE: "datalabs.etl.oneview.reference.transform.StaticReferenceTablesTransformerTask"
     CREATE_CLASS_OF_TRADE_TABLE: "datalabs.etl.oneview.reference.transform.ClassOfTradeTransformerTask"
     LOAD_CLASS_OF_TRADE_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
     LOAD_STATIC_REFERENCE_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
-    EXTRACT_MEDICAL_SCHOOL: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_MEDICAL_SCHOOL: "datalabs.etl.sql.SqlExtractorTask"
     CREATE_MEDICAL_SCHOOL_TABLE: "datalabs.etl.oneview.reference.transform.MedicalSchoolTransformerTask"
     LOAD_MEDICAL_SCHOOL_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
 
-    EXTRACT_MEDICAL_LICENSES: JavaTask("datalabs.etl.sql.SqlExtractorTask")
+    EXTRACT_MEDICAL_LICENSES: "datalabs.etl.sql.SqlExtractorTask"
     CLEAN_MEDICAL_LICENSES: "datalabs.etl.oneview.medical_licenses.transform.MedicalLicensesCleanerTask"
     CREATE_MEDICAL_LICENSES_TABLE: "datalabs.etl.oneview.medical_licenses.transform.MedicalLicensesTransformerTask"
     LOAD_MEDICAL_LICENSES_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"

@@ -21,6 +21,7 @@ from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api import APILedger
 from   datalabs.parameter import add_schema
+from datalabs.util import profile
 from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
@@ -365,7 +366,11 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
-        access_token = self._get_ama_access_token()
+        token_json = profile.get_ama_access_token(self,
+                                                  "client_credentials",
+                                                  self._parameters.client_id,
+                                                  self._parameters.client_secret)
+        access_token = token_json['access_token']
         StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
 
         self._assert_profile_exists(entity_id)
@@ -401,38 +406,6 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
             'Content-Type': 'application/pdf',
             'Content-Disposition': response.headers['Content-Disposition']
         }
-
-    @run_time_logger
-    def _get_ama_access_token(self):
-        token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-
-        token_fields = {
-            "grant_type": "client_credentials",
-            "client_id": self._parameters.client_id,
-            "client_secret": self._parameters.client_secret
-        }
-
-        token_body = urllib.parse.urlencode(token_fields)
-
-        token_response = self._request_ama_token(token_headers, token_body)
-
-        if token_response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {token_response.data}, status: {token_response.status}'
-            )
-
-        token_json = json.loads(token_response.data.decode("utf-8"))
-
-        return token_json['access_token']
-
-    @run_time_logger
-    def _request_ama_token(self, token_headers, token_body):
-        return self.HTTP.request(
-            'POST',
-            self._parameters.token_url,
-            headers=token_headers,
-            body=token_body
-        )
 
     @run_time_logger
     def _assert_profile_exists(self, entity_id):

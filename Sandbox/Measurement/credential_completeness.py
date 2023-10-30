@@ -1,110 +1,85 @@
-import pandas as pd
-import datetime
-import logging
-import os
 import settings
-import useful_functions as use
 import measurement
-from datalabs.access.edw import EDW
+import credential_data
+import connection
+import pandas as pd
+import os
+import logging
+from datetime import date
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+def npi_completeness(data_file, methods_df, path):
+    today = str(date.today())
+    data = pd.read_csv(data_file, low_memory=False)
+    data_dict = data.to_dict('records')
+    complete_list = []
+    for row in data_dict:
+        complete_list += measurement.measure_row(row, methods_df, 'COMPLETENESS')
+    cred_completeness = pd.DataFrame(complete_list) 
+    cred_filename = f'{path}NPI_Completeness_{today}.csv'
+    cred_completeness.to_csv(cred_filename, index=False)
 
-def get_credentials_data():
-    with EDW() as edw:
-        party_ids = edw.read(os.environ.get('PARTY_ID_QUERY'))
-        abms = edw.read(os.environ.get('BOARD_QUERY'))
-        license = edw.read(os.environ.get('LICENSE_QUERY'))
-        dea = edw.read(os.environ.get('DEA_QUERY'))
-        npi = edw.read(os.environ.get('NPI_QUERY'))
-    credentials_data = [party_ids, abms, license, dea, npi]
-    return credentials_data
+    return cred_completeness
 
-def transform_credentials_data(credentials_data, ov_me):
-    universe = pd.merge(credentials_data[0], ov_me, left_on='ME', right_on='medical_education_number')
-    all_abms = pd.merge(universe, credentials_data[1], left_on='PARTY_ID', right_on='PARTY_ID_FROM').drop_duplicates('CERTIF_ID')
-    all_license = pd.merge(universe, credentials_data[2], on='PARTY_ID').drop_duplicates()
-    all_license = all_license.drop_duplicates(['LIC_NBR','DEGREE_CD','STATE_ID','PARTY_ID'])
-    all_dea = pd.merge(universe, credentials_data[3], on='PARTY_ID').drop_duplicates()
-    all_npi = pd.merge(universe, credentials_data[4], on='PARTY_ID').drop_duplicates()
-    all_credentials_data = [all_abms, all_license, all_dea, all_npi]
-    return all_credentials_data
+def dea_completeness(data_file, methods_df, path):
+    today = str(date.today())
+    data = pd.read_csv(data_file, low_memory=False)
+    data_dict = data.to_dict('records')
+    complete_list = []
+    for row in data_dict:
+        complete_list += measurement.measure_row(row, methods_df, 'COMPLETENESS')
+    cred_completeness = pd.DataFrame(complete_list) 
+    cred_filename = f'{path}DEA_Completeness_{today}.csv'
+    cred_completeness.to_csv(cred_filename, index=False)
 
-def measure_license(dict_list, license_data):
-    all_mes = list(license_data.ME)
-    elements = [
-        {'data_element': 'SLN License State',
-        'element':'STATE_ID',
-        'null': ['',-1],
-        'universe': all_mes},
-        {'data_element': 'SLN License Status',
-        'element':'STS_TYPE_ID',
-        'null': ['',43,-1],
-        'universe': all_mes},
-        {'data_element': 'SLN License Type',
-        'element':'LIC_TYPE_ID',
-        'null': ['',-1],
-        'universe': all_mes},
-        {'data_element': 'SLN Issue Date',
-        'element':'ISS_DT',
-        'null': ['',-1],
-        'universe': all_mes},
-        {'data_element': 'SLN Expiration Date',
-        'element':'EXP_DT',
-        'null': ['',-1],
-        'universe': all_mes},
-        {'data_element': 'SLN Renewal Date',
-        'element':'RNW_DT',
-        'null': ['',-1],
-        'universe': all_mes},
-        {'data_element': 'SLN License Degree',
-        'element':'DEGREE_CD',
-        'null': ['',-1],
-        'universe': all_mes}
-    ]
+    return cred_completeness
 
-    for typo in types:
-        total = len(license_data[license_data.type==typo])
-        for element in elements:
-            universe = len(license_data[(license_data.type==typo)&(license_data.ME.isin(element['universe']))])
-            complete = len(license_data[(license_data.type==typo)&~(license_data[element['element']].isna())&(license_data.ME.isin(element['universe']))])
-            true_complete = len(license_data[(license_data.type==typo)&~(license_data[element['element']].isin(element['null']))&~(license_data[element['element']].isna())&(license_data.ME.isin(element['universe']))])
-            new_dict = {
-                'Universe': typo,
-                'Data Element': element['data_element'],
-                'Complete': complete,
-                'Complete and Known': true_complete,
-                'Universe Total': universe,
-                'Measure':'Completeness',
-                'Credential':'SLN'
-            }
-            dict_list.append(new_dict)
-    return dict_list
+def abms_completeness(data_file, methods_df, path):
+    today = str(date.today())
+    data = pd.read_csv(data_file, low_memory=False)
+    data_dict = data.to_dict('records')
+    complete_list = []
+    for row in data_dict:
+        complete_list += measurement.measure_row(row, methods_df, 'COMPLETENESS')
+    cred_completeness = pd.DataFrame(complete_list) 
+    cred_filename = f'{path}ABMS_Completeness_{today}.csv'
+    cred_completeness.to_csv(cred_filename, index=False)
 
-def measure_credentials(credentials_data):
-    today = datetime.date.today()
-    types = ['Physician','Student','Resident']
-    'Date': today
+    return cred_completeness
 
-def load(dict_list):
-    out_folder = os.environ.get('LOCAL_OUT')
-    pd.DataFrame(dict_list).to_csv(f'{out_folder}/Credentials_Completeness_{str(datetime.date.today())}.csv', index=False)
+def license_completeness(data_file, methods_df, path):
+    today = str(date.today())
+    data = pd.read_csv(data_file, low_memory=False)
+    data_dict = data.to_dict('records')
+    complete_list = []
+    for row in data_dict:
+        complete_list += measurement.measure_row(row, methods_df, 'COMPLETENESS')
+    cred_completeness = pd.DataFrame(complete_list) 
+    cred_filename = f'{path}License_Completeness_{today}.csv'
+    cred_completeness.to_csv(cred_filename, index=False)
 
-def get_credentials_completeness():
-    LOGGER.info('Loading MEs from OneView...')
-    ov_me = measurement.get_oneview_me()
-    LOGGER.info('Loading credentials data from EDW...')
-    credentials_data = get_credentials_data()
-    LOGGER.info('Transforming credentials data...')
-    all_credentials = transform_credentials_data(credentials_data, ov_me)
+    return cred_completeness
 
-
-    LOGGER.info('Calculating person data completeness...')
-    dict_list = measure_credentials(all_credentials)
-    LOGGER.info('Loading results...')
-    load(dict_list)
+def credentials_completeness(get_new_data):
+    path = os.environ.get('LOCAL_OUT')
+    methods_df = connection.get_measurement_methods()
+    if get_new_data:
+        data_files = credential_data.credentials()
+    else:
+        npi_file = connection.get_newest(path,'Data_NPI')
+        abms_file = connection.get_newest(path,'Data_ABMS')
+        lic_file = connection.get_newest(path,'Data_License')
+        dea_file = connection.get_newest(path,'Data_DEA')
+        data_files = [abms_file, lic_file, dea_file, npi_file]
+        
+    abms_completeness(data_files[0], methods_df, path)
+    license_completeness(data_files[1], methods_df, path)
+    dea_completeness(data_files[2], methods_df, path)
+    npi_completeness(data_files[3], methods_df, path)
+        
 
 if __name__ == "__main__":
-    get_credentials_completeness()
+    credentials_completeness(get_new_data=False)
