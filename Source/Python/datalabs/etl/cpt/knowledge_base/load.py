@@ -85,8 +85,8 @@ class OpenSearchLoaderTask(Task):
         mappings = {
             "mappings": {
                 "properties": {
-                    "section": {"type": "text"},
-                    "subsection": {"type": "text"},
+                    "section": {"type": "keyword", "index": True},
+                    "subsection": {"type": "keyword", "index": True},
                     "question": {"type": "text"},
                     "answer": {"type": "text"},
                     "updated_on": {"type": "date"},

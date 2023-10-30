@@ -89,13 +89,6 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         search_parameters = self._get_search_parameters(self._parameters.query)
 
-        # REMOVE ONCE ETL IS WORKING #
-        # if "1b4816d" in search_parameters.keywords:
-        #     data_importer = OpenSearchDataImporter()
-        #     data_importer.import_data(opensearch)
-        #     LOGGER.info("OpenSearch data importer executed.")
-        ##############################
-
         self._response_body = self._query_index(opensearch, search_parameters, self._parameters.index_name)
 
     @classmethod
