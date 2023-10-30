@@ -381,7 +381,7 @@ class MultiProfileLookupByIndexEndpointParameters:
     unknowns: dict=None
 
 
-class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
+class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
 
     def _generate_response_body(self, aggregated_records):
