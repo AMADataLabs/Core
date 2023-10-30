@@ -381,7 +381,7 @@ class MultiProfileLookupByIndexEndpointParameters:
     unknowns: dict=None
 
 
-class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
+class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
 
     def _generate_response_body(self, aggregated_records):
@@ -409,7 +409,7 @@ class MultiProfileLookupByIndexEndpointTask(BaseProfileEndpointTask):
         if request_id:
             entity_ids = cls._get_entity_ids_from_dynamodb(request_cache_table, request_id, index)
 
-        query = cls._filter_by_entity_ids(query, entity_ids)
+        parameters.payload["entity_id"] = entity_ids
 
         return super()._add_parameter_filters_to_query(query, parameters)
 
