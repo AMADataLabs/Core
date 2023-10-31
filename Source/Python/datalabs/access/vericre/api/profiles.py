@@ -384,6 +384,7 @@ class MultiProfileLookupByIndexEndpointParameters:
 class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
 
+    # pylint: disable=bad-super-call
     def _generate_response_body(self, aggregated_records):
         request_id = self._parameters.path['request_id']
         index = int(self._parameters.query['index'][0])
@@ -399,6 +400,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
 
         return response_body
 
+    # pylint: disable=bad-super-call
     @classmethod
     def _add_parameter_filters_to_query(cls, query, parameters):
         request_cache_table = parameters.request_cache_table
