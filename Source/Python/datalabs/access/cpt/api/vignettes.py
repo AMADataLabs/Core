@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class MapLookupEndpointParameters:
+class VignetteLookupEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -26,8 +26,8 @@ class MapLookupEndpointParameters:
     unknowns: dict=None
 
 
-class MapLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
-    PARAMETER_CLASS = MapLookupEndpointParameters
+class VignetteLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
+    PARAMETER_CLASS = VignetteLookupEndpointParameters
     PRODUCT_CODE = ProductCode.VIGNETTES
 
     def run(self):
@@ -37,9 +37,9 @@ class MapLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
             raise Unauthorized("Unauthorized")
 
         cpt_code, additional_information = self._get_query_parameters()
-        mappings = self._get_mappings_for_code(cpt_code)
+        vignette = self._get_vignette_for_code(cpt_code)
 
-        self._response_body = self._generate_response(mappings, additional_information)
+        self._response_body = self._generate_response(vignette, additional_information)
 
     def _get_query_parameters(self):
         if not self._parameters.path["cpt_code"]:
@@ -54,7 +54,7 @@ class MapLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
 
         return self._parameters.path["cpt_code"], self._parameters.query.get('additional_information')
 
-    def _get_mappings_for_code(self, code):
+    def _get_vignette_for_code(self, code):
         with AWSClient("dynamodb") as dynamodb:
             results = dynamodb.execute_statement(
                 Statement=f"SELECT * FROM \"{self._parameters.database_table}\" WHERE pk = 'CPT CODE:{code}'"
