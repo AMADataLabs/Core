@@ -6,6 +6,7 @@ from   enum import Enum
 class ProductCode(Enum):
     CODE_SET = "CPTCS"
     KNOWLEDGE_BASE = "CPTKB"
+    VIGNETTES = "CPTV"
 
 
 class AuthorizedAPIMixin:

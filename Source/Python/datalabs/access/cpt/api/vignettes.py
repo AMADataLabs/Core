@@ -1,8 +1,11 @@
 """ Release endpoint classes. """
-import logging
 from   dataclasses import dataclass
+from   datetime import datetime
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+import logging
+
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest, Unauthorized
+from   datalabs.access.cpt.api.authorize import ProductCode, AuthorizedAPIMixin
 from   datalabs.access.aws import AWSClient
 from   datalabs.parameter import add_schema
 
@@ -14,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
-class MapLookupEndpointParameters:
+class VignetteLookupEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -23,26 +26,46 @@ class MapLookupEndpointParameters:
     unknowns: dict=None
 
 
-class MapLookupEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = MapLookupEndpointParameters
+class VignetteLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
+    PARAMETER_CLASS = VignetteLookupEndpointParameters
+    PRODUCT_CODE = ProductCode.VIGNETTES
 
     def run(self):
-        mappings = self._get_mappings_for_code(self._parameters.path["cpt_code"])
+        authorized = self._authorized(self._parameters.authorization["authorizations"], datetime.now().year)
 
-        self._response_body = self._generate_response(mappings)
+        if not authorized:
+            raise Unauthorized("Unauthorized")
 
-    def _get_mappings_for_code(self, code):
+        cpt_code, additional_information = self._get_query_parameters()
+        vignette = self._get_vignette_for_code(cpt_code)
+
+        self._response_body = self._generate_response(vignette, additional_information)
+
+    def _get_query_parameters(self):
+        if not self._parameters.path["cpt_code"]:
+            raise InvalidRequest("Bad Request", 400)
+
+        if (self._parameters.query.get('additional_information')
+            and not (self._parameters.query.get('additional_information')[0].upper() == 'TRUE' or
+                     self._parameters.query.get('additional_information')[0].upper() == 'FALSE'
+            )
+        ):
+            raise InvalidRequest("Bad Request", 400)
+
+        return self._parameters.path["cpt_code"], self._parameters.query.get('additional_information')
+
+    def _get_vignette_for_code(self, code):
         with AWSClient("dynamodb") as dynamodb:
             results = dynamodb.execute_statement(
                 Statement=f"SELECT * FROM \"{self._parameters.database_table}\" WHERE pk = 'CPT CODE:{code}'"
             )
 
         if results["Items"] == []:
-            raise ResourceNotFound("No Vignette for the given CPT Code")
+            raise ResourceNotFound("No data available")
 
         return results["Items"]
 
-    def _generate_response(self, mappings):
+    def _generate_response(self, mappings, additional_information):
         response = {
                 "cpt_code": mappings[0]['pk']['S'].replace("CPT CODE:", ""),
                 "typical_patient": mappings[0]['typical_patient']['S'],
@@ -51,10 +74,7 @@ class MapLookupEndpointTask(APIEndpointTask):
                 "post_service_info": mappings[0]['post_service_info']['S']
         }
 
-        if (
-            self._parameters.query.get('additional_information') and
-            self._parameters.query.get('additional_information')[0].upper() == 'TRUE'
-        ):
+        if (additional_information and additional_information[0].upper() == 'TRUE'):
             response.update(
                 {
                     "ruc_reviewed_date": mappings[0]['ruc_reviewed_date']['S'],
