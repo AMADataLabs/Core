@@ -9,7 +9,6 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-
 # pylint: disable=assignment-from-no-return, inconsistent-return-statements, f-string-without-interpolation
 class ExternalConditionPollingTask(Task):
     def run(self):

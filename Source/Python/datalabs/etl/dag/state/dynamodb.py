@@ -349,5 +349,25 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             )
         )
 
+    # pylint: disable=line-too-long, no-member
+    def add_paused_dag(self):
+        dag_id = self._get_dag_id()
+        execution_time = self._get_execution_time()
+        dag_state = self._get_state_plugin(self._task_parameters)
+
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            dynamodb.put_item(
+                TableName=self._parameters.table,
+                Item={'dag_id': {'S': dag_id}, 'execution_time': {'S': execution_time},'ttl': {'N': str(time.time()+60*15)}},
+                ConditionExpression="attribute_not_exists(#r)"
+            )
+
+        dag_state.set_task_status(
+            dag_id,
+            self._get_task_id(),
+            execution_time,
+            Status.PAUSED
+        )
+
 class DagState(DAGState):
     ''' Alternative name for Java compatibility '''
