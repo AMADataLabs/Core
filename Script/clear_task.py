@@ -11,6 +11,7 @@ import datalabs.etl.dag.cpt.files.hcpcs
 import datalabs.etl.dag.cpt.files.ingest
 import datalabs.etl.dag.cpt.files.watermark
 import datalabs.etl.dag.cpt.snomed
+import datalabs.etl.dag.cpt.knowledge_base
 import datalabs.etl.dag.intelligent_platform.developer.email
 import datalabs.etl.dag.intelligent_platform.licensing.reminders
 import datalabs.etl.dag.intelligent_platform.licensing.sync

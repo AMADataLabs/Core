@@ -507,14 +507,16 @@ LICENSING_TRAFFIC:
             Hello, This is an automated email from DataLabs. Attached is the
             latest Self-Service Licensing applicant data.
         "
-        SUBJECT: Self-Service Licensing Applicant Data - %Y-%m-%d
+        SUBJECT: Self-Service Licensing Applicant Data (${ENVIRONMENT}) - %Y-%m-%d
         TO_ADDRESSES: >-
             DataLabs@ama-assn.org,
             Denis.Casaubon@ama-assn.org,
             Kyle.Dahl@ama-assn.org,
             Gerri.Boyle@ama-assn.org,
             Daniel.Casey@ama-assn.org,
-            Ravin.Bandara@ama-assn.org
+            Ravin.Bandara@ama-assn.org,
+            yogesh.vaze@ama-assn.org,
+            amit.kumar@ama-assn.org
 
     SEND_TRAFFIC_REPORT:
         CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
@@ -527,11 +529,13 @@ LICENSING_TRAFFIC:
             Hello, This is an automated email from DataLabs. Attached is the
             latest Self-Service Licensing traffic data.
         "
-        SUBJECT: Self-Service Licensing Traffic Report - %Y-%m-%d
+        SUBJECT: Self-Service Licensing Traffic Report (${ENVIRONMENT}) - %Y-%m-%d
         TO_ADDRESSES: >-
             DataLabs@ama-assn.org,
             Denis.Casaubon@ama-assn.org,
             Kyle.Dahl@ama-assn.org,
             Gerri.Boyle@ama-assn.org,
             Daniel.Casey@ama-assn.org,
-            Ravin.Bandara@ama-assn.org
+            Ravin.Bandara@ama-assn.org,
+            yogesh.vaze@ama-assn.org,
+            amit.kumar@ama-assn.org

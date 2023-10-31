@@ -3,7 +3,7 @@ ADDRESS_FLAGGING_REPORT,"0 13 * * tue,thu"
 ADDRESS_LOAD_COMPILER,"0 13 * * mon,wed,fri"
 CERNER_REPORT,"0 13 * * tue,thu"
 DAG_REPORT,0 14 * * sun-fri
-DBL,"14 0 * * mon,wed,fri"
+DBL,"14 0 * * *"
 DEVELOPER_EMAILS,"0 0 * * mon,wed,fri"
 LICENSING_REMINDERS,0 13 * * mon-fri
 LICENSING_SYNC,"0 0 * * mon,wed,fri"
