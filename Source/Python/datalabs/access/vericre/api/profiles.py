@@ -395,7 +395,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
         if response_size > self.RESPONSE_MAX_SIZE:
             response_body['profiles'] = self._extract_profiles_subset(response_body['profiles'])
 
-            response_body['next'] = self._generate_next_url(request_id, index + len(response_body['profiles']))
+            response_body['next'] = self._generate_next_url(request_id, int(index) + len(response_body['profiles']))
 
         return response_body
 
