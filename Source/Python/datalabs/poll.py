@@ -1,11 +1,9 @@
 """ Release endpoint classes. """
+from   abc import abstractmethod
 import json
 import logging
 
-from   abc import abstractmethod
-
 from   datalabs.task import Task
-
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

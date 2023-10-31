@@ -480,17 +480,21 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Ta
 
         return flatfile[~flatfile['hs_contact_id'].isin(duplicated['hs_contact_id'])]
 
+
 @add_schema
 @dataclass
-class EmailDatasetTaskParameters:
+class EmailValidationRequesterTaskParameters:
+    host: str
+    account: str
+    api_key: str
     execution_time: str
+    max_months: int
     left_merge_key: str
     right_merge_key: str
 
-
 # pylint: disable=consider-using-with, line-too-long
-class EmailDatasetTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = EmailDatasetTaskParameters
+class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = EmailValidationRequesterTaskParameters
 
     def run(self):
         dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
@@ -499,7 +503,12 @@ class EmailDatasetTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task)
 
         dated_dataset_with_emails = self._calculate_months_since_last_validated(dated_dataset_with_emails)
 
-        return [self._dataframe_to_csv(dated_dataset_with_emails)]
+        request_parameters = self._validate_expired_records(dated_dataset_with_emails)
+
+        return [
+            json.dumps(ExternalConditionPollingTask._create_results_parameters(request_parameters)).encode(),
+            self._dataframe_to_csv(dated_dataset_with_emails)
+        ]
 
     def _add_existing_validation_dates_to_emails(self, dataset_with_emails, dataset_with_validation_dates):
         if not dataset_with_validation_dates[self._parameters.right_merge_key].is_unique:
@@ -520,30 +529,6 @@ class EmailDatasetTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task)
 
         return dated_dataset_with_emails
 
-    @classmethod
-    def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
-        return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
-
-
-@add_schema
-@dataclass
-class EmailValidationRequesterTaskParameters:
-    host: str
-    account: str
-    api_key: str
-    max_months: int
-
-# pylint: disable=consider-using-with, line-too-long
-class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = EmailValidationRequesterTaskParameters
-
-    def run(self):
-        dated_dataset_with_emails = InputDataParser.parse(self._data[0])
-
-        request_parameters =  self._validate_expired_records(dated_dataset_with_emails)
-
-        return [json.dumps(ExternalConditionPollingTask._create_results_parameters(request_parameters)).encode()]
-
     # pylint: disable=no-member, no-value-for-parameter
     def _validate_expired_records(self, dated_dataset_with_emails):
         dated_dataset_with_emails = self._unset_update_flag_for_unexpired_emails(dated_dataset_with_emails)
@@ -553,6 +538,10 @@ class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriter
         request_parameters = self._validate_emails(email_data_list)
 
         return request_parameters
+
+    @classmethod
+    def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
+        return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
 
     def _unset_update_flag_for_unexpired_emails(self, dated_dataset_with_emails):
         mask =  dated_dataset_with_emails.months_since_validated.astype('float') < float(self._parameters.max_months)
@@ -579,12 +568,12 @@ class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriter
 
         request_id = at_data.request_email_validation(email_data_list)
 
-        return [request_id, None]
+        return [request_id, file]
 
 
 @add_schema
 @dataclass
-class EmailValidationResultsFetcherTaskParameters:
+class EmailValidationFetcherTaskParameters:
     host: str
     account: str
     api_key: str
@@ -592,8 +581,8 @@ class EmailValidationResultsFetcherTaskParameters:
     max_months: int
 
 # pylint: disable=consider-using-with, line-too-long
-class EmailValidationResultsFetcherTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = EmailValidationResultsFetcherTaskParameters
+class EmailValidationFetcherTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = EmailValidationFetcherTaskParameters
 
     def run(self):
 
@@ -656,7 +645,3 @@ class SFMCPrunerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
         updated_contacts = input_data[['id', 'hs_contact_id', 'email_last_validated']][~input_data.id.isnull()]
 
         return [self._dataframe_to_csv(updated_contacts)]
-
-
-class DuplicatePrunerTask:
-    pass
