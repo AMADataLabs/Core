@@ -386,7 +386,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
 
     def _generate_response_body(self, aggregated_records):
         request_id = self._parameters.path['request_id']
-        index = self._parameters.path['request_id']
+        index = int(self._parameters.query['index'][0])
         response_body = super(MultiProfileLookupEndpointTask, self)._generate_response_body(aggregated_records)
         response_size = self._get_response_size(response_body)
 
@@ -395,7 +395,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
         if response_size > self.RESPONSE_MAX_SIZE:
             response_body['profiles'] = self._extract_profiles_subset(response_body['profiles'])
 
-            response_body['next'] = self._generate_next_url(request_id, int(index) + len(response_body['profiles']))
+            response_body['next'] = self._generate_next_url(request_id, index + len(response_body['profiles']))
 
         return response_body
 
