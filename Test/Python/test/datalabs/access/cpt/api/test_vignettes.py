@@ -14,14 +14,14 @@ def test_get_mappings_for_code(test_event, test_data):
 
         task = VignetteLookupEndpointTask(test_event)
 
-        results = task._get_mappings_for_code("99202")
+        results = task._get_vignette_for_code("99202")
 
         assert results["Items"][0]["pk"] == "CPT CODE:99202"
 
 def test_generate_response(test_event, mappings):
     task = VignetteLookupEndpointTask(test_event)
 
-    results = task._generate_response(mappings)
+    results = task._generate_response(mappings, test_event.get('query').get('additional_information'))
 
     assert results["cpt_code"] == "123"
     assert results["typical_patient"] == "Patient Info"
@@ -30,7 +30,14 @@ def test_generate_response_no_additional_info(test_event, mappings):
     test_event['query'] = {"additional_information": ["FALSE"]}
 
     task = VignetteLookupEndpointTask(test_event)
-    results = task._generate_response(mappings)
+    results = task._generate_response(mappings, test_event.get('query').get('additional_information'))
+
+    assert results["cpt_code"] == "123"
+    assert 'concept_id' not in results
+
+def test_generate_response_missing_additional_info(test_event, mappings):
+    task = VignetteLookupEndpointTask(test_event)
+    results = task._generate_response(mappings, None)
 
     assert results["cpt_code"] == "123"
     assert 'concept_id' not in results
