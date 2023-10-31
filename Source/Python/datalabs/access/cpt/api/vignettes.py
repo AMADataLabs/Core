@@ -65,7 +65,8 @@ class VignetteLookupEndpointTask(AuthorizedAPIMixin, APIEndpointTask):
 
         return results["Items"]
 
-    def _generate_response(self, mappings, additional_information):
+    @classmethod
+    def _generate_response(cls, mappings, additional_information):
         response = {
                 "cpt_code": mappings[0]['pk']['S'].replace("CPT CODE:", ""),
                 "typical_patient": mappings[0]['typical_patient']['S'],
