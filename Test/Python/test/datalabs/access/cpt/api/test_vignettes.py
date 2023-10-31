@@ -2,7 +2,7 @@
 import pytest
 import mock
 
-from   datalabs.access.cpt.api.vignettes import MapLookupEndpointTask
+from   datalabs.access.cpt.api.vignettes import VignetteLookupEndpointTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -12,14 +12,14 @@ def test_get_mappings_for_code(test_event, test_data):
 
         mock_result.__getitem__.return_value = test_data
 
-        task = MapLookupEndpointTask(test_event)
+        task = VignetteLookupEndpointTask(test_event)
 
         results = task._get_mappings_for_code("99202")
 
         assert results["Items"][0]["pk"] == "CPT CODE:99202"
 
 def test_generate_response(test_event, mappings):
-    task = MapLookupEndpointTask(test_event)
+    task = VignetteLookupEndpointTask(test_event)
 
     results = task._generate_response(mappings)
 
@@ -29,7 +29,7 @@ def test_generate_response(test_event, mappings):
 def test_generate_response_no_additional_info(test_event, mappings):
     test_event['query'] = {"additional_information": ["FALSE"]}
 
-    task = MapLookupEndpointTask(test_event)
+    task = VignetteLookupEndpointTask(test_event)
     results = task._generate_response(mappings)
 
     assert results["cpt_code"] == "123"

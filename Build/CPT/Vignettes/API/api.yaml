@@ -85,6 +85,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetails'
+      security:
+        - gateway_authorizer: []
   /{proxy+}:
     get:
       tags:
