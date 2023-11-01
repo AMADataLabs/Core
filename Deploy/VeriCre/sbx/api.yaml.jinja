@@ -44,6 +44,7 @@ VERICRE_API:
         PROFILE_DOCUMENTS:          '/profile_api/profile/*/documents'
         PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
         PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
+        MONITOR_NOTIFICATIONS:      '/profile_api/profile/monitor/notifications'
         DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
@@ -136,6 +137,10 @@ VERICRE_API:
         TOKEN_URL: ${PROFILE_TOKEN_URL}
         PROFILE_URL: ${PROFILE_URL}
         PDF_URL: ${PROFILE_PDF_URL}
+
+    MONITOR_NOTIFICATIONS:
+        TASK_CLASS:  'datalabs.access.vericre.api.notification.MonitorNotificationsEndpointTask'
+        TOKEN_URL: ${PROFILE_TOKEN_URL}
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

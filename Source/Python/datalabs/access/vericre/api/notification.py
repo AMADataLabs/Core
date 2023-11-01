@@ -25,6 +25,7 @@ class MonitorNotificationsEndpointParameters:
     method: str
     path: dict
     query: dict
+    token_url: str
 
 
 class MonitorNotificationsEndpointTask(APIEndpointTask):
