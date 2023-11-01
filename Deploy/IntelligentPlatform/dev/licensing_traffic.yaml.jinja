@@ -479,6 +479,8 @@ LICENSING_TRAFFIC:
                 ${LICENSING_DATABASE}.flags f ON f.id = fg.flag_id
                     LEFT JOIN
                 ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.agreement_details ad ON ad.quote_id = q.id
             WHERE
                 lc.category = 'Provisional'
                     AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
