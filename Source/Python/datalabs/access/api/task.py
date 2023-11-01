@@ -25,7 +25,7 @@ class InvalidRequest(APIEndpointException):
 
 class Unauthorized(APIEndpointException):
     def __init__(self, message):
-        super().__init__(message, 404)
+        super().__init__(message, 401)
 
 
 class ResourceNotFound(APIEndpointException):
