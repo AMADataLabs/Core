@@ -1,12 +1,12 @@
 """ source: datalabs.access.vericre.api.profile """
-from collections import namedtuple
+from   collections import namedtuple
 import logging
 
 import mock
 import pytest
 
-from datalabs.access.api.task import ResourceNotFound, InternalServerError
-from datalabs.access.vericre.api.profile \
+from   datalabs.access.api.task import ResourceNotFound, InternalServerError
+from   datalabs.access.vericre.api.profile \
     import ProfileDocumentsEndpointTask, AMAProfilePDFEndpointTask, CAQHProfilePDFEndpointTask
 
 logging.basicConfig()
@@ -46,23 +46,22 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
     assert str(except_info.value) == 'No documents where found in VeriCre for the given entity ID.'
 
 
-@pytest.mark.skip("temporarily skipping")
 # pylint: disable=redefined-outer-name, protected-access
 def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
-            mock.patch(
-                'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token',
-                return_value=http_request_status_404
-            ):
+        mock.patch(
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token',
+            return_value = http_request_status_404
+        ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
         task._get_ama_access_token()
 
     assert except_info.type == InternalServerError
     assert str(except_info.value) == \
-           f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -70,10 +69,10 @@ def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
-            mock.patch(
-                'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile',
-                return_value=http_request_status_404
-            ):
+        mock.patch(
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile',
+            return_value = http_request_status_404
+        ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
         task._assert_profile_exists(task._parameters.path.get('entityId'))
@@ -90,7 +89,7 @@ def test_get_profile_pdf_error(ama_profile_pdf_event, http_request_status_404):
         pytest.raises(Exception) as except_info,
         mock.patch(
             'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_profile_pdf',
-            return_value=http_request_status_404
+            return_value = http_request_status_404
         )
     ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
@@ -150,17 +149,17 @@ def test_fetch_caqh_pdf(caqh_profile_pdf_event, http_request_status_404):
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
-            mock.patch(
-                'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_pdf',
-                return_value=http_request_status_404
-            ):
+        mock.patch(
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_pdf',
+            return_value = http_request_status_404
+        ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
         task._fetch_caqh_pdf('caqh-11223344')
 
     assert except_info.type == InternalServerError
     assert str(except_info.value) == \
-           f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
 def test_get_caqh_provider_id_from_bad_npi_returns_internal_server_error(
@@ -170,17 +169,17 @@ def test_get_caqh_provider_id_from_bad_npi_returns_internal_server_error(
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
-            mock.patch(
-                'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi',
-                return_value=http_request_status_404
-            ):
+        mock.patch(
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi',
+            return_value = http_request_status_404
+        ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
         task._get_caqh_provider_id_from_npi('npi-11223344')
 
     assert except_info.type == InternalServerError
     assert str(except_info.value) == \
-           f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
 def test_get_caqh_provider_id_from_npi_returns_false_provider_found_flag(
@@ -190,10 +189,10 @@ def test_get_caqh_provider_id_from_npi_returns_false_provider_found_flag(
     caqh_profile_pdf_event["path"] = dict(entityId='12345678')
 
     with pytest.raises(Exception) as except_info, \
-            mock.patch(
-                'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi',
-                return_value=http_request_provider_found_flag_n
-            ):
+        mock.patch(
+            'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask._request_caqh_provider_id_from_npi',
+            return_value = http_request_provider_found_flag_n
+        ):
         task = CAQHProfilePDFEndpointTask(caqh_profile_pdf_event)
 
         task._get_caqh_provider_id_from_npi('npi-11223344')
@@ -224,27 +223,25 @@ def document_query_results():
     Result = namedtuple('Result', 'document_identifier document_name document_path')
     return [
         Result(
-            document_identifier='Copy of current professional liability insurance face sheet',
-            document_name='face sheet.pdf',
-            document_path='12345678/General_Documents'
+            document_identifier = 'Copy of current professional liability insurance face sheet',
+            document_name = 'face sheet.pdf',
+            document_path = '12345678/General_Documents'
         ),
         Result(
-            document_identifier='Curriculum Vitae (CV)',
-            document_name='Curriculum Vitae.pdf',
-            document_path='12345678/General_Documents'
+            document_identifier = 'Curriculum Vitae (CV)',
+            document_name = 'Curriculum Vitae.pdf',
+            document_path = '12345678/General_Documents'
         ),
         Result(
-            document_identifier='Profile Avatar',
-            document_name='Avatar.png',
-            document_path='12345678/Avatar'
+            document_identifier = 'Profile Avatar',
+            document_name = 'Avatar.png',
+            document_path = '12345678/Avatar'
         )
     ]
-
 
 @pytest.fixture
 def empty_document_query_result():
     return []
-
 
 @pytest.fixture
 def http_request_status_404():
@@ -257,22 +254,19 @@ def http_request_status_404():
 
     return mock_response
 
-
 @pytest.fixture
 def provider_id_query_results():
     Result = namedtuple('Result', 'caqh_profile_id')
 
     return [
         Result(
-            caqh_profile_id='npi-11223344'
+            caqh_profile_id = 'npi-11223344'
         )
     ]
-
 
 @pytest.fixture
 def provider_id_query_result_empty():
     return []
-
 
 @pytest.fixture
 def provider_id_query_result_multi():
@@ -280,10 +274,10 @@ def provider_id_query_result_multi():
 
     return [
         Result(
-            caqh_profile_id='npi-11223344'
+            caqh_profile_id = 'npi-11223344'
         ),
         Result(
-            caqh_profile_id='12341234'
+            caqh_profile_id = '12341234'
         )
     ]
 
