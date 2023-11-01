@@ -73,7 +73,7 @@ class AMATokenEndpointTask(APIEndpointTask, HttpClient):
     def _request_ama_token(self, token_headers, token_body):
         return self.HTTP.request(
             'POST',
-            self._parameters.token_url,
+            "https://wsextstage.ama-assn.org/oauth2/endpoint/eprofilesprovider/token",
             headers=token_headers,
             body=token_body
         )
