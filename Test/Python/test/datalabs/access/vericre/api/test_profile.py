@@ -58,7 +58,7 @@ def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
         ):
         task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
 
-       # task._get_ama_access_token()
+        task._get_ama_access_token()
 
     assert except_info.type == InternalServerError
     assert str(except_info.value) == \
