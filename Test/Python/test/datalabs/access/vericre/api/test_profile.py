@@ -46,6 +46,25 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
     assert str(except_info.value) == 'No documents where found in VeriCre for the given entity ID.'
 
 
+@pytest.mark.skip("temporarily skipping")
+# pylint: disable=redefined-outer-name, protected-access
+def test_token_response_error(ama_profile_pdf_event, http_request_status_404):
+    ama_profile_pdf_event["path"] = dict(entityId='12345678')
+
+    with pytest.raises(Exception) as except_info, \
+        mock.patch(
+            'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask._request_ama_token',
+            return_value = http_request_status_404
+        ):
+        # task = AMAProfilePDFEndpointTask(ama_profile_pdf_event)
+
+       # task._get_ama_access_token()
+
+    assert except_info.type == InternalServerError
+    assert str(except_info.value) == \
+        f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
+
+
 # pylint: disable=redefined-outer-name, protected-access
 def test_assert_profile_exists_error(ama_profile_pdf_event, http_request_status_404):
     ama_profile_pdf_event["path"] = dict(entityId='12345678')
