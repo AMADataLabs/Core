@@ -45,6 +45,7 @@ VERICRE_API:
         PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
         PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
         OAUTH_TOKEN:                '/profile_api/oauth2/token'
+        MONITOR_NOTIFICATIONS:      '/profile_api/monitor/notifications'
         DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
@@ -147,6 +148,9 @@ VERICRE_API:
         DATABASE_USERNAME: ${DATABASE_USERNAME}
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         TOKEN_URL: ${PROFILE_TOKEN_URL}
+
+    MONITOR_NOTIFICATIONS:
+        TASK_CLASS: 'datalabs.access.vericre.api.MonitorNotificationsEndpointTask'
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
