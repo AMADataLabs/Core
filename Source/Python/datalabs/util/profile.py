@@ -27,6 +27,7 @@ def run_time_logger(func):
 
 
 def get_ama_access_token(self, grant_type, client_id, client_secret):
+    LOGGER.info("Getting AMA access token for client.")
     token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     token_fields = {
         "grant_type": grant_type,
