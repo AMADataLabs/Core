@@ -2,7 +2,6 @@
 from dataclasses import dataclass
 
 import logging
-import requests
 
 import urllib3
 
@@ -26,6 +25,7 @@ class MonitorNotificationsEndpointParameters:
     method: str
     path: dict
     query: dict
+    token_url: str
 
 
 class MonitorNotificationsEndpointTask(APIEndpointTask):
