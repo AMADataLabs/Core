@@ -21,7 +21,7 @@ from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api import APILedger
 from   datalabs.parameter import add_schema
-from datalabs.util.profile import get_ama_access_token
+from   datalabs.util.profile import get_ama_access_token
 from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
@@ -366,11 +366,8 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
-        token_json = get_ama_access_token(self,
-                                                  "client_credentials",
-                                                  self._parameters.client_id,
-                                                  self._parameters.client_secret)
-        access_token = token_json['access_token']
+        access_token = get_ama_access_token(self._parameters)
+
         StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
 
         self._assert_profile_exists(entity_id)

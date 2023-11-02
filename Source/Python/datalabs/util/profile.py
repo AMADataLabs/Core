@@ -4,12 +4,16 @@ import urllib
 from datetime import datetime
 import logging
 
+import urllib3
+import xmltodict
+
 from datalabs.access.api.task import InternalServerError
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+HTTP = urllib3.PoolManager()
 
 def run_time_logger(func):
     def wrapper(*args, **kwargs):
@@ -25,30 +29,54 @@ def run_time_logger(func):
 
     return wrapper
 
-
-def get_ama_access_token(self, grant_type, client_id, client_secret):
+def get_ama_access_token(parameters):
     LOGGER.info("Getting AMA access token for client.")
+
     token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     token_fields = {
-        "grant_type": grant_type,
-        "client_id": client_id,
-        "client_secret": client_secret
+        "grant_type": "client_credentials",
+        "client_id": parameters.client_id,
+        "client_secret": parameters.client_secret
     }
     token_body = urllib.parse.urlencode(token_fields)
 
-    token_response = _request_ama_token(self, token_headers, token_body)
+    token_response = _request_ama_token(token_headers, token_body, parameters.token_url)
 
     if token_response.status != 200:
         raise InternalServerError(
             f'Internal Server error caused by: {token_response.data}, status: {token_response.status}'
         )
-    return json.loads(token_response.data)
 
+    token_json = json.loads(token_response.data)
+    
+    return token_json['access_token']
 
-def _request_ama_token(self, token_headers, token_body):
-    return self.HTTP.request(
+def _request_ama_token(token_headers, token_body, token_url):
+    return HTTP.request(
         'POST',
-        self._parameters.token_url,
+        token_url,
         headers=token_headers,
         body=token_body
     )
+
+def parse_xml_to_dict(xml):
+    return xmltodict.parse(
+        xml.decode("utf-8"), 
+        xml_attribs=False, 
+        postprocessor=_xml_format_converter
+    )
+
+# pylint: disable=unused-argument
+def _xml_format_converter(path, key, value):
+    if value is not None and type(value) is str:
+        try:
+            return key, int(value)
+        except ValueError:
+            if value.lower() == 'true':
+                return key, True
+            elif value.lower() == 'false':
+                return key, False
+            else:
+                return key, value
+    else:
+        return key, value

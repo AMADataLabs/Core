@@ -1,13 +1,12 @@
 """ Release endpoint classes."""
-from dataclasses import dataclass
-
+from   dataclasses import dataclass
 import logging
 
 import urllib3
 
-from datalabs.access.api.task import APIEndpointTask
-from datalabs.parameter import add_schema
-from datalabs.util.profile import get_ama_access_token
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from   datalabs.parameter import add_schema
+from   datalabs.util.profile import get_ama_access_token, parse_xml_to_dict
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -17,6 +16,13 @@ LOGGER.setLevel(logging.DEBUG)
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
+class StaticTaskParameters:
+    PROFILE_HEADERS = {
+        'X-Location': 'Sample Vericre',
+        'X-CredentialProviderUserId': "1",
+        'X-SourceSystem': "1"
+    }
+
 
 @add_schema(unknowns=True)
 @dataclass
@@ -25,18 +31,66 @@ class MonitorNotificationsEndpointParameters:
     method: str
     path: dict
     query: dict
+    client_id: str
+    client_secret: str
     token_url: str
+    notification_url: str
 
 
-class MonitorNotificationsEndpointTask(APIEndpointTask):
+class MonitorNotificationsEndpointTask(APIEndpointTask, HttpClient):
     PARAMETER_CLASS = MonitorNotificationsEndpointParameters
 
     def run(self):
         LOGGER.debug('Parameters in MonitorNotificationsEndpointTask: %s', self._parameters)
-        grant_type = self._parameters.query["grant_type"][0]
-        client_id = self._parameters.query["client_id"][0]
-        client_secret = self._parameters.query["client_secret"][0]
 
-        token_json = get_ama_access_token(self, grant_type, client_id, client_secret)
+        access_token = get_ama_access_token(self._parameters)
 
-        self._response_body = token_json
+        StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
+
+        notification_response = self._get_notifications()
+
+        response_result = self._convert_response_to_json(notification_response)
+
+        self._response_body = self._generate_response_body(response_result)
+
+    def _convert_response_to_json(self, notification_response):
+        converted_notifications = parse_xml_to_dict(notification_response.data)
+
+        notification_list = self._get_notifications_list(converted_notifications)
+
+        return notification_list
+
+    def _get_notifications_list(self, converted_notifications):
+        notifications = converted_notifications['monitorNotificationList']['notifications']
+        notification_list = []
+
+        if isinstance(notifications, dict):
+            notification_list.append(notifications)
+        else:
+            notification_list = notifications
+
+        return notification_list
+
+    def _get_notifications(self):
+        response = self._request_notifications()
+
+        if response.status == 204:
+            raise ResourceNotFound('No notifications found.')
+
+        if response.status != 200:
+            raise InternalServerError(
+                f'Internal Server error caused by: {response.reason}, status: {response.status}'
+            )
+
+        return response
+
+    def _request_notifications(self):
+        return self.HTTP.request(
+            'GET',
+            f'{self._parameters.notification_url}',
+            headers=StaticTaskParameters.PROFILE_HEADERS
+        )
+
+    @classmethod
+    def _generate_response_body(cls, response):
+        return response
