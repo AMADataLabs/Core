@@ -7,7 +7,7 @@ import time
 import botocore
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state.base import State, Status
+from   datalabs.etl.dag.state.base import State, Status, StatefulDAGMixin
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -349,11 +349,9 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             )
         )
 
-    # pylint: disable=line-too-long, no-member
-    def add_paused_dag(self):
-        dag_id = self._get_dag_id()
-        execution_time = self._get_execution_time()
-        dag_state = self._get_state_plugin(self._task_parameters)
+    # pylint: disable=line-too-long, no-member, protected-access
+    def add_paused_dag(self, dag_id, task_id, execution_time):
+        dag_state = StatefulDAGMixin._get_state_plugin(self._task_parameters)
 
         with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
             dynamodb.put_item(
@@ -364,7 +362,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
         dag_state.set_task_status(
             dag_id,
-            self._get_task_id(),
+            task_id,
             execution_time,
             Status.PAUSED
         )

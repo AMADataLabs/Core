@@ -12,10 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=assignment-from-no-return, inconsistent-return-statements, f-string-without-interpolation
 class ExternalConditionPollingTask(Task):
     def run(self):
-        request_parameters = [
-            json.loads(self._data[0].decode())["request_id"],
-            json.loads(self._data[0].decode())["results_filename"]
-        ]
+        request_parameters = json.loads(self._data[0])
 
         if not self._is_ready(request_parameters)[0]:
             raise TaskNotReady(f'Task waited for emails validation')
@@ -24,7 +21,12 @@ class ExternalConditionPollingTask(Task):
 
     @classmethod
     def _create_results_parameters(cls, request_parameters):
-        return dict(request_id=request_parameters[0], results_filename=request_parameters[1])
+        request_parameters_dict = {}
+
+        if bool(request_parameters):
+            request_parameters_dict = request_parameters
+
+        return request_parameters_dict
 
     @abstractmethod
     def _is_ready(self, request_parameters):

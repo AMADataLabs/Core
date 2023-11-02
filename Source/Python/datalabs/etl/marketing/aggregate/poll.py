@@ -19,7 +19,6 @@ class AtDataStatusPollingTaskParameters:
     account: str
     api_key: str
 
-#class AtDataStatusPollingTask(Task, ExternalConditionPollingTask):
 class AtDataStatusPollingTask(ExternalConditionPollingTask):
     PARAMETER_CLASS = AtDataStatusPollingTaskParameters
 
@@ -27,8 +26,8 @@ class AtDataStatusPollingTask(ExternalConditionPollingTask):
         ready = False
         atdata = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
 
-        status, request_parameters[1] = atdata.get_validation_status(request_parameters[0])
-        results_parameters = [request_parameters[0], request_parameters[1]]
+        status, request_parameters["results_filename"] = atdata.get_validation_status(request_parameters["request_id"])
+        results_parameters = [request_parameters["request_id"], request_parameters["results_filename"]]
 
         if status == "Returned":
             ready = True

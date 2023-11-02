@@ -43,7 +43,7 @@ class DAGTaskIDMixin:
         return base_name, iteration
 
 
-class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper, EventDrivenDAGMixin):
+class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
     def _get_task_parameters(self):
         task_parameters = None
 
