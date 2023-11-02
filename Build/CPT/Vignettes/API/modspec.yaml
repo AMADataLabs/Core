@@ -22,4 +22,5 @@ modspec:
   - package: datalabs.access.cpt.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
+  - package: datalabs.cache
   - package: datalabs.model.cpt

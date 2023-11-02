@@ -384,10 +384,11 @@ class MultiProfileLookupByIndexEndpointParameters:
 class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
     PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
 
+    # pylint: disable=bad-super-call
     def _generate_response_body(self, aggregated_records):
         request_id = self._parameters.path['request_id']
-        index = self._parameters.path['request_id']
-        response_body = super()._generate_response_body(aggregated_records)
+        index = int(self._parameters.query['index'][0])
+        response_body = super(MultiProfileLookupEndpointTask, self)._generate_response_body(aggregated_records)
         response_size = self._get_response_size(response_body)
 
         LOGGER.info('Response Result size: %s KB', response_size)
@@ -399,6 +400,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
 
         return response_body
 
+    # pylint: disable=bad-super-call
     @classmethod
     def _add_parameter_filters_to_query(cls, query, parameters):
         request_cache_table = parameters.request_cache_table
@@ -411,7 +413,7 @@ class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
 
         query = cls._filter_by_entity_ids(query, entity_ids)
 
-        return super()._add_parameter_filters_to_query(query, parameters)
+        return super(MultiProfileLookupEndpointTask, cls)._add_parameter_filters_to_query(query, parameters)
 
     @classmethod
     def _get_entity_ids_from_dynamodb(cls, request_cache_table, request_id, index):
