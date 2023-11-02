@@ -479,26 +479,30 @@ LICENSING_TRAFFIC:
                 ${LICENSING_DATABASE}.flags f ON f.id = fg.flag_id
                     LEFT JOIN
                 ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
+                    LEFT JOIN
+                ${LICENSING_DATABASE}.agreement_details ad on ad.quote_id = q.id
             WHERE
                 lc.category = 'Provisional'
-                    AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
-                    'datalabs',
-                    'acmegbtaxed',
-                    'acmegbnontax',
-                    'rptestuser2',
-                    'yogeshama',
-                    'sdhamale',
-                    'shahrukh-ama',
-                    'amitivl',
-                    'kyleddahl',
-                    'dcasaubo',
-                    'amitinfovision',
-                    'kcallagh',
-                    'kcardina',
-                    'vprieto',
-                    'TommyT',
-                    'Shrutija'
-                )
+                    AND q.created_by NOT IN (
+                        'EktaAMA' ,
+                        'kdahl',
+                        'datalabs',
+                        'acmegbtaxed',
+                        'acmegbnontax',
+                        'rptestuser2',
+                        'yogeshama',
+                        'sdhamale',
+                        'shahrukh-ama',
+                        'amitivl',
+                        'kyleddahl',
+                        'dcasaubo',
+                        'amitinfovision',
+                        'kcallagh',
+                        'kcardina',
+                        'vprieto',
+                        'TommyT',
+                        'Shrutija'
+                    )
                     AND q.created_on >= '2022-09-14'
                     AND que.description IN ('What is the name of the organization licensing CPT content?' , 'What is your organization type?')
             GROUP BY q.name
