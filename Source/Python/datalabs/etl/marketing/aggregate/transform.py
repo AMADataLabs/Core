@@ -18,7 +18,6 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
-from   datalabs.poll import ExternalConditionPollingTask
 from   datalabs.task import Task, TaskException
 
 logging.basicConfig()
@@ -505,8 +504,10 @@ class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriter
 
         request_parameters = self._validate_expired_records(dated_dataset_with_emails)
 
+        request_parameters = self._create_request_parameters_dict(request_parameters)
+
         return [
-            json.dumps(ExternalConditionPollingTask._create_results_parameters(request_parameters)).encode(),
+            json.dumps(request_parameters).encode(),
             self._dataframe_to_csv(dated_dataset_with_emails)
         ]
 
@@ -538,6 +539,18 @@ class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriter
         request_parameters = self._validate_emails(email_data_list)
 
         return request_parameters
+
+    @classmethod
+    def _create_request_parameters_dict(cls, request_parameters):
+        request_parameters_dict = {}
+
+        if len(request_parameters) != 0:
+            request_parameters_dict = dict(
+                request_id=request_parameters[0],
+                results_filename=request_parameters[1]
+            )
+
+        return request_parameters_dict
 
     @classmethod
     def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
