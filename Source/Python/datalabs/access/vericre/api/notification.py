@@ -4,7 +4,8 @@ import logging
 
 import urllib3
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError, \
+    PassportAuthenticatingEndpointMixin
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import get_ama_access_token, parse_xml_to_dict
 
@@ -38,13 +39,13 @@ class MonitorNotificationsEndpointParameters:
     notification_url: str
 
 
-class MonitorNotificationsEndpointTask(APIEndpointTask, HttpClient):
+class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
     PARAMETER_CLASS = MonitorNotificationsEndpointParameters
 
     def run(self):
         LOGGER.debug('Parameters in MonitorNotificationsEndpointTask: %s', self._parameters)
 
-        access_token = get_ama_access_token(self._parameters)
+        access_token = self._get_passport_access_token(self._parameters)
 
         StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
 

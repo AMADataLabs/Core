@@ -16,12 +16,12 @@ import zipfile
 from   botocore.exceptions import ClientError
 import urllib3
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError, \
+    PassportAuthenticatingEndpointMixin
 from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
 from   datalabs.model.vericre.api import APILedger
 from   datalabs.parameter import add_schema
-from   datalabs.util.profile import get_ama_access_token
 from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
@@ -354,7 +354,7 @@ class AMAProfilePDFEndpointParameters:
     unknowns: dict = None
 
 
-class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
+class AMAProfilePDFEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
     PARAMETER_CLASS = AMAProfilePDFEndpointParameters
 
     def run(self):
@@ -367,7 +367,7 @@ class AMAProfilePDFEndpointTask(APIEndpointTask, HttpClient):
         entity_id = self._parameters.path['entity_id']
         source_ip = self._parameters.identity['sourceIp']
 
-        access_token = get_ama_access_token(self._parameters)
+        access_token = self._get_passport_access_token(self._parameters)
 
         StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
 
