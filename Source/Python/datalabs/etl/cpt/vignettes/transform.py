@@ -125,6 +125,8 @@ class VignettesTransformerTask(Task):
         data['post_service_info'] = data['post_service_info'].astype(str)
         data['ruc_reviewed_date'] = data['ruc_reviewed_date'].astype(str)
 
+        data = data.apply(lambda x: x.str.replace('\x92', "'") if x.dtype == 'object' else x)
+
         return data
 
     @classmethod
