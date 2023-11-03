@@ -53,6 +53,19 @@ class MonitorNotificationsEndpointTask(APIEndpointTask, HttpClient):
 
         self._response_body = self._generate_response_body(response_result)
 
+    def _get_notifications(self):
+        response = self._request_notifications()
+
+        if response.status == 204:
+            raise ResourceNotFound('No notifications found.')
+
+        if response.status != 200:
+            raise InternalServerError(
+                f'Internal Server error caused by: {response.reason}, status: {response.status}'
+            )
+
+        return response
+
     def _convert_response_to_json(self, notification_response):
         converted_notifications = parse_xml_to_dict(notification_response.data)
 
@@ -70,19 +83,6 @@ class MonitorNotificationsEndpointTask(APIEndpointTask, HttpClient):
             notification_list = notifications
 
         return notification_list
-
-    def _get_notifications(self):
-        response = self._request_notifications()
-
-        if response.status == 204:
-            raise ResourceNotFound('No notifications found.')
-
-        if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.reason}, status: {response.status}'
-            )
-
-        return response
 
     def _request_notifications(self):
         return self.HTTP.request(
