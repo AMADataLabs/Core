@@ -31,18 +31,23 @@ def parse_xml_to_dict(xml):
         postprocessor=_xml_format_converter
     )
 
-
-# pylint: disable=unused-argument
 def _xml_format_converter(path, key, value):
+    return_value = None
+
     if value is not None and type(value) is str:
         try:
-            return key, int(value)
+            return_value = int(value)
         except ValueError:
-            if value.lower() == 'true':
-                return key, True
-            elif value.lower() == 'false':
-                return key, False
-            else:
-                return key, value
+            return_value = _convert_boolean_value(value)
     else:
-        return key, value
+        return_value = value
+
+    return key, return_value
+
+def _convert_boolean_value(value):
+    if value.lower() == 'true':
+        return True
+    elif value.lower() == 'false':
+        return False
+    else:
+        return value

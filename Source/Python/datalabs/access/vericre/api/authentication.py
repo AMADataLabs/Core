@@ -1,12 +1,11 @@
 """ API endpoint task classes. """
 import logging
-
 import json
 import urllib
 
 import urllib3
 
-from datalabs.access.api.task import InternalServerError
+from   datalabs.access.api.task import InternalServerError
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
