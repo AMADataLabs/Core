@@ -44,7 +44,6 @@ VERICRE_API:
         PROFILE_DOCUMENTS:          '/profile_api/profile/*/documents'
         PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
         PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
-        OAUTH_TOKEN:                '/profile_api/oauth2/token'
         DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
@@ -137,16 +136,6 @@ VERICRE_API:
         TOKEN_URL: ${PROFILE_TOKEN_URL}
         PROFILE_URL: ${PROFILE_URL}
         PDF_URL: ${PROFILE_PDF_URL}
-
-    OAUTH_TOKEN:
-        TASK_CLASS: 'datalabs.access.vericre.api.AMATokenEndpointTask'
-        DATABASE_NAME: ${DATABASE_NAME}
-        DATABASE_BACKEND: ${DATABASE_BACKEND}
-        DATABASE_HOST: ${DATABASE_HOST}
-        DATABASE_PORT: ${DATABASE_PORT}
-        DATABASE_USERNAME: ${DATABASE_USERNAME}
-        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-        TOKEN_URL: ${PROFILE_TOKEN_URL}
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
