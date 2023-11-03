@@ -2,6 +2,7 @@
 from abc import ABCMeta, ABC, abstractmethod
 import logging
 import os
+import subprocess
 
 from   marshmallow.exceptions import ValidationError
 
@@ -9,6 +10,7 @@ from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.parameter import ParameterValidatorMixin, ValidationException
 from   datalabs.plugin import import_plugin
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -127,9 +129,7 @@ class TaskWrapper(ABC):
 
     def _get_task_class(self):
         task_resolver_class = self._get_task_resolver_class()
-
         task_class = task_resolver_class.get_task_class(self._task_parameters)
-
         if not hasattr(task_class, 'run'):
             raise TypeError('Task class does not have a "run" method.')
 
@@ -202,6 +202,16 @@ class TaskWrapper(ABC):
         for datum in data:
             LOGGER.debug('%s %d bytes.', operation, len(datum))
 
+
+class TaskPackageLoaderMixin:
+    @classmethod
+    def _load_task_package(cls, parameters: dict):
+        package = parameters.get("TASK_PACKAGE")
+
+        if package:
+            subprocess.run(["pip", "install", package])
+
+
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
@@ -209,11 +219,13 @@ class TaskResolver(ABC):
         pass
 
 
-class EnvironmentTaskResolver(TaskResolver):
+class EnvironmentTaskResolver(TaskPackageLoaderMixin, TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
     def get_task_class(cls, task_parameters):
         task_class_name = os.environ["TASK_CLASS"]
+
+        cls._load_task_package(task_parameters)
 
         return import_plugin(task_class_name)
 
@@ -224,3 +236,4 @@ class RuntimeTaskResolver(TaskResolver):
         task_class_name = task_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)
+
