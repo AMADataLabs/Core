@@ -1,17 +1,11 @@
 """ API endpoint task classes. """
-import json
-import urllib
 import logging
-
-import urllib3
 
 from datalabs.task import Task, TaskException, TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-HTTP = urllib3.PoolManager()
 
 
 class APIEndpointException(TaskException):
@@ -79,37 +73,3 @@ class APIEndpointTaskWrapper(TaskWrapper):
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
         return parameters
-
-
-class PassportAuthenticatingEndpointMixin:
-    @classmethod
-    def _get_passport_access_token(cls, parameters):
-        LOGGER.info("Getting AMA access token for client.")
-
-        token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        token_fields = {
-            "grant_type": "client_credentials",
-            "client_id": parameters.client_id,
-            "client_secret": parameters.client_secret
-        }
-        token_body = urllib.parse.urlencode(token_fields)
-
-        token_response = cls._request_ama_token(cls, token_headers, token_body, parameters.token_url)
-
-        if token_response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {token_response.data}, status: {token_response.status}'
-            )
-
-        token_json = json.loads(token_response.data)
-
-        return token_json['access_token']
-
-    # pylint: disable=unused-argument
-    def _request_ama_token(self, token_headers, token_body, token_url):
-        return HTTP.request(
-            'POST',
-            token_url,
-            headers=token_headers,
-            body=token_body
-        )
