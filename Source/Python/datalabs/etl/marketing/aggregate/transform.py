@@ -2,7 +2,6 @@
 from   dataclasses import dataclass
 from   datetime import datetime
 import io
-import json
 import logging
 import os
 import pickle
@@ -13,7 +12,6 @@ from   dateutil.parser import parse
 import pandas
 import numpy as np
 
-from   datalabs.access.atdata import AtData
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.marketing.aggregate import column
 from   datalabs.etl.task import ExecutionTimeMixin
@@ -478,175 +476,6 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Ta
         duplicated = duplicated_flatfile[~duplicated_flatfile['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
 
         return flatfile[~flatfile['hs_contact_id'].isin(duplicated['hs_contact_id'])]
-
-
-@add_schema
-@dataclass
-class EmailValidationRequesterTaskParameters:
-    host: str
-    account: str
-    api_key: str
-    execution_time: str
-    max_months: int
-    left_merge_key: str
-    right_merge_key: str
-
-# pylint: disable=consider-using-with, line-too-long
-class EmailValidationRequesterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = EmailValidationRequesterTaskParameters
-
-    def run(self):
-        dataset_with_emails, dataset_with_validation_dates = [InputDataParser.parse(x) for x in self._data]
-
-        dated_dataset_with_emails = self._add_existing_validation_dates_to_emails(dataset_with_emails, dataset_with_validation_dates)
-
-        dated_dataset_with_emails = self._calculate_months_since_last_validated(dated_dataset_with_emails)
-
-        request_parameters = self._validate_expired_records(dated_dataset_with_emails)
-
-        request_parameters = self._create_request_parameters_dict(request_parameters)
-
-        return [
-            json.dumps(request_parameters).encode(),
-            self._dataframe_to_csv(dated_dataset_with_emails)
-        ]
-
-    def _add_existing_validation_dates_to_emails(self, dataset_with_emails, dataset_with_validation_dates):
-        if not dataset_with_validation_dates[self._parameters.right_merge_key].is_unique:
-            dataset_with_validation_dates = self._remove_duplicate_dataset_with_validation_dates(dataset_with_validation_dates)
-
-        data = dataset_with_emails.merge(dataset_with_validation_dates, left_on=self._parameters.left_merge_key, right_on=self._parameters.right_merge_key, how='left')
-
-        data['email_last_validated'] = data.groupby(['BEST_EMAIL'], sort=False)['email_last_validated'].apply(lambda x: x.ffill())
-
-        return data
-
-    def _calculate_months_since_last_validated(self, dated_dataset_with_emails):
-        execution_time = datetime.strptime(self._parameters.execution_time, '%Y-%m-%dT%H:%M:%S')
-
-        dated_dataset_with_emails["months_since_validated"] = (execution_time - pandas.to_datetime(dated_dataset_with_emails.email_last_validated[~dated_dataset_with_emails.email_last_validated.isnull()])).astype('timedelta64[M]')
-
-        dated_dataset_with_emails.months_since_validated[dated_dataset_with_emails.email_last_validated.isnull()] = 6
-
-        return dated_dataset_with_emails
-
-    # pylint: disable=no-member, no-value-for-parameter
-    def _validate_expired_records(self, dated_dataset_with_emails):
-        dated_dataset_with_emails = self._unset_update_flag_for_unexpired_emails(dated_dataset_with_emails)
-
-        email_data_list = self._get_expired_emails(dated_dataset_with_emails)
-
-        request_parameters = self._validate_emails(email_data_list)
-
-        return request_parameters
-
-    @classmethod
-    def _create_request_parameters_dict(cls, request_parameters):
-        request_parameters_dict = {}
-
-        if len(request_parameters) != 0:
-            request_parameters_dict = dict(
-                request_id=request_parameters[0],
-                results_filename=request_parameters[1]
-            )
-
-        return request_parameters_dict
-
-    @classmethod
-    def _remove_duplicate_dataset_with_validation_dates(cls, dataset_with_validation_dates):
-        return dataset_with_validation_dates[['BEST_EMAIL', 'email_last_validated']].drop_duplicates()
-
-    def _unset_update_flag_for_unexpired_emails(self, dated_dataset_with_emails):
-        mask =  dated_dataset_with_emails.months_since_validated.astype('float') < float(self._parameters.max_months)
-
-        dated_dataset_with_emails.loc[mask, 'update'] = False
-
-        dated_dataset_with_emails.loc[(~mask & ~dated_dataset_with_emails.BEST_EMAIL.isnull()), 'update'] = True
-
-        return dated_dataset_with_emails
-
-    # pylint: disable=singleton-comparison
-    @classmethod
-    def _get_expired_emails(cls, dated_dataset_with_emails):
-        expired_emails = list(set(dated_dataset_with_emails[dated_dataset_with_emails['update'] == True].BEST_EMAIL.values))
-
-        return expired_emails
-
-    # pylint: disable=unused-variable
-    def _validate_emails(self, email_data_list):
-        status ='Processing'
-        request_id, file = None, None
-
-        at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
-
-        request_id = at_data.request_email_validation(email_data_list)
-
-        return [request_id, file]
-
-
-@add_schema
-@dataclass
-class EmailValidationFetcherTaskParameters:
-    host: str
-    account: str
-    api_key: str
-    execution_time: str
-    max_months: int
-
-# pylint: disable=consider-using-with, line-too-long
-class EmailValidationFetcherTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = EmailValidationFetcherTaskParameters
-
-    def run(self):
-
-        request_parameters = [
-            json.loads(self._data[0].decode())["request_id"],
-            json.loads(self._data[0].decode())["results_filename"]
-        ]
-        dated_dataset_with_emails = InputDataParser.parse(self._data[1])
-
-        validated_emails = self._validate_emails(request_parameters)
-
-        dated_dataset_with_emails = EmailValidationRequesterTask._unset_update_flag_for_unexpired_emails(self, dated_dataset_with_emails)
-
-        dated_dataset_with_emails = self._set_update_flag_for_valid_emails(dated_dataset_with_emails, validated_emails)
-
-        dated_dataset_with_emails = self._remove_invalid_records(dated_dataset_with_emails)
-
-        dated_dataset_with_emails = self._update_email_last_validated(dated_dataset_with_emails)
-
-        validated_emails_results = pandas.DataFrame(data=dict(Emails=validated_emails))
-
-        validation_results = [validated_emails_results, dated_dataset_with_emails]
-
-        return [self._dataframe_to_csv(data) for data in validation_results]
-
-    # pylint: disable=unused-variable
-    def _validate_emails(self, request_parameters):
-        status ='Processing'
-        at_data = AtData(self._parameters.host, self._parameters.account, self._parameters.api_key)
-
-        validated_emails = at_data.get_validation_results(request_parameters[0], request_parameters[1])
-
-        return validated_emails
-
-    # pylint: disable=unused-argument
-    @classmethod
-    def _set_update_flag_for_valid_emails(cls, dated_dataset_with_emails, validated_emails):
-        dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
-        #dated_dataset_with_emails.update = True
-
-        return dated_dataset_with_emails
-
-    @classmethod
-    def _remove_invalid_records(cls, dated_dataset_with_emails):
-        return dated_dataset_with_emails[~dated_dataset_with_emails['update'].isnull()]
-
-    # pylint: disable=singleton-comparison
-    def _update_email_last_validated(self, dated_dataset_with_emails):
-        dated_dataset_with_emails.loc[ dated_dataset_with_emails['update'] == True, 'email_last_validated'] = datetime.strptime(self._parameters.execution_time,'%Y-%m-%dT%H:%M:%S').strftime("%m/%d/%Y")
-
-        return dated_dataset_with_emails
 
 
 class SFMCPrunerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):

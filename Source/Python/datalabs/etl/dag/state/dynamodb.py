@@ -7,7 +7,7 @@ import time
 import botocore
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state.base import State, Status, StatefulDAGMixin
+from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -175,6 +175,12 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
         with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
             self._clear_items(dynamodb, execution_time, [dag] + failed_tasks)
+
+    # pylint: disable=no-member
+    def pause_dag(self, dag_id, task_id, execution_time):
+        self._add_paused_dag(dag_id, execution_time)
+
+        self._set_task_status(dag_id, task_id, execution_time, Status.PAUSED)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
@@ -350,9 +356,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         )
 
     # pylint: disable=line-too-long, no-member, protected-access
-    def add_paused_dag(self, dag_id, task_id, execution_time):
-        dag_state = StatefulDAGMixin._get_state_plugin(self._task_parameters)
-
+    def add_paused_dag(self, dag_id, execution_time):
         with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
             dynamodb.put_item(
                 TableName=self._parameters.table,
@@ -360,12 +364,6 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
                 ConditionExpression="attribute_not_exists(#r)"
             )
 
-        dag_state.set_task_status(
-            dag_id,
-            task_id,
-            execution_time,
-            Status.PAUSED
-        )
 
 class DagState(DAGState):
     ''' Alternative name for Java compatibility '''

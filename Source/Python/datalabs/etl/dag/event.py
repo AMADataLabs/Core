@@ -54,8 +54,7 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
         execution_time = self._get_execution_time()
 
         if dag_state:
-            dag_state.add_paused_dag(dag, task, execution_time)
-            dag_state.set_task_status(dag, task, execution_time, Status.PAUSED)
+            dag_state.pause_dag(dag, task, execution_time)
 
         raise NotImplementedError('DAG task has paused.')
 
