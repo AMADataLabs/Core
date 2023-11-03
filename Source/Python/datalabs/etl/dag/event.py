@@ -48,6 +48,16 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
             self._get_dag_id()
         )
 
+    def _handle_task_not_ready(self, task):
+        dag_state = self._get_state_plugin(self._task_parameters)
+        dag = self._get_dag_id()
+        execution_time = self._get_execution_time()
+
+        if dag_state:
+            dag_state.pause_dag(dag, task, execution_time)
+
+        raise NotImplementedError('DAG task has paused.')
+
     def _update_dag_status_on_success(self, dag, dag_state):
         dag_id = self._get_dag_id()
         execution_time = self._get_execution_time()
