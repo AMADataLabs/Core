@@ -6,8 +6,9 @@ import urllib3
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError, \
     PassportAuthenticatingEndpointMixin
+from   datalabs.access.vericre.api.header import PROFILE_HEADERS
 from   datalabs.parameter import add_schema
-from   datalabs.util.profile import get_ama_access_token, parse_xml_to_dict
+from   datalabs.util.profile import parse_xml_to_dict
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -16,14 +17,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 class HttpClient:
     HTTP = urllib3.PoolManager()
-
-
-class StaticTaskParameters:
-    PROFILE_HEADERS = {
-        'X-Location': 'Sample Vericre',
-        'X-CredentialProviderUserId': "1",
-        'X-SourceSystem': "1"
-    }
 
 
 @add_schema(unknowns=True)
@@ -47,16 +40,14 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
 
         access_token = self._get_passport_access_token(self._parameters)
 
-        StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
-
-        notification_response = self._get_notifications()
+        notification_response = self._get_notifications(access_token)
 
         response_result = self._convert_response_to_json(notification_response)
 
         self._response_body = self._generate_response_body(response_result)
 
-    def _get_notifications(self):
-        response = self._request_notifications()
+    def _get_notifications(self, access_token):
+        response = self._request_notifications(access_token)
 
         if response.status == 204:
             raise ResourceNotFound('No notifications found.')
@@ -86,11 +77,14 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
 
         return notification_list
 
-    def _request_notifications(self):
+    def _request_notifications(self, access_token):
+        header = PROFILE_HEADERS.copy()
+        header['Authorization'] = f'Bearer {access_token}'
+
         return self.HTTP.request(
             'GET',
             f'{self._parameters.notification_url}',
-            headers=StaticTaskParameters.PROFILE_HEADERS
+            headers=header
         )
 
     @classmethod
