@@ -54,4 +54,4 @@ def test_resource_not_found_is_404():
     exception = api.ResourceNotFound('failed')
 
     assert exception.status_code == 404
-    assert exception.message == 'failed'# pylint: disable=redefined-outer-name, protected-access
+    assert exception.message == 'failed'

@@ -1,5 +1,5 @@
 ''' Performance profiling utilities. '''
-from datetime import datetime
+from   datetime import datetime
 import logging
 
 import xmltodict
