@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 
 from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
+from   Source.Python.datalabs.express import TaskPackageLoaderMixin
 from   datalabs.plugin import import_plugin
 from   datalabs import task
 
@@ -17,13 +18,15 @@ class TaskResolverParameters:
     unknowns: dict=None
 
 
-class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
+class TaskResolver(ParameterValidatorMixin, TaskPackageLoaderMixin, task.TaskResolver):
     PARAMETER_CLASS = TaskResolverParameters
 
     @classmethod
     def get_task_class(cls, task_parameters):
         event_type = task_parameters["type"]
         getter_method = None
+
+        cls._load_task_package(task_parameters)
 
         try:
             getter_method = getattr(cls, f'_get_{event_type.lower()}_class')
