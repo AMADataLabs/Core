@@ -356,7 +356,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         )
 
     # pylint: disable=line-too-long, no-member, protected-access
-    def add_paused_dag(self, dag_id, execution_time):
+    def _add_paused_dag(self, dag_id, execution_time):
         with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
             dynamodb.put_item(
                 TableName=self._parameters.table,
