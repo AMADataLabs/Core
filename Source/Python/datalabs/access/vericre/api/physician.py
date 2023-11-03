@@ -17,6 +17,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
@@ -35,6 +36,7 @@ class PhysiciansSearchEndpointParameters:
     sync_url: str
     payload: dict
     unknowns: dict=None
+
 
 class PhysiciansSearchEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = PhysiciansSearchEndpointParameters

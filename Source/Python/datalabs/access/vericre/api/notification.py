@@ -16,6 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
+
 class StaticTaskParameters:
     PROFILE_HEADERS = {
         'X-Location': 'Sample Vericre',

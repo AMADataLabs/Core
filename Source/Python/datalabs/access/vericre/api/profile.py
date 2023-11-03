@@ -32,6 +32,7 @@ LOGGER.setLevel(logging.DEBUG)
 class HttpClient:
     HTTP = urllib3.PoolManager()
 
+
 class StaticTaskParameters:
     DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
     USER_PHYSICIAN = 'physician'
