@@ -36,8 +36,6 @@ class ProfileRecords:
     insurance: list=None
 
 
-
-
 class BaseProfileEndpointTask(APIEndpointTask):
     RECORD_SECTION_NAMES = {
         'medicalSchools': 'medical_schools',
@@ -224,6 +222,7 @@ class BaseProfileEndpointTask(APIEndpointTask):
             option_value_names.append(value)
 
         return option_value_names
+
 
 # pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)

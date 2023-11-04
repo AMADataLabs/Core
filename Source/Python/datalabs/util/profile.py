@@ -2,6 +2,8 @@
 from   datetime import datetime
 import logging
 
+import xmltodict
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -20,3 +22,32 @@ def run_time_logger(func):
         return result
 
     return wrapper
+
+
+def parse_xml_to_dict(xml):
+    return xmltodict.parse(
+        xml.decode("utf-8"),
+        xml_attribs=False,
+        postprocessor=_xml_format_converter
+    )
+
+def _xml_format_converter(path, key, value):
+    return_value = None
+
+    if value is not None and type(value) is str:
+        try:
+            return_value = int(value)
+        except ValueError:
+            return_value = _convert_boolean_value(value)
+    else:
+        return_value = value
+
+    return key, return_value
+
+def _convert_boolean_value(value):
+    if value.lower() == 'true':
+        return True
+    elif value.lower() == 'false':
+        return False
+    else:
+        return value
