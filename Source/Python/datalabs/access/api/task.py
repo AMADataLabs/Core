@@ -1,7 +1,7 @@
 """ API endpoint task classes. """
 import logging
 
-from datalabs.task import Task, TaskException, TaskWrapper
+from   datalabs.task import Task, TaskException, TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
