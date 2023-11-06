@@ -1,7 +1,6 @@
 ''' Marketing Aggregator DAG definition. '''
 from   datalabs.etl.dag import dag
 
-from   datalabs.etl.marketing.aggregate.transform import EmailValidatorTask
 from   datalabs.etl.marketing.aggregate.transform import FlatfileUpdaterTask
 from   datalabs.etl.marketing.aggregate.transform import InputDataCleanerTask
 from   datalabs.etl.marketing.aggregate.transform import InputsMergerTask
@@ -20,9 +19,9 @@ class DAG(dag.DAG):
     CREATE_SOURCE_FILE_LISTS: SourceFileListTransformerTask
     EXTRACT_CONTACTS: SQLExtractorTask
     CLEAN_INPUTS: InputDataCleanerTask
-    VALIDATE_EXISTING_EMAILS: EmailValidatorTask
+    VALIDATE_EXISTING_EMAILS: "datalabs.etl.marketing.aggregate.transform.EmailValidatorTask"
     MERGE_INPUTS: InputsMergerTask
-    VALIDATE_NEW_EMAILS: EmailValidatorTask
+    VALIDATE_NEW_EMAILS: "datalabs.etl.marketing.aggregate.transform.EmailValidatorTask"
     UPDATE_FLATFILE: FlatfileUpdaterTask
     PRUNE_SFMC_ITEMS: SFMCPrunerTask
     LOAD_FLATFILE: SFTPFileLoaderTask

@@ -12,6 +12,7 @@ class Status(Enum):
     UNKNOWN = 'Unknown'
     PENDING = 'Pending'
     RUNNING = 'Running'
+    PAUSED = 'Paused'
     FINISHED = 'Finished'
     FAILED = 'Failed'
 

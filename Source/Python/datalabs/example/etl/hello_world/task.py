@@ -1,9 +1,12 @@
 ''' Hello world printing task implementation. '''
 from   dataclasses import dataclass
-
 import logging
+
+# pylint: disable=import-error
+from mpmath import mp
 from   datalabs.task import Task
 from   datalabs.parameter import add_schema
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,4 +25,10 @@ class HelloWorldTask(Task):
     PARAMETER_CLASS = HelloWorldParameters
 
     def run(self):
-        LOGGER.info('Hello, %s %s!', self._parameters.first_name, self._parameters.last_name)
+        mp.dps = 50
+        sqrt_2 = mp.sqrt(2)
+        LOGGER.info(
+            'Hello, %s %s! The square root of 2 = %f',
+            self._parameters.first_name,
+            self._parameters.last_name,sqrt_2
+        )

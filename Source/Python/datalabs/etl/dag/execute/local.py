@@ -72,7 +72,7 @@ class LocalDAGExecutorTask(Task):
         status = self._get_task_status(task)
         LOGGER.info('Task "%s" is ready? %s', task.id, task.ready)
 
-        if status == Status.UNKNOWN and task.ready:
+        if status in [Status.UNKNOWN, Status.PAUSED] and task.ready:
             self._trigger_task(task)
 
         return status
