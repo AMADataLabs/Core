@@ -27,7 +27,7 @@ class PassportAuthenticatingEndpointMixin:
         }
         token_body = urllib.parse.urlencode(token_fields)
 
-        token_response = cls._request_ama_token(cls, token_headers, token_body, parameters.token_url)
+        token_response = cls._request_ama_token(token_headers, token_body, parameters.token_url)
 
         if token_response.status != 200:
             raise InternalServerError(
