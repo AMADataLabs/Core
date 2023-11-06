@@ -19,7 +19,7 @@ tags:
     externalDocs:
       url: 'http://swagger.io'
 paths:
-  vignettes/{cpt_code}:
+  /vignettes/{cpt_code}:
     get:
       tags:
         - Vignette
