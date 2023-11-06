@@ -73,6 +73,7 @@ class LockingStateMixin():
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DAGStateParameters:
+    paused_dag_table: str
     lock_table: str
     state_table: str
     endpoint_url: str=None
@@ -174,6 +175,12 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
         with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
             self._clear_items(dynamodb, execution_time, [dag] + failed_tasks)
+
+    # pylint: disable=no-member
+    def pause_dag(self, dag_id, task_id, execution_time):
+        self._add_paused_dag(dag_id, execution_time)
+
+        self._set_task_status(dag_id, task_id, execution_time, Status.PAUSED)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
@@ -347,6 +354,16 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
                 status=dict(S=status.value)
             )
         )
+
+    # pylint: disable=line-too-long, no-member, protected-access
+    def _add_paused_dag(self, dag_id, execution_time):
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            dynamodb.put_item(
+                TableName=self._parameters.table,
+                Item={'dag_id': {'S': dag_id}, 'execution_time': {'S': execution_time},'ttl': {'N': str(time.time()+60*15)}},
+                ConditionExpression="attribute_not_exists(#r)"
+            )
+
 
 class DagState(DAGState):
     ''' Alternative name for Java compatibility '''

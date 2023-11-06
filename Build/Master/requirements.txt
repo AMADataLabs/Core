@@ -73,6 +73,7 @@ tensorflow==2.1.0; platform_system=="Windows"
 tornado==6.3.2 # not directly required, pinned by Snyk to avoid a vulnerability
 twine==4.0.0
 urllib3==1.26.5
+xmltodict==0.13.0
 wheel==0.38.0
 xgboost==1.6.2
 xlrd==2.0.1  # pinned for compatibility
