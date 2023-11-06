@@ -57,5 +57,5 @@ def _convert_boolean_value(value):
 
     return return_value
 
-def _format_snake_case(s):
-    return '_'.join(sub('([A-Z][a-z]+)', r' \1', sub('([A-Z]+)', r' \1', s.replace('-', ' '))).split()).lower()
+def _format_snake_case(text):
+    return '_'.join(sub('([A-Z][a-z]+)', r' \1', sub('([A-Z]+)', r' \1', text.replace('-', ' '))).split()).lower()
