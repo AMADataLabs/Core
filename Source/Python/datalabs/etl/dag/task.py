@@ -2,8 +2,6 @@
 import logging
 
 from   datalabs.access.environment import VariableTree
-from   datalabs.etl.dag.event import EventDrivenDAGMixin
-from   datalabs.poll import TaskNotReady
 from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
@@ -43,7 +41,7 @@ class DAGTaskIDMixin:
         return base_name, iteration
 
 
-class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
+class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
     def _get_task_parameters(self):
         task_parameters = None
 
@@ -69,9 +67,7 @@ class DAGTaskWrapper(DAGTaskIDMixin, EventDrivenDAGMixin, TaskWrapper):
     def _handle_exception(self, exception) -> str:
         super()._handle_exception(exception)
 
-        if isinstance(exception, TaskNotReady):
-            self._handle_task_not_ready(self.task)
-        elif self._task_parameters and self._get_task_id() == "DAG":
+        if self._task_parameters and self._get_task_id() == "DAG":
             self._handle_dag_exception(self.task)
         else:
             self._handle_task_exception(self.task)

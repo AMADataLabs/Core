@@ -2,6 +2,7 @@
 from   dataclasses import dataclass
 import logging
 
+# pylint: disable=import-error
 from mpmath import mp
 from   datalabs.task import Task
 from   datalabs.parameter import add_schema
@@ -26,5 +27,8 @@ class HelloWorldTask(Task):
     def run(self):
         mp.dps = 50
         sqrt_2 = mp.sqrt(2)
-        LOGGER.info('Hello, %s %s! The square root of 2 = %f', self._parameters.first_name, self._parameters.last_name, sqrt_2)
-
+        LOGGER.info(
+            'Hello, %s %s! The square root of 2 = %f',
+            self._parameters.first_name,
+            self._parameters.last_name,sqrt_2
+        )
