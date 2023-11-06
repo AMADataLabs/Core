@@ -38,8 +38,8 @@ class PassportAuthenticatingEndpointMixin:
 
         return token_json['access_token']
 
-    # pylint: disable=unused-argument
-    def _request_ama_token(self, token_headers, token_body, token_url):
+    @classmethod
+    def _request_ama_token(cls, token_headers, token_body, token_url):
         return HTTP.request(
             'POST',
             token_url,

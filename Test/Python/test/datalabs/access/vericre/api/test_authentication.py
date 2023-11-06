@@ -7,7 +7,7 @@ from datalabs.access.vericre.api.authentication import PassportAuthenticatingEnd
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_token_response_error(passport_mixin, parameters, http_request_status_404, self=None):
+def test_token_response_error(passport_mixin, parameters, http_request_status_404):
     with mock.patch(
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._request_ama_token',
             return_value=http_request_status_404
@@ -19,7 +19,7 @@ def test_token_response_error(passport_mixin, parameters, http_request_status_40
            f'Internal Server error caused by: {http_request_status_404.data}, status: {http_request_status_404.status}'
 
 
-def test_get_token(passport_mixin, http_request_status_200, parameters, self=None):
+def test_get_token(passport_mixin, http_request_status_200, parameters):
     with mock.patch(
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._request_ama_token',
             return_value=http_request_status_200

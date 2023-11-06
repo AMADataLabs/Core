@@ -1,6 +1,7 @@
 ''' Performance profiling utilities. '''
 from   datetime import datetime
 import logging
+from   re import sub
 
 import xmltodict
 
@@ -23,7 +24,6 @@ def run_time_logger(func):
 
     return wrapper
 
-
 def parse_xml_to_dict(xml):
     return xmltodict.parse(
         xml.decode("utf-8"),
@@ -31,10 +31,11 @@ def parse_xml_to_dict(xml):
         postprocessor=_xml_format_converter
     )
 
+# pylint: disable=unused-argument
 def _xml_format_converter(path, key, value):
     return_value = None
 
-    if value is not None and type(value) is str:
+    if value is not None and isinstance(value, str):
         try:
             return_value = int(value)
         except ValueError:
@@ -42,12 +43,19 @@ def _xml_format_converter(path, key, value):
     else:
         return_value = value
 
-    return key, return_value
+    return _format_snake_case(key), return_value
 
 def _convert_boolean_value(value):
+    return_value = None
+
     if value.lower() == 'true':
-        return True
+        return_value = True
     elif value.lower() == 'false':
-        return False
+        return_value = False
     else:
-        return value
+        return_value = value
+
+    return return_value
+
+def _format_snake_case(s):
+    return '_'.join(sub('([A-Z][a-z]+)', r' \1', sub('([A-Z]+)', r' \1', s.replace('-', ' '))).split()).lower()
