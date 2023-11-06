@@ -1,6 +1,7 @@
 ''' Performance profiling utilities. '''
 from   datetime import datetime
 import logging
+from   re import sub
 
 import xmltodict
 
@@ -42,7 +43,7 @@ def _xml_format_converter(path, key, value):
     else:
         return_value = value
 
-    return key, return_value
+    return _format_snake_case(key), return_value
 
 def _convert_boolean_value(value):
     if value.lower() == 'true':
@@ -51,3 +52,6 @@ def _convert_boolean_value(value):
         return False
     else:
         return value
+
+def _format_snake_case(s):
+    return '_'.join(sub('([A-Z][a-z]+)', r' \1', sub('([A-Z]+)', r' \1', s.replace('-', ' '))).split()).lower()

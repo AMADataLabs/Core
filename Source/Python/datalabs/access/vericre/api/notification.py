@@ -67,7 +67,7 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
         return notification_list
 
     def _get_notifications_list(self, converted_notifications):
-        notifications = converted_notifications['monitorNotificationList']['notifications']
+        notifications = converted_notifications['monitor_notification_list']['notifications']
         notification_list = []
 
         if isinstance(notifications, dict):
