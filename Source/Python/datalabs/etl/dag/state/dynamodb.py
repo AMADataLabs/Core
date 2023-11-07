@@ -75,7 +75,7 @@ class LockingStateMixin():
 class DAGStateParameters:
     lock_table: str
     state_table: str
-    paused_dag_table: str
+    paused_dag_table: str=None
     endpoint_url: str=None
     access_key: str=None
     secret_key: str=None
