@@ -280,12 +280,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignettes/:cpt_code",
 							"host": [
 								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
-								"vignette",
+								"vignettes",
 								":cpt_code"
 							],
 							"query": [
@@ -298,7 +298,7 @@
 							"variable": [
 								{
 									"key": "cpt_code",
-									"value": "99202"
+									"value": "64491"
 								}
 							]
 						},
@@ -376,12 +376,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignettes/:cpt_code",
 							"host": [
 								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
-								"vignette",
+								"vignettes",
 								":cpt_code"
 							],
 							"query": [
@@ -472,12 +472,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code?additional_information=true",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignettes/:cpt_code?additional_information=true",
 							"host": [
 								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
-								"vignette",
+								"vignettes",
 								":cpt_code"
 							],
 							"query": [
@@ -489,7 +489,7 @@
 							"variable": [
 								{
 									"key": "cpt_code",
-									"value": "99202"
+									"value": "74150"
 								}
 							]
 						},
@@ -567,12 +567,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code?additional_information=true",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignettes/:cpt_code?additional_information=true",
 							"host": [
 								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
-								"vignette",
+								"vignettes",
 								":cpt_code"
 							],
 							"query": [
@@ -672,12 +672,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignette/:cpt_code?additional_information=truedd",
+							"raw": "{{CPT_VIGNETTES_BASE_URL}}/vignettes/:cpt_code?additional_information=truedd",
 							"host": [
 								"{{CPT_VIGNETTES_BASE_URL}}"
 							],
 							"path": [
-								"vignette",
+								"vignettes",
 								":cpt_code"
 							],
 							"query": [
