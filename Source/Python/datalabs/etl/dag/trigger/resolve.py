@@ -6,16 +6,7 @@ from   datalabs.plugin import import_plugin
 from   datalabs import task
 
 
-@add_schema(unknowns=True)
-@dataclass
-class TaskResolverParameters:
-    handler: str
-    unknowns: dict=None
-
-
 class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
-    PARAMETER_CLASS = TaskResolverParameters
-
     @classmethod
     def get_task_class(cls, task_parameters):
         return import_plugin(task_parameters["handler_class"])

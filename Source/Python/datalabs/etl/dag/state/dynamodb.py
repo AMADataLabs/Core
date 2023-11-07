@@ -73,9 +73,9 @@ class LockingStateMixin():
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DAGStateParameters:
-    paused_dag_table: str
     lock_table: str
     state_table: str
+    paused_dag_table: str
     endpoint_url: str=None
     access_key: str=None
     secret_key: str=None

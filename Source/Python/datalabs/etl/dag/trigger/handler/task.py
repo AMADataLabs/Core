@@ -11,6 +11,7 @@ from   datalabs.task import Task
 @dataclass
 class TriggerHandlerParameters:
     dag_topic_arn: str
+    trigger_parameters: dict
     event: dict
     unknowns: dict=None
 
@@ -21,7 +22,7 @@ class TriggerHandlerTask(Task, ABC):
     def run(self) -> "list<bytes>":
         notifier = SNSDAGNotifier(self._parameters.dag_topic_arn)
 
-        dag_parameters = self._get_dag_parameters(self._parameters.event)
+        dag_parameters = self._get_dag_parameters(self._parameters.trigger_parameters, self._parameters.event)
 
         for dag, dynamic_parameters in dag_parameters.items():
             self._notify_dag_processor(notifier, dag, dynamic_parameters)
@@ -29,7 +30,7 @@ class TriggerHandlerTask(Task, ABC):
         return []
 
     @abstractmethod
-    def _get_dag_parameters(self, event: dict) -> dict:
+    def _get_dag_parameters(self, trigger_parameters: dict, event: dict) -> dict:
         pass
 
     def _notify_dag_processor(self, notifier: SNSDAGNotifier, dag: str, dynamic_parameters: dict):
