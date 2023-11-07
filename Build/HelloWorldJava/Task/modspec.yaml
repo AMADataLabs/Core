@@ -16,6 +16,9 @@ modspec:
   - package: datalabs.plugin
   - package: datalabs.task
   - package: datalabs.task.cache
+    include:
+      - TaskDataCache
+      - S3TaskDataCache
   - package: datalabs.tool
     include:
       - TaskRunner
