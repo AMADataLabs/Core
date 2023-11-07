@@ -3,7 +3,7 @@ from   dataclasses import dataclass
 
 from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
-from   Source.Python.datalabs import TaskPackageLoaderMixin
+from   datalabs.task import TaskPackageLoaderMixin
 from   datalabs.plugin import import_plugin
 from   datalabs import task
 

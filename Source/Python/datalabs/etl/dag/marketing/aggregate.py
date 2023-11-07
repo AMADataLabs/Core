@@ -1,8 +1,6 @@
 ''' Marketing Aggregator DAG definition. '''
 from   datalabs.etl.dag import dag
 
-from   datalabs.etl.marketing.aggregate.extract import EmailValidationExtractorTask
-from   datalabs.etl.marketing.aggregate.load import EmailValidationRequestLoaderTask
 from   datalabs.etl.marketing.aggregate.transform import FlatfileUpdaterTask
 from   datalabs.etl.marketing.aggregate.transform import InputDataCleanerTask
 from   datalabs.etl.marketing.aggregate.transform import InputsMergerTask
@@ -21,9 +19,9 @@ class DAG(dag.DAG):
     CREATE_SOURCE_FILE_LISTS: SourceFileListTransformerTask
     EXTRACT_CONTACTS: SQLExtractorTask
     CLEAN_INPUTS: InputDataCleanerTask
-    LOAD_EMAILS_VALIDATION: EmailValidationRequestLoaderTask
-    EXTRACT_EMAILS_VALIDATION: EmailValidationExtractorTask
+    VALIDATE_EXISTING_EMAILS: "datalabs.etl.marketing.aggregate.transform.EmailValidatorTask"
     MERGE_INPUTS: InputsMergerTask
+    VALIDATE_NEW_EMAILS: "datalabs.etl.marketing.aggregate.transform.EmailValidatorTask"
     UPDATE_FLATFILE: FlatfileUpdaterTask
     PRUNE_SFMC_ITEMS: SFMCPrunerTask
     LOAD_FLATFILE: SFTPFileLoaderTask
@@ -32,18 +30,18 @@ class DAG(dag.DAG):
 # pylint: disable=pointless-statement
 DAG.EXTRACT_INPUT_PATHS >> DAG.CREATE_SOURCE_FILE_LISTS >> DAG.CLEAN_INPUTS
 
-DAG.EXTRACT_CONTACTS >> DAG.LOAD_EMAILS_VALIDATION >> DAG.EXTRACT_EMAILS_VALIDATION
+DAG.EXTRACT_CONTACTS >> DAG.VALIDATE_EXISTING_EMAILS
 DAG.EXTRACT_CONTACTS >> DAG.UPDATE_FLATFILE
 
-DAG.CLEAN_INPUTS >> DAG.LOAD_EMAILS_VALIDATION >> DAG.EXTRACT_EMAILS_VALIDATION
+DAG.CLEAN_INPUTS >> DAG.VALIDATE_EXISTING_EMAILS
 DAG.CLEAN_INPUTS >> DAG.MERGE_INPUTS
 
-DAG.EXTRACT_EMAILS_VALIDATION >> DAG.UPDATE_FLATFILE
-DAG.EXTRACT_EMAILS_VALIDATION >> DAG.LOAD_EMAILS_VALIDATION >> DAG.EXTRACT_EMAILS_VALIDATION
+DAG.VALIDATE_EXISTING_EMAILS >> DAG.UPDATE_FLATFILE
+DAG.VALIDATE_EXISTING_EMAILS >> DAG.VALIDATE_NEW_EMAILS
 
-DAG.MERGE_INPUTS >> DAG.LOAD_EMAILS_VALIDATION >> DAG.EXTRACT_EMAILS_VALIDATION
+DAG.MERGE_INPUTS >> DAG.VALIDATE_NEW_EMAILS
 
-DAG.EXTRACT_EMAILS_VALIDATION >> DAG.UPDATE_FLATFILE
+DAG.VALIDATE_NEW_EMAILS >> DAG.UPDATE_FLATFILE
 
 DAG.UPDATE_FLATFILE >> DAG.LOAD_FLATFILE
 DAG.UPDATE_FLATFILE >> DAG.PRUNE_SFMC_ITEMS >> DAG.UPDATE_CONTACT_TABLE

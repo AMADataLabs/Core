@@ -203,6 +203,7 @@ class TaskWrapper(ABC):
             LOGGER.debug('%s %d bytes.', operation, len(datum))
 
 
+# pylint: disable=subprocess-run-check
 class TaskPackageLoaderMixin:
     @classmethod
     def _load_task_package(cls, parameters: dict):
@@ -236,4 +237,3 @@ class RuntimeTaskResolver(TaskResolver):
         task_class_name = task_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)
-

@@ -11,7 +11,7 @@ class TriggerHandlerTask(task.TriggerHandlerTask):
         '''
         paused_dags = dict(
             MARKETING_AGGREGATOR={"execution_time": ...},
-            PAUSED_DAG={"execution_time": ...}
+            PAUSED_DAG={"execution_time": ...},
         )
 
         return paused_dags
