@@ -150,7 +150,7 @@ VERICRE_API:
         PDF_URL: ${PROFILE_PDF_URL}
 
     MONITOR:
-        TASK_CLASS:  'datalabs.access.vericre.api.notification.MonitorNotificationEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
 
     MONITOR_NOTIFICATIONS:
         TASK_CLASS:  'datalabs.access.vericre.api.notification.MonitorNotificationsEndpointTask'
@@ -160,7 +160,7 @@ VERICRE_API:
         NOTIFICATION_URL: ${MONITOR_NOTIFICATION_URL}
 
     MONITOR_NOTIFICATION:
-        TASK_CLASS:  'datalabs.access.vericre.api.notification.MonitorNotificationEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
