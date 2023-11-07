@@ -24,12 +24,14 @@ def run_time_logger(func):
 
     return wrapper
 
+
 def parse_xml_to_dict(xml):
     return xmltodict.parse(
         xml.decode("utf-8"),
         xml_attribs=False,
         postprocessor=_xml_format_converter
     )
+
 
 # pylint: disable=unused-argument
 def _xml_format_converter(path, key, value):
@@ -45,6 +47,7 @@ def _xml_format_converter(path, key, value):
 
     return _format_snake_case(key), return_value
 
+
 def _convert_boolean_value(value):
     return_value = None
 
@@ -57,5 +60,17 @@ def _convert_boolean_value(value):
 
     return return_value
 
+
 def _format_snake_case(text):
     return '_'.join(sub('([A-Z][a-z]+)', r' \1', sub('([A-Z]+)', r' \1', text.replace('-', ' '))).split()).lower()
+
+
+def get_list_without_tags(original_list):
+    objects = []
+
+    if isinstance(original_list, dict):
+        objects.append(original_list)
+    else:
+        objects = original_list
+
+    return objects
