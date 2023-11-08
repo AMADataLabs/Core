@@ -27,7 +27,9 @@ VERICRE_API:
         PROFILE_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/profile/full'
         PROFILE_PDF_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/pdf/full'
 
-        MONITOR_NOTIFICATION_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/monitor/notifications'
+        MONITOR_URL: '${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/monitor'
+        MONITOR_NOTIFICATION_URL: 'https://${MONITOR_URL}/notifications'
+        MONITOR_ENTITY_URL: 'https://${MONITOR_URL}/entities'
 
         CAQH_USERNAME: 'DeepakA123'
         CAQH_PASSWORD: '{{caqh_password}}'
@@ -46,7 +48,8 @@ VERICRE_API:
         PROFILE_DOCUMENTS:          '/profile_api/profile/*/documents'
         PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
         PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
-        MONITOR_NOTIFICATIONS:      '/profile_api/profile/monitor/notifications'
+        MONITOR_NOTIFICATIONS:      '/profile_api/profiles/monitor/notifications'
+        MONITOR_ENTITIES:           '/profile_api/profiles/monitor'
         DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
@@ -145,6 +148,13 @@ VERICRE_API:
         CLIENT_SECRET: ${PROFILE_API_SECRET}
         TOKEN_URL: ${PROFILE_TOKEN_URL}
         NOTIFICATION_URL: ${MONITOR_NOTIFICATION_URL}
+
+    MONITOR_ENTITIES:
+        TASK_CLASS: 'datalabs.access.vericre.api.notification.MonitorEntitiesEndpointTask'
+        CLIENT_ID: ${PROFILE_API_ID}
+        CLIENT_SECRET: ${PROFILE_API_SECRET}
+        TOKEN_URL: ${PROFILE_TOKEN_URL}
+        ENTITY_URL: ${MONITOR_ENTITY_URL}
 
     DEFAULT:
         TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
