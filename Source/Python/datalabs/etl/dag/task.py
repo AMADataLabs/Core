@@ -65,8 +65,6 @@ class DAGTaskWrapper(DAGTaskIDMixin, TaskWrapper):
         return "Success"
 
     def _handle_exception(self, exception) -> str:
-        super()._handle_exception(exception)
-
         if self._task_parameters and self._get_task_id() == "DAG":
             self._handle_dag_exception(self.task)
         else:

@@ -1,9 +1,12 @@
 """ Event-driven DAG classes """
+from   abc import abstractmethod
+import json
 import logging
 
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
 from   datalabs.etl.dag.notify.webhook import StatusWebHookNotifier
 from   datalabs.etl.dag.state import Status, StatefulDAGMixin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -55,8 +58,6 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
 
         if dag_state:
             dag_state.pause_dag(dag, task, execution_time)
-
-        raise NotImplementedError('DAG task has paused.')
 
     def _update_dag_status_on_success(self, dag, dag_state):
         dag_id = self._get_dag_id()
@@ -132,3 +133,27 @@ class EventDrivenDAGMixin(StatefulDAGMixin):
             environment = self._task_parameters.get("ENVIRONMENT")
             notifier = StatusWebHookNotifier(urls, environment)
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
+
+class ExternalConditionPollingTask(Task):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
+        self._request_parameters = None
+
+    def run(self):
+        self._request_parameters = json.loads(self._data[0])
+
+        if not self._is_ready():
+            raise TaskNotReady('Task is not ready to finish.')
+
+        return [json.dumps(self._create_results_parameters()).encode()]
+
+    @abstractmethod
+    def _is_ready(self):
+        pass
+
+    def _create_results_parameters(self):
+        return self._request_parameters
+
+
+class TaskNotReady(Exception):
+    pass
