@@ -161,8 +161,6 @@ class DeaTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
@@ -180,13 +178,13 @@ class DeaTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         dea["address"] = address.to_json(orient="records")
 
         aggregated_dea = dea_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_dea["dea"] = dea.to_json(orient="records")
+        aggregated_dea["dea"] = dea.to_dict(orient="records")
         aggregated_dea = aggregated_dea.groupby("entityId")["dea"].apply(list).reset_index()
 
         aggregated_dea.sort_values('entityId')
 
         aggregated_dea['dea'] = aggregated_dea['dea'].apply(
-            lambda x: sorted(x, key=lambda item: str(item['lastReportedDate']))
+            lambda x: json.dumps(sorted(x, key=lambda item: str(item['lastReportedDate'])))
         )
 
         return aggregated_dea
@@ -221,8 +219,6 @@ class NPITransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
 
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile.reset_index())]
 
     @classmethod
@@ -245,12 +241,6 @@ class NPITransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return ama_masterfile
 
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "npi"] = ama_masterfile.loc[:, "npi"].apply(pickle.dumps)
-
-        return ama_masterfile
-
 
 @add_schema
 @dataclass
@@ -268,8 +258,6 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         ama_masterfile = self._create_medical_schools(med_sch_data)
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
-
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -299,12 +287,6 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return ama_masterfile
 
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "medicalSchools"] = ama_masterfile.loc[:, "medicalSchools"].apply(pickle.dumps)
-
-        return ama_masterfile
-
 
 @add_schema
 @dataclass
@@ -322,8 +304,6 @@ class ABMSTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         ama_masterfile = self._create_abms(abms_data)
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
-
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -349,12 +329,6 @@ class ABMSTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return ama_masterfile
 
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "abms"] = ama_masterfile.loc[:, "abms"].apply(pickle.dumps)
-
-        return ama_masterfile
-
 
 @add_schema
 @dataclass
@@ -372,8 +346,6 @@ class MedicalTrainingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         ama_masterfile = self._create_medical_training(med_train_data)
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
-
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -398,12 +370,6 @@ class MedicalTrainingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return ama_masterfile
 
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "medicalTraining"] = ama_masterfile.loc[:, "medicalTraining"].apply(pickle.dumps)
-
-        return ama_masterfile
-
 
 @add_schema
 @dataclass
@@ -421,8 +387,6 @@ class LicensesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         ama_masterfile = self._create_licenses(license_data)
 
         ama_masterfile = self._fill_nulls(ama_masterfile)
-
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -446,12 +410,6 @@ class LicensesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return ama_masterfile
 
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "licenses"] = ama_masterfile.loc[:, "licenses"].apply(pickle.dumps)
-
-        return ama_masterfile
-
 
 @add_schema
 @dataclass
@@ -469,8 +427,6 @@ class SanctionsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         ama_masterfile = self._create_sanctions(sanctions_data)
 
         ama_masterfile = self._fill_null_sanctions(ama_masterfile)
-
-        # ama_masterfile = self._pickle_masterfile(ama_masterfile)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -616,12 +572,6 @@ class SanctionsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         null_sanctions["stateSanctions"] = {"state": []}
 
         ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [null_sanctions]
-
-        return ama_masterfile
-
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "sanctions"] = ama_masterfile.loc[:, "sanctions"].apply(pickle.dumps)
 
         return ama_masterfile
 
