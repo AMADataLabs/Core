@@ -4,8 +4,8 @@ import  json
 import  pytest
 import  mock
 
-from    Test.Python.test.datalabs.access.vericre.api import constants
 from    datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointTask, MonitorProfilesEndpointTask
+from    Test.Python.test.datalabs.access.vericre.api import constants
 
 
 # # pylint: disable=redefined-outer-name, protected-access
