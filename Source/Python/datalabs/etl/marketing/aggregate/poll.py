@@ -4,7 +4,7 @@ import logging
 
 from   datalabs.access.atdata import AtData
 from   datalabs.parameter import add_schema
-from   datalabs.poll import ExternalConditionPollingTask
+from   datalabs.etl.dag.event import ExternalConditionPollingTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

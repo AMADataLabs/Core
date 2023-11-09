@@ -41,6 +41,7 @@ def get_measurement_methods():
     folder = os.environ.get('LOCAL_OUT')
     measurement_methods_file = f'{folder}Measurement_Methods.xlsx'
     measurement_methods = pd.read_excel(measurement_methods_file)
+    print(measurement_methods_file)
     return measurement_methods
 
 def fix_me(me_list):
