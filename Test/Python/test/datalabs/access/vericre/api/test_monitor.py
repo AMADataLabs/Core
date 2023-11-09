@@ -5,10 +5,10 @@ import  pytest
 import  mock
 
 from    Test.Python.test.datalabs.access.vericre.api import constants
-from    datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointTask, MonitorEntitiesEndpointTask
+from    datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointTask, MonitorProfilesEndpointTask
 
 
-def test_get_notifications(notification_event, get_notification_response):
+def test_get_notifications(monitor_notifications_params, get_notification_response):
     with mock.patch(
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
             return_value="token"
@@ -16,7 +16,7 @@ def test_get_notifications(notification_event, get_notification_response):
         'datalabs.access.vericre.api.monitor.MonitorNotificationsEndpointTask._request_notifications',
         return_value=get_notification_response
     ):
-        task = MonitorNotificationsEndpointTask(notification_event)
+        task = MonitorNotificationsEndpointTask(monitor_notifications_params)
         task.run()
 
     expected_json = json.loads(constants.SAMPLE_NOTIFICATION_JSON)
@@ -25,18 +25,18 @@ def test_get_notifications(notification_event, get_notification_response):
     assert expected_json == json.loads(task_response)
 
 
-def test_get_entities(entity_event, get_entity_response):
+def test_get_profile_monitors(entity_event, monitor_profiles_params):
     with mock.patch(
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
             return_value="token"
     ), mock.patch(
-        'datalabs.access.vericre.api.monitor.MonitorEntitiesEndpointTask._get_entities',
-        return_value=get_entity_response
+        'datalabs.access.vericre.api.monitor.MonitorProfilesEndpointTask._get_profile_monitors',
+        return_value=monitor_profiles_params
     ):
-        task = MonitorEntitiesEndpointTask(entity_event)
+        task = MonitorProfilesEndpointTask(entity_event)
         task.run()
 
-    expected_json = json.loads(constants.SAMPLE_ENTITY_JSON)
+    expected_json = json.loads(constants.SAMPLE_MONITOR_JSON)
     task_response = json.dumps(task._response_body)
 
     assert expected_json == json.loads(task_response)
@@ -52,23 +52,23 @@ def get_notification_response():
 
 
 @pytest.fixture
-def get_entity_response():
+def monitor_profiles_params():
     mock_response = mock.Mock()
     mock_response.status = 200
-    mock_response.data = constants.SAMPLE_ENTITY_XML.encode("utf-8")
-    mock_response.decode.return_value = constants.SAMPLE_ENTITY_XML
+    mock_response.data = constants.SAMPLE_MONITOR_XML.encode("utf-8")
+    mock_response.decode.return_value = constants.SAMPLE_MONITOR_XML
     return mock_response
 
 
 @pytest.fixture
-def notification_event():
+def monitor_notifications_params():
     return dict(
         path={},
         query={},
         client_id='',
         client_secret='',
         token_url='',
-        notification_url='',
+        monitor_notification_url='',
         method=''
     )
 
@@ -81,6 +81,6 @@ def entity_event():
         client_id='',
         client_secret='',
         token_url='',
-        entity_url='',
+        monitor_profile_url='',
         method=''
     )

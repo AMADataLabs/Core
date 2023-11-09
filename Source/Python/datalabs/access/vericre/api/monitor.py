@@ -1,14 +1,14 @@
 """ Release endpoint classes."""
-from   dataclasses import dataclass
+from dataclasses import dataclass
 import logging
 
 import urllib3
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
-from   datalabs.access.vericre.api.authentication import PassportAuthenticatingEndpointMixin
-from   datalabs.access.vericre.api.header import PROFILE_HEADERS
-from   datalabs.parameter import add_schema
-from   datalabs.util.profile import parse_xml_to_dict, get_list_without_tags
+from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from datalabs.access.vericre.api.authentication import PassportAuthenticatingEndpointMixin
+from datalabs.access.vericre.api.header import PROFILE_HEADERS
+from datalabs.parameter import add_schema
+from datalabs.util.profile import parse_xml_to_dict, get_list_without_tags
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class MonitorNotificationsEndpointParameters:
     client_id: str
     client_secret: str
     token_url: str
-    notification_url: str
+    monitor_notification_url: str
 
 
 class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
@@ -72,7 +72,7 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
 
         return self.HTTP.request(
             'GET',
-            f'{self._parameters.notification_url}',
+            f'{self._parameters.monitor_notification_url}',
             headers=header
         )
 
@@ -84,35 +84,35 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class MonitorEntitiesEndpointParameters:
+class MonitorProfilesEndpointParameters:
     method: str
     path: dict
     query: dict
     client_id: str
     client_secret: str
     token_url: str
-    entity_url: str
+    monitor_profile_url: str
 
 
-class MonitorEntitiesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorEntitiesEndpointParameters
+class MonitorProfilesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = MonitorProfilesEndpointParameters
 
     def run(self):
-        LOGGER.debug('Parameters in MonitorEntitiesEndpointTask: %s', self._parameters)
+        LOGGER.debug('Parameters in MonitorProfilesEndpointTask: %s', self._parameters)
 
         access_token = self._get_passport_access_token(self._parameters)
 
-        entity_response = self._get_entities(access_token)
+        monitor_profiles_response = self._get_profile_monitors(access_token)
 
-        response_result = self._convert_response_to_json(entity_response)
+        response_result = self._convert_response_to_json(monitor_profiles_response)
 
         self._response_body = response_result
 
-    def _get_entities(self, access_token):
-        response = self._request_entities(access_token)
+    def _get_profile_monitors(self, access_token):
+        response = self._request_monitors(access_token)
 
         if response.status == 204:
-            raise ResourceNotFound('No entities found.')
+            raise ResourceNotFound('No profile monitors found.')
 
         if response.status != 200:
             raise InternalServerError(
@@ -121,19 +121,19 @@ class MonitorEntitiesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpoi
 
         return response
 
-    def _convert_response_to_json(self, entity_response):
-        converted_entities = parse_xml_to_dict(entity_response.data)
+    def _convert_response_to_json(self, monitor_profiles_response):
+        converted_monitors = parse_xml_to_dict(monitor_profiles_response.data)
 
-        entity_list = get_list_without_tags(converted_entities['monitor_list']['entries'])
+        monitor_list = get_list_without_tags(converted_monitors['monitor_list']['entries'])
 
-        return entity_list
+        return monitor_list
 
-    def _request_entities(self, access_token):
+    def _request_monitors(self, access_token):
         header = PROFILE_HEADERS.copy()
         header['Authorization'] = f'Bearer {access_token}'
 
         return self.HTTP.request(
             'GET',
-            f'{self._parameters.entity_url}',
+            f'{self._parameters.monitor_profile_url}',
             headers=header
         )

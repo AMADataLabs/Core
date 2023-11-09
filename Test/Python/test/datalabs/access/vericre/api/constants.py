@@ -42,7 +42,7 @@ SAMPLE_NOTIFICATION_JSON = """
     }]
 """
 
-SAMPLE_ENTITY_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+SAMPLE_MONITOR_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <monitorList xmlns="http://eprofiles.myama.com/core/">
     <entries>
         <entityId>11111</entityId>
@@ -58,7 +58,7 @@ SAMPLE_ENTITY_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     </entries>
 </monitorList>"""
 
-SAMPLE_ENTITY_JSON = """
+SAMPLE_MONITOR_JSON = """
 [
   {
     "entity_id": 11111,
