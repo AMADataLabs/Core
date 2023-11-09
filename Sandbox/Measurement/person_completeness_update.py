@@ -18,10 +18,11 @@ def person_completeness(get_new_data):
     if get_new_data:
         data_file = person_data.person()
     else:
-        data_file = connection.get_newest(path,'Person_Data_2023-05-17')
+        data_file = connection.get_newest(path,'Person_Data')
     data = pd.read_csv(data_file, low_memory=False)
+    print(len(data))
     methods = measurement.get_methods(methods_df, 'COMPLETENESS','Person')
-    person_completeness = measurement.measure_column(methods, data)
+    person_completeness = measurement.measure_completeness(methods, data)
 
     person_filename = f'{path}Person_Completeness_{today}.csv'
     person_completeness.to_csv(person_filename, index=False)

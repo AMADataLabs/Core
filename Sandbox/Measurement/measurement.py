@@ -58,7 +58,7 @@ def fill(raw_value, measurement_parameters):
     return measure
 
 def fill_column(data, measurement_parameters):
-    measurement_parameters.value.extend(['', '-1', ' ', None, 'none'])
+    measurement_parameters.value.extend(['', '-1', ' ', None, 'none', 'nan'])
     data[measurement_parameters.element] = [str(x).replace('.0', '') for x in data[measurement_parameters.element]]
     fill = ~(data[measurement_parameters.element].isin(measurement_parameters.value))&~(data[measurement_parameters.element].isna())
     return fill
@@ -175,7 +175,7 @@ def measure_row(row_dict, methods_df, measure):
             continue
     return dict_list
 
-def measure_column(methods, data):
+def measure_completeness(methods, data):
     measure_df = pd.DataFrame()
     for key in methods.keys():
         
@@ -187,6 +187,27 @@ def measure_column(methods, data):
         else:
             new_df = data[['ME']].copy()
         measured = fill_column(data, methods[key])
+        new_df['ELEMENT'] = key
+        new_df['MEASURE'] = methods[key].measure
+        new_df['VALUE'] = measured
+        new_df['RAW_VALUE'] = list(data[key])
+        measure_df = pd.concat([measure_df, new_df])
+
+    return measure_df
+
+def measure_validity(methods, data):
+    measure_df = pd.DataFrame()
+    for key in methods.keys():
+        if methods[key].condition_indicator:
+            if methods[key].condition_is_not:
+                new_df = data[~data[methods[key].condition_column].isin(methods[key].condition_value)][['ME']].copy()
+            else:
+                new_df = data[data[methods[key].condition_column].isin(methods[key].condition_value)][['ME']].copy()
+        else:
+            new_df = data[['ME']].copy()
+        measured = fill_column(data, methods[key])
+
+        
         new_df['ELEMENT'] = key
         new_df['MEASURE'] = methods[key].measure
         new_df['VALUE'] = measured
