@@ -1,11 +1,11 @@
-""" source: datalabs.access.vericre.notification """
+""" source: datalabs.access.vericre.monitor """
 import  json
 
 import  pytest
 import  mock
 
 from    Test.Python.test.datalabs.access.vericre.api import constants
-from    datalabs.access.vericre.api.notification import MonitorNotificationsEndpointTask, MonitorEntitiesEndpointTask
+from    datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointTask, MonitorEntitiesEndpointTask
 
 
 def test_get_notifications(notification_event, get_notification_response):
@@ -13,7 +13,7 @@ def test_get_notifications(notification_event, get_notification_response):
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
             return_value="token"
     ), mock.patch(
-        'datalabs.access.vericre.api.notification.MonitorNotificationsEndpointTask._request_notifications',
+        'datalabs.access.vericre.api.monitor.MonitorNotificationsEndpointTask._request_notifications',
         return_value=get_notification_response
     ):
         task = MonitorNotificationsEndpointTask(notification_event)
@@ -30,7 +30,7 @@ def test_get_entities(entity_event, get_entity_response):
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
             return_value="token"
     ), mock.patch(
-        'datalabs.access.vericre.api.notification.MonitorEntitiesEndpointTask._get_entities',
+        'datalabs.access.vericre.api.monitor.MonitorEntitiesEndpointTask._get_entities',
         return_value=get_entity_response
     ):
         task = MonitorEntitiesEndpointTask(entity_event)
