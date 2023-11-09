@@ -8,6 +8,7 @@ from    Test.Python.test.datalabs.access.vericre.api import constants
 from    datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointTask, MonitorProfilesEndpointTask
 
 
+# # pylint: disable=redefined-outer-name, protected-access
 def test_get_notifications(monitor_notifications_params, get_notification_response):
     with mock.patch(
             "datalabs.access.vericre.api.authentication.EProfilesAuthenticatingEndpointMixin."
@@ -26,6 +27,7 @@ def test_get_notifications(monitor_notifications_params, get_notification_respon
     assert expected_json == json.loads(task_response)
 
 
+# # pylint: disable=redefined-outer-name, protected-access
 def test_get_profile_monitors(monitor_profiles_params, get_profiles_response):
     with mock.patch(
             "datalabs.access.vericre.api.authentication.EProfilesAuthenticatingEndpointMixin."

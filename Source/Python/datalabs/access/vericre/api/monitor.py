@@ -65,7 +65,8 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
 
         return response
 
-    def _convert_response_to_json(self, notification_response):
+    @classmethod
+    def _convert_response_to_json(cls, notification_response):
         converted_notifications = parse_xml_to_dict(notification_response.data)
 
         notification_list = get_list_without_tags(converted_notifications['monitor_notification_list']['notifications'])
@@ -130,7 +131,8 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
 
         return response
 
-    def _convert_response_to_json(self, monitor_profiles_response):
+    @classmethod
+    def _convert_response_to_json(cls, monitor_profiles_response):
         converted_monitors = parse_xml_to_dict(monitor_profiles_response.data)
 
         monitor_list = get_list_without_tags(converted_monitors['monitor_list']['entries'])
@@ -148,4 +150,3 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         self._response_body = response
 
         self._headers = {"Content-Type": "application/json"}
-
