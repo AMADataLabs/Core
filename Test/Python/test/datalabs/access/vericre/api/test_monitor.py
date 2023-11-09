@@ -25,15 +25,15 @@ def test_get_notifications(monitor_notifications_params, get_notification_respon
     assert expected_json == json.loads(task_response)
 
 
-def test_get_profile_monitors(entity_event, monitor_profiles_params):
+def test_get_profile_monitors(monitor_profiles_params, get_profiles_response):
     with mock.patch(
             'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
             return_value="token"
     ), mock.patch(
         'datalabs.access.vericre.api.monitor.MonitorProfilesEndpointTask._get_profile_monitors',
-        return_value=monitor_profiles_params
+        return_value=get_profiles_response
     ):
-        task = MonitorProfilesEndpointTask(entity_event)
+        task = MonitorProfilesEndpointTask(monitor_profiles_params)
         task.run()
 
     expected_json = json.loads(constants.SAMPLE_MONITOR_JSON)
@@ -52,7 +52,7 @@ def get_notification_response():
 
 
 @pytest.fixture
-def monitor_profiles_params():
+def get_profiles_response():
     mock_response = mock.Mock()
     mock_response.status = 200
     mock_response.data = constants.SAMPLE_MONITOR_XML.encode("utf-8")
@@ -74,7 +74,7 @@ def monitor_notifications_params():
 
 
 @pytest.fixture
-def entity_event():
+def monitor_profiles_params():
     return dict(
         path={},
         query={},
