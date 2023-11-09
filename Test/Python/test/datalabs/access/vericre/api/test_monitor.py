@@ -10,7 +10,8 @@ from    datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointT
 
 def test_get_notifications(monitor_notifications_params, get_notification_response):
     with mock.patch(
-            'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
+            "datalabs.access.vericre.api.authentication.EProfilesAuthenticatingEndpointMixin."
+            "_authenticate_to_eprofiles",
             return_value="token"
     ), mock.patch(
         'datalabs.access.vericre.api.monitor.MonitorNotificationsEndpointTask._request_notifications',
@@ -27,7 +28,8 @@ def test_get_notifications(monitor_notifications_params, get_notification_respon
 
 def test_get_profile_monitors(monitor_profiles_params, get_profiles_response):
     with mock.patch(
-            'datalabs.access.vericre.api.authentication.PassportAuthenticatingEndpointMixin._get_passport_access_token',
+            "datalabs.access.vericre.api.authentication.EProfilesAuthenticatingEndpointMixin."
+            "_authenticate_to_eprofiles",
             return_value="token"
     ), mock.patch(
         'datalabs.access.vericre.api.monitor.MonitorProfilesEndpointTask._get_profile_monitors',

@@ -1,11 +1,12 @@
 """ Release endpoint classes."""
 from dataclasses import dataclass
 import logging
+from typing import List, Optional
 
 import urllib3
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
-from datalabs.access.vericre.api.authentication import PassportAuthenticatingEndpointMixin
+from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
 from datalabs.access.vericre.api.header import PROFILE_HEADERS
 from datalabs.parameter import add_schema
 from datalabs.util.profile import parse_xml_to_dict, get_list_without_tags
@@ -32,22 +33,27 @@ class MonitorNotificationsEndpointParameters:
     monitor_notification_url: str
 
 
-class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
     PARAMETER_CLASS = MonitorNotificationsEndpointParameters
+
+    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
+        super().__init__(parameters, data)
+        self._http = urllib3.PoolManager()
+        self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
         LOGGER.debug('Parameters in MonitorNotificationsEndpointTask: %s', self._parameters)
 
-        access_token = self._get_passport_access_token(self._parameters)
+        self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        notification_response = self._get_notifications(access_token)
+        notification_response = self._get_notifications()
 
         response_result = self._convert_response_to_json(notification_response)
 
-        self._response_body = self._generate_response_body(response_result)
+        self._generate_response(response_result)
 
-    def _get_notifications(self, access_token):
-        response = self._request_notifications(access_token)
+    def _get_notifications(self):
+        response = self._request_notifications()
 
         if response.status == 204:
             raise ResourceNotFound('No notifications found.')
@@ -66,19 +72,17 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
 
         return notification_list
 
-    def _request_notifications(self, access_token):
-        header = PROFILE_HEADERS.copy()
-        header['Authorization'] = f'Bearer {access_token}'
-
+    def _request_notifications(self):
         return self.HTTP.request(
             'GET',
             f'{self._parameters.monitor_notification_url}',
-            headers=header
+            headers=self._headers
         )
 
-    @classmethod
-    def _generate_response_body(cls, response):
-        return response
+    def _generate_response(self, response):
+        self._response_body = response
+
+        self._headers = {"Content-Type": "application/json"}
 
 
 @add_schema(unknowns=True)
@@ -94,22 +98,27 @@ class MonitorProfilesEndpointParameters:
     monitor_profile_url: str
 
 
-class MonitorProfilesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
     PARAMETER_CLASS = MonitorProfilesEndpointParameters
+
+    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
+        super().__init__(parameters, data)
+        self._http = urllib3.PoolManager()
+        self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
         LOGGER.debug('Parameters in MonitorProfilesEndpointTask: %s', self._parameters)
 
-        access_token = self._get_passport_access_token(self._parameters)
+        self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        monitor_profiles_response = self._get_profile_monitors(access_token)
+        monitor_profiles_response = self._get_profile_monitors()
 
         response_result = self._convert_response_to_json(monitor_profiles_response)
 
-        self._response_body = response_result
+        self._generate_response(response_result)
 
-    def _get_profile_monitors(self, access_token):
-        response = self._request_monitors(access_token)
+    def _get_profile_monitors(self):
+        response = self._request_monitors()
 
         if response.status == 204:
             raise ResourceNotFound('No profile monitors found.')
@@ -128,12 +137,15 @@ class MonitorProfilesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpoi
 
         return monitor_list
 
-    def _request_monitors(self, access_token):
-        header = PROFILE_HEADERS.copy()
-        header['Authorization'] = f'Bearer {access_token}'
-
+    def _request_monitors(self):
         return self.HTTP.request(
             'GET',
             f'{self._parameters.monitor_profile_url}',
-            headers=header
+            headers=self._headers
         )
+
+    def _generate_response(self, response):
+        self._response_body = response
+
+        self._headers = {"Content-Type": "application/json"}
+
