@@ -5,7 +5,7 @@ import logging
 import urllib3
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
-from datalabs.access.vericre.api.authentication import PassportAuthenticatingEndpointMixin
+from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
 from datalabs.access.vericre.api.header import PROFILE_HEADERS
 from datalabs.parameter import add_schema
 from datalabs.util.profile import parse_xml_to_dict, get_list_without_tags
@@ -32,13 +32,13 @@ class MonitorNotificationsEndpointParameters:
     monitor_notification_url: str
 
 
-class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
     PARAMETER_CLASS = MonitorNotificationsEndpointParameters
 
     def run(self):
-        LOGGER.debug('Parameters in MonitorNotificationsEndpointTask: %s', self._parameters)
+        LOGGER.debug("Parameters in MonitorNotificationsEndpointTask: %s", self._parameters)
 
-        access_token = self._get_passport_access_token(self._parameters)
+        access_token = self._get_eprofiles_access_token(self._parameters)
 
         notification_response = self._get_notifications(access_token)
 
@@ -50,31 +50,25 @@ class MonitorNotificationsEndpointTask(PassportAuthenticatingEndpointMixin, APIE
         response = self._request_notifications(access_token)
 
         if response.status == 204:
-            raise ResourceNotFound('No notifications found.')
+            raise ResourceNotFound("No notifications found.")
 
         if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.reason}, status: {response.status}'
-            )
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
 
         return response
 
     def _convert_response_to_json(self, notification_response):
         converted_notifications = parse_xml_to_dict(notification_response.data)
 
-        notification_list = get_list_without_tags(converted_notifications['monitor_notification_list']['notifications'])
+        notification_list = get_list_without_tags(converted_notifications["monitor_notification_list"]["notifications"])
 
         return notification_list
 
     def _request_notifications(self, access_token):
         header = PROFILE_HEADERS.copy()
-        header['Authorization'] = f'Bearer {access_token}'
+        header["Authorization"] = f"Bearer {access_token}"
 
-        return self.HTTP.request(
-            'GET',
-            f'{self._parameters.monitor_notification_url}',
-            headers=header
-        )
+        return self.HTTP.request("GET", f"{self._parameters.monitor_notification_url}", headers=header)
 
     @classmethod
     def _generate_response_body(cls, response):
@@ -94,13 +88,13 @@ class MonitorProfilesEndpointParameters:
     monitor_profile_url: str
 
 
-class MonitorProfilesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
     PARAMETER_CLASS = MonitorProfilesEndpointParameters
 
     def run(self):
-        LOGGER.debug('Parameters in MonitorProfilesEndpointTask: %s', self._parameters)
+        LOGGER.debug("Parameters in MonitorProfilesEndpointTask: %s", self._parameters)
 
-        access_token = self._get_passport_access_token(self._parameters)
+        access_token = self._get_eprofiles_access_token(self._parameters)
 
         monitor_profiles_response = self._get_profile_monitors(access_token)
 
@@ -112,28 +106,22 @@ class MonitorProfilesEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpoi
         response = self._request_monitors(access_token)
 
         if response.status == 204:
-            raise ResourceNotFound('No profile monitors found.')
+            raise ResourceNotFound("No profile monitors found.")
 
         if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.reason}, status: {response.status}'
-            )
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
 
         return response
 
     def _convert_response_to_json(self, monitor_profiles_response):
         converted_monitors = parse_xml_to_dict(monitor_profiles_response.data)
 
-        monitor_list = get_list_without_tags(converted_monitors['monitor_list']['entries'])
+        monitor_list = get_list_without_tags(converted_monitors["monitor_list"]["entries"])
 
         return monitor_list
 
     def _request_monitors(self, access_token):
         header = PROFILE_HEADERS.copy()
-        header['Authorization'] = f'Bearer {access_token}'
+        header["Authorization"] = f"Bearer {access_token}"
 
-        return self.HTTP.request(
-            'GET',
-            f'{self._parameters.monitor_profile_url}',
-            headers=header
-        )
+        return self.HTTP.request("GET", f"{self._parameters.monitor_profile_url}", headers=header)

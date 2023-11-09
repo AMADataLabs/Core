@@ -1,6 +1,5 @@
-""" source: datalabs.access.vericre.api.constants """
+""" constant values for VeriCre API unit tests """
 
-# constant values for the Vericred API
 SAMPLE_NOTIFICATION_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <monitorNotificationList xmlns="http://eprofiles.myama.com/core/">
     <notifications>
@@ -22,6 +21,7 @@ SAMPLE_NOTIFICATION_XML = """<?xml version="1.0" encoding="UTF-8" standalone="ye
     </notifications>
 </monitorNotificationList>"""
 
+
 SAMPLE_NOTIFICATION_JSON = """
     [{
         "notification_id": 999999,
@@ -42,6 +42,7 @@ SAMPLE_NOTIFICATION_JSON = """
     }]
 """
 
+
 SAMPLE_MONITOR_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <monitorList xmlns="http://eprofiles.myama.com/core/">
     <entries>
@@ -57,6 +58,7 @@ SAMPLE_MONITOR_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <monitorExpirationDate>2025-03-3</monitorExpirationDate>
     </entries>
 </monitorList>"""
+
 
 SAMPLE_MONITOR_JSON = """
 [
