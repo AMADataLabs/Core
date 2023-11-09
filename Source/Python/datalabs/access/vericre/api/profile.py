@@ -1,643 +1,442 @@
 """ Release endpoint classes."""
-import base64
-import cgi
-from   dataclasses import dataclass
-from   datetime import datetime
-import hashlib
-import io
+from   dataclasses import dataclass, asdict
+from   collections import defaultdict
 import json
 import logging
-import os
-import shutil
-import time
-import urllib.parse
-import zipfile
+import sys
+import uuid
 
-from   botocore.exceptions import ClientError
-import urllib3
-
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from   datalabs.access.api.task import APIEndpointTask, APIEndpointException, ResourceNotFound, InvalidRequest
 from   datalabs.access.aws import AWSClient
 from   datalabs.access.orm import Database
-from   datalabs.access.vericre.api.authentication import PassportAuthenticatingEndpointMixin
-from   datalabs.model.vericre.api import APILedger
 from   datalabs.parameter import add_schema
 from   datalabs.util.profile import run_time_logger
+from   datalabs.access.vericre.api.option import OPTION_MAP, OPTION_VALUES_MAP
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class HttpClient:
-    HTTP = urllib3.PoolManager()
+# pylint: disable=too-many-instance-attributes
+@dataclass
+class ProfileRecords:
+    entity_id: str=None
+    demographics: list=None
+    ecfmg: list=None
+    medical_schools: list=None
+    medical_training: list=None
+    licenses: list=None
+    sanctions: list=None
+    dea: list=None
+    abms: list=None
+    claim: list=None
+    provider_cds: list=None
+    work_history: list=None
+    insurance: list=None
 
 
-class StaticTaskParameters:
-    DOCUMENT_TEMP_DIRECTORY = '/tmp/vericre_api_documents'
-    USER_PHYSICIAN = 'physician'
-    REQUEST_TYPE = {"Documents": "Documents", "AMA": "ama_profile_pdf", "CAQH": "caqh_profile_pdf"}
-    PROFILE_HEADERS = {
-        'X-Location': 'Sample Vericre',
-        'X-CredentialProviderUserId': "1",
-        'X-SourceSystem': "1"
+class BaseProfileEndpointTask(APIEndpointTask):
+    RECORD_SECTION_NAMES = {
+        'medicalSchools': 'medical_schools',
+        'medicalTraining': "medical_training",
+        'ProviderCDS': "provider_cds",
+        'WorkHistory': "work_history",
+        "Insurance": "insurance"
     }
 
-
-@dataclass
-class AuditLogParameters:
-    entity_id: str
-    request_type: str
-    authorization: dict
-    document_bucket: str
-    document_key: str
-    request_ip: str
-    document_version_id: str = ''
-
-
-class CommonEndpointUtilities:
-    @classmethod
-    @run_time_logger
-    def save_audit_log(cls, database, document_data, audit_log_parameters):
-        document_bucket = audit_log_parameters.document_bucket
-        document_key = audit_log_parameters.document_key
-
-        audit_log_parameters.document_version_id = cls._upload_document_onto_s3(
-            document_bucket,
-            document_key,
-            document_data
-        )
-
-        cls._add_audit_log_record_in_db(database, audit_log_parameters, StaticTaskParameters.USER_PHYSICIAN)
-
-    @classmethod
-    def _get_client_info_from_authorization(cls, authorization):
-        customer_id = authorization['user_id']
-        customer_name = authorization['user_name']
-
-        return customer_id, customer_name
-
-    @classmethod
-    @run_time_logger
-    def _upload_document_onto_s3(cls, document_bucket, document_key, data):
-        version_id = ''
-
-        try:
-            md5_hash = base64.b64encode(hashlib.md5(data).digest())
-
-            with AWSClient('s3') as aws_s3:
-                put_object_result = aws_s3.put_object(
-                    Bucket=document_bucket,
-                    Key=document_key,
-                    Body=data,
-                    ContentMD5=md5_hash.decode()
-                )
-
-                version_id = cls._process_put_object_result(put_object_result)
-        except ClientError as error:
-            LOGGER.exception(error.response)
-            raise InternalServerError("An error occurred when saving a file to S3") from error
-
-        return version_id
-
-    @classmethod
-    def _process_put_object_result(cls, put_object_result):
-        if put_object_result["ResponseMetadata"]["HTTPStatusCode"] != 200:
-            raise InternalServerError("An error occurred when saving a file to S3")
-
-        return put_object_result["VersionId"]
-
-    @classmethod
-    @run_time_logger
-    def _add_audit_log_record_in_db(cls, database, audit_log_parameters, user_type):
-        entity_id = audit_log_parameters.entity_id
-        request_type = audit_log_parameters.request_type
-        authorization = audit_log_parameters.authorization
-        file_path = audit_log_parameters.document_key
-        document_version_id = audit_log_parameters.document_version_id
-        request_ip = audit_log_parameters.request_ip
-
-        customer_id, customer_name = cls._get_client_info_from_authorization(authorization)
-
-        new_record = APILedger(
-            created_at = int(time.time()),
-            customer_id = customer_id,
-            customer_name = customer_name,
-            document_version_id = document_version_id,
-            entity_id = entity_id,
-            file_path = file_path,
-            request_date = str(int(time.time())),
-            request_ip = request_ip,
-            request_type = request_type,
-            user_type = user_type
-        )
-
-        database.add(new_record)
-        database.commit()
-
-    @classmethod
-    def get_current_datetime(cls):
-        current_date_time = datetime.now()
-        current_date_time_str = current_date_time.strftime("%Y%m%d%H%M%S")
-
-        return current_date_time_str
-
-
-@add_schema(unknowns=True)
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class ProfileDocumentsEndpointParameters:
-    path: dict
-    query: dict
-    authorization: dict
-    identity: dict
-    database_name: str
-    database_backend: str
-    database_host: str
-    database_port: str
-    database_username: str
-    database_password: str
-    document_bucket: str
-    unknowns: dict = None
-
-
-class ProfileDocumentsEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = ProfileDocumentsEndpointParameters
+    RESPONSE_MAX_SIZE = 5510
 
     def run(self):
-        LOGGER.debug('Parameters in ProfileDocumentsEndpointTask: %s', self._parameters)
-
-        with Database.from_parameters(self._parameters) as database:
-            self._run(database)
-
-    def _run(self, database):
-        entity_id = self._parameters.path['entity_id']
-        source_ip = self._parameters.identity['sourceIp']
-
-        sql = self._query_for_documents(entity_id)
-
-        query = self._execute_sql(database, sql)
-
-        query_result = self._convert_query_result_to_list(query)
-
-        self._download_files_for_profile(query_result, entity_id)
-
-        zip_file_in_bytes = self._zip_downloaded_files(entity_id)
-
-        current_date_time = CommonEndpointUtilities.get_current_datetime()
-
-        audit_parameters = AuditLogParameters(
-            entity_id=entity_id,
-            request_type=StaticTaskParameters.REQUEST_TYPE["Documents"],
-            authorization=self._parameters.authorization,
-            document_bucket=self._parameters.document_bucket,
-            document_key=f'downloaded_documents/Documents/{entity_id}_documents_{current_date_time}.zip',
-            request_ip=source_ip
-        )
-
-        CommonEndpointUtilities.save_audit_log(database, zip_file_in_bytes, audit_parameters)
-
-        self._generate_response(zip_file_in_bytes, entity_id, current_date_time)
-
-    @classmethod
-    def _query_for_documents(cls, entity_id):
-        sql = f'''
-            with docs as
-            (
-                select
-                    u.id as user_id,
-                    ff."name" as field_name,
-                    u.avatar_image,
-                    d.document_name,
-                    d.document_path
-                from "user" u
-                join physician p on u.id = p."user"
-                    and u.ama_entity_id = '{entity_id}'
-                    and u.is_deleted = false
-                    and u.status = 'ACTIVE'
-                join form_field ff on ff.form = p.form
-                    and ff."type" = 'FILE'
-                    and ff.sub_section is not null
-                join "document" d on d.id = cast(ff."values" ->>0 as INT)
-                    and d.is_deleted = false
-            )
-            select
-                field_name as document_identifier,document_name,concat (user_id,'/',document_path) as document_path
-            from docs
-            union
-            select
-                'Profile Avatar',avatar_image,concat(user_id ,'/','Avatar') as document_path from docs
-        '''
-
-        return sql
-
-    @classmethod
-    @run_time_logger
-    def _execute_sql(cls, database, sql):
-        query = database.execute(sql)
-        return query
-
-    @classmethod
-    @run_time_logger
-    def _convert_query_result_to_list(cls, query):
-        query_result = [dict(row) for row in query.fetchall()]
-        return query_result
-
-    def _download_files_for_profile(self, query_result, entity_id):
-        if len(query_result) == 0:
-            raise ResourceNotFound('No documents where found in VeriCre for the given entity ID.')
-
-        self._create_folder_for_downloaded_files(entity_id)
-
-        for file in query_result:
-            self._verify_and_get_files_from_s3(entity_id, file)
-
-    @classmethod
-    def _create_folder_for_downloaded_files(cls, entity_id):
-        os.makedirs(f'{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}')
-
-    def _verify_and_get_files_from_s3(self, entity_id, file):
-        if not isinstance(file['document_name'], type(None)):
-            self._get_files_from_s3(entity_id, file)
-
-    def _get_files_from_s3(self, entity_id, file):
-        document_name = file['document_name']
-        encoded_document_name = self._encode_document_name(file)
-        document_key = f"{file['document_path']}/{encoded_document_name}"
-        download_file_name = document_name if file['document_identifier'] != 'Profile Avatar' \
-            else f'Avatar.{document_name.split(".")[-1]}'
-
-        try:
-            with AWSClient('s3') as aws_s3:
-                aws_s3.download_file(
-                    Bucket=self._parameters.document_bucket,
-                    Key=document_key,
-                    Filename=f"{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}/{download_file_name}"
-                )
-
-                LOGGER.info("%s/%s downloaded.", entity_id, download_file_name)
-        except ClientError as error:
-            LOGGER.error("document_name: %s", document_name)
-            LOGGER.error("document_key: %s", document_key)
-            LOGGER.exception(error.response)
-
-    @classmethod
-    def _encode_document_name(cls, file):
-        encoded_document_name = file['document_name']
-
-        if file['document_identifier'] != 'Profile Avatar':
-            encoded_document_name = urllib.parse.quote(
-                file['document_name'],
-                safe=' '
-            ).replace(" ", "+")
-
-        return encoded_document_name
-
-    def _zip_downloaded_files(self, entity_id):
-        folder_to_zip = f'{StaticTaskParameters.DOCUMENT_TEMP_DIRECTORY}/{entity_id}'
-        zip_file_buffer = io.BytesIO()
-
-        with zipfile.ZipFile(zip_file_buffer, 'w') as zipper:
-            for root, dirs, files in os.walk(folder_to_zip):
-                LOGGER.info("root: %s, dir length: %s, files size: %s", root, len(dirs), len(files))
-                self._write_files_in_buffer(zipper, root, files)
-
-        self._delete_folder_for_downloaded_files(folder_to_zip)
-
-        return zip_file_buffer.getvalue()
-
-    @classmethod
-    def _write_files_in_buffer(cls, zipper, root, files):
-        for file in files:
-            zipper.write(os.path.join(root, file), arcname=file)
-
-    @classmethod
-    def _delete_folder_for_downloaded_files(cls, folder_path):
-        shutil.rmtree(folder_path)
-
-    def _generate_response(self, zip_file_in_bytes, entity_id, current_date_time):
-        self._response_body = self._generate_response_body(zip_file_in_bytes)
-        self._headers = self._generate_headers(entity_id, current_date_time)
-
-    @classmethod
-    def _generate_response_body(cls, response_data):
-        return response_data
-
-    @classmethod
-    def _generate_headers(cls, entity_id, current_date_time):
-        return {
-            'Content-Type': 'application/zip',
-            'Content-Disposition': f'attachment; filename={entity_id}_documents_{current_date_time}.zip'
-        }
-
-
-@add_schema(unknowns=True)
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class AMAProfilePDFEndpointParameters:
-    path: dict
-    query: dict
-    authorization: dict
-    identity: dict
-    database_name: str
-    database_backend: str
-    database_host: str
-    database_port: str
-    database_username: str
-    database_password: str
-    document_bucket: str
-    client_id: str
-    client_secret: str
-    token_url: str
-    profile_url: str
-    pdf_url: str
-    unknowns: dict = None
-
-
-class AMAProfilePDFEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = AMAProfilePDFEndpointParameters
-
-    def run(self):
-        LOGGER.debug('Parameters in AMAProfilePDFEndpointTask: %s', self._parameters)
-
-        with Database.from_parameters(self._parameters) as database:
-            self._run(database)
-
-    def _run(self, database):
-        entity_id = self._parameters.path['entity_id']
-        source_ip = self._parameters.identity['sourceIp']
-
-        access_token = self._get_passport_access_token(self._parameters)
-
-        StaticTaskParameters.PROFILE_HEADERS['Authorization'] = f'Bearer {access_token}'
-
-        self._assert_profile_exists(entity_id)
-
-        response = self._get_profile_pdf(entity_id)
-
-        filename = cgi.parse_header(response.headers['Content-Disposition'])[1]["filename"]
-
-        audit_parameters = AuditLogParameters(
-            entity_id=entity_id,
-            request_type=StaticTaskParameters.REQUEST_TYPE["AMA"],
-            authorization=self._parameters.authorization,
-            document_bucket=self._parameters.document_bucket,
-            document_key=f'downloaded_documents/AMA_Profile_PDF/{filename}',
-            request_ip=source_ip
-        )
-
-        CommonEndpointUtilities.save_audit_log(database, response.data, audit_parameters)
-
-        self._generate_response(response)
-
-    def _generate_response(self, response):
-        self._response_body = self._generate_response_body(response)
-        self._headers = self._generate_headers(response)
-
-    @classmethod
-    def _generate_response_body(cls, response):
-        return response.data
-
-    @classmethod
-    def _generate_headers(cls, response):
-        return {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': response.headers['Content-Disposition']
-        }
-
-    @run_time_logger
-    def _assert_profile_exists(self, entity_id):
-        response = self._request_ama_profile(entity_id)
-
-        if response.status == 404:
-            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID.')
-
-        if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.reason}, status: {response.status}'
-            )
-
-    @run_time_logger
-    def _request_ama_profile(self, entity_id):
-        return self.HTTP.request(
-            'GET',
-            f'{self._parameters.profile_url}/{entity_id}',
-            headers=StaticTaskParameters.PROFILE_HEADERS
-        )
-
-    @run_time_logger
-    def _get_profile_pdf(self, entity_id):
-        response = self._request_ama_profile_pdf(entity_id)
-
-        if response.status == 404:
-            raise ResourceNotFound('An AMA eProfiles profile was not found for the provided entity ID.')
-
-        if response.status != 200:
-            raise InternalServerError(
-                f'Internal Server error caused by: {response.reason}, status: {response.status}'
-            )
-
-        return response
-
-    @run_time_logger
-    def _request_ama_profile_pdf(self, entity_id):
-        return self.HTTP.request(
-            'GET',
-            f'{self._parameters.pdf_url}/{entity_id}',
-            headers=StaticTaskParameters.PROFILE_HEADERS
-        )
-
-
-@add_schema(unknowns=True)
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class CAQHProfilePDFEndpointParameters:
-    path: dict
-    query: dict
-    authorization: dict
-    identity: dict
-    database_name: str
-    database_backend: str
-    database_host: str
-    database_port: str
-    database_username: str
-    database_password: str
-    document_bucket: str
-    username: str
-    password: str
-    org_id: str
-    application_type: str
-    provider_docs_url: str
-    status_check_url: str
-    unknowns: dict = None
-
-
-class CAQHProfilePDFEndpointTask(APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = CAQHProfilePDFEndpointParameters
-
-    def run(self):
-        self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 
     def _run(self, database):
-        entity_id = self._parameters.path['entity_id']
-        source_ip = self._parameters.identity['sourceIp']
+        query = self._generate_query(self._parameters)
 
-        sql = self._query_for_provider_id(entity_id)
+        query_results = self._execute_query(database, query)
 
-        query = self._execute_sql(database, sql)
+        aggregated_records = self._aggregate_records(query_results)
 
-        query_result = self._convert_query_result_to_list(query)
-
-        self._verify_query_result(query_result)
-
-        provider = query_result[0]['caqh_profile_id']
-
-        response = self._fetch_caqh_pdf(provider)
-
-        filename = cgi.parse_header(response.headers['Content-Disposition'])[1]["filename"]
-
-        current_date_time = CommonEndpointUtilities.get_current_datetime()
-
-        audit_parameters = AuditLogParameters(
-            entity_id=entity_id,
-            request_type=StaticTaskParameters.REQUEST_TYPE["CAQH"],
-            authorization=self._parameters.authorization,
-            document_bucket=self._parameters.document_bucket,
-            document_key= \
-                f'downloaded_documents/CAQH_Profile_PDF/{filename.replace(".pdf", f"_{current_date_time}.pdf")}',
-            request_ip=source_ip
-        )
-
-        CommonEndpointUtilities.save_audit_log(database, response.data, audit_parameters)
-
-        self._generate_response(response, current_date_time)
+        self._response_body = self._generate_response_body(aggregated_records)
 
     @classmethod
-    def _query_for_provider_id(cls, entity_id):
-        sql = f'''
-            select
-                p.caqh_profile_id
-            from physician p
-            join "user" u on u.id = p."user"
-                and u.ama_entity_id = '{entity_id}'
-                and u.is_deleted = 'False'
-                and u.status = 'ACTIVE'
-        '''
+    def _generate_query(cls, parameters):
+        query = cls._generate_base_query()
 
-        return sql
+        query = cls._add_parameter_filters_to_query(query, parameters)
 
-    @classmethod
-    @run_time_logger
-    def _execute_sql(cls, database, sql):
-        query = database.execute(sql)
+        query = cls._add_sorting_to_query(query)
+
         return query
 
     @classmethod
+    def _aggregate_records(cls, query_results):
+        aggregated_records = defaultdict(ProfileRecords)
+
+        for record in query_results:
+            cls._aggregate_record(aggregated_records, record)
+
+        return aggregated_records
+
+    @classmethod
     @run_time_logger
-    def _convert_query_result_to_list(cls, query):
-        query_result = [dict(row) for row in query.fetchall()]
-        return query_result
+    def _execute_query(cls, database, query):
+        query = database.execute(query)
+        result = None
+
+        result = [dict(row) for row in query.fetchall()]
+
+        if len(result) == 0:
+            raise ResourceNotFound("No profile was found for the provided entity ID")
+
+        return result
+
+    # pylint: disable=no-self-use
+    @classmethod
+    def _generate_response_body(cls, aggregated_records):
+        return {"profiles": [asdict(object) for object in list(aggregated_records.values())]}
 
     @classmethod
-    def _verify_query_result(cls, query_result):
-        if len(query_result) == 0:
-            raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
+    def _generate_base_query(cls):
+        return '''
+            select
+                u.ama_entity_id,
+                ff.sub_section as section_identifier,
+                ff.identifier as field_identifier,
+                case
+                    when ff.is_source_field = True and ff.is_authoritative = True then True
+                    else False
+                end as is_authoritative,
+                ff.is_source_field as is_source,
+                ff.name,
+                ff.read_only,
+                ff.source_key,
+                case
+                    when ff.is_source_field = True and ff.source = 1 then \'AMA\'
+                    when ff.is_source_field = True and ff.source = 2 then \'CAQH\'
+                    else \'Physician Provided\'
+                end as source_tag,
+                ff.type,
+                case when ff."type" = 'DATE' then get_formatted_date(ff."values")
+                    else ff."values"
+                end as values,
+                ff.option
+            from "user" u
+            join physician p on u.id = p."user"
+            join form_field ff on ff.form = p.form
+                and ff.sub_section is not null
+            where 1=1
+        '''
 
-        if len(query_result) > 1:
-            raise InternalServerError("Multiple records were found in VeriCre for the given entity ID.")
+    # pylint: disable=unused-argument
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        query = cls._filter_by_active_user(query)
 
-        if isinstance(query_result[0]['caqh_profile_id'], type(None)) or query_result[0]['caqh_profile_id'] == '':
-            raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
+        query = cls._filter_by_hidden_form_field(query)
 
-    def _set_parameter_defaults(self):
-        self._parameters.authorization['auth_headers'] = urllib3.make_headers(
-            basic_auth=f'{self._parameters.username}:{self._parameters.password}'
-        )
-
-    def _generate_response(self, response, current_date_time):
-        self._response_body = self._generate_response_body(response)
-        self._headers = self._generate_headers(response, current_date_time)
+        return query
 
     @classmethod
-    def _generate_response_body(cls, response):
-        return response.data
+    def _add_sorting_to_query(cls, query):
+        query = f'{query} order by u.ama_entity_id asc, ff.sub_section asc, ff.order asc'
+
+        return query
 
     @classmethod
-    def _generate_headers(cls, response, current_date_time):
-        LOGGER.info("header type: %s", type(response.headers['Content-Disposition']))
-        return {
-            'Content-Type': response.headers['Content-Type'],
-            'Content-Disposition': response.headers['Content-Disposition'].replace(".pdf", f"_{current_date_time}.pdf")
-        }
+    def _aggregate_record(cls, aggregated_records, record):
+        section_name = cls.RECORD_SECTION_NAMES.get(record['section_identifier'], record['section_identifier'])
 
-    def _fetch_caqh_pdf(self, provider):
-        provider_id = self._get_caqh_provider_id(provider)
+        aggregated_records[record['ama_entity_id']].entity_id = record['ama_entity_id']
 
-        parameters = urllib.parse.urlencode(
-            {
-                "applicationType": self._parameters.application_type,
-                "docURL": "replica",
-                "organizationId": self._parameters.org_id,
-                "caqhProviderId": provider_id,
-            }
+        cls._append_record_to_aggregated_records(aggregated_records, section_name, record)
+
+        return aggregated_records
+
+    @classmethod
+    def _filter_by_active_user(cls, query):
+        query = f'{query} and u.is_deleted = False and u.status = \'ACTIVE\''
+        return query
+
+    @classmethod
+    def _filter_by_hidden_form_field(cls, query):
+        query = f'{query} and ff.is_hidden = False'
+        return query
+
+    @classmethod
+    def _add_entity_id_to_aggregated_records(cls, aggregated_records, entity_id):
+        aggregated_records[entity_id].entity_id = entity_id
+
+    @classmethod
+    def _append_record_to_aggregated_records(cls, aggregated_records, section_name, record):
+        section_items = getattr(aggregated_records[record['ama_entity_id']], section_name)
+
+        if section_items is None:
+            section_items = []
+
+        item = cls._create_record_item(record)
+
+        section_items.append(item)
+
+        setattr(aggregated_records[record['ama_entity_id']], section_name, section_items)
+
+    @classmethod
+    def _create_record_item(cls, record):
+        record_values = record['values']
+
+        if isinstance(record['option'], int) and str(record['option']) in OPTION_MAP:
+            record_values = cls._convert_option_values(OPTION_MAP[str(record['option'])], record['values'])
+
+        return dict(
+            field_identifier=record['field_identifier'],
+            is_authoritative=record['is_authoritative'],
+            is_source=record['is_source'],
+            name=record['name'],
+            read_only=record['read_only'],
+            source_key=record['source_key'],
+            source_tag=record['source_tag'],
+            type=record['type'],
+            values=record_values
         )
 
-        response = self._request_caqh_pdf(parameters)
+    @classmethod
+    def _convert_option_values(cls, option_key, values):
+        option_value_names = []
 
-        if response.status != 200:
-            raise InternalServerError(f'Internal Server error caused by: {response.data}, status: {response.status}')
+        for value in values:
+            value = value.strip()
+            option_values = OPTION_VALUES_MAP[option_key]
 
-        return response
+            option_value_names = cls._get_option_value_name(option_values, value, option_value_names)
 
-    def _request_caqh_pdf(self, parameters):
-        return self.HTTP.request(
-            'GET',
-            f'{self._parameters.provider_docs_url}?{parameters}',
-            headers=self._parameters.authorization['auth_headers']
+        return option_value_names
+
+    @classmethod
+    def _get_option_value_name(cls, option_values, value, option_value_names):
+        if value in option_values:
+            option_value_names.append(option_values[value])
+        else:
+            option_value_names.append(value)
+
+        return option_value_names
+
+
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class SingleProfileLookupEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
+class SingleProfileLookupEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = SingleProfileLookupEndpointParameters
+
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        query = cls._filter_by_entity_id(query, parameters.path.get("entity_id"))
+
+        return super()._add_parameter_filters_to_query(query, parameters)
+
+    @classmethod
+    def _filter_by_entity_id(cls, query, entity_id):
+        return f"{query} and u.ama_entity_id = '{entity_id}'"
+
+
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class MultiProfileLookupEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    request_cache_table: str
+    payload: dict
+    unknowns: dict=None
+
+
+class MultiProfileLookupEndpointTask(BaseProfileEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupEndpointParameters
+
+    def _generate_response_body(self, aggregated_records):
+        response_body = super()._generate_response_body(aggregated_records)
+        response_size = self._get_response_size(response_body)
+        entity_ids = list(aggregated_records.keys())
+
+        LOGGER.info('Response Result size: %s KB', response_size)
+
+        if response_size > self.RESPONSE_MAX_SIZE:
+            request_id = self._save_entity_ids_to_dynamodb(self._parameters.request_cache_table, entity_ids)
+
+            response_body['profiles'] = self._extract_profiles_subset(response_body['profiles'])
+
+            response_body['next'] = self._generate_next_url(request_id, len(response_body['profiles']))
+
+        return response_body
+
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        query = cls._filter_by_entity_ids(query, parameters.payload.get("entity_id"))
+
+        return super()._add_parameter_filters_to_query(query, parameters)
+
+    @classmethod
+    def _filter_by_entity_ids(cls, query, entity_ids):
+        if not isinstance(entity_ids, list):
+            raise InvalidRequest("The entity_id value must be a list of entity IDs.")
+
+        if len(entity_ids) == 0:
+            raise InvalidRequest("Please provide at least 1 entity ID.")
+
+        if len(entity_ids) > 1000:
+            raise InvalidRequest(
+                f"The request contained {len(entity_ids)} entity IDs, but the maximum allowed is 1,000."
+            )
+
+        return f'''{query} and u.ama_entity_id in ('{"','".join(entity_ids)}')'''
+
+    @classmethod
+    def _get_response_size(cls, aggregated_records):
+        size = sys.getsizeof(str(aggregated_records))
+        size_in_kb = int(size / 1024)
+
+        return size_in_kb
+
+    @classmethod
+    @run_time_logger
+    def _save_entity_ids_to_dynamodb(cls, request_cache_table, entity_ids):
+        request_id = str(uuid.uuid4())
+
+        with AWSClient("dynamodb") as dynamodb:
+            item = cls._generate_item(request_id, entity_ids)
+            dynamodb.put_item(TableName=request_cache_table, Item=item)
+
+        return request_id
+
+    @classmethod
+    def _extract_profiles_subset(cls, profiles):
+        response_parts = []
+
+        for item in profiles:
+            response_parts.append(item)
+
+            response_size = cls._get_response_size(response_parts)
+
+            if response_size > cls.RESPONSE_MAX_SIZE:
+                response_parts.pop()
+                break
+
+        return response_parts
+
+    @classmethod
+    def _generate_next_url(cls, request_id, index):
+        return f'/profile_api/profiles/lookup/{request_id}?index={index}'
+
+    @classmethod
+    @run_time_logger
+    def _generate_item(cls, request_id, entity_ids):
+        item = dict(
+            request_id=dict(S=request_id),
+            entity_ids=dict(S=(",".join(entity_ids)))
         )
 
-    def _get_caqh_provider_id(self, provider):
-        provider_data = provider.split("-")
-        provider_prefix = provider_data[0]
-        provider_id = provider_data[1]
+        return item
 
-        caqh_provider_id = None
 
-        if provider_prefix == 'caqh':
-            caqh_provider_id = provider_id
-        elif provider_prefix == 'npi':
-            caqh_provider_id = self._get_caqh_provider_id_from_npi(provider_id)
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class MultiProfileLookupByIndexEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    request_cache_table: str
+    unknowns: dict=None
 
-        return caqh_provider_id
 
-    def _get_caqh_provider_id_from_npi(self, npi):
-        parameters = urllib.parse.urlencode(
-            {
-                "Product": "PV",
-                "Organization_Id": self._parameters.org_id,
-                "NPI_Provider_Id": npi,
-            }
+class MultiProfileLookupByIndexEndpointTask(MultiProfileLookupEndpointTask):
+    PARAMETER_CLASS = MultiProfileLookupByIndexEndpointParameters
+
+    # pylint: disable=bad-super-call
+    def _generate_response_body(self, aggregated_records):
+        request_id = self._parameters.path['request_id']
+        index = int(self._parameters.query['index'][0])
+        response_body = super(MultiProfileLookupEndpointTask, self)._generate_response_body(aggregated_records)
+        response_size = self._get_response_size(response_body)
+
+        LOGGER.info('Response Result size: %s KB', response_size)
+
+        if response_size > self.RESPONSE_MAX_SIZE:
+            response_body['profiles'] = self._extract_profiles_subset(response_body['profiles'])
+
+            response_body['next'] = self._generate_next_url(request_id, index + len(response_body['profiles']))
+
+        return response_body
+
+    # pylint: disable=bad-super-call
+    @classmethod
+    def _add_parameter_filters_to_query(cls, query, parameters):
+        request_cache_table = parameters.request_cache_table
+        request_id = parameters.path['request_id']
+        index = int(parameters.query['index'][0])
+        entity_ids = parameters.query.get("entity_id")
+
+        if request_id:
+            entity_ids = cls._get_entity_ids_from_dynamodb(request_cache_table, request_id, index)
+
+        query = cls._filter_by_entity_ids(query, entity_ids)
+
+        return super(MultiProfileLookupEndpointTask, cls)._add_parameter_filters_to_query(query, parameters)
+
+    @classmethod
+    def _get_entity_ids_from_dynamodb(cls, request_cache_table, request_id, index):
+        response = None
+        key = dict(
+            request_id=dict(
+                S=request_id
+            )
         )
 
-        response = self._request_caqh_provider_id_from_npi(parameters)
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.get_item(TableName=request_cache_table, Key=key)
 
-        if response.status != 200:
-            raise InternalServerError(f'Internal Server error caused by: {response.data}, status: {response.status}')
+        entity_ids = cls._extract_entity_ids(response)
 
-        provider_data = json.loads(response.data)
+        return entity_ids.split(',')[index:]
 
-        if provider_data['provider_found_flag'] != "Y":
-            raise ResourceNotFound('A provider ID was not found in CAQH ProView for the given NPI.')
+    @classmethod
+    def _filter_by_entity_ids(cls, query, entity_ids):
+        return f'''{query} and u.ama_entity_id in ('{"','".join(entity_ids)}')'''
 
-        return provider_data['caqh_provider_id']
+    @classmethod
+    def _extract_entity_ids(cls, response):
+        if "Item" not in response or "entity_ids" not in response["Item"]:
+            raise APIEndpointException(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
 
-    def _request_caqh_provider_id_from_npi(self, parameters):
-        return self.HTTP.request(
-            'GET',
-            f'{self._parameters.status_check_url}?{parameters}',
-            headers=self._parameters.authorization['auth_headers']
-        )
+        return response["Item"]["entity_ids"]["S"]
