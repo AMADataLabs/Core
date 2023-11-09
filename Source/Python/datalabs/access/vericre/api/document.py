@@ -64,7 +64,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         with tempfile.TemporaryDirectory(self._parameters.temporary_base_path) as directory:
             self._download_files_for_profile(query_result, entity_id, directory)
 
-            zip_file_in_bytes = self._zip_downloaded_files(directory, entity_id)
+            zip_file_in_bytes = self._zip_downloaded_files(entity_id, directory)
 
         current_date_time = get_current_datetime()
 
@@ -132,7 +132,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         for file in query_result:
             self._verify_and_get_files_from_s3(entity_id, file, directory)
 
-    def _verify_and_get_files_from_s3(self, directory, entity_id, file):
+    def _verify_and_get_files_from_s3(self, entity_id, file, directory):
         if not isinstance(file["document_name"], type(None)):
             self._get_files_from_s3(entity_id, file, directory)
 

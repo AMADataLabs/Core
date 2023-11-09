@@ -2,8 +2,7 @@
 from datetime import datetime
 
 
-@classmethod
-def get_current_datetime(cls):
+def get_current_datetime():
     current_date_time = datetime.now()
     current_date_time_str = current_date_time.strftime("%Y%m%d%H%M%S")
 
