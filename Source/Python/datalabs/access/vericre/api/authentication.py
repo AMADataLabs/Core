@@ -17,7 +17,7 @@ HTTP = urllib3.PoolManager()
 class EProfilesAuthenticatingEndpointMixin:
     @classmethod
     def _authenticate_to_eprofiles(cls, parameters, headers):
-        access_token = cls._get_passport_access_token(parameters)
+        access_token = cls._get_eprofiles_access_token(parameters)
 
         headers["Authorization"] = f"Bearer {access_token}"
 
