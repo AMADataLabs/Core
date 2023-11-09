@@ -2,14 +2,14 @@
 import cgi
 from dataclasses import dataclass
 import logging
-from typing import List
+from typing import List, Optional
 
 import urllib3
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from datalabs.access.orm import Database
 from datalabs.access.vericre.api.audit import AuditLogger, AuditLogParameters, RequestType
-from datalabs.access.vericre.api.authentication import PassportAuthenticatingEndpointMixin
+from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
 from datalabs.access.vericre.api.header import PROFILE_HEADERS
 from datalabs.parameter import add_schema
 from datalabs.util.profile import run_time_logger
@@ -39,13 +39,13 @@ class AMAProfilePDFEndpointParameters:
     token_url: str
     profile_url: str
     pdf_url: str
-    unknowns: dict = None
+    unknowns: Optional[dict] = None
 
 
-class AMAProfilePDFEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpointTask):
+class AMAProfilePDFEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask):
     PARAMETER_CLASS = AMAProfilePDFEndpointParameters
 
-    def __init__(self, parameters: dict, data: List[bytes] = None):
+    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
         self._http = urllib3.PoolManager()
         self._headers = PROFILE_HEADERS.copy()
@@ -60,7 +60,7 @@ class AMAProfilePDFEndpointTask(PassportAuthenticatingEndpointMixin, APIEndpoint
         entity_id = self._parameters.path["entity_id"]
         source_ip = self._parameters.identity["sourceIp"]
 
-        self._authenticate_to_passport(self._parameters, self._headers)
+        self._authenticate_to_eprofiles(self._parameters, self._headers)
 
         self._assert_profile_exists(entity_id)
 
