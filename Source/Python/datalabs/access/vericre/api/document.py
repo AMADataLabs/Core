@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import tempfile
+from typing import Optional
 import urllib.parse
 import zipfile
 
@@ -39,7 +40,7 @@ class ProfileDocumentsEndpointParameters:
     database_password: str
     document_bucket: str
     temporary_base_path: str = "/tmp"
-    unknowns: dict = None
+    unknowns: Optional[dict] = None
 
 
 class ProfileDocumentsEndpointTask(APIEndpointTask):
@@ -132,9 +133,39 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         for file in query_result:
             self._verify_and_get_files_from_s3(entity_id, file, directory)
 
+    def _zip_downloaded_files(self, entity_id, directory):
+        folder_to_zip = os.path.join(directory, entity_id)
+        zip_file_buffer = io.BytesIO()
+
+        with zipfile.ZipFile(zip_file_buffer, "w") as zipper:
+            for root, dirs, files in os.walk(folder_to_zip):
+                LOGGER.info("root: %s, dir length: %s, files size: %s", root, len(dirs), len(files))
+                self._write_files_in_buffer(zipper, root, files)
+
+        self._delete_folder_for_downloaded_files(folder_to_zip)
+
+        return zip_file_buffer.getvalue()
+
+    def _generate_response(self, zip_file_in_bytes, entity_id, current_date_time):
+        self._response_body = zip_file_in_bytes
+
+        self._headers = {
+            "Content-Type": "application/zip",
+            "Content-Disposition": f"attachment; filename={entity_id}_documents_{current_date_time}.zip",
+        }
+
     def _verify_and_get_files_from_s3(self, entity_id, file, directory):
         if not isinstance(file["document_name"], type(None)):
             self._get_files_from_s3(entity_id, file, directory)
+
+    @classmethod
+    def _write_files_in_buffer(cls, zipper, root, files):
+        for file in files:
+            zipper.write(os.path.join(root, file), arcname=file)
+
+    @classmethod
+    def _delete_folder_for_downloaded_files(cls, folder_path):
+        shutil.rmtree(folder_path)
 
     def _get_files_from_s3(self, entity_id, file, directory):
         document_name = file["document_name"]
@@ -165,40 +196,3 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             encoded_document_name = urllib.parse.quote(file["document_name"], safe=" ").replace(" ", "+")
 
         return encoded_document_name
-
-    def _zip_downloaded_files(self, entity_id, directory):
-        folder_to_zip = os.path.join(directory, entity_id)
-        zip_file_buffer = io.BytesIO()
-
-        with zipfile.ZipFile(zip_file_buffer, "w") as zipper:
-            for root, dirs, files in os.walk(folder_to_zip):
-                LOGGER.info("root: %s, dir length: %s, files size: %s", root, len(dirs), len(files))
-                self._write_files_in_buffer(zipper, root, files)
-
-        self._delete_folder_for_downloaded_files(folder_to_zip)
-
-        return zip_file_buffer.getvalue()
-
-    @classmethod
-    def _write_files_in_buffer(cls, zipper, root, files):
-        for file in files:
-            zipper.write(os.path.join(root, file), arcname=file)
-
-    @classmethod
-    def _delete_folder_for_downloaded_files(cls, folder_path):
-        shutil.rmtree(folder_path)
-
-    def _generate_response(self, zip_file_in_bytes, entity_id, current_date_time):
-        self._response_body = self._generate_response_body(zip_file_in_bytes)
-        self._headers = self._generate_headers(entity_id, current_date_time)
-
-    @classmethod
-    def _generate_response_body(cls, response_data):
-        return response_data
-
-    @classmethod
-    def _generate_headers(cls, entity_id, current_date_time):
-        return {
-            "Content-Type": "application/zip",
-            "Content-Disposition": f"attachment; filename={entity_id}_documents_{current_date_time}.zip",
-        }

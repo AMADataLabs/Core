@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 import logging
 import urllib.parse
-from typing import List
+from typing import List, Optional
 
 import urllib3
 
@@ -41,13 +41,13 @@ class CAQHProfilePDFEndpointParameters:
     application_type: str
     provider_docs_url: str
     status_check_url: str
-    unknowns: dict = None
+    unknowns: Optional[dict] = None
 
 
 class CAQHProfilePDFEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = CAQHProfilePDFEndpointParameters
 
-    def __init__(self, parameters: dict, data: List[bytes] = None):
+    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
         self._http = urllib3.PoolManager()
 
@@ -72,9 +72,7 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
 
         provider = query_result[0]["caqh_profile_id"]
 
-        response = self._fetch_caqh_pdf(provider)
-
-        filename = cgi.parse_header(response.headers["Content-Disposition"])[1]["filename"]
+        pdf, filename = self._fetch_caqh_pdf(provider)
 
         current_date_time = get_current_datetime()
 
@@ -89,9 +87,9 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
             request_ip=source_ip,
         )
 
-        AuditLogger.save_audit_log(database, response.data, audit_parameters)
+        AuditLogger.save_audit_log(database, pdf, audit_parameters)
 
-        self._generate_response(response, current_date_time)
+        self._generate_response(pdf, filename, current_date_time)
 
     @classmethod
     def _query_for_provider_id(cls, entity_id):
@@ -130,27 +128,6 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
         if isinstance(query_result[0]["caqh_profile_id"], type(None)) or query_result[0]["caqh_profile_id"] == "":
             raise ResourceNotFound("A provider ID was not found in VeriCre for the given entity ID.")
 
-    def _set_parameter_defaults(self):
-        self._parameters.authorization["auth_headers"] = urllib3.make_headers(
-            basic_auth=f"{self._parameters.username}:{self._parameters.password}"
-        )
-
-    def _generate_response(self, response, current_date_time):
-        self._response_body = self._generate_response_body(response)
-        self._headers = self._generate_headers(response, current_date_time)
-
-    @classmethod
-    def _generate_response_body(cls, response):
-        return response.data
-
-    @classmethod
-    def _generate_headers(cls, response, current_date_time):
-        LOGGER.info("header type: %s", type(response.headers["Content-Disposition"]))
-        return {
-            "Content-Type": response.headers["Content-Type"],
-            "Content-Disposition": response.headers["Content-Disposition"].replace(".pdf", f"_{current_date_time}.pdf"),
-        }
-
     def _fetch_caqh_pdf(self, provider):
         provider_id = self._get_caqh_provider_id(provider)
 
@@ -168,7 +145,21 @@ class CAQHProfilePDFEndpointTask(APIEndpointTask):
         if response.status != 200:
             raise InternalServerError(f"Internal Server error caused by: {response.data}, status: {response.status}")
 
-        return response
+        filename = cgi.parse_header(response.headers["Content-Disposition"])[1]["filename"]
+
+        return response.data, filename
+
+    def _set_parameter_defaults(self):
+        self._parameters.authorization["auth_headers"] = urllib3.make_headers(
+            basic_auth=f"{self._parameters.username}:{self._parameters.password}"
+        )
+
+    def _generate_response(self, pdf, filename, current_date_time):
+        filename = filename.replace(".pdf", f"_{current_date_time}.pdf")
+
+        self._response_body = pdf
+
+        self._headers = {"Content-Type": "application/pdf", "Content-Disposition": f"attachment; filename={filename}"}
 
     def _request_caqh_pdf(self, parameters):
         return self._http.request(
