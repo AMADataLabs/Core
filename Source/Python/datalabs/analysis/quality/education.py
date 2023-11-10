@@ -198,3 +198,53 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         )
 
         return education
+
+class CompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, MeasurementMethods):
+    def run(self):
+        MeasurementMethods.__init__(self)
+
+        input_data = self._parse_input(self._data)
+
+        preprocessed_data = self._preprocess_data(input_data)
+
+        practice_completeness = self._create_practice_completeness(preprocessed_data)
+
+        postprocessed_data = self._postprocess(practice_completeness)
+
+        return self._pack(postprocessed_data)
+
+    def _parse_input(self, data):
+        practice_entity, measurement_methods = data
+
+        practice_entity = self._csv_to_dataframe(practice_entity)
+
+        measurement_methods = self._excel_to_dataframe(measurement_methods)
+
+        return [practice_entity, measurement_methods]
+
+    def _preprocess_data(self, input_data):
+        practice_entity, measurement_methods = self._convert_to_lower_case(input_data)
+
+        measurement_methods = measurement_methods.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+
+        return [practice_entity, measurement_methods]
+
+    @classmethod
+    def _convert_to_lower_case(cls, data):
+        return [dataset.rename(columns=lambda x: x.lower()) for dataset in data]
+
+    def _create_practice_completeness(self, preprocessed_data):
+        practice_entity, measurement_methods = preprocessed_data
+
+        measurement_methods = self._get_measurement_methods(measurement_methods, "completeness", "practice")
+
+        practice_completeness = self._measure_completeness(measurement_methods, practice_entity)
+
+        return [practice_completeness]
+
+    # pylint: disable=no-self-use
+    def _postprocess(self, person_completeness):
+        return person_completeness
+
+    def _pack(self, postprocessed_data):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
