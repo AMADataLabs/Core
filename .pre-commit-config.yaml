@@ -48,4 +48,4 @@ repos:
         entry: pylint
         language: system
         types: [python]
-        args: [--extension-pkg-whitelist=pyodbc, numpy, math]
+        args: [--extension-pkg-whitelist="pyodbc, numpy, math"]
