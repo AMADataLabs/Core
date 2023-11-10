@@ -24,13 +24,13 @@ class TriggerHandlerTask(Task, ABC):
 
         dag_parameters = self._get_dag_parameters(self._parameters.trigger_parameters, self._parameters.event)
 
-        for dag, dynamic_parameters in dag_parameters.items():
+        for dag, dynamic_parameters in dag_parameters:
             self._notify_dag_processor(notifier, dag, dynamic_parameters)
 
         return []
 
     @abstractmethod
-    def _get_dag_parameters(self, trigger_parameters: dict, event: dict) -> dict:
+    def _get_dag_parameters(self, trigger_parameters: dict, event: dict) -> list:
         pass
 
     def _notify_dag_processor(self, notifier: SNSDAGNotifier, dag: str, dynamic_parameters: dict):
