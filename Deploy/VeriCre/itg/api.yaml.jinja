@@ -168,7 +168,7 @@ VERICRE_API:
     ### Deprecated Endpoints ###
 
     PROFILE_1_0_0:
-        TASK_CLASS:  'datalabs.access.vericre.api.profiles.SingleProfileLookupEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.SingleProfileLookupEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -177,7 +177,7 @@ VERICRE_API:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     PROFILE_DOCUMENTS_1_0_0:
-        TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfileDocumentsEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.document.ProfileDocumentsEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -187,7 +187,7 @@ VERICRE_API:
         DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
 
     PROFILE_CAQH_PDF_1_0_0:
-        TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.caqh.CAQHProfilePDFEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -203,7 +203,7 @@ VERICRE_API:
         STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
 
     PROFILE_AMA_PDF_1_0_0:
-        TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.pdf.AMAProfilePDFEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
