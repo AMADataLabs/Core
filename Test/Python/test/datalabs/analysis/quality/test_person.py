@@ -8,6 +8,28 @@ from datalabs.analysis.quality.person import CompletenessTransformerTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_parse_input(transformer, data):
+    input_data = transformer._parse_input(data)
+
+    assert len(input_data) == 2
+    assert isinstance(input_data[0], pandas.DataFrame)
+    assert isinstance(input_data[1], pandas.DataFrame)
+
+
+def test_create_practice_completeness(transformer, data):
+    input_data = transformer._parse_input(data)
+    person_completeness = transformer._create_person_completeness(input_data)
+    person_completeness = person_completeness[0]
+
+    assert person_completeness.element.unique().tolist() == ["col1", "col2", "col3"]
+    assert len(person_completeness) == 9
+
+
+@pytest.fixture
+def transformer(parameters):
+    return CompletenessTransformerTask(parameters)
+
+
 @pytest.fixture
 def parameters(data):
     return dict(data=data, EXECUTION_TIME="2023-11-08T21:30:00.000000")
@@ -49,25 +71,3 @@ def measurement_method_configuration():
     excel_data = excel_buffer.getvalue()
 
     return excel_data
-
-
-@pytest.fixture
-def transformer(parameters):
-    return CompletenessTransformerTask(parameters)
-
-
-def test_parse_input(transformer, data):
-    input_data = transformer._parse_input(data)
-
-    assert len(input_data) == 2
-    assert isinstance(input_data[0], pandas.DataFrame)
-    assert isinstance(input_data[1], pandas.DataFrame)
-
-
-def test_create_practice_completeness(transformer, data):
-    input_data = transformer._parse_input(data)
-    person_completeness = transformer._create_person_completeness(input_data)
-    person_completeness = person_completeness[0]
-
-    assert person_completeness.element.unique().tolist() == ["col1", "col2", "col3"]
-    assert len(person_completeness) == 9
