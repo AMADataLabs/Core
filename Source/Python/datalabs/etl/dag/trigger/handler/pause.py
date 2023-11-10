@@ -1,12 +1,10 @@
 """ DAG Scheduler trigger handler. """
 from   datalabs.access.aws import AWSClient
-from   datalabs.access.cpt.api.snomed import MapSearchEndpointTask
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.trigger.handler import task
 from   datalabs.etl.dag.state.dynamodb import DynamoDBClientMixin
 
 
-# pylint: disable=protected-access
 class TriggerHandlerTask(task.TriggerHandlerTask, DynamoDBClientMixin):
     def _get_dag_parameters(self, trigger_parameters: dict, event: dict) -> list:
         '''
@@ -23,7 +21,7 @@ class TriggerHandlerTask(task.TriggerHandlerTask, DynamoDBClientMixin):
         paused_dags = []
 
         with AWSClient("dynamodb", **self._connection_parameters()) as dynamodb:
-            results = MapSearchEndpointTask._paginate(
+            results = self._paginate(
                 dynamodb,
                 f"SELECT dag_id, execution_time FROM \"{self._parameters.table}\""
             )
@@ -31,6 +29,19 @@ class TriggerHandlerTask(task.TriggerHandlerTask, DynamoDBClientMixin):
             paused_dags = [(x["dag_id"]["S"], dict(execution_time=x["execution_time"]["S"])) for x in results]
 
         return paused_dags
+
+    @classmethod
+    def _paginate(cls, dynamodb, statement):
+        results = dynamodb.execute_statement(Statement=statement)
+
+        for item in results["Items"]:
+            yield item
+
+        while "NextToken" in results:
+            results = dynamodb.execute_statement(Statement=statement, NextToken=results["NextToken"])
+
+            for item in results["Items"]:
+                yield item
 
     def _notify_dag_processor(self, notifier: SNSDAGNotifier, dag: str, dynamic_parameters: dict):
         execution_time = self._parameters.pop["execution_time"]
