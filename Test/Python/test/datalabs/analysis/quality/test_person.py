@@ -1,5 +1,5 @@
 """ source: datalabs.analysis.quality.person """
-from io import BytesIO
+from   io import BytesIO
 
 import pandas
 import pytest
