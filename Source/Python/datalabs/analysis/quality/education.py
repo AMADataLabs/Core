@@ -1,14 +1,15 @@
 """ Education transformer for creating Education entity """
-# pylint: disable=import-error
+from datetime import datetime
 import csv
 import logging
-import pandas
 
-# pylint: disable=wrong-import-order
+import pandas
 from numpy import nan
-from datetime import datetime
+
 from datalabs.task import Task
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from datalabs.etl.excel import ExcelReaderMixin
+from datalabs.analysis.quality.measurement import MeasurementMethods
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -60,16 +61,10 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         ppd_ids = self._generate_ppd_ids(ppd_party_ids, medical_education_number)
 
         school_attended = self._generate_school_attended(
-            school_ids,
-            school_address_ids,
-            hospital_names,
-            school_attendees_details
+            school_ids, school_address_ids, hospital_names, school_attendees_details
         )
 
-        graduate_education = self._generate_graduate_education(
-            graduate_education_details,
-            hospital_names
-        )
+        graduate_education = self._generate_graduate_education(graduate_education_details, hospital_names)
 
         education = self._merge_sub_entities(
             ppd_ids,
@@ -78,25 +73,14 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             graduate_education,
         )
 
-        return education.drop(columns=["me", "grad_dt"]).replace(nan, None)
+        return education.drop(columns=["me"]).replace(nan, None)
 
     @classmethod
     def _generate_ppd_ids(cls, ppd_party_ids, medical_education_number):
-        return pandas.merge(
-            ppd_party_ids,
-            medical_education_number,
-            left_on="me",
-            right_on="medical_education_number"
-        )
+        return pandas.merge(ppd_party_ids, medical_education_number, left_on="me", right_on="medical_education_number")
 
     @classmethod
-    def _generate_school_attended(
-        cls,
-        school_ids,
-        school_address_ids,
-        hospital_names,
-        school_attendees_details
-    ):
+    def _generate_school_attended(cls, school_ids, school_address_ids, hospital_names, school_attendees_details):
         extra_school_ids = school_ids[~school_ids.school_id.isin(school_address_ids.school_id)]
 
         all_school_ids = pandas.concat([school_address_ids, extra_school_ids])
@@ -117,13 +101,13 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             how="left",
         ).drop_duplicates()
 
-        school_attended["grad_date"] = (
+        school_attended["grad_dt"] = (
             school_attended["grad_dt"]
             .replace(nan, None)
-            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None)
+            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%Y-%m-%d") if x else None)
         )
 
-        school_attended = school_attended.sort_values("grad_date")
+        school_attended = school_attended.sort_values("grad_dt")
 
         school_attended = cls._add_county_and_status_codes(school_attended)
 
@@ -138,13 +122,13 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         graduate_education["begin_dt"] = (
             graduate_education["begin_dt"]
             .replace(nan, None)
-            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None)
+            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%Y-%m-%d") if x else None)
         )
 
         graduate_education["end_dt"] = (
             graduate_education["end_dt"]
             .replace(nan, None)
-            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%d-%m-%Y") if x else None)
+            .apply(lambda x: datetime.strptime(str(x), "%d-%b-%Y").strftime("%Y-%m-%d") if x else None)
         )
 
         return graduate_education
@@ -159,7 +143,7 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             lambda x: "2" if str(x) == "9" else "1" if str(x) == "54" else "0"
         )
 
-        school_attended_information = school_attended_information.sort_values(["status", "country", "grad_date"])
+        school_attended_information = school_attended_information.sort_values(["status", "country", "grad_dt"])
 
         return school_attended_information
 
@@ -199,52 +183,58 @@ class EducationTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
 
         return education
 
+
 class CompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, MeasurementMethods):
     def run(self):
-        MeasurementMethods.__init__(self)
-
         input_data = self._parse_input(self._data)
 
         preprocessed_data = self._preprocess_data(input_data)
 
-        practice_completeness = self._create_practice_completeness(preprocessed_data)
+        education_completeness = self._create_education_completeness(preprocessed_data)
 
-        postprocessed_data = self._postprocess(practice_completeness)
+        postprocessed_data = self._postprocess(education_completeness)
 
         return self._pack(postprocessed_data)
 
     def _parse_input(self, data):
-        practice_entity, measurement_methods = data
+        education_entity, measurement_methods = data
 
-        practice_entity = self._csv_to_dataframe(practice_entity)
+        education_entity = self._csv_to_dataframe(education_entity)
 
         measurement_methods = self._excel_to_dataframe(measurement_methods)
 
-        return [practice_entity, measurement_methods]
+        return [education_entity, measurement_methods]
 
     def _preprocess_data(self, input_data):
-        practice_entity, measurement_methods = self._convert_to_lower_case(input_data)
+        education_entity, measurement_method_configuration = self._convert_to_lower_case(input_data)
 
-        measurement_methods = measurement_methods.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
 
-        return [practice_entity, measurement_methods]
+        return [education_entity, measurement_method_configuration]
+
+    @classmethod
+    def _all_elements_to_lower(cls, data):
+        return data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
 
     @classmethod
     def _convert_to_lower_case(cls, data):
         return [dataset.rename(columns=lambda x: x.lower()) for dataset in data]
 
-    def _create_practice_completeness(self, preprocessed_data):
-        practice_entity, measurement_methods = preprocessed_data
+    @classmethod
+    def _create_education_completeness(cls, preprocessed_data):
+        education_entity, measurement_methods_configuration = preprocessed_data
 
-        measurement_methods = self._get_measurement_methods(measurement_methods, "completeness", "practice")
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "education"
+        )
 
-        practice_completeness = self._measure_completeness(measurement_methods, practice_entity)
+        education_completeness = measurement_methods.measure_completeness(education_entity)
 
-        return [practice_completeness]
+        return [education_completeness]
 
     # pylint: disable=no-self-use
-    def _postprocess(self, person_completeness):
-        return person_completeness
+    def _postprocess(self, education_completeness):
+        return education_completeness
 
     def _pack(self, postprocessed_data):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]

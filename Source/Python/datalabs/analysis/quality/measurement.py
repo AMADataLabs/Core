@@ -4,6 +4,7 @@ import logging
 import re
 
 import pandas
+from numpy import nan
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class MeasurementMethods:
 
     @classmethod
     def _are_values_filled(cls, rules, data):
-        rules.value.extend(["", "-1", " ", None, "none", "nan", "Nan"])
+        rules.value.extend(["", "-1", " ", None, "none", "nan", "Nan", nan])
 
         return ~(data[rules.name].isin(rules.value))
 
@@ -85,7 +86,12 @@ class MeasurementMethods:
 
         return entities
 
+    def _filter_measurement_methods(self, entity):
+        return self._measurement_methods[self._measurement_methods.index.isin(entity.columns.tolist())]
+
     def measure_completeness(self, entity):
+        self._measurement_methods = self._filter_measurement_methods(entity)
+
         self._measurement_methods.apply(self._apply_completeness_rule, args=(entity,), axis=1)
 
         return self._entity_measurement
