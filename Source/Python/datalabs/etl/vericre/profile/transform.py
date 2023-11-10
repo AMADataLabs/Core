@@ -78,25 +78,28 @@ class DemographicsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         mailing_address = \
             demog_data[column.MAILING_ADDRESS_COLUMNS.keys()].rename(columns=column.MAILING_ADDRESS_COLUMNS)
-        demog_data["MAILING_ADDRESS"] = mailing_address.to_json(orient="records")
+        demog_data["MAILING_ADDRESS"] = mailing_address.to_dict(orient="records")
 
         office_address = demog_data[column.OFFICE_ADDRESS_COLUMNS.keys()].rename(columns=column.OFFICE_ADDRESS_COLUMNS)
         office_address["addressUndeliverable"] = None
-        demog_data["OFFICE_ADDRESS"] = office_address.to_json(orient="records")
+        demog_data["OFFICE_ADDRESS"] = office_address.to_dict(orient="records")
 
         phone = demog_data[column.PHONE_COLUMNS.keys()].rename(columns=column.PHONE_COLUMNS)
-        demog_data["PHONE"] = phone.to_json(orient="records")
+        demog_data["PHONE"] = phone.to_dict(orient="records")
 
         demographics = demog_data[column.DEMOGRAPHICS_COLUMNS.keys()].rename(columns=column.DEMOGRAPHICS_COLUMNS)
 
         aggregated_demographics = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_demographics["demographics"] = demographics.to_json(orient="records")
+        aggregated_demographics["demographics"] = demographics.to_dict(orient="records")
+
+        aggregated_demographics["demographics"] = aggregated_demographics["demographics"].apply(json.dumps)
 
         return aggregated_demographics
 
     @classmethod
     def _create_me_number(cls, ama_masterfile, demog_data):
         me_number = demog_data[column.ME_NUMBER_COLUMNS.keys()].rename(columns=column.ME_NUMBER_COLUMNS).copy()
+        me_number["meNumber"] = me_number["meNumber"].apply(json.dumps)
 
         ama_masterfile = ama_masterfile.merge(me_number, on="entityId", how="left")
 
@@ -108,7 +111,9 @@ class DemographicsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         practice_specialties \
             = demog_data[column.PRACTICE_SPECIALTIES_COLUMNS.keys()].rename(columns=column.PRACTICE_SPECIALTIES_COLUMNS)
         aggregated_practice_specialties = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_json(orient="records")
+        aggregated_practice_specialties["practiceSpecialties"] = practice_specialties.to_dict(orient="records")
+        aggregated_practice_specialties["practiceSpecialties"] = \
+            aggregated_practice_specialties["practiceSpecialties"].apply(json.dumps)
 
         ama_masterfile = ama_masterfile.merge(aggregated_practice_specialties, on="entityId", how="left")
 
@@ -119,7 +124,8 @@ class DemographicsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         ecfmg = demog_data[["ENTITY_ID"] + list(column.ECFMG_COLUMNS.keys())].copy()
         ecfmg = demog_data[column.ECFMG_COLUMNS.keys()].rename(columns=column.ECFMG_COLUMNS)
         aggregated_ecfmg = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_ecfmg["ecfmg"] = ecfmg.to_json(orient="records")
+        aggregated_ecfmg["ecfmg"] = ecfmg.to_dict(orient="records")
+        aggregated_ecfmg["ecfmg"] = aggregated_ecfmg["ecfmg"].apply(json.dumps)
 
         ama_masterfile = ama_masterfile.merge(aggregated_ecfmg, on="entityId", how="left")
 
@@ -130,16 +136,10 @@ class DemographicsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         mpa = demog_data[["ENTITY_ID"] + list(column.MPA_COLUMNS.keys())].copy()
         mpa = demog_data[column.MPA_COLUMNS.keys()].rename(columns=column.MPA_COLUMNS)
         aggregated_mpa = demog_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_mpa["mpa"] = mpa.to_json(orient="records")
+        aggregated_mpa["mpa"] = mpa.to_dict(orient="records")
+        aggregated_mpa["mpa"] = aggregated_mpa["mpa"].apply(json.dumps)
 
         ama_masterfile = ama_masterfile.merge(aggregated_mpa, on="entityId", how="left")
-
-        return ama_masterfile
-
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        for column_name in ["demographics", "mpa", "ecfmg", "meNumber", "practiceSpecialties"]:
-            ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.dumps)
 
         return ama_masterfile
 
@@ -159,8 +159,6 @@ class DeaTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_dea(dea_data)
 
-        ama_masterfile = self._fill_nulls(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
@@ -175,31 +173,22 @@ class DeaTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         address = dea_data[column.ADDRESS_COLUMNS.keys()].rename(columns=column.ADDRESS_COLUMNS)
         address["addressUndeliverable"] = None
-        dea["address"] = address.to_json(orient="records")
+        dea["address"] = address.to_dict(orient="records")
 
         aggregated_dea = dea_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_dea["dea"] = dea.to_dict(orient="records")
+
         aggregated_dea = aggregated_dea.groupby("entityId")["dea"].apply(list).reset_index()
 
         aggregated_dea.sort_values('entityId')
 
         aggregated_dea['dea'] = aggregated_dea['dea'].apply(
-            lambda x: json.dumps(sorted(x, key=lambda item: str(item['lastReportedDate'])))
+            lambda x: sorted(x, key=lambda item: str(item['lastReportedDate']))
         )
 
+        aggregated_dea['dea'] = aggregated_dea['dea'].apply(json.dumps)
+
         return aggregated_dea
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile.dea = ama_masterfile.dea.fillna("").apply(list)
-
-        return ama_masterfile
-
-    @classmethod
-    def _pickle_masterfile(cls, ama_masterfile):
-        ama_masterfile.loc[:, "dea"] = ama_masterfile.loc[:, "dea"].apply(pickle.dumps)
-
-        return ama_masterfile
 
 
 @add_schema
@@ -217,8 +206,6 @@ class NPITransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_npi(npi_data)
 
-        ama_masterfile = self._fill_nulls(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile.reset_index())]
 
     @classmethod
@@ -228,18 +215,10 @@ class NPITransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         npi = npi_data[column.NPI_COLUMNS.keys()].rename(columns=column.NPI_COLUMNS)
 
         aggregated_npi = npi_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
-        aggregated_npi["npi"] = npi.to_json(orient="records")
+        aggregated_npi["npi"] = npi.to_dict(orient="records")
+        aggregated_npi["npi"] = aggregated_npi["npi"].apply(json.dumps)
 
         return aggregated_npi
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"] = \
-            ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"].apply(
-                lambda x: {}
-            )
-
-        return ama_masterfile
 
 
 @add_schema
@@ -256,8 +235,6 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         med_sch_data = self._csv_to_dataframe(self._data[0], sep='|')
 
         ama_masterfile = self._create_medical_schools(med_sch_data)
-
-        ama_masterfile = self._fill_nulls(ama_masterfile)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -276,16 +253,12 @@ class MedicalSchoolsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
             = aggregated_medical_schools.groupby("entityId")["medicalSchools"].apply(list).reset_index()
 
         aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(
-            lambda x: json.dumps(sorted(x, key=lambda item: str(item['graduateDate'])))
+            lambda x: sorted(x, key=lambda item: str(item['graduateDate']))
         )
 
+        aggregated_medical_schools['medicalSchools'] = aggregated_medical_schools['medicalSchools'].apply(json.dumps)
+
         return aggregated_medical_schools
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile.medicalSchools = ama_masterfile.medicalSchools.fillna("").apply(list)
-
-        return ama_masterfile
 
 
 @add_schema
@@ -303,8 +276,6 @@ class ABMSTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_abms(abms_data)
 
-        ama_masterfile = self._fill_nulls(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
@@ -318,16 +289,12 @@ class ABMSTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         aggregated_abms = aggregated_abms.groupby("entityId")["abms"].apply(list).reset_index()
 
         aggregated_abms['abms'] = aggregated_abms['abms'].apply(
-            lambda x: json.dumps(sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True))
+            lambda x: sorted(x, key=lambda item: str(item['effectiveDate']), reverse=True)
         )
 
+        aggregated_abms['abms'] = aggregated_abms['abms'].apply(json.dumps)
+
         return aggregated_abms
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile.abms = ama_masterfile.abms.fillna("").apply(list)
-
-        return ama_masterfile
 
 
 @add_schema
@@ -345,8 +312,6 @@ class MedicalTrainingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_medical_training(med_train_data)
 
-        ama_masterfile = self._fill_nulls(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
@@ -359,16 +324,13 @@ class MedicalTrainingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
             = aggregated_medical_training.groupby("entityId")["medicalTraining"].apply(list).reset_index()
 
         aggregated_medical_training['medicalTraining'] = aggregated_medical_training['medicalTraining'].apply(
-            lambda x: json.dumps(sorted(x, key=lambda item: item['beginDate']))
+            lambda x: sorted(x, key=lambda item: item['beginDate'])
         )
 
+        aggregated_medical_training['medicalTraining'] \
+            = aggregated_medical_training['medicalTraining'].apply(json.dumps)
+
         return aggregated_medical_training
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile.medicalTraining = ama_masterfile.medicalTraining.fillna("").apply(list)
-
-        return ama_masterfile
 
 
 @add_schema
@@ -386,29 +348,25 @@ class LicensesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_licenses(license_data)
 
-        ama_masterfile = self._fill_nulls(ama_masterfile)
-
         return [self._dataframe_to_csv(ama_masterfile)]
 
     @classmethod
     def _create_licenses(cls, license_data):
         licenses = license_data[column.LICENSES_COLUMNS.keys()].rename(columns=column.LICENSES_COLUMNS)
         license_name = license_data[column.LICENSE_NAME_COLUMNS.keys()].rename(columns=column.LICENSE_NAME_COLUMNS)
-        licenses["licenseName"] = license_name.to_json(orient="records")
+        licenses["licenseName"] = license_name.to_dict(orient="records")
         aggregated_licenses = license_data[["ENTITY_ID"]].rename(columns={"ENTITY_ID": "entityId"})
         aggregated_licenses["licenses"] = licenses.to_dict(orient="records")
         aggregated_licenses = aggregated_licenses.groupby("entityId")["licenses"].apply(list).reset_index()
 
         aggregated_licenses['licenses'] \
-            = aggregated_licenses['licenses'].apply(lambda x: json.dumps(sorted(x, key=lambda item: str(item['issueDate']))))
+            = aggregated_licenses['licenses'].apply(
+                lambda x: sorted(x, key=lambda item: str(item['issueDate']))
+            )
+
+        aggregated_licenses['licenses'] = aggregated_licenses['licenses'].apply(json.dumps)
 
         return aggregated_licenses
-
-    @classmethod
-    def _fill_nulls(cls, ama_masterfile):
-        ama_masterfile.licenses = ama_masterfile.licenses.fillna("").apply(list)
-
-        return ama_masterfile
 
 
 @add_schema
@@ -426,7 +384,7 @@ class SanctionsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         ama_masterfile = self._create_sanctions(sanctions_data)
 
-        ama_masterfile = self._fill_null_sanctions(ama_masterfile)
+        ama_masterfile['sanctions'] = ama_masterfile['sanctions'].apply(json.dumps)
 
         return [self._dataframe_to_csv(ama_masterfile)]
 
@@ -515,7 +473,7 @@ class SanctionsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         aggregated_sanctions = cls._fill_null_state_sanctions(aggregated_sanctions)
 
-        aggregated_sanctions["sanctions"] = aggregated_sanctions[merge_columns].to_json(orient="records")
+        aggregated_sanctions["sanctions"] = aggregated_sanctions[merge_columns].to_dict(orient="records")
 
         aggregated_sanctions.drop(columns=merge_columns, inplace=True)
 
@@ -561,20 +519,6 @@ class SanctionsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
 
         return aggregated_sanctions.drop(columns=["BOARD_CD_x", "BOARD_CD_y"], errors="ignore")
 
-    @classmethod
-    def _fill_null_sanctions(cls, ama_masterfile):
-        null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
-
-        null_sanctions.update(
-            {f"{key}Value":"NO ACTIONS REPORTED AT THIS TIME" for key in column.SANCTIONS_COLUMNS}
-        )
-
-        null_sanctions["stateSanctions"] = {"state": []}
-
-        ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [null_sanctions]
-
-        return ama_masterfile
-
 
 @add_schema
 @dataclass
@@ -594,8 +538,55 @@ class AMAProfileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         for dataframe in dataframes[1:]:
             ama_masterfile = ama_masterfile.merge(dataframe, on="entityId", how="left")
 
+        ama_masterfile = self._fill_nulls(ama_masterfile)
+        ama_masterfile.dropna(subset='demographics', inplace=True)
+
         LOGGER.info("Writing ama_masterfile table Feather file...")
         return [self._dataframe_to_csv(ama_masterfile)]
+
+    @classmethod
+    def _fill_nulls(cls, ama_masterfile):
+        ama_masterfile = cls._fill_null_sanctions(ama_masterfile)
+
+        ama_masterfile = cls._fill_null_npi(ama_masterfile)
+
+        ama_masterfile = cls._fill_null_list_sections(ama_masterfile)
+
+        return ama_masterfile
+
+    @classmethod
+    def _fill_null_sanctions(cls, ama_masterfile):
+        null_sanctions = {key:"N" for key in column.SANCTIONS_COLUMNS}
+
+        null_sanctions.update(
+            {f"{key}Value":"NO ACTIONS REPORTED AT THIS TIME" for key in column.SANCTIONS_COLUMNS}
+        )
+        null_sanctions["stateSanctions"] = {"state": []}
+
+        null_sanctions["stateSanctionsValue"] = "NO ACTIONS REPORTED AT THIS TIME"
+
+        ama_masterfile.sanctions[ama_masterfile.sanctions.isna()] = [json.dumps(null_sanctions)]
+
+        return ama_masterfile
+
+    @classmethod
+    def _fill_null_npi(cls, ama_masterfile):
+        ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"] = \
+            ama_masterfile.loc[ama_masterfile.npi.isnull(), "npi"].apply(
+                lambda x: {}
+            )
+
+        return ama_masterfile
+
+    @classmethod
+    def _fill_null_list_sections(cls, ama_masterfile):
+        ama_masterfile.abms = ama_masterfile.abms.fillna("[]")
+        ama_masterfile.dea = ama_masterfile.dea.fillna("[]")
+        ama_masterfile.medicalSchools = ama_masterfile.medicalSchools.fillna("[]")
+        ama_masterfile.medicalTraining = ama_masterfile.medicalTraining.fillna("[]")
+        ama_masterfile.licenses = ama_masterfile.licenses.fillna("[]")
+
+        return ama_masterfile
 
 
 @add_schema
@@ -796,25 +787,7 @@ class CAQHProfileTransformerTask(Task):
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class FeatherSplitTransformerParameters:
-    split_count: str = None
-    execution_time: str = None
-
-
-class FeatherSplitTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = FeatherSplitTransformerParameters
-
-    def run(self):
-        split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
-        ama_masterfile = self._feather_to_dataframe(self._data[0])
-
-        LOGGER.info("Generating %d Feather files...", split_count)
-        return [self._dataframe_to_csv(x) for x in numpy.array_split(ama_masterfile, split_count)]
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=all
 class JSONTransformerParameters:
     split_count: str = None
     execution_time: str = None
@@ -825,11 +798,12 @@ class JSONTransformerTask(CSVReaderMixin, Task):
 
     def run(self):
         split_count = int(self._parameters.split_count) if self._parameters.split_count else 1
-        ama_masterfile = self._csv_to_dataframe(self._data[0])
+        ama_masterfile = self._csv_to_dataframe(self._data[0], quotechar='"')
 
-        # LOGGER.info("Unpickling column values...")
-        # for column_name in column.AGGREGATED_COLUMNS:
-        #     ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(pickle.loads)
+        LOGGER.info("Applying json.loads for each column value...")
+        for column_name in column.AGGREGATED_COLUMNS:
+            ama_masterfile.loc[:, column_name] = ama_masterfile.loc[:, column_name].apply(json.loads)
+
 
         LOGGER.info("Generating %d JSON files...", split_count)
         return [x.to_json(orient="records").encode() for x in numpy.array_split(ama_masterfile, split_count)]
