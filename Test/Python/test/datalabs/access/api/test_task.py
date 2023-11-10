@@ -15,6 +15,7 @@ class GoodTask(api.APIEndpointTask):
     def run(self):
         GoodTask.run.called = True
 
+
 GoodTask.run.called = False  # pylint: disable=protected-access
 
 

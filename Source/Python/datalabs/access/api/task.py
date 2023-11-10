@@ -23,6 +23,11 @@ class InvalidRequest(APIEndpointException):
     pass
 
 
+class Unauthorized(APIEndpointException):
+    def __init__(self, message):
+        super().__init__(message, 401)
+
+
 class ResourceNotFound(APIEndpointException):
     def __init__(self, message):
         super().__init__(message, 404)

@@ -27,6 +27,10 @@ VERICRE_API:
         PROFILE_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/profile/full'
         PROFILE_PDF_URL: 'https://${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/pdf/full'
 
+        MONITOR_URL: '${PROFILE_API_ENVIRONMENT}.ama-assn.org/profiles/monitor'
+        MONITOR_NOTIFICATION_URL: 'https://${MONITOR_URL}/notifications'
+        MONITOR_PROFILE_URL: 'https://${MONITOR_URL}/entities'
+
         CAQH_USERNAME: 'DeepakA123'
         CAQH_PASSWORD: '{{caqh_password}}'
         CAQH_ORG_ID: '6166'
@@ -40,10 +44,24 @@ VERICRE_API:
         PROFILES_LOOKUP:            '/profile_api/profiles/lookup'
         PROFILES_LOOKUP_BY_INDEX:   '/profile_api/profiles/lookup/*'
         PROFILES:                   '/profile_api/profiles'
-        PROFILE:                    '/profile_api/profile/*'
-        PROFILE_DOCUMENTS:          '/profile_api/profile/*/documents'
-        PROFILE_CAQH_PDF:           '/profile_api/profile/*/CAQH/pdf'
-        PROFILE_AMA_PDF:            '/profile_api/profile/*/AMA/pdf'
+
+        # 1.1.0 Endpoints
+        PROFILE:                    '/profile_api/profiles/*'
+        PROFILE_DOCUMENTS:          '/profile_api/profiles/*/documents'
+        PROFILE_CAQH_PDF:           '/profile_api/profiles/*/CAQH/pdf'
+        PROFILE_AMA_PDF:            '/profile_api/profiles/*/AMA/pdf'
+        MONITOR:                    '/profile_api/profiles/*/monitor'
+        MONITOR_NOTIFICATIONS:      '/profile_api/profiles/monitor/notifications'
+        MONITOR_NOTIFICATION:       '/profile_api/profiles/monitor/notifications/*'
+        MONITOR_PROFILES:           '/profile_api/profiles/monitor'
+
+        # Deprecated 1.0.0 Endpoints
+        PROFILE_1_0_0:              '/profile_api/profile/*'
+        PROFILE_DOCUMENTS_1_0_0:    '/profile_api/profile/*/documents'
+        PROFILE_CAQH_PDF_1_0_0:     '/profile_api/profile/*/CAQH/pdf'
+        PROFILE_AMA_PDF_1_0_0:      '/profile_api/profile/*/AMA/pdf'
+
+        # Default Endpoint
         DEFAULT:                    '/*'
 
     PHYSICIANS_SEARCH:
@@ -58,7 +76,7 @@ VERICRE_API:
         SYNC_URL: ${SYNC_URL}
 
     PROFILES_LOOKUP:
-        TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.MultiProfileLookupEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -68,7 +86,7 @@ VERICRE_API:
         REQUEST_CACHE_TABLE: ${REQUEST_CACHE_TABLE}
 
     PROFILES_LOOKUP_BY_INDEX:
-        TASK_CLASS:  'datalabs.access.vericre.api.profiles.MultiProfileLookupByIndexEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.MultiProfileLookupByIndexEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -78,7 +96,7 @@ VERICRE_API:
         REQUEST_CACHE_TABLE: ${REQUEST_CACHE_TABLE}
 
     PROFILES:
-        TASK_CLASS:  'datalabs.access.vericre.api.profiles.ProfilesEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfilesEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -87,7 +105,7 @@ VERICRE_API:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     PROFILE:
-        TASK_CLASS:  'datalabs.access.vericre.api.profiles.SingleProfileLookupEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.SingleProfileLookupEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -96,7 +114,7 @@ VERICRE_API:
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     PROFILE_DOCUMENTS:
-        TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfileDocumentsEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.document.ProfileDocumentsEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -106,7 +124,7 @@ VERICRE_API:
         DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
 
     PROFILE_CAQH_PDF:
-        TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
+        TASK_CLASS:  'datalabs.access.vericre.api.caqh.CAQHProfilePDFEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
         DATABASE_HOST: ${DATABASE_HOST}
@@ -122,6 +140,81 @@ VERICRE_API:
         STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
 
     PROFILE_AMA_PDF:
+        TASK_CLASS:  'datalabs.access.vericre.api.pdf.AMAProfilePDFEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
+        CLIENT_ID: ${PROFILE_API_ID}
+        CLIENT_SECRET: ${PROFILE_API_SECRET}
+        TOKEN_URL: ${PROFILE_TOKEN_URL}
+        PROFILE_URL: ${PROFILE_URL}
+        PDF_URL: ${PROFILE_PDF_URL}
+
+    MONITOR:
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
+
+    MONITOR_NOTIFICATIONS:
+        TASK_CLASS:  'datalabs.access.vericre.api.monitor.MonitorNotificationsEndpointTask'
+        CLIENT_ID: ${PROFILE_API_ID}
+        CLIENT_SECRET: ${PROFILE_API_SECRET}
+        TOKEN_URL: ${PROFILE_TOKEN_URL}
+        MONITOR_NOTIFICATION_URL: ${MONITOR_NOTIFICATION_URL}
+
+    MONITOR_PROFILES:
+        TASK_CLASS: 'datalabs.access.vericre.api.monitor.MonitorProfilesEndpointTask'
+        CLIENT_ID: ${PROFILE_API_ID}
+        CLIENT_SECRET: ${PROFILE_API_SECRET}
+        TOKEN_URL: ${PROFILE_TOKEN_URL}
+        MONITOR_PROFILE_URL: ${MONITOR_PROFILE_URL}
+
+    MONITOR_NOTIFICATION:
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
+
+    ### Deprecated Endpoints ###
+
+    PROFILE_1_0_0:
+        TASK_CLASS:  'datalabs.access.vericre.api.profiles.SingleProfileLookupEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    PROFILE_DOCUMENTS_1_0_0:
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.ProfileDocumentsEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
+
+    PROFILE_CAQH_PDF_1_0_0:
+        TASK_CLASS:  'datalabs.access.vericre.api.profile.CAQHProfilePDFEndpointTask'
+        DATABASE_NAME:  ${DATABASE_NAME}
+        DATABASE_BACKEND: ${DATABASE_BACKEND}
+        DATABASE_HOST: ${DATABASE_HOST}
+        DATABASE_PORT: ${DATABASE_PORT}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
+        USERNAME: ${CAQH_USERNAME}
+        PASSWORD: ${CAQH_PASSWORD}
+        ORG_ID: ${CAQH_ORG_ID}
+        APPLICATION_TYPE: ${CAQH_APPLICATION_TYPE}
+        PROVIDER_DOCS_URL: ${CAQH_PROVIDER_DOCS_URL}
+        STATUS_CHECK_URL: ${CAQH_STATUS_CHECK_URL}
+
+    PROFILE_AMA_PDF_1_0_0:
         TASK_CLASS:  'datalabs.access.vericre.api.profile.AMAProfilePDFEndpointTask'
         DATABASE_NAME:  ${DATABASE_NAME}
         DATABASE_BACKEND: ${DATABASE_BACKEND}
@@ -132,10 +225,6 @@ VERICRE_API:
         DOCUMENT_BUCKET: ${DOCUMENT_BUCKET}
         CLIENT_ID: ${PROFILE_API_ID}
         CLIENT_SECRET: ${PROFILE_API_SECRET}
-        CLIENT_ENV: ${PROFILE_API_ENVIRONMENT}
         TOKEN_URL: ${PROFILE_TOKEN_URL}
         PROFILE_URL: ${PROFILE_URL}
         PDF_URL: ${PROFILE_PDF_URL}
-
-    DEFAULT:
-        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'

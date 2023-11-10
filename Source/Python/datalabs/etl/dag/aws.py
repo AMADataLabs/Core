@@ -5,12 +5,12 @@ import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBTaskParameterGetterMixin
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-from   datalabs.etl.dag.event import EventDrivenDAGMixin
+from   datalabs.etl.dag.event import EventDrivenDAGMixin, TaskNotReady
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.state import Status
-from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -61,6 +61,12 @@ class DAGTaskWrapper(
             raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
 
         return task_resolver_class
+
+    def _handle_exception(self, exception) -> str:
+        if isinstance(exception, TaskNotReady):
+            self._handle_task_not_ready(self.task)
+        else:
+            super()._handle_exception(exception)
 
     def _get_dag_parameters(self):
         dag_parameters = json.loads(self._parameters[1])

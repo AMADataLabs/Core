@@ -1,46 +1,46 @@
 """ source: datalabs.access.authorize.awslambda """
-from   collections import namedtuple
+from collections import namedtuple
 import mock
 
 import pytest
 
-from   datalabs.access.authorize.task import AuthorizerTask, AuthorizerParameters
+from datalabs.access.authorize.task import AuthorizerTask
 
 
 # pylint: disable=redefined-outer-name
 def test_authorized_with_active_subscriptions(active_subscriptions_passport_response, parameters):
     authorizer = AuthorizerTask(parameters)
 
-    with mock.patch('requests.Session.post') as post:
+    with mock.patch("requests.Session.post") as post:
         post.return_value = active_subscriptions_passport_response
         authorizer.run()
 
-        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+        assert authorizer.authorization.get("policyDocument").get("Statement")[0].get("Effect") == "Allow"
 
 
 # pylint: disable=redefined-outer-name
 def test_authorized_with_no_subscriptions(no_subscriptions_passport_response, parameters):
     authorizer = AuthorizerTask(parameters)
 
-    with mock.patch('requests.Session.post') as post:
+    with mock.patch("requests.Session.post") as post:
         post.return_value = no_subscriptions_passport_response
         authorizer.run()
 
-        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+        assert authorizer.authorization.get("policyDocument").get("Statement")[0].get("Effect") == "Allow"
 
 
 # pylint: disable=redefined-outer-name
 def test_not_authorized(unauthorized_passport_response, parameters):
-    parameters.customer = "000003570999"
+    parameters["customer"] = "000003570999"
     authorizer = AuthorizerTask(parameters)
 
-    with mock.patch('requests.Session.post') as post:
+    with mock.patch("requests.Session.post") as post:
         post.return_value = unauthorized_passport_response
         authorizer.run()
 
-        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+        assert authorizer.authorization.get("policyDocument").get("Statement")[0].get("Effect") == "Deny"
 
-        context = authorizer.authorization.get('context')
+        context = authorizer.authorization.get("context")
         assert len(context) == 2
         assert context.get("customerName") is None
         assert context.get("customerNumber") == "000003570999"
@@ -48,14 +48,14 @@ def test_not_authorized(unauthorized_passport_response, parameters):
 
 # pylint: disable=redefined-outer-name
 def test_authorization_contains_subscriptions(active_subscriptions_passport_response, parameters):
-    parameters.customer = "000003570997"
+    parameters["customer"] = "000003570997"
     authorizer = AuthorizerTask(parameters)
 
-    with mock.patch('requests.Session.post') as post:
+    with mock.patch("requests.Session.post") as post:
         post.return_value = active_subscriptions_passport_response
         authorizer.run()
 
-        context = authorizer.authorization.get('context')
+        context = authorizer.authorization.get("context")
         assert len(context) == 3
         assert context.get("customerNumber") == "000003570997"
         assert context.get("customerName") == "Chelsea Village Medical Office"
@@ -66,34 +66,34 @@ def test_authorization_contains_subscriptions(active_subscriptions_passport_resp
 def test_invalid_user_authorization_returns_no_subscriptions(bad_user_passport_response, parameters):
     authorizer = AuthorizerTask(parameters)
 
-    with mock.patch('requests.Session.post') as post:
+    with mock.patch("requests.Session.post") as post:
         post.return_value = bad_user_passport_response
         authorizer.run()
 
-        context = authorizer.authorization.get('context')
+        context = authorizer.authorization.get("context")
         assert len(context) == 2
-        assert context.get("customerNumber") is None
-        assert context.get("customerName")  is None
+        assert context.get("customerNumber") is not None
+        assert context.get("customerName") is None
 
 
 @pytest.fixture
 def parameters():
-    return AuthorizerParameters(
-        token='fj9d0ayf40y04tyq0yfdaso',
-        customer=None,
-        passport_url=None,
-        endpoint='arn:aws:execute-api:us-east-1:123456789012:abcdef1234/ESTestInvoke-stage/GET/Function'
+    return dict(
+        token="fj9d0ayf40y04tyq0yfdaso",
+        customer="123456",
+        passport_url="https://passport-foo.ama-assn.org",
+        endpoint="arn:aws:execute-api:us-east-1:123456789012:abcdef1234/ESTestInvoke-stage/GET/Function",
     )
 
 
-PassportResponse = namedtuple('PassportResponse', 'status_code, text')
+PassportResponse = namedtuple("PassportResponse", "status_code, text")
 
 
 @pytest.fixture
 def unauthorized_passport_response():
     return PassportResponse(
         status_code=401,
-        text='''
+        text="""
             {
                 "returnCode": null,
                 "returnMessage": null,
@@ -102,7 +102,7 @@ def unauthorized_passport_response():
                 "responseId": null,
                 "subscriptionsList": null
             }
-        '''
+        """,
     )
 
 
@@ -110,7 +110,7 @@ def unauthorized_passport_response():
 def active_subscriptions_passport_response():
     return PassportResponse(
         status_code=200,
-        text='''
+        text="""
             {
                 "returnCode": 0,
                 "returnMessage": "SUCCESS",
@@ -138,7 +138,7 @@ def active_subscriptions_passport_response():
                     }
                 ]
             }
-        '''
+        """,
     )
 
 
@@ -146,7 +146,7 @@ def active_subscriptions_passport_response():
 def no_subscriptions_passport_response():
     return PassportResponse(
         status_code=200,
-        text='''
+        text="""
             {
                 "returnCode": 0,
                 "returnMessage": "SUCCESS",
@@ -155,7 +155,7 @@ def no_subscriptions_passport_response():
                 "responseId": "421c3e7e-843c-4846-8b4b-a0093b1762f7",
                 "subscriptionsList": []
             }
-        '''
+        """,
     )
 
 
@@ -163,7 +163,7 @@ def no_subscriptions_passport_response():
 def bad_user_passport_response():
     return PassportResponse(
         status_code=200,
-        text='''
+        text="""
             {
                 "returnCode": null,
                 "returnMessage": null,
@@ -172,5 +172,5 @@ def bad_user_passport_response():
                 "responseId": null,
                 "subscriptionsList": null
             }
-        '''
+        """,
     )

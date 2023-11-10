@@ -9,7 +9,6 @@ coverage==5.1
 croniter==1.0.5
 cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
 docker==4.2.1
-doit==0.31.1
 endesive==2.0.7
 Flask==1.1.1
 feather-format==0.4.0
@@ -36,12 +35,14 @@ nbconvert==7.0.0rc3
 notebook==6.4.12
 numpy==1.23.1
 openpyxl==3.0.7
+opensearch-py==2.3.1
 pandas==1.4.3
 paradag==1.2.0
 pika==1.2.0
 pip==22.0.4
 pipenv==2018.5.18
 pgeocode==0.3.0
+pre-commit==3.5.0
 psycopg2-binary==2.9.3
 pydeps==1.10.18
 pygments==2.8.1
@@ -59,6 +60,7 @@ pytz==2022.2.1
 pywin32==223; platform_system=="Windows"
 PyYAML==6.0
 requests==2.31.0
+requests-aws4auth==1.2.3
 scikit-image==0.19.2
 scikit-learn==1.1.1
 scipy==1.8.1
@@ -72,6 +74,7 @@ tensorflow==2.1.0; platform_system=="Windows"
 tornado==6.3.2 # not directly required, pinned by Snyk to avoid a vulnerability
 twine==4.0.0
 urllib3==1.26.5
+xmltodict==0.13.0
 wheel==0.38.0
 xgboost==1.6.2
 xlrd==2.0.1  # pinned for compatibility

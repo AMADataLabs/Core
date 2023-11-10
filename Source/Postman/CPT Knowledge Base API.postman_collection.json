@@ -1,0 +1,852 @@
+{
+	"info": {
+		"_postman_id": "d335ee71-7691-46ec-9b7c-c84e8b6d8e34",
+		"name": "CPT Knowledge Base API",
+		"description": "CPT API Phase I\n\nContact Support:\n Email: datalabs@ama-assn.org",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7392489"
+	},
+	"item": [
+		{
+			"name": "Postman Authentication",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Save access token\", function () {\r",
+									"    var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"    pm.globals.set('token', jsonData.accessToken);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"clientId\": \"{{PASSPORT_CONSUMER_ID}}\",\r\n    \"clientSecret\": \"{{PASSPORT_CONSUMER_SECRET}}\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/provider/token",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"provider",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all entitlements for user 6210",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Subscriptions list is not empty\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Object.keys(jsonData.subscriptionsList).length).to.equal(1)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-customer-nbr",
+								"value": "1394",
+								"description": "6209, 6210",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "g",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "1000000",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"entitlements",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get CPTKB entitlements",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Subscriptions list is not empty\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Object.keys(jsonData.subscriptionsList).length).to.equal(1)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-customer-nbr",
+								"value": "1000263",
+								"description": "Dev/Test",
+								"type": "text"
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6435",
+								"description": "Production",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list/CPTKB",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"entitlements",
+								"list",
+								"CPTKB"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get CPT Code Set entitlements for user 6210",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Subscriptions list is not empty\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Object.keys(jsonData.subscriptionsList).length).to.equal(1)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-customer-nbr",
+								"value": "6210",
+								"description": "6209, 6210",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list/CPTCS",
+							"protocol": "https",
+							"host": [
+								"{{PASSPORT_HOST}}"
+							],
+							"path": [
+								"auth",
+								"entitlements",
+								"list",
+								"CPTCS"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Portal Authentication",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"console.log(jsonData.access_token);\r",
+									"pm.globals.set('token', jsonData.access_token);\r",
+									"console.log(pm.globals.get('token'));\r",
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var consumer_token = pm.environment.get('PORTAL_CONSUMER_KEY') + ':' + pm.environment.get('PORTAL_CONSUMER_SECRET');\r",
+									"var encoded_consumer_token = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(consumer_token))\r",
+									"console.log(encoded_consumer_token)\r",
+									"\r",
+									"pm.globals.set('consumer_token', encoded_consumer_token);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "Basic {{consumer_token}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{PORTAL_TOKEN_URL}}",
+							"host": [
+								"{{PORTAL_TOKEN_URL}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Articles",
+			"item": [
+				{
+					"name": "Articles Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"//     var responses = pm.globals.get('responses')\r",
+									"//     responses[pm.info.requestName] = pm.response.json()\r",
+									"//     pm.globals.set('responses', responses)\r",
+									"// }\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "cpt-api-sbx.cptapi.local",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "1394",
+								"description": "6210",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/knowledge_base/articles/summary?keyword=abc",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"knowledge_base",
+								"articles",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "abc"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				},
+				{
+					"name": "Files for Annual 2023",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"//     var responses = pm.globals.get('responses')\r",
+									"//     responses[pm.info.requestName] = pm.response.json()\r",
+									"//     pm.globals.set('responses', responses)\r",
+									"// }\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "cpt-api-sbx.cptapi.local",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6172",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/bulk_zip/files?release=ANNUAL-2023",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"bulk_zip",
+								"files"
+							],
+							"query": [
+								{
+									"key": "release",
+									"value": "ANNUAL-2023"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				},
+				{
+					"name": "Files for Annual 2024",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"//     var responses = pm.globals.get('responses')\r",
+									"//     responses[pm.info.requestName] = pm.response.json()\r",
+									"//     pm.globals.set('responses', responses)\r",
+									"// }\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "cpt-api-sbx.cptapi.local",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6172",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/bulk_zip/files?release=ANNUAL-2024",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"bulk_zip",
+								"files"
+							],
+							"query": [
+								{
+									"key": "release",
+									"value": "ANNUAL-2024"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				},
+				{
+					"name": "Files for Annual 2022",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"//     var responses = pm.globals.get('responses')\r",
+									"//     responses[pm.info.requestName] = pm.response.json()\r",
+									"//     pm.globals.set('responses', responses)\r",
+									"// }\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "cpt-api-sbx.cptapi.local",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "1394",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/bulk_zip/files?release=ANNUAL-2022",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"bulk_zip",
+								"files"
+							],
+							"query": [
+								{
+									"key": "release",
+									"value": "ANNUAL-2022"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				},
+				{
+					"name": "Files for PLA Q1 2023",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"//     var responses = pm.globals.get('responses')\r",
+									"//     responses[pm.info.requestName] = pm.response.json()\r",
+									"//     pm.globals.set('responses', responses)\r",
+									"// }\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Host",
+								"value": "cpt-api-sbx.cptapi.local",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/bulk_zip/files?release=PLA-Q1-2023",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"bulk_zip",
+								"files"
+							],
+							"query": [
+								{
+									"key": "release",
+									"value": "PLA-Q1-2023"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "KB Search",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{KBAuthStagAccessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-customer-nbr",
+						"value": "1000263",
+						"type": "text",
+						"description": "Dev/Test"
+					}
+				],
+				"url": {
+					"raw": "{{CPT_KNOWLEDGE_BASE_URL}}/articles/summary?keyword=87501",
+					"host": [
+						"{{CPT_KNOWLEDGE_BASE_URL}}"
+					],
+					"path": [
+						"articles",
+						"summary"
+					],
+					"query": [
+						{
+							"key": "keyword",
+							"value": "87501"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Article Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{KBAuthStagAccessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-customer-nbr",
+						"value": "{{X-CUSTOMER-NBR}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{KB-HOST}}/article/2fa5abbd-6447-11ee-ac12-b70728e100f7",
+					"host": [
+						"{{KB-HOST}}"
+					],
+					"path": [
+						"article",
+						"2fa5abbd-6447-11ee-ac12-b70728e100f7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Default",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+							"    var responses = pm.globals.get('responses')\r",
+							"    responses[pm.info.requestName] = pm.response.json()\r",
+							"    pm.globals.set('responses', responses)\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Response code indicates success\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/some/random/endpoint/path",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"some",
+						"random",
+						"endpoint",
+						"path"
+					]
+				},
+				"description": "Returns all lengths of the descriptor for a particular CPT Code."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "MARK_LOGIC_HOST",
+			"value": "appd1454"
+		},
+		{
+			"key": "MARK_LOGIC_PORT",
+			"value": "8000"
+		},
+		{
+			"key": "MARK_LOGIC_USERNAME",
+			"value": "plane"
+		},
+		{
+			"key": "MARK_LOGIC_PASSWORD",
+			"value": "pL@n3_dev"
+		},
+		{
+			"key": "SAVE_DATA",
+			"value": "false"
+		}
+	]
+}
