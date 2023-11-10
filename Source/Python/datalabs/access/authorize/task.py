@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 import requests
 
+from datalabs.parameter import add_schema
 from datalabs.task import Task, TaskException
 
 logging.basicConfig()
@@ -13,6 +14,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
 @dataclass
 class AuthorizerParameters:
     token: str
