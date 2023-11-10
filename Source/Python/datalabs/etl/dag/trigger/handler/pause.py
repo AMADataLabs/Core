@@ -8,13 +8,10 @@ from   datalabs.etl.dag.state.dynamodb import DynamoDBClientMixin
 class TriggerHandlerTask(task.TriggerHandlerTask, DynamoDBClientMixin):
     def _get_dag_parameters(self, trigger_parameters: dict, event: dict) -> list:
         '''
-        1. Get paused DAG DynamoDB table entries
-        2. For each, set the dynamic parameters to be the execution time ("execution_time") from the associated entry
-        3. Return a dict with dag_id=dynamic_parameters for each table entry
+        The DynamoDB table is expected to have the following structure:
 
-        DynamoDB Table
         dag_id                  execution_time          ttl
-        MARKETING_AGGREGATOR    2023-10-05T00:00:00     123456
+        SOME_DAG                2023-10-05T00:00:00     123456
         SOME_OTHER_DAG          2023-11-05T00:00:00     123456
         YET_ANOTHER_DAG         2023-10-20T00:00:00     123456
         '''
