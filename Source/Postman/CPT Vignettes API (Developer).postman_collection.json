@@ -1,11 +1,114 @@
 {
   "info": {
-    "_postman_id": "3f088866-113e-438a-8194-1e1cf18a95b3",
-    "name": "CPT Vignettes API",
+    "_postman_id": "1cab7d0c-0d92-4fa3-bf8c-71aca62ba512",
+    "name": "CPT Vignettes API (Developer)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "7392489"
   },
   "item": [
+    {
+      "name": "Passport Authentication",
+      "item": [
+        {
+          "name": "Get Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.globals.set('responses', new Map())\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "    var jsonData = JSON.parse(responseBody);\r",
+                  "    pm.globals.set('token', jsonData.accessToken);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Save access token\", function () {\r",
+                  "    var jsonData = JSON.parse(responseBody);\r",
+                  "\r",
+                  "    pm.globals.set('token', jsonData.accessToken);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientId\": \"{{PASSPORT_CONSUMER_ID}}\",\r\n    \"clientSecret\": \"{{PASSPORT_CONSUMER_SECRET}}\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/provider/token",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "provider", "token"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entitlements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response Status\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const accessToken = pm.response.json().accessToken;\r",
+                  "pm.globals.set(\"AccessToken\", \"Bearer \" + accessToken);\r",
+                  "console.log(accessToken);\r",
+                  "console.log(pm.globals.get(\"AccessToken\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "1000364",
+                "type": "text",
+                "description": "Dev/Test"
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6435",
+                "type": "text",
+                "description": "Production",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "entitlements", "list"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
     {
       "name": "Portal Authentication",
       "item": [
