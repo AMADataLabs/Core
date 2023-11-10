@@ -256,8 +256,6 @@ class LicenseCompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, E
 
         license_entity = self._rename_iss_dt(license_entity)
 
-        # lic_exp_dt and rnw_dt have some date in 2099
-
         license_entity["lic_exp_dt"] = self._reformat_date(license_entity["lic_exp_dt"])
 
         license_entity["lic_iss_dt"] = self._reformat_date(license_entity["lic_iss_dt"])

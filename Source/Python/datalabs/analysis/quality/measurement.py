@@ -1,10 +1,10 @@
-""" Measurement  """
+""" Measurement for various metrics """
 from datetime import datetime
 import logging
 import re
 
 import pandas
-import numpy
+from numpy import nan
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class MeasurementMethods:
 
     @classmethod
     def _are_values_filled(cls, rules, data):
-        rules.value.extend(["", "-1", " ", None, "none", "nan", numpy.NaN])
+        rules.value.extend(["", "-1", " ", None, "none", "nan", nan])
 
         return ~(data[rules.name].isin(rules.value))
 
