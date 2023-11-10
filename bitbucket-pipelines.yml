@@ -1285,6 +1285,7 @@ pipelines:
                 - >-
                   bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Vignettes
                   Vignettes-API=API.zip
+                  Vignettes-API-Authorizer=API.zip
           - step:
               name: Reload Development Lambda Functions
               script:
@@ -1294,6 +1295,7 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Vignettes
                   Vignettes-API=API.zip
+                  Vignettes-API-Authorizer=API.zip
           - step:
               name: Reload Test Lambda Functions
               script:
@@ -1304,6 +1306,7 @@ pipelines:
                   bash --rcfile assume_role.rc -i
                   Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Vignettes
                   Vignettes-API=API.zip
+                  Vignettes-API-Authorizer=API.zip
           - step:
               name: Reload Production Lambda Functions
               script:
@@ -1314,6 +1317,7 @@ pipelines:
                   bash --rcfile assume_role.rc -i
                   Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Vignettes
                   Vignettes-API=API.zip
+                  Vignettes-API-Authorizer=API.zip
 
     CPT-Vignettes-ETL:
       - step:
