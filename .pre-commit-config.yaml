@@ -45,7 +45,7 @@ repos:
     hooks:
       - id: pylint
         name: pylint
-        entry: run.py
+        entry: pylint
         language: system
         types: [python]
-        args: ["pylint", "--extension-pkg-whitelist=pyodbc, numpy, math"]
+        args: [--extension-pkg-whitelist=pyodbc, numpy, math]
