@@ -1,7 +1,7 @@
 """ source: datalabs.etl.vericre.profile.transform """
 from   io import StringIO
 import pickle
-
+import json
 import pandas
 import pytest
 
@@ -182,7 +182,7 @@ def _assert_correct_licenses_count(vericre_profiles):
 
 def _assert_licenses_fields_populated(vericre_profiles):
     expected_fields = column.LICENSES_COLUMNS.values()
-    licenses = vericre_profiles.iloc[0].licenses
+    licenses = json.loads(vericre_profiles.iloc[0].licenses)
 
     assert len(licenses[0]) == len(expected_fields) + 1
 
@@ -202,7 +202,7 @@ def _assert_correct_medical_training_count(vericre_profiles):
 
 def _assert_medical_training_fields_populated(vericre_profiles):
     expected_fields = column.MEDICAL_TRAINING_COLUMNS.values()
-    medical_training = vericre_profiles.iloc[0].medicalTraining[0]
+    medical_training = json.loads(vericre_profiles.iloc[0].medicalTraining)[0]
 
     assert len(medical_training) == len(expected_fields)
 
@@ -220,7 +220,7 @@ def _assert_correct_abms_count(vericre_profiles):
 
 def _assert_abms_fields_populated(vericre_profiles):
     expected_fields = column.ABMS_COLUMNS.values()
-    abms = vericre_profiles.iloc[0].abms[0]
+    abms = json.loads(vericre_profiles.iloc[0].abms)[0]
 
     assert len(abms) == len(expected_fields) + 1
 
@@ -240,7 +240,7 @@ def _assert_correct_medical_schools_count(vericre_profiles):
 
 def _assert_medical_schools_fields_populated(vericre_profiles):
     expected_fields = column.MEDICAL_SCHOOL_COLUMNS.values()
-    medical_schools = vericre_profiles.iloc[0].medicalSchools
+    medical_schools = json.loads(vericre_profiles.iloc[0].medicalSchools)
 
     assert len(medical_schools[0]) == len(expected_fields) + 1
 
@@ -262,7 +262,7 @@ def _assert_npi_fields_populated(vericre_profiles):
     expected_fields = column.NPI_COLUMNS.values()
     npi = vericre_profiles.iloc[0].npi
 
-    assert len(npi) == len(expected_fields)
+    assert len(json.loads(npi)) == len(expected_fields)
 
     for npi_column in expected_fields:
         assert npi_column in npi
@@ -278,7 +278,7 @@ def _assert_correct_dea_count(vericre_profiles):
 
 def _assert_dea_fields_populated(vericre_profiles):
     expected_fields = column.DEA_COLUMNS.values()
-    dea = vericre_profiles.iloc[0].dea
+    dea = json.loads(vericre_profiles.iloc[0].dea)
 
     assert len(dea[0]) == len(expected_fields) + 1
 
@@ -302,14 +302,15 @@ def _assert_demographics_fields_populated(vericre_profiles):
 
     assert vericre_profiles.iloc[0].entityId == "1234567"
 
-    assert len(demographics) == len(expected_fields)
+    assert len(json.loads(demographics)) == len(expected_fields)
+    # assert len(demographics) == len(expected_fields)
 
     for demographic_column in expected_fields:
         assert demographic_column in demographics
 
 
 def _assert_demographics_print_name_comprises_first_and_last_name(vericre_profiles):
-    demographics = vericre_profiles.iloc[0].demographics
+    demographics = json.loads(vericre_profiles.iloc[0].demographics)
     first_name = demographics["firstName"]
     last_name = demographics["lastName"]
     print_name = demographics["printName"]
@@ -318,7 +319,7 @@ def _assert_demographics_print_name_comprises_first_and_last_name(vericre_profil
 
 
 def _assert_demographics_phone_comprises_aread_code_exchange_and_number(vericre_profiles):
-    demographics = vericre_profiles.iloc[0].demographics
+    demographics = json.loads(vericre_profiles.iloc[0].demographics)
     print_number = demographics["phone"]["phoneNumber"]
     area_code = demographics["phone"]["areaCode"]
     exchange = demographics["phone"]["exchange"]
@@ -330,7 +331,7 @@ def _assert_demographics_phone_comprises_aread_code_exchange_and_number(vericre_
 # pylint: disable=comparison-with-itself
 def _assert_demographics_phone_is_null_if_any_components_are_null(vericre_profiles):
     ''' Check that area code is NaN and that a null phone number results. '''
-    demographics = vericre_profiles.iloc[1].demographics
+    demographics = json.loads(vericre_profiles.iloc[1].demographics)
     print_number = demographics["phone"]["phoneNumber"]
     area_code = demographics["phone"]["areaCode"]
     exchange = demographics["phone"]["exchange"]
