@@ -1,9 +1,7 @@
 """ Resolve the trigger handler class name using SNS topic map parameters. """
-from   dataclasses import dataclass
-
-from   datalabs.parameter import add_schema, ParameterValidatorMixin
-from   datalabs.plugin import import_plugin
-from   datalabs import task
+from datalabs.parameter import ParameterValidatorMixin
+from datalabs.plugin import import_plugin
+from datalabs import task
 
 
 class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
