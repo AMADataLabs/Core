@@ -24,7 +24,7 @@ class DAGTask:
     def __str__(self):
         return self.id
 
-    def set_dag(self, dag: DAG):
+    def set_dag(self, dag: "DAG"):
         self._dag = dag
 
     def set_status(self, status: Status):
