@@ -1,12 +1,242 @@
 {
   "info": {
-    "_postman_id": "f6662293-ddbe-42f2-936c-483896ed6b4b",
-    "name": "CPT Knowledge Base API",
+    "_postman_id": "d335ee71-7691-46ec-9b7c-c84e8b6d8e34",
+    "name": "CPT Knowledge Base API (Developer)",
     "description": "CPT API Phase I\n\nContact Support:\n Email: datalabs@ama-assn.org",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "7392489"
   },
   "item": [
+    {
+      "name": "Passport Authentication",
+      "item": [
+        {
+          "name": "Get Passport Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.globals.set('responses', new Map())\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "    var jsonData = JSON.parse(responseBody);\r",
+                  "    pm.globals.set('token', jsonData.accessToken);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Save access token\", function () {\r",
+                  "    var jsonData = JSON.parse(responseBody);\r",
+                  "\r",
+                  "    pm.globals.set('token', jsonData.accessToken);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientId\": \"{{PASSPORT_CONSUMER_ID}}\",\r\n    \"clientSecret\": \"{{PASSPORT_CONSUMER_SECRET}}\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/provider/token",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "provider", "token"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all entitlements for user 6210",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "{{CUSTOMER_NUMBER}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "entitlements", "list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get CPTKB entitlements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "1000263",
+                "description": "Dev/Test",
+                "type": "text"
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6435",
+                "description": "Production",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list/CPTKB",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "entitlements", "list", "CPTKB"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get CPT Code Set entitlements for user 6210",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"returnCode\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"returnMessage\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"customerNumber\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"customerName\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"responseId\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"subscriptionsList\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(6)\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "description": "6209, 6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list/CPTCS",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "entitlements", "list", "CPTCS"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
     {
       "name": "Portal Authentication",
       "item": [
