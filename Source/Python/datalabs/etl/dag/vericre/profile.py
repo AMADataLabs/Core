@@ -33,7 +33,7 @@ class DAG(dag.DAG):
     STANDARDIZE_SANCTIONS_DATES: DateFormatTransformerTask
     SPLIT_DEMOGRAPHICS: SplitTransformerTask
 
-    CREATE_DEMOGRAPHICS: Repeat("DemographicsTransformerTask", 3)
+    CREATE_DEMOGRAPHICS: Repeat("datalabs.etl.vericre.profile.transform.DemographicsTransformerTask", 20)
     CREATE_DEA: DeaTransformerTask
     CREATE_NPI: NPITransformerTask
     CREATE_MEDICAL_SCHOOLS: MedicalSchoolsTransformerTask
@@ -41,8 +41,8 @@ class DAG(dag.DAG):
     CREATE_MEDICAL_TRAINING: MedicalTrainingTransformerTask
     CREATE_LICENSES: LicensesTransformerTask
     CREATE_SANCTIONS: SanctionsTransformerTask
-    CREATE_AMA_PROFILE_TABLE: Repeat("AMAProfileTransformerTask", 3)
-    CONVERT_AMA_MASTERFILE_TO_JSON: Repeat("JSONTransformerTask", 3)
+    CREATE_AMA_PROFILE_TABLE: Repeat("datalabs.etl.vericre.profile.transform.AMAProfileTransformerTask", 20)
+    CONVERT_AMA_MASTERFILE_TO_JSON: Repeat("datalabs.etl.vericre.profile.transform.JSONTransformerTask", 20)
     LOAD_AMA_MASTERFILE_TABLE: dag.Repeat(QLDBLoaderTask, 20)
 
     if feature.enabled("CAQH_PROFILES"):
