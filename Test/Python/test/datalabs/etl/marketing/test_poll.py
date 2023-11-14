@@ -36,7 +36,6 @@ def transformer(parameters):
 @pytest.fixture
 def get_response():
     mock_response = mock.Mock()
-    #mock_response.data = {"request_id": "a319725", "results_filename": "emails_20231102-152626_Results_12.txt"}
     mock_response.data = False
 
     return mock_response
