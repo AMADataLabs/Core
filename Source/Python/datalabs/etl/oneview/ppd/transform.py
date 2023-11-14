@@ -245,12 +245,6 @@ class PhysicianTransformerTask(TransformerTask):
             (physician.city == 'POHNPEI')
         ] = '040'
 
-        physician.federal_information_processing_standard_county[
-            (physician.federal_information_processing_standard_state == '64') & \
-            (physician.federal_information_processing_standard_county == '003') & \
-            (physician.city == 'YAP')
-        ] = '060'
-
     @classmethod
     def _consolidate_duplicates(cls, physician):
         ''' Remove duplicate records that vary only by NPI. Null NPI for the remaining record. '''

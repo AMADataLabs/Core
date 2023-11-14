@@ -100,6 +100,13 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         )
         fips.description = fips.description.str.replace(r'\[.\]', '')
 
+        fips = fips.append(
+            {'id': '64003',
+             'state': 64, 
+             'county': '063', 
+             'description': 'Yap, Federated States of Micronesia'
+        }, ignore_index=True)
+
         return [fips]
 
     def _get_columns(self):
