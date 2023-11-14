@@ -8,7 +8,6 @@ import pandas
 
 from   datalabs.access.atdata import AtData
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.marketing.aggregate.load import EmailValidationRequestLoaderTask
 from   datalabs.etl.marketing.aggregate.transform import InputDataParser
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
