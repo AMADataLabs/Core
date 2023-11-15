@@ -39,7 +39,6 @@ class ProfileDocumentsEndpointParameters:
     database_username: str
     database_password: str
     document_bucket: str
-    temporary_base_path: str = "/tmp"
     unknowns: Optional[dict] = None
 
 
@@ -62,7 +61,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         query_result = self._convert_query_result_to_list(query)
 
-        with tempfile.TemporaryDirectory(self._parameters.temporary_base_path) as directory:
+        with tempfile.TemporaryDirectory() as directory:
             self._download_files_for_profile(query_result, entity_id, directory)
 
             zip_file_in_bytes = self._zip_downloaded_files(entity_id, directory)
