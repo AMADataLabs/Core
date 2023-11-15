@@ -23,6 +23,55 @@ class HttpClient:
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
+class MonitorEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    client_id: str
+    client_secret: str
+    token_url: str
+    monitor_profile_url: str
+
+
+class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = MonitorEndpointParameters
+
+    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
+        super().__init__(parameters, data)
+        self._http = urllib3.PoolManager()
+        self._headers = PROFILE_HEADERS.copy()
+
+    def run(self):
+        LOGGER.debug("Parameters in MonitorEndpointTask: %s", self._parameters)
+
+        self._authenticate_to_eprofiles(self._parameters, self._headers)
+
+        entity_id = self._parameters.path["entity_id"]
+
+        monitor_profiles_response = self._make_profile_request(entity_id)
+
+        self._generate_response(monitor_profiles_response)
+
+    def _make_profile_request(self, entity_id):
+        response = self._make_request_with_entity_id(entity_id)
+
+        if response.status != 200:
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+
+        return response
+
+    def _make_request_with_entity_id(self, entity_id):
+        return self.HTTP.request("PUT", f"{self._parameters.monitor_profile_url}/{entity_id}", headers=self._headers)
+
+    def _generate_response(self, response):
+        self._status = response.status
+
+        self._headers = {"Content-Type": "application/json"}
+
+
+@add_schema(unknowns=True)
+@dataclass
+# pylint: disable=too-many-instance-attributes
 class MonitorNotificationsEndpointParameters:
     method: str
     path: dict
