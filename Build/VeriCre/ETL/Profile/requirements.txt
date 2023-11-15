@@ -4,7 +4,6 @@ json5==0.8.5
 marshmallow==3.10.0
 numpy==1.23.1
 pandas==1.4.3
-paradag==1.2.0
 pysftp==0.2.9
 python-dateutil==2.8.1
 python-dotenv==0.12.0
