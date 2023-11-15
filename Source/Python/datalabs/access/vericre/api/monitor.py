@@ -40,6 +40,7 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
         super().__init__(parameters, data)
         self._http = urllib3.PoolManager()
         self._headers = PROFILE_HEADERS.copy()
+        self._status = None
 
     def run(self):
         LOGGER.debug("Parameters in MonitorEndpointTask: %s", self._parameters)
