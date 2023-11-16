@@ -106,7 +106,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
         response = self._request_notifications()
 
         if response.status == 204:
-            raise ResourceNotFound("No notifications found.")
+            raise ResourceNotFound("No notifications found for this client ID.")
 
         if response.status != 200:
             raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
@@ -128,6 +128,71 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
 
     def _request_notifications(self):
         return self.HTTP.request("GET", self._parameters.monitor_notification_url, headers=self._headers)
+
+
+@add_schema(unknowns=True)
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class MonitorNotificationUpdateEndpointParameters:
+    method: str
+    path: dict
+    query: dict
+    client_id: str
+    client_secret: str
+    token_url: str
+    monitor_update_url: str
+
+class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = MonitorNotificationUpdateEndpointParameters
+
+    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
+        super().__init__(parameters, data)
+        self._http = urllib3.PoolManager()
+        self._headers = PROFILE_HEADERS.copy()
+
+    def run(self):
+        LOGGER.debug("Parameters in MonitorNotificationUpdateEndpointTask: %s", self._parameters)
+
+        self._authenticate_to_eprofiles(self._parameters, self._headers)
+
+        profile_response = self._update_notification()
+
+        response_result = self._convert_response_to_json(profile_response)
+
+        self._generate_response(response_result)
+
+    def _update_notification(self):
+        response = self._request_update_notification()
+
+        if response.status == 404:
+            raise ResourceNotFound("Notification not found for the provided notification ID.")
+
+        if response.status != 200:
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+
+        return response
+
+    @classmethod
+    def _convert_response_to_json(cls, profile_response):
+        converted_profile = parse_xml_to_dict(profile_response.data)
+
+        profile = get_list_without_tags(converted_profile["full_profile"], False)
+
+        return profile
+
+    def _generate_response(self, response):
+        self._response_body = response
+
+        self._headers = {"Content-Type": "application/json"}
+
+    def _request_update_notification(self):
+        notification_id = self._parameters.path["notification_id"]
+
+        return self.HTTP.request(
+            "GET",
+            f'{self._parameters.monitor_update_url}/{notification_id}',
+            headers=self._headers
+        )
 
 
 @add_schema(unknowns=True)

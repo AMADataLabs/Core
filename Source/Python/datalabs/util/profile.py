@@ -65,10 +65,10 @@ def _format_snake_case(text):
     return '_'.join(sub('([A-Z][a-z]+)', r' \1', sub('([A-Z]+)', r' \1', text.replace('-', ' '))).split()).lower()
 
 
-def get_list_without_tags(original_list):
+def get_list_without_tags(original_list, convert_single_element_to_list=True):
     objects = []
 
-    if isinstance(original_list, dict):
+    if isinstance(original_list, dict) and convert_single_element_to_list:
         objects.append(original_list)
     else:
         objects = original_list
