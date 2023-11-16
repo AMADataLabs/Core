@@ -4,6 +4,8 @@ import logging
 import os
 import settings
 import connection
+import warnings
+warnings.simplefilter(action='ignore')
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -51,6 +53,7 @@ def person():
     LOGGER.info('Loading results...')
     filename = load(all_person)
     LOGGER.info(f'Data saved at {filename}')
+    return filename
 
 if __name__ == "__main__":
     person()

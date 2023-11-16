@@ -20,6 +20,7 @@ modspec:
   - package: datalabs.access
     include:
       - aws
+      - datastore
       - sftp
       - environment
   - package: datalabs.access.parameter
@@ -27,15 +28,23 @@ modspec:
   - package: datalabs.etl
     include:
       - csv
+      - feather
       - task
       - extract
       - awslambda
       - transform
       - load
+  - package: datalabs.access.api
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.execute
+  - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-  - package: datalabs.etl.orm
+  - package: datalabs.etl.dag.vericre
+  - package: datalabs.etl.http
+  - package: datalabs.etl.manipulate
+  - package: datalabs.etl.qldb
   - package: datalabs.etl.s3
   - package: datalabs.etl.sftp
   - package: datalabs.etl.vericre.profile
+  - package: datalabs.messaging

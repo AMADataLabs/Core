@@ -1,14 +1,14 @@
 """ Practice transformer class for creating Practice entitiy """
-# pylint: disable=import-error
+from datetime import datetime
 import csv
 import logging
-import pandas
 
-# pylint: disable=wrong-import-order
-from datetime import datetime
+import pandas
 
 from datalabs.task import Task
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from datalabs.etl.excel import ExcelReaderMixin
+from datalabs.analysis.quality.measurement import MeasurementMethods
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -95,6 +95,62 @@ class PracticeTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
         entity[0].drop(columns=["me"], inplace=True)
 
         return entity
+
+    def _pack(self, postprocessed_data):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+
+
+class CompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, MeasurementMethods):
+    def run(self):
+        input_data = self._parse_input(self._data)
+
+        preprocessed_data = self._preprocess_data(input_data)
+
+        practice_completeness = self._create_practice_completeness(preprocessed_data)
+
+        postprocessed_data = self._postprocess(practice_completeness)
+
+        return self._pack(postprocessed_data)
+
+    def _parse_input(self, data):
+        practice_entity, measurement_methods = data
+
+        practice_entity = self._csv_to_dataframe(practice_entity)
+
+        measurement_methods = self._excel_to_dataframe(measurement_methods)
+
+        return [practice_entity, measurement_methods]
+
+    def _preprocess_data(self, input_data):
+        practice_entity, measurement_method_configuration = self._convert_to_lower_case(input_data)
+
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
+
+        return [practice_entity, measurement_method_configuration]
+
+    @classmethod
+    def _all_elements_to_lower(cls, data):
+        return data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+
+    @classmethod
+    def _convert_to_lower_case(cls, data):
+        return [dataset.rename(columns=lambda x: x.lower()) for dataset in data]
+
+    @classmethod
+    def _create_practice_completeness(cls, preprocessed_data):
+        practice_entity, measurement_methods_configuration = preprocessed_data
+
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "practice"
+        )
+
+        practice_completeness = measurement_methods.measure_completeness(practice_entity)
+
+        return [practice_completeness]
+
+    # pylint: disable=no-self-use
+    def _postprocess(self, practice_completeness):
+        return practice_completeness
 
     def _pack(self, postprocessed_data):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
