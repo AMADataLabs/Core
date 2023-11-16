@@ -47,13 +47,13 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        entity_id = self._parameters.path["entity_id"]
-
-        monitor_profiles_response = self._make_profile_request(entity_id)
+        monitor_profiles_response = self._make_profile_request()
 
         self._generate_response(monitor_profiles_response)
 
-    def _make_profile_request(self, entity_id):
+    def _make_profile_request(self):
+        entity_id = self._parameters.path["entity_id"]
+
         response = self._make_request_with_entity_id(entity_id)
 
         if response.status != 200:
