@@ -29,12 +29,16 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
 
     def _get_authorization_parameters(self, token) -> dict:
         LOGGER.debug("Authorization Lambda event:\n%s", self._parameters)
-        return dict(
+        parameters = dict(
             token=token.split(" ")[1],
             endpoint=self._parameters.get("methodArn"),
             passport_url=os.environ.get("PASSPORT_URL"),
-            customer=self._parameters["headers"].get("x-customer-nbr"),
         )
+
+        if "x-customer-nbr" in self._parameters["headers"]:
+            parameters["customer"] = self._parameters["headers"]["x-customer-nbr"]
+
+        return parameters
 
     def _handle_exception(self, exception: AuthorizerTaskException) -> Dict[str, Any]:
         LOGGER.exception("An error occurred during authorization")

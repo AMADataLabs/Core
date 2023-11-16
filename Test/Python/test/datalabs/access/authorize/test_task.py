@@ -72,7 +72,7 @@ def test_invalid_user_authorization_returns_no_subscriptions(bad_user_passport_r
 
         context = authorizer.authorization.get("context")
         assert len(context) == 2
-        assert context.get("customerNumber") is not None
+        assert context.get("customerNumber") is None
         assert context.get("customerName") is None
 
 
@@ -80,7 +80,6 @@ def test_invalid_user_authorization_returns_no_subscriptions(bad_user_passport_r
 def parameters():
     return dict(
         token="fj9d0ayf40y04tyq0yfdaso",
-        customer="123456",
         passport_url="https://passport-foo.ama-assn.org",
         endpoint="arn:aws:execute-api:us-east-1:123456789012:abcdef1234/ESTestInvoke-stage/GET/Function",
     )

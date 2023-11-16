@@ -50,7 +50,7 @@ class AuditLogger:
             document_bucket, document_key, document_data
         )
 
-        cls._add_audit_log_record_in_db(database, audit_log_parameters, UserType.PHYSICIAN)
+        cls._add_audit_log_record_in_db(database, audit_log_parameters, UserType.PHYSICIAN.value)
 
     @classmethod
     @run_time_logger
