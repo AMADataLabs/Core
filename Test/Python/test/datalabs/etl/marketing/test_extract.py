@@ -18,12 +18,12 @@ def test_email_validation_extractor_validate_emails(atdata_transformer, request_
         "datalabs.access.atdata.AtData.get_validation_results",
         return_value=get_response
     ) as mock_json_load:
-
         mock_json_load.return_value=get_response.data
         validated_emails = atdata_transformer.get_validation_results(
-                               request_parameters_data["request_id"],
-                               request_parameters_data["results_filename"]
-                           )
+            request_parameters_data["request_id"],
+            request_parameters_data["results_filename"]
+        )
+
     assert validated_emails ==  ['dweepkumar@outlook.com', 'psurati86@gmail.com']
 
     return validated_emails
@@ -34,14 +34,15 @@ def test_email_validation_extractor_set_update_flag_for_valid_emails(transformer
     dated_dataset_with_emails = read_dated_dataset_with_emails_data(data)[0]
 
     validated_emails = test_email_validation_extractor_validate_emails(
-                           atdata_transformer,
-                           request_parameters_data,
-                           get_response
-                       )
+        atdata_transformer,
+        request_parameters_data,
+        get_response
+    )
     dated_dataset_with_emails = transformer._set_update_flag_for_valid_emails(
-                                    dated_dataset_with_emails,
-                                    validated_emails
-                                )
+        dated_dataset_with_emails,
+        validated_emails
+    )
+
     assert dated_dataset_with_emails["update"].tolist() == [True, False, False, False, False, False, True, False]
 
     return dated_dataset_with_emails
@@ -62,12 +63,13 @@ def test_email_validation_extractor_remove_invalid_records(transformer, atdata_t
 # pylint: disable=protected-access, line-too-long
 def test_email_validation_extractor_update_email_last_validated(transformer, atdata_transformer, request_parameters_data, get_response, data):
     dated_dataset_with_emails = test_email_validation_extractor_remove_invalid_records(
-                                    transformer,
-                                    atdata_transformer,
-                                    request_parameters_data,
-                                    get_response,
-                                    data
-                                )
+        transformer,
+        atdata_transformer,
+        request_parameters_data,
+        get_response,
+        data
+    )
+
     assert dated_dataset_with_emails.email_last_validated[0] == '1/16/2023'
     assert dated_dataset_with_emails.email_last_validated[1] == '5/1/2023'
     assert dated_dataset_with_emails.email_last_validated[6] == '1/1/2023'
@@ -103,10 +105,11 @@ def parameters(data):
 
 @pytest.fixture
 def atdata_transformer():
-    return AtData(host='portal.freshaddress.com',
-               account='AB254_16345',
-               api_key='D02502F2-382A-4F8D-983E-3B3B82ABFD5B'
-           )
+    return AtData(
+        host='portal.freshaddress.com',
+        account='AB254_16345',
+        api_key='D02502F2-382A-4F8D-983E-3B3B82ABFD5B'
+    )
 
 
 # pylint: disable=redefined-outer-name

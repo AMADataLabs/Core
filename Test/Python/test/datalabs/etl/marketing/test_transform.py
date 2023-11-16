@@ -112,9 +112,9 @@ def test_flatfileupdater_read_datasets(flatfileupdater_transformer, flatfileupda
 # pylint: disable=redefined-outer-name, protected-access
 def test_flatfile_updater_prune_flatfile_listkeys(flatfileupdater_transformer, flatfileupdater_data):
     contacts, list_of_lists, flatfile, inputs = test_flatfileupdater_read_datasets(
-                                                    flatfileupdater_transformer,
-                                                    flatfileupdater_data
-                                                )
+        flatfileupdater_transformer,
+        flatfileupdater_data
+    )
     flatfile = flatfileupdater_transformer._prune_flatfile_listkeys(flatfile, list_of_lists)
 
     assert len(flatfile) == 6
@@ -128,8 +128,9 @@ def test_flatfile_updater_prune_flatfile_listkeys(flatfileupdater_transformer, f
 # pylint: disable=redefined-outer-name, protected-access
 def test_flatfile_updater_assign_emppids_to_inputs(flatfileupdater_transformer, flatfileupdater_data):
     contacts, _, flatfile, inputs = test_flatfile_updater_prune_flatfile_listkeys(
-                                        flatfileupdater_transformer, flatfileupdater_data
-                                    )
+        flatfileupdater_transformer,
+        flatfileupdater_data
+    )
 
     matched_inputs, unmatched_inputs = flatfileupdater_transformer._assign_emppids_to_inputs(inputs, flatfile)
     unmatched_inputs = unmatched_inputs.reset_index()
@@ -143,9 +144,10 @@ def test_flatfile_updater_assign_emppids_to_inputs(flatfileupdater_transformer, 
 # pylint: disable=redefined-outer-name, protected-access
 def test_flatfile_updater_add_new_records_to_flatfile(flatfileupdater_transformer, flatfileupdater_data):
     contacts, flatfile, matched_inputs, unmatched_inputs = test_flatfile_updater_assign_emppids_to_inputs(
-                                                               flatfileupdater_transformer,
-                                                               flatfileupdater_data
-                                                           )
+        flatfileupdater_transformer,
+        flatfileupdater_data
+    )
+
     assert len(flatfile) == 6
 
     flatfile = flatfileupdater_transformer._add_new_records_to_flatfile(flatfile, unmatched_inputs)
@@ -156,9 +158,9 @@ def test_flatfile_updater_add_new_records_to_flatfile(flatfileupdater_transforme
 
 def test_flatfile_updater_update_flatfile_listkeys(flatfileupdater_transformer, flatfileupdater_data):
     contacts, flatfile, matched_inputs, _ = test_flatfile_updater_add_new_records_to_flatfile(
-                                                flatfileupdater_transformer,
-                                                flatfileupdater_data
-                                            )
+        flatfileupdater_transformer,
+        flatfileupdater_data
+    )
 
     assert flatfile.LISTKEY[0] == 'X32#Z19#Z19#'
     assert flatfile.LISTKEY[1] == 'X27#'
@@ -177,9 +179,9 @@ def test_flatfile_updater_update_flatfile_listkeys(flatfileupdater_transformer, 
 
 def test_flatfile_updater_assign_new_contact_ids_to_flatfile(flatfileupdater_transformer, flatfileupdater_data):
     contacts, flatfile = test_flatfile_updater_update_flatfile_listkeys(
-                             flatfileupdater_transformer,
-                             flatfileupdater_data
-                         )
+        flatfileupdater_transformer,
+        flatfileupdater_data
+    )
 
     assert len([x for x in flatfile.hs_contact_id if x !='']) == 6
 

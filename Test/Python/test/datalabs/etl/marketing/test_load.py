@@ -79,7 +79,6 @@ def test_email_validation_request_loader(transformer, data, atdata_transformer, 
         "datalabs.access.atdata.AtData.request_email_validation",
         return_value=get_response
     ) as mock_json_load:
-
         mock_json_load.return_value=get_response.data
         request_parameters = atdata_transformer.request_email_validation(email_data_list)
         request_id, file = request_parameters[0], request_parameters[1]

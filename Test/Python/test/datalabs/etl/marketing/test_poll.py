@@ -11,7 +11,6 @@ def test_poll_for_validation_status(transformer, request_parameters_data, get_re
         "datalabs.etl.marketing.aggregate.poll.AtDataStatusPollingTask._is_ready",
         return_value=get_response
     ) as mock_json_load:
-
         mock_json_load.return_value=get_response.data
         is_ready = transformer._is_ready(request_parameters_data)
 
