@@ -58,14 +58,6 @@ class MarketingData:
     flatfile: pandas.DataFrame
 
 
-# pylint: disable=logging-too-many-args, logging-not-lazy
-class FlatfileToCSVTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):
-    def run(self):
-        flatfile_data = [InputDataParser.parse(data, seperator = '\t') for data in self._data]
-
-        return [self._dataframe_to_csv(data) for data in flatfile_data]
-
-
 @add_schema
 @dataclass
 class SourceFileListTransformerParameters:
