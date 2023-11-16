@@ -9,3 +9,7 @@ TRIGGER_PROCESSOR:
 
     Scheduler:  # DataLake-${ENVIRONMENT}-Scheduler SNS topic
         HANDLER_CLASS: datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask
+
+    PausedDAG:  # DataLake-${ENVIRONMENT}-PausedDAG SNS topic
+        HANDLER_CLASS: datalabs.etl.dag.trigger.handler.pause.TriggerHandlerTask
+        PAUSED_DAG_TABLE: "DataLake-paused_dags-${ENVIRONMENT}"

@@ -22,6 +22,7 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class SplitTransformerParameters:
     count: str
+    separator: str = None
     execution_time: str = None
 
 
@@ -29,14 +30,15 @@ class SplitTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = SplitTransformerParameters
 
     def run(self):
+        separator = self._parameters.separator if self._parameters.separator else ","
         count = int(self._parameters.count)
-        datasets = [self._csv_to_dataframe(data) for data in self._data]
+        datasets = [self._csv_to_dataframe(data, sep=separator) for data in self._data]
         split_datasets = []
 
         for dataset in datasets:
             split_datasets += numpy.array_split(dataset, count)
 
-        return [self._dataframe_to_csv(dataset) for dataset in split_datasets]
+        return [self._dataframe_to_csv(dataset, sep=separator) for dataset in split_datasets]
 
 
 @add_schema

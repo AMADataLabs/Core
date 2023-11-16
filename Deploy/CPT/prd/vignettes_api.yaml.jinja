@@ -1,0 +1,18 @@
+---
+CPT_VIGNETTES_API:
+    GLOBAL:
+        ENVIRONMENT: prd
+        ACCOUNT: '285887636563'
+
+        DATABASE_TABLE: 'CPT-API-vignettes-${ENVIRONMENT}'
+
+    ROUTE:
+        VIGNETTE: '/vignettes/vignettes/*'
+        DEFAULT: '/*'
+
+    VIGNETTE:
+        TASK_CLASS: 'datalabs.access.cpt.api.vignettes.VignetteLookupEndpointTask'
+        DATABASE_TABLE:  ${DATABASE_TABLE}
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.cpt.api.default.DefaultEndpointTask'
