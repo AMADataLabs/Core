@@ -1,16 +1,16 @@
 """ Release endpoint classes."""
-from dataclasses import dataclass
+from   dataclasses import dataclass
 import logging
-from typing import List, Optional
+from   typing import List, Optional
 
 import urllib3
 
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
-from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
-from datalabs.access.vericre.api.common import format_element_as_list
-from datalabs.access.vericre.api.header import PROFILE_HEADERS
-from datalabs.parameter import add_schema
-from datalabs.util.xml import XmlToDictConverter
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from   datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
+from   datalabs.access.vericre.api.common import format_element_as_list
+from   datalabs.access.vericre.api.header import PROFILE_HEADERS
+from   datalabs.parameter import add_schema
+from   datalabs.util.xml import XmlToDictConverter
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -95,9 +95,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug(
-            "Parameters in MonitorNotificationsEndpointTask: %s", self._parameters
-        )
+        LOGGER.debug("Parameters in MonitorNotificationsEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
@@ -111,9 +109,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
         response = self._request_notifications()
 
         if response.status == 204:
-            raise ResourceNotFound(
-                "No notifications found for this client ID."
-            )
+            raise ResourceNotFound("No notifications found for this client ID.")
 
         if response.status != 200:
             raise InternalServerError(
@@ -165,9 +161,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug(
-            "Parameters in MonitorNotificationUpdateEndpointTask: %s", self._parameters
-        )
+        LOGGER.debug("Parameters in MonitorNotificationUpdateEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
@@ -181,9 +175,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
         response = self._request_update_notification()
 
         if response.status == 404:
-            raise ResourceNotFound(
-                "Notification not found for the provided notification ID."
-            )
+            raise ResourceNotFound("Notification not found for the provided notification ID.")
 
         if response.status != 200:
             raise InternalServerError(
@@ -194,9 +186,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
 
     @classmethod
     def _convert_response_to_json(cls, profile_response):
-        converted_profile = XmlToDictConverter.parse_xml_to_dict(
-            profile_response.data
-        )
+        converted_profile = XmlToDictConverter.parse_xml_to_dict(profile_response.data)
 
         return converted_profile["full_profile"]
 
@@ -237,17 +227,13 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug(
-            "Parameters in MonitorProfilesEndpointTask: %s", self._parameters
-        )
+        LOGGER.debug("Parameters in MonitorProfilesEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
         monitor_profiles_response = self._get_profile_monitors()
 
-        response_result = self._convert_response_to_json(
-            monitor_profiles_response
-        )
+        response_result = self._convert_response_to_json(monitor_profiles_response)
 
         self._generate_response(response_result)
 
@@ -266,13 +252,9 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
 
     @classmethod
     def _convert_response_to_json(cls, monitor_profiles_response):
-        converted_monitors = XmlToDictConverter.parse_xml_to_dict(
-            monitor_profiles_response.data
-        )
+        converted_monitors = XmlToDictConverter.parse_xml_to_dict(monitor_profiles_response.data)
 
-        monitor_list = format_element_as_list(
-            converted_monitors["monitor_list"]["entries"]
-        )
+        monitor_list = format_element_as_list(converted_monitors["monitor_list"]["entries"])
 
         return monitor_list
 
