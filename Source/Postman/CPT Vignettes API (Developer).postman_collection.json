@@ -1,0 +1,629 @@
+{
+  "info": {
+    "_postman_id": "1cab7d0c-0d92-4fa3-bf8c-71aca62ba512",
+    "name": "CPT Vignettes API (Developer)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "7392489"
+  },
+  "item": [
+    {
+      "name": "Passport Authentication",
+      "item": [
+        {
+          "name": "Get Passport Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.globals.set('responses', new Map())\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "    var jsonData = JSON.parse(responseBody);\r",
+                  "    pm.globals.set('token', jsonData.accessToken);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Save access token\", function () {\r",
+                  "    var jsonData = JSON.parse(responseBody);\r",
+                  "\r",
+                  "    pm.globals.set('token', jsonData.accessToken);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientId\": \"{{PASSPORT_CONSUMER_ID}}\",\r\n    \"clientSecret\": \"{{PASSPORT_CONSUMER_SECRET}}\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n"
+            },
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/provider/token",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "provider", "token"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entitlements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response Status\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const accessToken = pm.response.json().accessToken;\r",
+                  "pm.globals.set(\"AccessToken\", \"Bearer \" + accessToken);\r",
+                  "console.log(accessToken);\r",
+                  "console.log(pm.globals.get(\"AccessToken\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "{{CUSTOMER_NUMBER}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://{{PASSPORT_HOST}}/auth/entitlements/list",
+              "protocol": "https",
+              "host": ["{{PASSPORT_HOST}}"],
+              "path": ["auth", "entitlements", "list"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Portal Authentication",
+      "item": [
+        {
+          "name": "Get Portal Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);\r",
+                  "\r",
+                  "console.log(jsonData.access_token);\r",
+                  "pm.globals.set('token', jsonData.access_token);\r",
+                  "console.log(pm.globals.get('token'));\r",
+                  "pm.globals.set('responses', new Map())\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var consumer_token = pm.environment.get('PORTAL_CONSUMER_KEY') + ':' + pm.environment.get('PORTAL_CONSUMER_SECRET');\r",
+                  "var encoded_consumer_token = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(consumer_token))\r",
+                  "console.log(encoded_consumer_token)\r",
+                  "\r",
+                  "pm.globals.set('consumer_token', encoded_consumer_token);\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "value",
+                  "value": "Basic {{consumer_token}}",
+                  "type": "string"
+                },
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{PORTAL_TOKEN_URL}}",
+              "host": ["{{PORTAL_TOKEN_URL}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vignette",
+      "item": [
+        {
+          "name": "Get Vignette",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+                  "    var responses = pm.globals.get('responses')\r",
+                  "    responses[pm.info.requestName] = pm.response.json()\r",
+                  "    pm.globals.set('responses', responses)\r",
+                  "}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is a single object\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"cpt_code\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"typical_patient\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"pre_service_info\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"intra_service_info\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"post_service_info\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(5)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "{{CUSTOMER_NUMBER}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "query": [
+                {
+                  "key": "additional_information",
+                  "value": "true",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vignette Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+                  "    var responses = pm.globals.get('responses')\r",
+                  "    responses[pm.info.requestName] = pm.response.json()\r",
+                  "    pm.globals.set('responses', responses)\r",
+                  "}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is a single object\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"message\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(1)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "query": [
+                {
+                  "key": "additional_information",
+                  "value": "true",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vignette w/ additional information",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+                  "    var responses = pm.globals.get('responses')\r",
+                  "    responses[pm.info.requestName] = pm.response.json()\r",
+                  "    pm.globals.set('responses', responses)\r",
+                  "}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is a single dict\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"cpt_code\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"typical_patient\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"pre_service_info\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"intra_service_info\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"post_service_info\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"ruc_reviewed_date\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(\"concept_id\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(7)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "{{CUSTOMER_NUMBER}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code?additional_information=true",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "query": [
+                {
+                  "key": "additional_information",
+                  "value": "true"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vignette No Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+                  "    var responses = pm.globals.get('responses')\r",
+                  "    responses[pm.info.requestName] = pm.response.json()\r",
+                  "    pm.globals.set('responses', responses)\r",
+                  "}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is a single object\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"message\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(1)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "{{CUSTOMER_NUMBER}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code?additional_information=true",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "query": [
+                {
+                  "key": "additional_information",
+                  "value": "true"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "992025t"
+                }
+              ]
+            },
+            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vignette Bad Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+                  "    var responses = pm.globals.get('responses')\r",
+                  "    responses[pm.info.requestName] = pm.response.json()\r",
+                  "    pm.globals.set('responses', responses)\r",
+                  "}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response code indicates success\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is a single object\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response contains correct fields\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(\"message\" in jsonData).to.eql(true)\r",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(1)\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "{{CUSTOMER_NUMBER}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code?additional_information=truedd",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "query": [
+                {
+                  "key": "additional_information",
+                  "value": "truedd"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Default",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Response code indicates success', function () {\r",
+              "    pm.response.to.have.status(404);\r",
+              "})\r",
+              "\r",
+              "pm.test('Response is an error object', function () {\r",
+              "    console.log(responseBody);\r",
+              "    if (responseBody.includes('xmlns')) {\r",
+              "        var jsonData = xml2Json(responseBody);\r",
+              "\r",
+              "        pm.expect('am:fault' in jsonData).to.eql(true);\r",
+              "    } else {\r",
+              "        var jsonData = pm.response.json();\r",
+              "\r",
+              "        pm.expect(jsonData).to.have.property('message');\r",
+              "        pm.expect(Object.keys(jsonData).length).to.eql(1);\r",
+              "    }\r",
+              "})\r",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{CPT_VIGNETTES_API_URL}}/some/random/endpoint/path",
+          "host": ["{{CPT_VIGNETTES_API_URL}}"],
+          "path": ["some", "random", "endpoint", "path"]
+        },
+        "description": "Returns all lengths of the descriptor for a particular CPT Code."
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ]
+}

@@ -93,8 +93,9 @@ class ProcessorTaskWrapper(
         trigger_parameters = cls._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_name)
 
         return dict(
-            handler_class=trigger_parameters["HANDLER_CLASS"],
+            handler_class=trigger_parameters.pop("HANDLER_CLASS"),
             dag_topic_arn=handler_parameters["DAG_TOPIC_ARN"],
+            trigger_parameter=trigger_parameters,
             event=event_parameters
         )
 

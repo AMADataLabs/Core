@@ -51,7 +51,7 @@ class MeasurementMethods:
 
     @classmethod
     def _are_values_filled(cls, rules, data):
-        rules.value.extend(["", "-1", " ", None, "none", "nan", nan])
+        rules.value.extend(["", "-1", " ", None, "none", "nan", "Nan", nan])
 
         return ~(data[rules.name].isin(rules.value))
 

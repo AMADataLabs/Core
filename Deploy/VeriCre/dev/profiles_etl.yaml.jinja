@@ -1,0 +1,223 @@
+---
+VERICRE_PROFILES_ETL:
+    GLOBAL:
+        ENVIRONMENT: dev
+        ACCOUNT: '644454719059'
+
+        QLDB_TABLE: ama_masterfile
+        QLDB_LEDGER: vericre-dev-ledger
+        QLDB_PRIMARY_KEY: entityId
+
+        EFT_HOST: efttest.ama-assn.org
+        EFT_USERNAME: vericretst
+
+        S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+        S3_CACHE_PYTHON_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+        S3_BASE_PATH: 'AMA/OneView'
+
+    DAG:
+        CACHE_INPUT_CLASS: datalabs.cache.s3.S3TaskDataCache
+        CACHE_INPUT_BUCKET: ama-${ENVIRONMENT}-datalake-staged-us-east-1
+        CACHE_INPUT_BASE_PATH: AMA/VeriCre/Profile
+        CACHE_INPUT_FILES: profile.py
+        CACHE_INPUT_INCLUDE_DATESTAMP: 'false'
+
+        LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-ExpressDAG-DAG'
+
+        DAG_CLASS: 'dynamic.datalabs.etl.dag.masterfile.oneview.OneViewDAG'
+        DAG_STATE:
+            CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+            STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+            LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+        DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+        TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+        DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+        ENVIRONMENT: ${ENVIRONMENT}
+        JOB_QUEUE: 'VeriCre-${ENVIRONMENT}-ExpressDAG'
+        JOB_DEFINITION: 'VeriCre-${ENVIRONMENT}-ExpressDAG'
+
+    EXTRACT_AMA_PHYSICIAN_PROFILES:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'ABMS_DATA.psv,DEA_DATA.psv,DEMOG_DATA.psv,LICENSE_DATA.psv,MED_SCH_DATA.psv,MED_TRAIN_DATA.psv,NPI_DATA.psv,SANCTIONS_DATA.psv'
+
+        HOST=${EFT_HOST}
+        USERNAME=${EFT_USERNAME}
+        PASSWORD='{{eft_password}}'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'ABMS_DATA.psv,DEA_DATA.psv,DEMOG_DATA.psv,LICENSE_DATA.psv,MED_SCH_DATA.psv,MED_TRAIN_DATA.psv,NPI_DATA.psv,SANCTIONS_DATA.psv'
+
+    STANDARDIZE_DATES:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'ABMS_DATA.psv, DEA_DATA.psv, DEMOG_DATA.psv, LICENSE_DATA.psv, MED_SCH_DATA.psv, MED_TRAIN_DATA.psv, NPI_DATA.psv, SANCTIONS_DATA.psv'
+
+        COLUMNS=ENUMERATION_DT, DEACTIVATION_DT, REACTIVATION_DT, RPTD_DT, END_DT, BIRTH_DT, DEATH_DT, PRA_EXPR_DT, DEA_AS_OF_DT, DEA_EXPR_DT, GRAD_DT, MATRICULATION_DT, EFFECTIVE_DT, EXPIRATION_DT, LAST_REPORTED_DT, BEGIN_DT, LIC_ISSUE_DT, LIC_EXP_DT, LIC_AS_OF_DT, LIC_RNW_DT
+        INPUT_FORMAT=%M/%d/%Y
+        SEPARATOR=|
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: ABMS_DATA_STD.psv, DEA_DATA_STD.psv, DEMOG_DATA_STD.psv, LICENSE_DATA_STD.psv, MED_SCH_DATA_STD.psv, MED_TRAIN_DATA_STD.psv, NPI_DATA_STD.psv, SANCTIONS_DATA_STD.psv
+
+    CREATE_DEMOGRAPHICS:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'DEMOG_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'demographics.csv'
+
+    CREATE_DEA:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'DEA_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'dea.csv'
+
+    CREATE_NPI:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'NPI_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'npi.csv'
+
+    CREATE_MEDICAL_SCHOOLS:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'MED_SCH_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'medical_schools.csv'
+
+    CREATE_ABMS:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'ABMS_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'abms.csv'
+
+    CREATE_MEDICAL_TRAINING:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'MED_TRAIN_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'medical_training.csv'
+
+    CREATE_LICENSES:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'LICENSE_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'licenses.csv'
+
+    CREATE_SANCTIONS:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'SANCTIONS_DATA_STD.psv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'sanctions.csv'
+
+    CREATE_AMA_PROFILE_TABLE:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'abms.csv, dea.csv, demographics.csv, licenses.csv, medical_schools.csv, medical_training.csv, npi.csv, sanctions.csv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'ama_masterfile.csv'
+
+    CONVERT_AMA_PROFILE_TO_JSON:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'ama_masterfile.csv'
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'ama_masterfile_0.json' # FIXME
+
+    LOAD_AMA_PROFILE_TABLE:
+        TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
+
+        CACHE_INPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_FILES: 'ama_masterfile.json'
+
+        TABLE=${QLDB_TABLE}
+        LEDGER=${QLDB_LEDGER}
+        PRIMARY_KEY=${QLDB_PRIMARY_KEY}
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_PYTHON_CLASS}
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_FILES: 'ama_masterfile_added.json, ama_masterfile_updated.json'
+
+    DEFAULT:
+        TASK_CLASS:  'datalabs.access.vericre.api.default.DefaultEndpointTask'
