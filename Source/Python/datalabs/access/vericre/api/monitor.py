@@ -1,16 +1,16 @@
 """ Release endpoint classes."""
-from   dataclasses import dataclass
+from dataclasses import dataclass
 import logging
-from   typing import List, Optional
+from typing import List, Optional
 
 import urllib3
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
-from   datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
-from   datalabs.access.vericre.api.common import format_element_as_list
-from   datalabs.access.vericre.api.header import PROFILE_HEADERS
-from   datalabs.parameter import add_schema
-from   datalabs.util.xml import XmlToDictConverter
+from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
+from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
+from datalabs.access.vericre.api.common import format_element_as_list
+from datalabs.access.vericre.api.header import PROFILE_HEADERS
+from datalabs.parameter import add_schema
+from datalabs.util.xml import XmlToDictConverter
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -57,10 +57,15 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
         response = self._make_request_with_entity_id(entity_id)
 
+        if response.status == 400:
+            converted_error_message = XmlToDictConverter.parse_xml_to_dict(XmlToDictConverter(), response.data)
+
+            error_message = format_element_as_list(converted_error_message["response_message"]["message"])
+
+            raise ResourceNotFound(error_message)
+
         if response.status != 200:
-            raise InternalServerError(
-                f"Internal Server error caused by: {response.reason}, status: {response.status}"
-            )
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
 
         return response
 
@@ -112,17 +117,13 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
             raise ResourceNotFound("No notifications found for this client ID.")
 
         if response.status != 200:
-            raise InternalServerError(
-                f"Internal Server error caused by: {response.reason}, status: {response.status}"
-            )
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
 
         return response
 
     @classmethod
     def _convert_response_to_json(cls, notification_response):
-        converted_notifications = XmlToDictConverter.parse_xml_to_dict(
-            notification_response.data
-        )
+        converted_notifications = XmlToDictConverter.parse_xml_to_dict(XmlToDictConverter(), notification_response.data)
 
         notification_list = format_element_as_list(
             converted_notifications["monitor_notification_list"]["notifications"]
@@ -178,9 +179,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
         if response.status != 200:
-            raise InternalServerError(
-                f"Internal Server error caused by: {response.reason}, status: {response.status}"
-            )
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
 
         return response
 
@@ -199,9 +198,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
         notification_id = self._parameters.path["notification_id"]
 
         return self.HTTP.request(
-            "GET",
-            f'{self._parameters.monitor_update_url}/{notification_id}',
-            headers=self._headers
+            "GET", f"{self._parameters.monitor_update_url}/{notification_id}", headers=self._headers
         )
 
 
@@ -244,15 +241,13 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
             raise ResourceNotFound("No profile monitors found.")
 
         if response.status != 200:
-            raise InternalServerError(
-                f"Internal Server error caused by: {response.reason}, status: {response.status}"
-            )
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
 
         return response
 
     @classmethod
     def _convert_response_to_json(cls, monitor_profiles_response):
-        converted_monitors = XmlToDictConverter.parse_xml_to_dict(monitor_profiles_response.data)
+        converted_monitors = XmlToDictConverter.parse_xml_to_dict(XmlToDictConverter(), monitor_profiles_response.data)
 
         monitor_list = format_element_as_list(converted_monitors["monitor_list"]["entries"])
 
