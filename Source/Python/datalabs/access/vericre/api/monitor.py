@@ -57,6 +57,13 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
         response = self._make_request_with_entity_id(entity_id)
 
+        if response.status == 400:
+            converted_error_message = parse_xml_to_dict(response.data)
+
+            error_message = get_list_without_tags(converted_error_message["response_message"]["message"])
+
+            raise ResourceNotFound(error_message)
+
         if response.status != 200:
             raise InternalServerError(
                 f"Internal Server error caused by: {response.reason}, status: {response.status}"
