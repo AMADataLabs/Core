@@ -1,14 +1,16 @@
-""" Coomunications transformer for creating Contact entitiy """
-# pylint: disable=import-error
-from   dataclasses import dataclass, fields
+""" Coomunications transformers for creating Contact entitiy """
+from dataclasses import dataclass, fields
 import csv
 import logging
 
-# pylint: disable=wrong-import-order
 import pandas
 
-from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.task import Task
+from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from datalabs.analysis.quality.preprocessing import DataProcessingMixin
+from datalabs.etl.excel import ExcelReaderMixin
+from datalabs.analysis.quality.measurement import MeasurementMethods
+from datalabs.task import Task
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -235,6 +237,48 @@ class CommunicationsTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
     # pylint: disable=no-self-use
     def _postprocess(self, entities):
         return entities
+
+    def _pack(self, postprocessed_data):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+
+
+class PartyLevelCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, DataProcessingMixin):
+    def run(self):
+        input_data = self._parse_input(self._data)
+
+        preprocessed_data = self._preprocess_data(input_data)
+
+        party_level_completeness = self._create_party_level_completeness(preprocessed_data)
+
+        return self._pack(party_level_completeness)
+
+    def _parse_input(self, data):
+        party_level_entity, measurement_methods_configurations = data
+
+        party_level_entity = self._csv_to_dataframe(party_level_entity)
+
+        measurement_methods_configurations = self._excel_to_dataframe(measurement_methods_configurations)
+
+        return [party_level_entity, measurement_methods_configurations]
+
+    def _preprocess_data(self, input_data):
+        party_level_entity, measurement_method_configuration = self._all_columns_to_lower(input_data)
+
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
+
+        return [party_level_entity, measurement_method_configuration]
+
+    @classmethod
+    def _create_party_level_completeness(cls, preprocessed_data):
+        party_level_entity, measurement_methods_configuration = preprocessed_data
+
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "contact"
+        )
+
+        party_level_completeness = measurement_methods.measure_completeness(party_level_entity)
+
+        return [party_level_completeness]
 
     def _pack(self, postprocessed_data):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
