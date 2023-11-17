@@ -24,18 +24,6 @@ def test_party_level_completeness_transformer_task(parameters):
 
 
 @pytest.fixture
-def parameters(data):
-    return dict(data=data, EXECUTION_TIME="2023-11-08T21:30:00.000000")
-
-
-@pytest.fixture
-def data(communications_entity, measurement_method_configuration):
-    data = [communications_entity, measurement_method_configuration]
-
-    return data
-
-
-@pytest.fixture
 def communications_entity():
     data = b"""medical_education_number,col1,col2,col3\n
     100,Nan,2,4\n
@@ -61,3 +49,15 @@ def measurement_method_configuration():
     excel_data = excel_buffer.getvalue()
 
     return excel_data
+
+
+@pytest.fixture
+def data(communications_entity, measurement_method_configuration):
+    data = [communications_entity, measurement_method_configuration]
+
+    return data
+
+
+@pytest.fixture
+def parameters(data):
+    return dict(data=data, EXECUTION_TIME="2023-11-08T21:30:00.000000")
