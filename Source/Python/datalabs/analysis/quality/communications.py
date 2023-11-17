@@ -6,10 +6,11 @@ import logging
 import pandas
 
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from datalabs.task import Task
+from datalabs.analysis.quality.preprocessing import DataProcessingMixin
 from datalabs.etl.excel import ExcelReaderMixin
 from datalabs.analysis.quality.measurement import MeasurementMethods
-from datalabs.analysis.quality.preprocessing import DataProcessingMixin
+from datalabs.task import Task
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
