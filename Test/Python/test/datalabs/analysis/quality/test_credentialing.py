@@ -5,8 +5,8 @@ import pandas
 import pytest
 
 from datalabs.analysis.quality.credentialing import (
-    NpiRegistrationCompletenessTransformerTask,
-    DeaRegistrationCompletenessTransformerTask,
+    NPIRegistrationCompletenessTransformerTask,
+    DEARegistrationCompletenessTransformerTask,
     CertificatesCompletenessTransformerTask,
     LicenseCompletenessTransformerTask,
 )
@@ -14,7 +14,7 @@ from datalabs.analysis.quality.credentialing import (
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_npi_registration_completeness_transformer_task(parameters):
-    task = NpiRegistrationCompletenessTransformerTask(parameters)
+    task = NPIRegistrationCompletenessTransformerTask(parameters)
 
     result = task._parse_input(task._parameters["data"])
 
@@ -29,7 +29,7 @@ def test_npi_registration_completeness_transformer_task(parameters):
 
 
 def test_dea_registration_completeness_transformer_task(parameters):
-    task = DeaRegistrationCompletenessTransformerTask(parameters)
+    task = DEARegistrationCompletenessTransformerTask(parameters)
 
     result = task._parse_input(task._parameters["data"])
 
