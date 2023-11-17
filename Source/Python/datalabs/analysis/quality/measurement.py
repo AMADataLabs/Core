@@ -22,6 +22,8 @@ class MeasurementMethods:
             (measurement_methods.measure == measure_name) & (measurement_methods.data_type == entity_name)
         ]
 
+        measurement_methods = measurement_methods.fillna("")
+
         measurement_methods = measurement_methods.apply(cls._reformat_rule, axis=1).set_index("column_name")
 
         return MeasurementMethods(measurement_methods)
@@ -36,18 +38,15 @@ class MeasurementMethods:
 
     @classmethod
     def _reformat_values(cls, values):
-        if isinstance(values, str):
-            values = values.strip()
-            if " " in values:
-                values = values.split(" ")
-            elif re.compile(r"\d{1,2}/\d{1,2}/\d{4}").match(values):
-                values = [datetime.strptime(values, "%m/%d/%Y").strftime("%Y-%m-%d")]
-            else:
-                values = [values]
-        else:
-            values = [values]
+        values = values.strip()
+        reformatted_values = [values]
 
-        return values
+        if " " in values:
+            reformatted_values = values.split(" ")
+        elif re.compile(r"\d{1,2}/\d{1,2}/\d{4}").match(values):
+            reformatted_values = [datetime.strptime(values, "%m/%d/%Y").strftime("%Y-%m-%d")]
+
+        return reformatted_values
 
     @classmethod
     def _are_values_filled(cls, rules, data):
