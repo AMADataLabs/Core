@@ -34,5 +34,6 @@ OneView/ETL/Extract
 OneView/API
 Scheduler
 VeriCre/DataSteward
+VeriCre/API/Discrepancy
 VeriCre/API/Profile
 VeriCre/ETL/Profile
