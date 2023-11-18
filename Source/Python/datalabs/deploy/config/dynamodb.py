@@ -56,6 +56,13 @@ class Configuration:
 
         return set(self._paginated_scan(self._aggregate_dags, parameters))
 
+    def get_apis(self) -> Iterable[str]:
+        parameters = dict(
+            TableName=self._table, FilterExpression="Task = :task", ExpressionAttributeValues={":task": {"S": "ROUTE"}}
+        )
+
+        return set(self._paginated_scan(self._aggregate_dags, parameters))
+
     def get_tasks(self, dag: str):
         parameters = dict(
             TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
