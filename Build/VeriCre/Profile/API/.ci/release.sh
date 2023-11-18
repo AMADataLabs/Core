@@ -19,7 +19,7 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-vericre-profiles-api"
+    export RELEASE_NAME="datalabs-vericre-profile-api"
     export RELEASE_DESCRIPTION="VeriCre Profiles API implementations"
 }
 
