@@ -1,9 +1,10 @@
 """ Tool for loading Kubernetes ConfigMap data into DynamoDB. """
 import logging
 import pprint
+from typing import Iterable
 
-from   datalabs.access.aws import AWSClient
-from   datalabs.access.parameter.file import ParameterExtractorMixin
+from datalabs.access.aws import AWSClient
+from datalabs.access.parameter.file import ParameterExtractorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,8 +49,9 @@ class Configuration:
     def __init__(self, table: str):
         self._table = table
 
-    def get_dags(self) -> list:
+    def get_dags(self) -> Iterable[str]:
         dags = set()
+
         with AWSClient("dynamodb") as dynamodb:
             response = dynamodb.scan(TableName=self._table)
 
@@ -62,9 +64,7 @@ class Configuration:
         tasks = []
 
         parameters = dict(
-            TableName=self._table,
-            FilterExpression="DAG = :dag",
-            ExpressionAttributeValues={":dag": {"S": dag}}
+            TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
         )
 
         with AWSClient("dynamodb") as dynamodb:
@@ -80,9 +80,7 @@ class Configuration:
 
     def clear_dag(self, dag: str):
         parameters = dict(
-            TableName=self._table,
-            FilterExpression="DAG = :dag",
-            ExpressionAttributeValues={":dag": {"S": dag}}
+            TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
         )
 
         with AWSClient("dynamodb") as dynamodb:
@@ -91,5 +89,5 @@ class Configuration:
             for item in response["Items"]:
                 dynamodb.delete_item(
                     TableName=self._table,
-                    Key={'DAG': {'S': dag}, 'Task': {'S': item["Task"]["S"]}},
+                    Key={"DAG": {"S": dag}, "Task": {"S": item["Task"]["S"]}},
                 )
