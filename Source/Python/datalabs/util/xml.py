@@ -6,7 +6,11 @@ import xmltodict
 
 class XMLToDictConverter:
     def parse_xml_to_dict(self, xml):
-        return xmltodict.parse(xml.decode("utf-8"), xml_attribs=False, postprocessor=self._format_xml_element)
+        return xmltodict.parse(
+            xml.decode("utf-8"),
+            xml_attribs=False,
+            postprocessor=self._format_xml_element
+        )
 
     # pylint: disable=unused-argument
     def _format_xml_element(self, path, key, value):
