@@ -53,33 +53,15 @@ class Configuration:
         parameters = dict(
             TableName=self._table, FilterExpression="Task = :task", ExpressionAttributeValues={":task": {"S": "DAG"}}
         )
-        dags = set()
 
-        with AWSClient("dynamodb") as dynamodb:
-            response = dynamodb.scan(**parameters)
-        # import pdb; pdb.set_trace()
-
-        for item in response["Items"]:
-            dags.add(item["DAG"]["S"])
-
-        return dags
+        return set(self._paginated_scan(self._aggregate_dags, parameters))
 
     def get_tasks(self, dag: str):
         parameters = dict(
             TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
         )
-        tasks = []
 
-        with AWSClient("dynamodb") as dynamodb:
-            response = dynamodb.scan(**parameters)
-
-        for item in response["Items"]:
-            task = item["Task"]["S"]
-
-            if task not in ["DAG", "GLOBAL"]:
-                tasks.append(task)
-
-        return tasks
+        return set(self._paginated_scan(self._aggregate_tasks, parameters))
 
     def clear_dag(self, dag: str):
         parameters = dict(
@@ -94,3 +76,33 @@ class Configuration:
                     TableName=self._table,
                     Key={"DAG": {"S": dag}, "Task": {"S": item["Task"]["S"]}},
                 )
+
+    @classmethod
+    def _paginated_scan(cls, aggregation_function, parameters):
+        aggregate = []
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.scan(**parameters)
+
+            aggregation_function(aggregate, response["Items"])
+
+            while "LastEvaluatedKey" in response:
+                parameters["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+
+                response = dynamodb.scan(**parameters)
+
+                aggregation_function(aggregate, response["Items"])
+
+        return aggregate
+
+    @classmethod
+    def _aggregate_dags(cls, dags: list[str], items: Iterable[dict]):
+        dags.extend([item["DAG"]["S"] for item in items])
+
+    @classmethod
+    def _aggregate_tasks(cls, tasks: list[str], items: Iterable[dict]):
+        for item in items:
+            task = item["Task"]["S"]
+
+            if task not in ["DAG", "GLOBAL"]:
+                tasks.append(task)
