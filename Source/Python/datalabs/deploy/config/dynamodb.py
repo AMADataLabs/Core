@@ -50,10 +50,14 @@ class Configuration:
         self._table = table
 
     def get_dags(self) -> Iterable[str]:
+        parameters = dict(
+            TableName=self._table, FilterExpression="Task = :task", ExpressionAttributeValues={":task": {"S": "DAG"}}
+        )
         dags = set()
 
         with AWSClient("dynamodb") as dynamodb:
-            response = dynamodb.scan(TableName=self._table)
+            response = dynamodb.scan(**parameters)
+        # import pdb; pdb.set_trace()
 
         for item in response["Items"]:
             dags.add(item["DAG"]["S"])
@@ -61,11 +65,10 @@ class Configuration:
         return dags
 
     def get_tasks(self, dag: str):
-        tasks = []
-
         parameters = dict(
             TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
         )
+        tasks = []
 
         with AWSClient("dynamodb") as dynamodb:
             response = dynamodb.scan(**parameters)
