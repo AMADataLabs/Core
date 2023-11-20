@@ -102,8 +102,8 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
         fips = fips.append(
             {'id': '64003',
-             'state': 64, 
-             'county': '063', 
+             'state': 64,
+             'county': '063',
              'description': 'Yap, Federated States of Micronesia'
         }, ignore_index=True)
 
