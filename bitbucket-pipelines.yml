@@ -3171,7 +3171,7 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/Profile
                   Profiles-API=API.zip
-                  Authorizer=API.zip
+                  Profiles-Authorizer=API.zip
           - step:
               name: Reload Staging Lambda Functions
               script:
