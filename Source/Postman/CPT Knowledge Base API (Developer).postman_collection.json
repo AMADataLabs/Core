@@ -567,6 +567,217 @@
       ]
     },
     {
+      "name": "Errors",
+      "item": [
+        {
+          "name": "Unauthorized (Direct)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 401 if URL doesn't contain 'platform'\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    console.log(host.includes(\"platform\"))\r",
+                  "\r",
+                  "    if (!host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.code).to.equal(401);\r",
+                  "    }\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('Response is a single object', function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.be.an('object');\r",
+                  "})\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Host",
+                "value": "cpt-api-sbx.cptapi.local",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_KNOWLEDGE_BASE_API_URL}}/articles/summary?keyword=abc",
+              "host": ["{{CPT_KNOWLEDGE_BASE_API_URL}}"],
+              "path": ["articles", "summary"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "Returns all lengths of the descriptor for a particular CPT Code."
+          },
+          "response": []
+        },
+        {
+          "name": "Unauthorized (Portal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 401 (Portal-only)\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.code).to.equal(401);\r",
+                  "    }\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is in XML format\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/xml');\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "12345",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Host",
+                "value": "cpt-api-sbx.cptapi.local",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_KNOWLEDGE_BASE_API_URL}}/articles/summary?keyword=abc",
+              "host": ["{{CPT_KNOWLEDGE_BASE_API_URL}}"],
+              "path": ["articles", "summary"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "Returns all lengths of the descriptor for a particular CPT Code."
+          },
+          "response": []
+        },
+        {
+          "name": "Forbidden (Direct)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 403 if URL doesn't contain 'platform'\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (!host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.code).to.equal(403);\r",
+                  "    }\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test('Response is a single object', function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (!host.includes(\"platform\")) {\r",
+                  "        var jsonData = pm.response.json();\r",
+                  "\r",
+                  "        pm.expect(jsonData).to.be.an('object');\r",
+                  "    }\r",
+                  "})\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "12345",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Host",
+                "value": "cpt-api-sbx.cptapi.local",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_KNOWLEDGE_BASE_API_URL}}/articles/summary?keyword=abc",
+              "host": ["{{CPT_KNOWLEDGE_BASE_API_URL}}"],
+              "path": ["articles", "summary"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "Returns all lengths of the descriptor for a particular CPT Code."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Default",
       "event": [
         {

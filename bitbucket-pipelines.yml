@@ -2949,14 +2949,14 @@ pipelines:
                   bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/SNOMED
                   SNOMED-DAG=ETL.zip
 
-    VeriCre-API:
+    VeriCre-Discrepancy-API:
       - step:
           name: Create Development Component Package
           caches:
             - environment-master
           script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-package --project VeriCre/API/Profile
+            - bash Deploy/Master/deploy-package --project VeriCre/Discrepancy/API
       - parallel:
           - step:
               name: Update sandbox Bundle
@@ -2967,8 +2967,8 @@ pipelines:
                 - >-
                   bash Deploy/Master/deploy-lambda-function
                   --environment sbx
-                  --project VeriCre/API/Profile
-                  --bundle VeriCre/API/Profile.zip
+                  --project VeriCre/Discrepancy/API
+                  --bundle VeriCre/Discrepancy/API.zip
           - step:
               name: Update Development Bundle
               caches:
@@ -2980,8 +2980,8 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment dev
-                  --project VeriCre/API/Profile
-                  --bundle VeriCre/API/Profile.zip
+                  --project VeriCre/Discrepancy/API
+                  --bundle VeriCre/Discrepancy/API.zip
           - step:
               name: Update Test Bundle
               caches:
@@ -2993,8 +2993,8 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment tst
-                  --project VeriCre/API/Profile
-                  --bundle VeriCre/API/Profile.zip
+                  --project VeriCre/Discrepancy/API
+                  --bundle VeriCre/Discrepancy/API.zip
           - step:
               name: Update Staging Bundle
               caches:
@@ -3006,8 +3006,8 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment itg
-                  --project VeriCre/API/Profile
-                  --bundle VeriCre/API/Profile.zip
+                  --project VeriCre/Discrepancy/API
+                  --bundle VeriCre/Discrepancy/API.zip
           - step:
               name: Update Production Bundle
               caches:
@@ -3019,17 +3019,139 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment prd
-                  --project VeriCre/API/Profile
-                  --bundle VeriCre/API/Profile.zip
+                  --project VeriCre/Discrepancy/API
+                  --bundle VeriCre/Discrepancy/API.zip
       - parallel:
           - step:
               name: Reload Sandbox Lambda Functions
               script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
-                  bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/API
-                  Profiles-API=Profile.zip
-                  Authorizer=Profile.zip
+                  bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/Discrepancy
+                  Discrepancy-API=API.zip
+                  Discrepancy-Authorizer=API.zip
+          # - step:
+          #     name: Reload Development Lambda Functions
+          #     script:
+          #       - >-
+          #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+          #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+          #       - >-
+          #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/Discrepancy
+          #         Discrepancy-API=API.zip
+          #         Discrepancy-Authorizer=API.zip
+          # - step:
+          #     name: Reload Test Lambda Functions
+          #     script:
+          #       - >-
+          #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+          #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+          #       - >-
+          #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/Discrepancy
+          #         Discrepancy-API=API.zip
+          #         Discrepancy-Authorizer=API.zip
+          # - step:
+          #     name: Reload Staging Lambda Functions
+          #     script:
+          #       - >-
+          #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+          #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+          #       - >-
+          #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s VeriCre -p VeriCre/Discrepancy
+          #         Discrepancy-API=API.zip
+          #         Discrepancy-Authorizer=API.zip
+          # - step:
+          #     name: Reload Production Lambda Functions
+          #     script:
+          #       - >-
+          #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+          #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+          #       - >-
+          #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/Discrepancy
+          #         Discrepancy-API=API.zip
+          #         Discrepancy-Authorizer=API.zip
+
+    VeriCre-Profiles-API:
+      - step:
+          name: Create Development Component Package
+          caches:
+            - environment-master
+          script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project VeriCre/Profile/API
+      - parallel:
+          - step:
+              name: Update sandbox Bundle
+              caches:
+                - environment-master
+              script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                  bash Deploy/Master/deploy-lambda-function
+                  --environment sbx
+                  --project VeriCre/Profile/API
+                  --bundle VeriCre/Profile/API.zip
+          - step:
+              name: Update Development Bundle
+              caches:
+                - environment-dev
+              script:
+                - >-
+                  bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                  -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                  bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                  --environment dev
+                  --project VeriCre/Profile/API
+                  --bundle VeriCre/Profile/API.zip
+          - step:
+              name: Update Test Bundle
+              caches:
+                - environment-test
+              script:
+                - >-
+                  bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                  -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                  bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                  --environment tst
+                  --project VeriCre/Profile/API
+                  --bundle VeriCre/Profile/API.zip
+          - step:
+              name: Update Staging Bundle
+              caches:
+                - environment-stage
+              script:
+                - >-
+                  bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                  -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                  bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                  --environment itg
+                  --project VeriCre/Profile/API
+                  --bundle VeriCre/Profile/API.zip
+          - step:
+              name: Update Production Bundle
+              caches:
+                - environment-prod
+              script:
+                - >-
+                  bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                  -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                  bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                  --environment prd
+                  --project VeriCre/Profile/API
+                  --bundle VeriCre/Profile/API.zip
+      - parallel:
+          - step:
+              name: Reload Sandbox Lambda Functions
+              script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                  bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/Profile
+                  Profiles-API=API.zip
+                  Profiles-Authorizer=API.zip
           - step:
               name: Reload Development Lambda Functions
               script:
@@ -3037,9 +3159,9 @@ pipelines:
                   bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                   -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
-                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/API
-                  Profiles-API=Profile.zip
-                  Authorizer=Profile.zip
+                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/Profile
+                  Profiles-API=API.zip
+                  Authorizer=API.zip
           - step:
               name: Reload Test Lambda Functions
               script:
@@ -3047,9 +3169,9 @@ pipelines:
                   bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                   -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
-                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/API
-                  Profiles-API=Profile.zip
-                  Authorizer=Profile.zip
+                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/Profile
+                  Profiles-API=API.zip
+                  Authorizer=API.zip
           - step:
               name: Reload Staging Lambda Functions
               script:
@@ -3057,9 +3179,9 @@ pipelines:
                   bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                   -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
-                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s VeriCre -p VeriCre/API
-                  Profiles-API=Profile.zip
-                  Authorizer=Profile.zip
+                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s VeriCre -p VeriCre/Profile
+                  Profiles-API=API.zip
+                  Authorizer=API.zip
           - step:
               name: Reload Production Lambda Functions
               script:
@@ -3067,18 +3189,18 @@ pipelines:
                   bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                   -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
-                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/API
-                  Profiles-API=Profile.zip
-                  Authorizer=Profile.zip
+                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/Profile
+                  Profiles-API=API.zip
+                  Authorizer=API.zip
 
-    VeriCre-ETL:
+    VeriCre-Profiles-ETL:
       - step:
           name: Create Development Component Package
           caches:
             - environment-master
           script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-package --project VeriCre/ETL/Profile
+            - bash Deploy/Master/deploy-package --project VeriCre/Profile/ETL
       - parallel:
           - step:
               name: Update sandbox Bundle
@@ -3089,8 +3211,8 @@ pipelines:
                 - >-
                   bash Deploy/Master/deploy-lambda-function
                   --environment sbx
-                  --project VeriCre/ETL/Profile
-                  --bundle VeriCre/ETL/Profile.zip
+                  --project VeriCre/Profile/ETL
+                  --bundle VeriCre/Profile/ETL.zip
           - step:
               name: Update Development Bundle
               caches:
@@ -3102,8 +3224,8 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment dev
-                  --project VeriCre/ETL/Profile
-                  --bundle VeriCre/ETL/Profile.zip
+                  --project VeriCre/Profile/ETL
+                  --bundle VeriCre/Profile/ETL.zip
           - step:
               name: Update Test Bundle
               caches:
@@ -3115,8 +3237,8 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment tst
-                  --project VeriCre/ETL/Profile
-                  --bundle VeriCre/ETL/Profile.zip
+                  --project VeriCre/Profile/ETL
+                  --bundle VeriCre/Profile/ETL.zip
           - step:
               name: Update Staging Bundle
               caches:
@@ -3128,8 +3250,8 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment itg
-                  --project VeriCre/ETL/Profile
-                  --bundle VeriCre/ETL/Profile.zip
+                  --project VeriCre/Profile/ETL
+                  --bundle VeriCre/Profile/ETL.zip
           - step:
               name: Update Production Bundle
               caches:
@@ -3141,16 +3263,16 @@ pipelines:
                 - >-
                   bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                   --environment prd
-                  --project VeriCre/ETL/Profile
-                  --bundle VeriCre/ETL/Profile.zip
+                  --project VeriCre/Profile/ETL
+                  --bundle VeriCre/Profile/ETL.zip
       - parallel:
           - step:
               name: Reload Sandbox Lambda Functions
               script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
-                  bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/ETL
-                  Profiles-DAG=Profile.zip
+                  bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/Profile
+                  Profiles-DAG=ETL.zip
           - step:
               name: Reload Development Lambda Functions
               script:
@@ -3158,8 +3280,8 @@ pipelines:
                   bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                   -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
-                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/ETL
-                  Profiles-DAG=Profile.zip
+                  bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/Profile
+                  Profiles-DAG=ETL.zip
 
     DEUS-API:
       - step:

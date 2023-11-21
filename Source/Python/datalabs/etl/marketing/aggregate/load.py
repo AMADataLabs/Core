@@ -40,7 +40,7 @@ class EmailValidationRequestLoaderTask(ExecutionTimeMixin, CSVReaderMixin, CSVWr
 
         dated_dataset_with_emails = self._calculate_months_since_last_validated(dated_dataset_with_emails)
 
-        request_parameters = self._validate_expired_records(dated_dataset_with_emails)
+        request_parameters, dated_dataset_with_emails = self._validate_expired_records(dated_dataset_with_emails)
 
         request_parameters = self._create_request_parameters_dict(request_parameters)
 
@@ -76,7 +76,7 @@ class EmailValidationRequestLoaderTask(ExecutionTimeMixin, CSVReaderMixin, CSVWr
 
         request_parameters = self._validate_emails(email_data_list)
 
-        return request_parameters
+        return request_parameters, dated_dataset_with_emails
 
     @classmethod
     def _create_request_parameters_dict(cls, request_parameters):

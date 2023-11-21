@@ -14,8 +14,8 @@ LOGGER.setLevel(logging.DEBUG)
 def main(args):
     configuration = Configuration(f'DataLake-configuration-{args["environment"]}')
 
-    for dag in sorted(configuration.get_dags()):
-        print(dag)
+    for api in sorted(configuration.get_apis()):
+        print(api)
 
 
 # pylint: disable=invalid-name, broad-except
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     try:
         main(args)
     except Exception as e:
-        LOGGER.exception("Failed to get DAGs.")
+        LOGGER.exception("Failed to get APIs.")
         return_code = 1
 
     sys.exit(return_code)
