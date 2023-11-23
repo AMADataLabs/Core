@@ -57,7 +57,7 @@ def test_process_wrapper_scheduler_event_parsed_correctly(scheduler_event, get_d
     ):
         parameters = wrapper._get_task_parameters()
 
-    assert len(parameters) == 3
+    assert len(parameters) == 4
     assert "handler_class" in parameters
     assert parameters["handler_class"] == "datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask"
     assert "dag_topic_arn" in parameters

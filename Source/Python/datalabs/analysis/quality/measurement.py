@@ -1,10 +1,10 @@
-""" Measurement  """
-# pylint: disable=wrong-import-order
+""" Measurement for various metrics """
 from datetime import datetime
-
 import logging
-import pandas
 import re
+
+import pandas
+from numpy import nan
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -12,64 +12,85 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class MeasurementMethods:
-    def __init__(self) -> None:
-        self._measure = pandas.DataFrame()
+    def __init__(self, measurement_methods) -> None:
+        self._entity_measurement = pandas.DataFrame()
+        self._measurement_methods = measurement_methods
 
     @classmethod
-    def _measurement_methods_reformatting(cls, rows):
-        if isinstance(rows["condition_value"], str):
-            rows["condition_value"] = rows["condition_value"].split(" ")
-        else:
-            rows["condition_value"] = [rows["condition_value"]]
-        if isinstance(rows["value"], str):
-            if re.compile(r"\d{1,2}/\d{1,2}/\d{4}").match(rows["value"]):
-                rows["value"] = [datetime.strptime(rows["value"], "%m/%d/%Y").strftime("%Y-%m-%d")]
-            else:
-                rows["value"] = rows["value"].split(" ")
-        else:
-            rows["value"] = [rows["value"]]
-
-        return rows
-
-    def _get_measurement_methods(self, measurement_methods, measure_name, entity_name):
+    def create_measurement_methods(cls, measurement_methods, measure_name, entity_name):
         measurement_methods = measurement_methods[
             (measurement_methods.measure == measure_name) & (measurement_methods.data_type == entity_name)
         ]
-        measurement_methods = measurement_methods.apply(self._measurement_methods_reformatting, axis=1).set_index(
-            "column_name"
-        )
 
-        return measurement_methods
+        measurement_methods = measurement_methods.fillna("")
+
+        measurement_methods = measurement_methods.apply(cls._reformat_rule, axis=1).set_index("column_name")
+
+        return MeasurementMethods(measurement_methods)
 
     @classmethod
-    def _fill(cls, rows, data):
-        rows.value.extend(["", "-1", " ", None, "none"])
-        data[rows.name] = [str(x).replace(".0", "") for x in data[rows.name]]
-        fill = ~(data[rows.name].isin(rows.value)) & ~(data[rows.name].isna())
+    def _reformat_rule(cls, rule):
+        rule["condition_value"] = cls._reformat_values(rule["condition_value"])
 
-        return fill
+        rule["value"] = cls._reformat_values(rule["value"])
 
-    def _completeness_reformatting(self, rows, entity):
-        if rows.condition_indicator:
-            if rows.condition_is_not:
-                column_measure = entity[~entity[rows.condition_column].isin(rows.condition_value)][
-                    ["medical_education_number"]
-                ].copy()
-            else:
-                column_measure = entity[entity[rows.condition_column].isin(rows.condition_value)][
-                    ["medical_education_number"]
-                ].copy()
+        return rule
+
+    @classmethod
+    def _reformat_values(cls, values):
+        values = values.strip()
+        reformatted_values = [values]
+
+        if " " in values:
+            reformatted_values = values.split(" ")
+        elif re.compile(r"\d{1,2}/\d{1,2}/\d{4}").match(values):
+            reformatted_values = [datetime.strptime(values, "%m/%d/%Y").strftime("%Y-%m-%d")]
+
+        return reformatted_values
+
+    @classmethod
+    def _are_values_filled(cls, rules, data):
+        rules.value.extend(["", "-1", " ", None, "none", "nan", "Nan", nan])
+
+        return ~(data[rules.name].isin(rules.value))
+
+    def _apply_completeness_rule(self, rule, entities):
+        if rule.condition_indicator:
+            entities = self._select_condition_matching_entities(rule, entities)
+
+        column_completeness = self._generate_column_completeness(rule, entities)
+
+        if not column_completeness.empty:
+            self._entity_measurement = pandas.concat([self._entity_measurement, column_completeness])
+
+    @classmethod
+    def _generate_column_completeness(cls, rule, entities):
+        column_completeness = entities[["medical_education_number"]].copy()
+
+        if not column_completeness.empty:
+            measured = cls._are_values_filled(rule, entities)
+            column_completeness["element"] = rule.name
+            column_completeness["measure"] = rule.measure
+            column_completeness["value"] = measured
+            column_completeness["raw_value"] = list(entities[rule.name].loc[column_completeness.index])
+
+        return column_completeness
+
+    @classmethod
+    def _select_condition_matching_entities(cls, rule, entities):
+        if rule.condition_is_not:
+            entities = entities[~entities[rule.condition_column].isin(rule.condition_value)]
         else:
-            column_measure = entity[["medical_education_number"]].copy()
-        if not column_measure.empty:
-            measured = self._fill(rows, entity)
-            column_measure["element"] = rows.name
-            column_measure["measure"] = rows.measure
-            column_measure["value"] = measured
-            column_measure["raw_value"] = list(entity[rows.name].loc[column_measure.index])
-            self._measure = pandas.concat([self._measure, column_measure])
+            entities = entities[entities[rule.condition_column].isin(rule.condition_value)]
 
-    def _measure_completeness(self, measurement_methods, entity):
-        measurement_methods.apply(self._completeness_reformatting, args=(entity,), axis=1)
+        return entities
 
-        return self._measure
+    def _filter_measurement_methods(self, entity):
+        return self._measurement_methods[self._measurement_methods.index.isin(entity.columns.tolist())]
+
+    def measure_completeness(self, entity):
+        self._measurement_methods = self._filter_measurement_methods(entity)
+
+        self._measurement_methods.apply(self._apply_completeness_rule, args=(entity,), axis=1)
+
+        return self._entity_measurement

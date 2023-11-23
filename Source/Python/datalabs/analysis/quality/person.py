@@ -1,5 +1,4 @@
 """ Person transformer class for creating Person entitiy """
-# pylint: disable=import-error
 from dataclasses import dataclass, fields
 import csv
 import logging
@@ -7,7 +6,6 @@ import json
 
 import pandas
 
-# pylint: disable=wrong-import-order
 from datalabs.task import Task
 from datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from datalabs.etl.excel import ExcelReaderMixin
@@ -116,10 +114,8 @@ class PersonTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
 
-class CompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, MeasurementMethods):
+class CompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin):
     def run(self):
-        MeasurementMethods.__init__(self)
-
         input_data = self._parse_input(self._data)
 
         preprocessed_data = self._preprocess_data(input_data)
@@ -131,35 +127,46 @@ class CompletenessTransformerTask(Task, CSVReaderMixin, CSVWriterMixin, ExcelRea
         return self._pack(postprocessed_data)
 
     def _parse_input(self, data):
-        person_entity, measurement_methods = data
+        person_entity, measurement_methods_configuration = data
 
         person_entity = self._csv_to_dataframe(person_entity)
 
-        measurement_methods = self._excel_to_dataframe(measurement_methods)
+        measurement_methods_configuration = self._excel_to_dataframe(measurement_methods_configuration)
 
-        return [person_entity, measurement_methods]
+        return [person_entity, measurement_methods_configuration]
 
     def _preprocess_data(self, input_data):
-        person_entity, measurement_methods = self._convert_to_lower_case(input_data)
+        person_entity, measurement_methods_configuration = self._convert_to_lower_case(input_data)
 
-        person_entity["birth_country_id"] = person_entity["birth_country_id"].apply(lambda x: str(x).replace(".0", ""))
+        person_entity["birth_country_id"] = self._replacing_zeros(person_entity["birth_country_id"])
 
-        person_entity["birth_state_id"] = person_entity["birth_state_id"].apply(lambda x: str(x).replace(".0", ""))
+        person_entity["birth_state_id"] = self._replacing_zeros(person_entity["birth_state_id"])
 
-        measurement_methods = measurement_methods.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+        measurement_methods_configuration = self._all_elements_to_lower(measurement_methods_configuration)
 
-        return [person_entity, measurement_methods]
+        return [person_entity, measurement_methods_configuration]
+
+    @classmethod
+    def _replacing_zeros(cls, data):
+        return data.apply(lambda x: str(x).replace(".0", ""))
+
+    @classmethod
+    def _all_elements_to_lower(cls, data):
+        return data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
 
     @classmethod
     def _convert_to_lower_case(cls, data):
         return [dataset.rename(columns=lambda x: x.lower()) for dataset in data]
 
-    def _create_person_completeness(self, preprocessed_data):
-        person_entity, measurement_methods = preprocessed_data
+    @classmethod
+    def _create_person_completeness(cls, preprocessed_data):
+        person_entity, measurement_methods_configuration = preprocessed_data
 
-        measurement_methods = self._get_measurement_methods(measurement_methods, "completeness", "person")
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "person"
+        )
 
-        person_completeness = self._measure_completeness(measurement_methods, person_entity)
+        person_completeness = measurement_methods.measure_completeness(person_entity)
 
         return [person_completeness]
 
