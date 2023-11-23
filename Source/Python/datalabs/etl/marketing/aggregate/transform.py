@@ -214,8 +214,8 @@ class InputsMergerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task)
     def _read_input_data(cls, input_files: []) -> MarketingData:
         adhoc = InputDataParser.parse(input_files[0])
         aims =  InputDataParser.parse(input_files[1])
-        flatfile = InputDataParser.parse(input_files[2])
-        list_of_lists = InputDataParser.parse(input_files[3])
+        list_of_lists = InputDataParser.parse(input_files[2])
+        flatfile = InputDataParser.parse(input_files[3])
 
         return MarketingData(adhoc, aims, list_of_lists, flatfile)
 
@@ -473,9 +473,12 @@ class FlatfileUpdaterTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Ta
 
     @classmethod
     def _remove_duplicate_contacts(cls, flatfile, duplicated_flatfile, listkey_df):
-        duplicated = duplicated_flatfile[~duplicated_flatfile['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
+        if (len(duplicated_flatfile.index) != 0) and ( len(listkey_df.index) != 0):
+            duplicated = duplicated_flatfile[~duplicated_flatfile['hs_contact_id'].isin(listkey_df['hs_contact_id'])]
 
-        return flatfile[~flatfile['hs_contact_id'].isin(duplicated['hs_contact_id'])]
+            flatfile = flatfile[~flatfile['hs_contact_id'].isin(duplicated['hs_contact_id'])]
+
+        return flatfile
 
 
 class SFMCPrunerTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriterMixin, Task):

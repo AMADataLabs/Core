@@ -1,9 +1,10 @@
 """ Tool for loading Kubernetes ConfigMap data into DynamoDB. """
 import logging
 import pprint
+from typing import Iterable
 
-from   datalabs.access.aws import AWSClient
-from   datalabs.access.parameter.file import ParameterExtractorMixin
+from datalabs.access.aws import AWSClient
+from datalabs.access.parameter.file import ParameterExtractorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,41 +49,30 @@ class Configuration:
     def __init__(self, table: str):
         self._table = table
 
-    def get_dags(self) -> list:
-        dags = set()
-        with AWSClient("dynamodb") as dynamodb:
-            response = dynamodb.scan(TableName=self._table)
-
-        for item in response["Items"]:
-            dags.add(item["DAG"]["S"])
-
-        return dags
-
-    def get_tasks(self, dag: str):
-        tasks = []
-
+    def get_dags(self) -> Iterable[str]:
         parameters = dict(
-            TableName=self._table,
-            FilterExpression="DAG = :dag",
-            ExpressionAttributeValues={":dag": {"S": dag}}
+            TableName=self._table, FilterExpression="Task = :task", ExpressionAttributeValues={":task": {"S": "DAG"}}
         )
 
-        with AWSClient("dynamodb") as dynamodb:
-            response = dynamodb.scan(**parameters)
+        return set(self._paginated_scan(self._aggregate_dags, parameters))
 
-        for item in response["Items"]:
-            task = item["Task"]["S"]
+    def get_apis(self) -> Iterable[str]:
+        parameters = dict(
+            TableName=self._table, FilterExpression="Task = :task", ExpressionAttributeValues={":task": {"S": "ROUTE"}}
+        )
 
-            if task not in ["DAG", "GLOBAL"]:
-                tasks.append(task)
+        return set(self._paginated_scan(self._aggregate_dags, parameters))
 
-        return tasks
+    def get_tasks(self, dag: str):
+        parameters = dict(
+            TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
+        )
+
+        return set(self._paginated_scan(self._aggregate_tasks, parameters))
 
     def clear_dag(self, dag: str):
         parameters = dict(
-            TableName=self._table,
-            FilterExpression="DAG = :dag",
-            ExpressionAttributeValues={":dag": {"S": dag}}
+            TableName=self._table, FilterExpression="DAG = :dag", ExpressionAttributeValues={":dag": {"S": dag}}
         )
 
         with AWSClient("dynamodb") as dynamodb:
@@ -91,5 +81,35 @@ class Configuration:
             for item in response["Items"]:
                 dynamodb.delete_item(
                     TableName=self._table,
-                    Key={'DAG': {'S': dag}, 'Task': {'S': item["Task"]["S"]}},
+                    Key={"DAG": {"S": dag}, "Task": {"S": item["Task"]["S"]}},
                 )
+
+    @classmethod
+    def _paginated_scan(cls, aggregation_function, parameters):
+        aggregate = []
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.scan(**parameters)
+
+            aggregation_function(aggregate, response["Items"])
+
+            while "LastEvaluatedKey" in response:
+                parameters["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+
+                response = dynamodb.scan(**parameters)
+
+                aggregation_function(aggregate, response["Items"])
+
+        return aggregate
+
+    @classmethod
+    def _aggregate_dags(cls, dags: list[str], items: Iterable[dict]):
+        dags.extend([item["DAG"]["S"] for item in items])
+
+    @classmethod
+    def _aggregate_tasks(cls, tasks: list[str], items: Iterable[dict]):
+        for item in items:
+            task = item["Task"]["S"]
+
+            if task not in ["DAG", "GLOBAL"]:
+                tasks.append(task)

@@ -18,8 +18,8 @@ paths:
       tags:
         - Profile
       description: >-
-        Create and return ephemeral search results for physicians using 
-        NPI Number or 
+        Create and return ephemeral search results for physicians using
+        NPI Number or
         a set of First Name, Last Name, Date of Birth
       operationId: searchPhysicians
       x-amazon-apigateway-integration:
@@ -35,21 +35,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProfileLookUp'
+              $ref: "#/components/schemas/ProfileLookUp"
       responses:
-        '201':
+        "201":
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProfileLookupResponse'
-        '204':
+                  $ref: "#/components/schemas/ProfileLookupResponse"
+        "204":
           description: No Content. Search request did not find any matches
-        '400':
+        "400":
           description: Bad Request
-        '500':
+        "500":
           description: Internal Server Error
   /profiles:
     get:
@@ -76,17 +76,17 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProfileData'
-        '400':
+                  $ref: "#/components/schemas/ProfileData"
+        "400":
           description: Invalid input parameters. The request should have a limit of 100 Entity IDs
-        '500':
+        "500":
           description: Internal Server Error
     patch:
       tags:
@@ -114,19 +114,19 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProfileData'
-        '400':
+                  $ref: "#/components/schemas/ProfileData"
+        "400":
           description: Invalid input parameters. The request should have a limit of 100 Entity IDs
-        '404':
+        "404":
           description: The profile was not found for the provided Entity IDs
-        '500':
+        "500":
           description: Internal Server Error
   /profile/{entityId}:
     get:
@@ -153,17 +153,17 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProfileData'
-        '404':
+                  $ref: "#/components/schemas/ProfileData"
+        "404":
           description: The profile was not found for the provided Entity ID
-        '500':
+        "500":
           description: Internal Server Error
   /profile/{entityId}/documents:
     get:
@@ -190,13 +190,13 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/zip: {}
-        '404':
+        "404":
           description: Profile/Documents not found
-        '500':
+        "500":
           description: Internal Server Error
   /profile/{entityId}/CAQH/pdf:
     get:
@@ -223,13 +223,13 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/octet-stream: {}
-        '404':
+        "404":
           description: Profile/Pdf not found
-        '500':
+        "500":
           description: Internal Server Error
   /profile/{entityId}/AMA/pdf:
     get:
@@ -256,13 +256,13 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/octet-stream: {}
-        '404':
+        "404":
           description: Profile/Pdf not found
-        '500':
+        "500":
           description: Internal Server Error
 components:
   schemas:
@@ -283,7 +283,7 @@ components:
           example: AZ
         npi_number:
           type: string
-          example: '1234567890'
+          example: "1234567890"
     ProfileLookupResponse:
       type: object
       properties:
@@ -303,51 +303,51 @@ components:
         demographics:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         ecfmg:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         medical_schools:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         medical_training:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         licenses:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         sanctions:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         dea:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         abms:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         claim:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         provider_cds:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         work_history:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
         insurance:
           type: array
           items:
-            $ref: '#/components/schemas/ProfileFields'
+            $ref: "#/components/schemas/ProfileFields"
     ProfileFields:
       type: object
       properties:

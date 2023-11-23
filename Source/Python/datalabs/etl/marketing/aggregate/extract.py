@@ -8,7 +8,6 @@ import pandas
 
 from   datalabs.access.atdata import AtData
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.marketing.aggregate.load import EmailValidationRequestLoaderTask
 from   datalabs.etl.marketing.aggregate.transform import InputDataParser
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
@@ -42,8 +41,6 @@ class EmailValidationExtractorTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriter
 
         validated_emails = self._validate_emails(request_parameters)
 
-        dated_dataset_with_emails = EmailValidationRequestLoaderTask._unset_update_flag_for_unexpired_emails(self, dated_dataset_with_emails)
-
         dated_dataset_with_emails = self._set_update_flag_for_valid_emails(dated_dataset_with_emails, validated_emails)
 
         dated_dataset_with_emails = self._remove_invalid_records(dated_dataset_with_emails)
@@ -68,6 +65,8 @@ class EmailValidationExtractorTask(ExecutionTimeMixin, CSVReaderMixin, CSVWriter
     # pylint: disable=unused-argument
     @classmethod
     def _set_update_flag_for_valid_emails(cls, dated_dataset_with_emails, validated_emails):
+        dated_dataset_with_emails.loc[~dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails) & ~dated_dataset_with_emails["update"].isnull(), 'update'] = False
+
         dated_dataset_with_emails.loc[dated_dataset_with_emails.BEST_EMAIL.isin(validated_emails), 'update'] = True
 
         return dated_dataset_with_emails
