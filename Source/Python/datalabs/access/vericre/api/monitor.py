@@ -48,7 +48,11 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        monitor_profiles_response = self._make_profile_request()
+        if self._parameters.method.upper() == 'PUT':
+            monitor_profiles_response = self._make_profile_request()
+
+        if self._parameters.method.upper() == 'DELETE':
+            monitor_profiles_response = self._delete_profile_entities_monitors()
 
         self._generate_response(monitor_profiles_response)
 
@@ -71,6 +75,27 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
     def _make_request_with_entity_id(self, entity_id):
         return self.HTTP.request("PUT", f"{self._parameters.monitor_profile_url}/{entity_id}", headers=self._headers)
+
+    def _delete_profile_entities_monitors(self):
+        response = self._request_profiles_monitor_entiries_delete()
+
+        if response.status == 400:
+            raise ResourceNotFound("Bad Request.")
+
+        if response.status == 404:
+            raise ResourceNotFound("No profile monitor entity found.")
+
+        if response.status != 200:
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+
+        return response
+
+    def _request_profiles_monitor_entiries_delete(self):
+        entity_id = self._parameters.path["entity_id"]
+
+        return self.HTTP.request(
+            "DELETE", f"{self._parameters.monitor_profile_url}/{entity_id}", headers=self._headers
+        )
 
     def _generate_response(self, response):
         self._status = response.status
@@ -282,64 +307,3 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
     def _generate_response(self, response):
         self._response_body = response
 
-        self._headers = {"Content-Type": "application/json"}
-
-@add_schema(unknowns=True)
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class MonitorProfilesEntitiesEndpointParameters:
-    method: str
-    path: dict
-    query: dict
-    client_id: str
-    client_secret: str
-    token_url: str
-    profiles_monitor_entities_url: str
-
-class MonitorProfilesEntitiesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorProfilesEntitiesEndpointParameters
-
-    def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
-        super().__init__(parameters, data)
-        self._http = urllib3.PoolManager()
-        self._headers = PROFILE_HEADERS.copy()
-
-    def run(self):
-        LOGGER.debug("Parameters in MonitorProfilesEntitiesEndpointTask: %s", self._parameters)
-
-        self._authenticate_to_eprofiles(self._parameters, self._headers)
-
-        monitor_profiles_entities_response = self._get_profile_entities_monitors()
-
-        response_result = self._convert_response_to_json(monitor_profiles_entities_response)
-
-        self._generate_response(response_result)
-
-    def _get_profile_entities_monitors(self):
-        response = self._request_profiles_monitor_entiries_delete()
-
-        if response.status == 204:
-            raise ResourceNotFound("No profile monitors found.")
-
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
-
-        return response
-
-    @classmethod
-    def _convert_response_to_json(cls, monitor_profiles_entities_response):
-        json_monitor_profiles_entities_response = XMLToDictConverter.parse_xml_to_dict(XMLToDictConverter(), monitor_profiles_entities_response.data)
-
-        return json_monitor_profiles_entities_response
-
-    def _request_profiles_monitor_entiries_delete(self):
-        entity_id = self._parameters.path["entity_id"]
-
-        return self.HTTP.request(
-            "DELETE", f"{self._parameters.profiles_monitor_entities_url}/{entity_id}", headers=self._headers
-        )
-
-    def _generate_response(self, response):
-        self._response_body = response
-
-        self._headers = {"Content-Type": "application/json"}
