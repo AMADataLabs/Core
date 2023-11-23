@@ -263,76 +263,6 @@
           "response": []
         },
         {
-          "name": "Get Vignette Unauthorized",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
-                  "    var responses = pm.globals.get('responses')\r",
-                  "    responses[pm.info.requestName] = pm.response.json()\r",
-                  "    pm.globals.set('responses', responses)\r",
-                  "}\r",
-                  "\r",
-                  "\r",
-                  "pm.test(\"Response code indicates success\", function () {\r",
-                  "    pm.response.to.have.status(401);\r",
-                  "});\r",
-                  "\r",
-                  "\r",
-                  "pm.test(\"Response is a single object\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
-                  "});\r",
-                  "\r",
-                  "\r",
-                  "pm.test(\"Response contains correct fields\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(\"message\" in jsonData).to.eql(true)\r",
-                  "    pm.expect(Object.keys(jsonData).length).to.eql(1)\r",
-                  "});\r",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "protocolProfileBehavior": {
-            "disabledSystemHeaders": {}
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "x-customer-nbr",
-                "value": "6210",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
-              "host": ["{{CPT_VIGNETTES_API_URL}}"],
-              "path": ["vignettes", ":cpt_code"],
-              "query": [
-                {
-                  "key": "additional_information",
-                  "value": "true",
-                  "disabled": true
-                }
-              ],
-              "variable": [
-                {
-                  "key": "cpt_code",
-                  "value": "99202"
-                }
-              ]
-            },
-            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
-          },
-          "response": []
-        },
-        {
           "name": "Get Vignette w/ additional information",
           "event": [
             {
@@ -406,6 +336,216 @@
             "description": "Returns the CPT Code descriptor in short, medium, and long forms."
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "Errors",
+      "item": [
+        {
+          "name": "Unauthorized (Direct)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 401 (Direct only)\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (!host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.code).to.equal(401);\r",
+                  "    }\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('Response is a single object', function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.be.an('object');\r",
+                  "})\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "query": [
+                {
+                  "key": "additional_information",
+                  "value": "true",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns the CPT Code descriptor in short, medium, and long forms."
+          },
+          "response": []
+        },
+        {
+          "name": "Unauthorized (Portal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 401 (Portal-only)\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.code).to.equal(401);\r",
+                  "    }\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response is in XML format\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/xml');\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "12345",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Host",
+                "value": "cpt-api-sbx.cptapi.local",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns all lengths of the descriptor for a particular CPT Code."
+          },
+          "response": []
+        },
+        {
+          "name": "Forbidden (Direct)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 403 if URL doesn't contain 'platform'\", function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (!host.includes(\"platform\")) {\r",
+                  "        pm.expect(pm.response.code).to.equal(403);\r",
+                  "    }\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test('Response is a single object', function () {\r",
+                  "    var host = pm.request.url.host[0];\r",
+                  "\r",
+                  "    if (!host.includes(\"platform\")) {\r",
+                  "        var jsonData = pm.response.json();\r",
+                  "\r",
+                  "        pm.expect(jsonData).to.be.an('object');\r",
+                  "    }\r",
+                  "})\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "12345",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Host",
+                "value": "cpt-api-sbx.cptapi.local",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "x-customer-nbr",
+                "value": "6210",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
+              "host": ["{{CPT_VIGNETTES_API_URL}}"],
+              "path": ["vignettes", ":cpt_code"],
+              "variable": [
+                {
+                  "key": "cpt_code",
+                  "value": "99202"
+                }
+              ]
+            },
+            "description": "Returns all lengths of the descriptor for a particular CPT Code."
+          },
+          "response": []
         },
         {
           "name": "Get Vignette No Data",
@@ -456,15 +596,9 @@
               }
             ],
             "url": {
-              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code?additional_information=true",
+              "raw": "{{CPT_VIGNETTES_API_URL}}/vignettes/:cpt_code",
               "host": ["{{CPT_VIGNETTES_API_URL}}"],
               "path": ["vignettes", ":cpt_code"],
-              "query": [
-                {
-                  "key": "additional_information",
-                  "value": "true"
-                }
-              ],
               "variable": [
                 {
                   "key": "cpt_code",
