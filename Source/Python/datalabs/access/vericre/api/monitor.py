@@ -48,7 +48,7 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        if self._parameters.method.upper() == 'PUT':
+        if self._parameters.method.upper() == 'POST':
             monitor_profiles_response = self._make_profile_request()
 
         if self._parameters.method.upper() == 'DELETE':
@@ -192,7 +192,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        if self._parameters.method.upper() == 'POST':
+        if self._parameters.method.upper() == 'GET':
             profile_response = self._update_notification()
 
         if self._parameters.method.upper() == 'DELETE':
