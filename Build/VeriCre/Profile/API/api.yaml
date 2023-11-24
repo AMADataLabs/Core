@@ -8,7 +8,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 1.6.12
+  version: 1.1.0
 tags:
   - name: Profile
     description: APIs to search Physician Profiles
@@ -23,7 +23,7 @@ paths:
         a set of First Name, Last Name, Date of Birth
       operationId: searchPhysicians
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -35,39 +35,41 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ProfileLookUp"
+              $ref: '#/components/schemas/ProfileLookUp'
       responses:
-        "201":
+        '201':
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProfileLookupResponse"
-        "204":
+                  $ref: '#/components/schemas/ProfileLookupResponse'
+        '204':
           description: No Content. Search request did not find any matches
-        "400":
+        '400':
           description: Bad Request
-        "500":
+        '500':
           description: Internal Server Error
-  /profiles:
-    get:
+      security:
+        - gateway_authorizer: []
+  /profiles/lookup:
+    post:
       tags:
         - Profile
-      description: Fetch profiles by Entity ID
+      description: Fetch profiles by Entity Id
       operationId: getProfiles
       parameters:
         - name: entityId
           in: query
-          description: List of Entity IDs
+          description: List of Entity Ids
           required: true
           schema:
             type: array
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -76,75 +78,37 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProfileData"
-        "400":
-          description: Invalid input parameters. The request should have a limit of 100 Entity IDs
-        "500":
+                  $ref: '#/components/schemas/ProfileData'
+        '400':
+          description: Bad Request. The request should have a limit of 100 Entity Ids
+        '500':
           description: Internal Server Error
-    patch:
-      tags:
-        - Profile
-      description: >-
-        Update profiles referenced by Entity IDs from the associated external
-        CAQH records
-      operationId: refreshProfiles
-      parameters:
-        - name: entityId
-          in: query
-          description: List of Entity IDs
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-      x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        httpMethod: "POST"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ProfileData"
-        "400":
-          description: Invalid input parameters. The request should have a limit of 100 Entity IDs
-        "404":
-          description: The profile was not found for the provided Entity IDs
-        "500":
-          description: Internal Server Error
-  /profile/{entityId}:
+      security:
+        - gateway_authorizer: []
+  /profiles/lookup/{request_id}:
     get:
       tags:
         - Profile
-      description: Fetch a single profile by Entity ID
-      operationId: getProfile
+      description: Fetch paginated profiles by requestId and index
+      operationId: getProfilesByRequestId
       parameters:
-        - name: entityId
+        - name: request_id
           in: path
-          description: Physician's Entity ID
+          description: The ID of a lookup created via the POST endpoint.
           required: true
           content:
             application/json:
               schema:
                 type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -153,35 +117,119 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProfileData"
-        "404":
-          description: The profile was not found for the provided Entity ID
-        "500":
+                  $ref: '#/components/schemas/ProfileData'
+        '404':
+          description: The profile was not found for the provided Entity Id
+        '500':
           description: Internal Server Error
-  /profile/{entityId}/documents:
+      security:
+        - gateway_authorizer: []
+  /profiles:
+    patch:
+      tags:
+        - Profile
+      description: >-
+        Update profiles referenced by Entity Ids from the associated external
+        CAQH records
+      operationId: refreshProfiles
+      parameters:
+        - name: entityId
+          in: query
+          description: List of Entity Ids
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileData'
+        '400':
+          description: Bad Request. The request should have a limit of 100 Entity Ids
+        '404':
+          description: The profile was not found for the provided Entity Ids
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+  /profiles/{entity_id}:
+    get:
+      tags:
+        - Profile
+      description: Fetch a single profile by Entity Id
+      operationId: getProfile
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's Entity Id
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileData'
+        '404':
+          description: The profile was not found for the provided Entity Id
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+  /profiles/{entity_id}/documents:
     get:
       tags:
         - Profile
       description: This API retrieves a Physician's uploaded documents
       operationId: getPhysicianDocuments
       parameters:
-        - name: entityId
+        - name: entity_id
           in: path
-          description: Physician's Entity ID
+          description: Physician's Entity Id
           required: true
           content:
             application/json:
               schema:
                 type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -190,31 +238,33 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        "200":
+        '200':
           description: Successful Response
           content:
             application/zip: {}
-        "404":
+        '404':
           description: Profile/Documents not found
-        "500":
+        '500':
           description: Internal Server Error
-  /profile/{entityId}/CAQH/pdf:
+      security:
+        - gateway_authorizer: []
+  /profiles/{entity_id}/CAQH/pdf:
     get:
       tags:
         - Profile
       description: This API retrieves a Physician's Profile from CAQH ProView
       operationId: getCAQHPdf
       parameters:
-        - name: entityId
+        - name: entity_id
           in: path
-          description: Physician's Entity ID
+          description: Physician's Entity Id
           required: true
           content:
             application/json:
               schema:
                 type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -223,31 +273,59 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
       responses:
-        "200":
+        '200':
           description: Successful Response
           content:
             application/octet-stream: {}
-        "404":
+        '404':
           description: Profile/Pdf not found
-        "500":
+        '500':
           description: Internal Server Error
-  /profile/{entityId}/AMA/pdf:
+      security:
+        - gateway_authorizer: []
+  /profiles/{entity_id}/AMA/pdf:
     get:
       tags:
         - Profile
       description: This API retrieves a Physician's profile from AMA Profile's Hub
       operationId: getAMAPdf
       parameters:
-        - name: entityId
+        - name: entity_id
           in: path
-          description: Physician's Entity ID
+          description: Physician's Entity Id
           required: true
           content:
             application/json:
               schema:
                 type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profile-API/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/octet-stream: {}
+        '404':
+          description: Profile/Pdf not found
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+  /profiles/monitor/notifications:
+    get:
+      tags:
+        - Profile
+      description: This API retrieves a list of unread notifications.
+      operationId: getProfileMonitorNotifications
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
         responses:
           default:
             statusCode: "200"
@@ -257,13 +335,347 @@ paths:
         type: "aws_proxy"
       responses:
         "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        "204":
+          description: 'No Content: No notifications found for this client id'
+        "400":
+          description: Missing mandatory headers
+        "500":
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+  /profiles/monitor:
+    get:
+      tags:
+        - Profile
+      description: >-
+        This API retrieves a list of entity IDs which are monitored (monitoring
+        is only available for physicians).
+      operationId: getProfileMonitor
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MonitorEntity'
+        "204":
+          description: Did not find any physicians that are monitored.
+        "400":
+          description: Bad request
+        "500":
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: [ ]
+  /profiles/{entity_id}/monitor:
+    post:
+      tags:
+        - Profile
+      description: >-
+        This API enables monitoring for the given physician entity ID
+        (monitoring is only available for physicians).
+      operationId: postProfileMonitor
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's entity ID
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Bad request
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: [ ]
+    delete:
+      tags:
+        - Profile
+      description: This API cancels monitoring for the given entity ID.
+      operationId: putProfileMonitor
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's entity ID
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Bad request
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: [ ]
+  /profiles/monitor/notifications/{notification_id}:
+    get:
+      tags:
+        - Profile
+      description: >-
+        This API retrieves the updated data when there is a notification that
+        the data has changed.
+      operationId: getProfileMonitorNotification
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      parameters:
+        - name: notification_id
+          in: path
+          description: ID for the update data
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileData'
+        '204':
+          description: Notification not found for the provided notification ID.
+        '400':
+          description: Bad request
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: [ ]
+    delete:
+      tags:
+        - Profile
+      description: >-
+        This API acknowledges and deletes a monitoring notification for the
+        given notification ID.
+      operationId: putProfileMonitorNotification
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      parameters:
+        - name: notification_id
+          in: path
+          description: ID for the update data
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Bad request
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: [ ]
+  /profile/{entity_id}:
+    get:
+      tags:
+        - Profile
+      description: Fetch a single profile by Entity Id
+      operationId: getProfileDeprecated
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's Entity Id
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileData'
+        '404':
+          description: The profile was not found for the provided Entity Id
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+      deprecated: true
+  /profile/{entity_id}/documents:
+    get:
+      tags:
+        - Profile
+      description: This API retrieves a Physician's uploaded documents
+      operationId: getPhysicianDocumentsDeprecated
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's Entity Id
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/zip: {}
+        '404':
+          description: Profile/Documents not found
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+      deprecated: true
+  /profile/{entity_id}/CAQH/pdf:
+    get:
+      tags:
+        - Profile
+      description: This API retrieves a Physician's Profile from CAQH ProView
+      operationId: getCAQHPdfDeprecated
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's Entity Id
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
           description: Successful Response
           content:
             application/octet-stream: {}
-        "404":
+        '404':
           description: Profile/Pdf not found
-        "500":
+        '500':
           description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+      deprecated: true
+  /profile/{entity_id}/AMA/pdf:
+    get:
+      tags:
+        - Profile
+      description: This API retrieves a Physician's profile from AMA Profile's Hub
+      operationId: getAMAPdfDeprecated
+      parameters:
+        - name: entity_id
+          in: path
+          description: Physician's Entity Id
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-${environment}-Profiles-API/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/octet-stream: {}
+        '404':
+          description: Profile/Pdf not found
+        '500':
+          description: Internal Server Error
+      security:
+        - gateway_authorizer: []
+      deprecated: true
 components:
   schemas:
     ProfileLookUp:
@@ -283,7 +695,7 @@ components:
           example: AZ
         npi_number:
           type: string
-          example: "1234567890"
+          example: '1234567890'
     ProfileLookupResponse:
       type: object
       properties:
@@ -303,51 +715,51 @@ components:
         demographics:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         ecfmg:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         medical_schools:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         medical_training:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         licenses:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         sanctions:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         dea:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         abms:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         claim:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         provider_cds:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         work_history:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
         insurance:
           type: array
           items:
-            $ref: "#/components/schemas/ProfileFields"
+            $ref: '#/components/schemas/ProfileFields'
     ProfileFields:
       type: object
       properties:
@@ -414,3 +826,54 @@ components:
           items:
             type: object
             description: To determine the value of the field
+    Notification:
+      type: object
+      properties:
+        notification_id:
+          type: string
+        entity_id:
+          type: string
+        abms_updated:
+          type: string
+        dea_updated:
+          type: string
+        license_updated:
+          type: string
+        npi_updated:
+          type: string
+        sanctions_updated:
+          type: string
+        med_school_updated:
+          type: string
+        med_training_updated:
+          type: string
+        notification_date:
+          type: string
+        acknowledged_date:
+          type: string
+        monitor_expiration_date:
+          type: string
+        sso_unique_id:
+          type: string
+        customer_nbr:
+          type: string
+        email:
+          type: string
+    MonitorEntity:
+      type: object
+      properties:
+        entity_id:
+          type: string
+        monitor_expiration_date:
+          type: string
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+        type: request
+        identitySource: method.request.header.Authorization
+        authorizerUri: ${authorizer_uri}
+x-amazon-apigateway-binary-media-types: [ "*/*" ]

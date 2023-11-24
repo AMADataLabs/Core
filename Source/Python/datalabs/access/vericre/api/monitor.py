@@ -1,7 +1,7 @@
 """ Release endpoint classes."""
-from dataclasses import dataclass
+from   dataclasses import dataclass
 import logging
-from typing import List, Optional
+from   typing import List, Optional
 
 import urllib3
 
@@ -48,7 +48,11 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        monitor_profiles_response = self._make_profile_request()
+        if self._parameters.method.upper() == 'POST':
+            monitor_profiles_response = self._make_profile_request()
+
+        if self._parameters.method.upper() == 'DELETE':
+            monitor_profiles_response = self._delete_profile_entities_monitors()
 
         self._generate_response(monitor_profiles_response)
 
@@ -71,6 +75,27 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
 
     def _make_request_with_entity_id(self, entity_id):
         return self.HTTP.request("PUT", f"{self._parameters.monitor_profile_url}/{entity_id}", headers=self._headers)
+
+    def _delete_profile_entities_monitors(self):
+        response = self._request_profiles_monitor_entiries_delete()
+
+        if response.status == 400:
+            raise ResourceNotFound("Bad Request.")
+
+        if response.status == 404:
+            raise ResourceNotFound("No profile monitor entity found.")
+
+        if response.status != 200:
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+
+        return response
+
+    def _request_profiles_monitor_entiries_delete(self):
+        entity_id = self._parameters.path["entity_id"]
+
+        return self.HTTP.request(
+            "DELETE", f"{self._parameters.monitor_profile_url}/{entity_id}", headers=self._headers
+        )
 
     def _generate_response(self, response):
         self._status = response.status
@@ -151,6 +176,7 @@ class MonitorNotificationUpdateEndpointParameters:
     client_secret: str
     token_url: str
     monitor_update_url: str
+    monitor_delete_url: str
 
 
 class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
@@ -166,7 +192,11 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        profile_response = self._update_notification()
+        if self._parameters.method.upper() == 'GET':
+            profile_response = self._update_notification()
+
+        if self._parameters.method.upper() == 'DELETE':
+            profile_response = self._delete_notification()
 
         response_result = self._convert_response_to_json(profile_response)
 
@@ -174,6 +204,17 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
 
     def _update_notification(self):
         response = self._request_update_notification()
+
+        if response.status == 404:
+            raise ResourceNotFound("Notification not found for the provided notification ID.")
+
+        if response.status != 200:
+            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+
+        return response
+
+    def _delete_notification(self):
+        response = self._request_delete_notification()
 
         if response.status == 404:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
@@ -199,6 +240,13 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
 
         return self.HTTP.request(
             "GET", f"{self._parameters.monitor_update_url}/{notification_id}", headers=self._headers
+        )
+
+    def _request_delete_notification(self):
+        notification_id = self._parameters.path["notification_id"]
+
+        return self.HTTP.request(
+            "DELETE", f"{self._parameters.monitor_delete_url}/{notification_id}", headers=self._headers
         )
 
 
@@ -259,4 +307,3 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
     def _generate_response(self, response):
         self._response_body = response
 
-        self._headers = {"Content-Type": "application/json"}
