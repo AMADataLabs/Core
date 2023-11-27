@@ -1,0 +1,305 @@
+{
+	"info": {
+		"_postman_id": "5cd53cfb-8f96-4304-897c-785aa1ca65f8",
+		"name": "Snomed API (DevPortal)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5305581"
+	},
+	"item": [
+		{
+			"name": "DevPortal",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"console.log(jsonData.access_token);\r",
+									"pm.globals.set('token', jsonData.access_token);\r",
+									"console.log(pm.globals.get('token'));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var consumer_token = pm.variables.get('DEVPORTAL_CLIENT_ID') + ':' + pm.variables.get('DEVPORTAL_CLIENT_SECRET');\r",
+									"console.log(consumer_token)\r",
+									"var encoded_consumer_token = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(consumer_token))\r",
+									"console.log(encoded_consumer_token)\r",
+									"\r",
+									"pm.globals.set('consumer_token', encoded_consumer_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								},
+								{
+									"key": "value",
+									"value": "Basic {{consumer_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://{{DEVPORTAL_TOKEN_HOST}}/token",
+							"protocol": "https",
+							"host": [
+								"{{DEVPORTAL_TOKEN_HOST}}"
+							],
+							"path": [
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Snomed",
+			"item": [
+				{
+					"name": "map cpt concept",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-customer-nbr",
+								"value": "{{X_CUSTOMER_NBR}}",
+								"type": "text",
+								"description": "Dev/Test",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6435",
+								"description": "Production",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/map/cpt/306683007",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"map",
+								"cpt",
+								"306683007"
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "map cpt concept with category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-customer-nbr",
+								"value": "{{X_CUSTOMER_NBR}}",
+								"type": "text",
+								"description": "Dev/Test",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6435",
+								"description": "Production",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/map/cpt/306683007?category=Unlisted",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"map",
+								"cpt",
+								"306683007"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Unlisted"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "maps cpt",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-customer-nbr",
+								"value": "{{X_CUSTOMER_NBR}}",
+								"type": "text",
+								"description": "Dev/Test",
+								"disabled": true
+							},
+							{
+								"key": "x-customer-nbr",
+								"value": "6435",
+								"description": "Production",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/maps/cpt?keyword=stomach&category=Unlisted&index=1&results=7",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"maps",
+								"cpt"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "stomach"
+								},
+								{
+									"key": "category",
+									"value": "Unlisted"
+								},
+								{
+									"key": "index",
+									"value": "1"
+								},
+								{
+									"key": "results",
+									"value": "7"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
