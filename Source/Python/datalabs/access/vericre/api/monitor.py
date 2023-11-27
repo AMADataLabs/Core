@@ -51,7 +51,7 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
         monitor_profile_response = self._profile_operation_by_method(self._parameters.method.upper())
 
         self._generate_response(monitor_profile_response)
-    
+
     def _profile_operation_by_method(self, method):
         monitor_profile_response = None
 
@@ -330,4 +330,3 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
 
     def _generate_response(self, response):
         self._response_body = response
-
