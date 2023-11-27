@@ -24,7 +24,7 @@ class HttpClient:
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class MonitorEndpointParameters:
+class MonitorProfileEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -34,8 +34,8 @@ class MonitorEndpointParameters:
     monitor_profile_url: str
 
 
-class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorEndpointParameters
+class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = MonitorProfileEndpointParameters
 
     def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
@@ -44,27 +44,33 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
         self._status = None
 
     def run(self):
-        LOGGER.debug("Parameters in MonitorEndpointTask: %s", self._parameters)
+        LOGGER.debug("Parameters in MonitorProfileEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        if self._parameters.method.upper() == 'POST':
-            monitor_profiles_response = self._make_profile_request()
+        monitor_profile_response = self._profile_operation_by_method(self._parameters.method.upper())
 
-        if self._parameters.method.upper() == 'DELETE':
-            monitor_profiles_response = self._delete_profile_entities_monitors()
+        self._generate_response(monitor_profile_response)
+    
+    def _profile_operation_by_method(self, method):
+        monitor_profile_response = None
 
-        self._generate_response(monitor_profiles_response)
+        if method == 'POST':
+            monitor_profile_response = self._enable_profile_monitoring()
+        elif method == 'DELETE':
+            monitor_profile_response = self._cancel_profile_monitoring()
+        else:
+            raise InternalServerError(f"Internal Server error caused by: method[{method}] not supported.")
 
-    def _make_profile_request(self):
+        return monitor_profile_response
+
+    def _enable_profile_monitoring(self):
         entity_id = self._parameters.path["entity_id"]
 
         response = self._make_request_with_entity_id(entity_id)
 
         if response.status == 400:
-            converted_error_message = XMLToDictConverter.parse_xml_to_dict(XMLToDictConverter(), response.data)
-
-            error_message = format_element_as_list(converted_error_message["response_message"]["message"])
+            error_message = self._handle_response_on_bad_request(response)
 
             raise ResourceNotFound(error_message)
 
@@ -76,11 +82,13 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
     def _make_request_with_entity_id(self, entity_id):
         return self.HTTP.request("PUT", f"{self._parameters.monitor_profile_url}/{entity_id}", headers=self._headers)
 
-    def _delete_profile_entities_monitors(self):
+    def _cancel_profile_monitoring(self):
         response = self._request_profiles_monitor_entiries_delete()
 
         if response.status == 400:
-            raise ResourceNotFound("Bad Request.")
+            error_message = self._handle_response_on_bad_request(response)
+
+            raise ResourceNotFound(error_message)
 
         if response.status == 404:
             raise ResourceNotFound("No profile monitor entity found.")
@@ -101,6 +109,14 @@ class MonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask,
         self._status = response.status
 
         self._headers = {"Content-Type": "application/json"}
+
+    @classmethod
+    def _handle_response_on_bad_request(cls, response):
+        converted_error_message = XMLToDictConverter.parse_xml_to_dict(XMLToDictConverter(), response.data)
+
+        error_message = format_element_as_list(converted_error_message["response_message"]["message"])
+
+        return error_message
 
 
 @add_schema(unknowns=True)
@@ -168,7 +184,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class MonitorNotificationUpdateEndpointParameters:
+class MonitorNotificationEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -179,8 +195,8 @@ class MonitorNotificationUpdateEndpointParameters:
     monitor_delete_url: str
 
 
-class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorNotificationUpdateEndpointParameters
+class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = MonitorNotificationEndpointParameters
 
     def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
@@ -188,19 +204,27 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug("Parameters in MonitorNotificationUpdateEndpointTask: %s", self._parameters)
+        LOGGER.debug("Parameters in MonitorNotificationEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        if self._parameters.method.upper() == 'GET':
-            profile_response = self._update_notification()
+        notification_response = self._notification_operation_by_method(self._parameters.method.upper())
 
-        if self._parameters.method.upper() == 'DELETE':
-            profile_response = self._delete_notification()
-
-        response_result = self._convert_response_to_json(profile_response)
+        response_result = self._convert_response_to_json(notification_response)
 
         self._generate_response(response_result)
+
+    def _notification_operation_by_method(self, method):
+        monitor_notification_response = None
+
+        if method == 'GET':
+            monitor_notification_response = self._update_notification()
+        elif method == 'DELETE':
+            monitor_notification_response = self._delete_notification()
+        else:
+            raise InternalServerError(f"Internal Server error caused by: method[{method}] not supported.")
+
+        return monitor_notification_response
 
     def _update_notification(self):
         response = self._request_update_notification()
@@ -216,7 +240,7 @@ class MonitorNotificationUpdateEndpointTask(EProfilesAuthenticatingEndpointMixin
     def _delete_notification(self):
         response = self._request_delete_notification()
 
-        if response.status == 404:
+        if response.status == 400:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
         if response.status != 200:
@@ -286,7 +310,7 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         response = self._request_monitors()
 
         if response.status == 204:
-            raise ResourceNotFound("No profile monitors found.")
+            raise ResourceNotFound("Did not find any physicians that are monitored.")
 
         if response.status != 200:
             raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
