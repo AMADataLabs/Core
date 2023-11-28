@@ -213,21 +213,21 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
 
         notification_response = self._notification_operation_by_method(self._parameters.method.upper())
 
-        response_result = self._convert_response_to_json(notification_response)
-
-        self._generate_response(response_result)
+        self._generate_response(notification_response)
 
     def _notification_operation_by_method(self, method):
-        monitor_notification_response = None
-
         if method == 'GET':
-            monitor_notification_response = self._update_notification()
+            update_notification_response = self._update_notification()
+
+            response_result = self._convert_response_to_json(update_notification_response)
         elif method == 'DELETE':
-            monitor_notification_response = self._delete_notification()
+            self._delete_notification()
+
+            response_result = {"message": "Request Successful."}
         else:
             raise InternalServerError(f"Internal Server error caused by: method[{method}] not supported.")
 
-        return monitor_notification_response
+        return response_result
 
     def _update_notification(self):
         response = self._request_update_notification()
