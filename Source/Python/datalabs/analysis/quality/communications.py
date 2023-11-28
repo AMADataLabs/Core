@@ -266,7 +266,16 @@ class PartyLevelCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMi
 
         measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
 
+        party_level_entity = self._renaming_columns(party_level_entity)
+
         return [party_level_entity, measurement_method_configuration]
+
+    def _renaming_columns(self, data):
+        data = self._rename_column(data, {"email_id": "party_level_email_id"})
+
+        data = self._rename_column(data, {"phone_id": "party_level_phone_id"})
+
+        return data
 
     @classmethod
     def _create_party_level_completeness(cls, preprocessed_data):
@@ -279,6 +288,202 @@ class PartyLevelCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMi
         party_level_completeness = measurement_methods.measure_completeness(party_level_entity)
 
         return [party_level_completeness]
+
+    def _pack(self, postprocessed_data):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+
+
+class PhoneNumberCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, DataProcessingMixin):
+    def run(self):
+        input_data = self._parse_input(self._data)
+
+        preprocessed_data = self._preprocess_data(input_data)
+
+        phone_number_completeness = self._create_phone_number_completeness(preprocessed_data)
+
+        return self._pack(phone_number_completeness)
+
+    def _parse_input(self, data):
+        phone_number_entity, measurement_methods_configurations = data
+
+        phone_number_entity = self._csv_to_dataframe(phone_number_entity)
+
+        measurement_methods_configurations = self._excel_to_dataframe(measurement_methods_configurations)
+
+        return [phone_number_entity, measurement_methods_configurations]
+
+    def _preprocess_data(self, input_data):
+        phone_number_entity, measurement_method_configuration = self._all_columns_to_lower(input_data)
+
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
+
+        phone_number_entity = self._renaming_columns(phone_number_entity)
+
+        phone_number_entity = self._reformatting_dates(phone_number_entity)
+
+        return [phone_number_entity, measurement_method_configuration]
+
+    def _reformatting_dates(self, data):
+        data["phone_from_dt"] = self._reformat_date(data["phone_from_dt"], date_format="%d-%b-%Y %H:%M:%S")
+
+        data["phone_thru_dt"] = self._reformat_date(data["phone_thru_dt"], date_format="%d-%b-%Y %H:%M:%S")
+
+        return data
+
+    def _renaming_columns(self, data):
+        data = self._rename_column(data, {"area_cd": "phone_area_cd"})
+
+        data = self._rename_column(data, {"exchange": "phone_exchange"})
+
+        data = self._rename_column(data, {"from_dt": "phone_from_dt"})
+
+        data = self._rename_column(data, {"thru_dt": "phone_thru_dt"})
+
+        data = self._rename_column(data, {"cat_cd_id": "phone_cat_cd_id"})
+
+        return data
+
+    @classmethod
+    def _create_phone_number_completeness(cls, preprocessed_data):
+        phone_number_entity, measurement_methods_configuration = preprocessed_data
+
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "contact"
+        )
+
+        phone_number_completeness = measurement_methods.measure_completeness(phone_number_entity)
+
+        return [phone_number_completeness]
+
+    def _pack(self, postprocessed_data):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+
+
+class FaxNumberCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, DataProcessingMixin):
+    def run(self):
+        input_data = self._parse_input(self._data)
+
+        preprocessed_data = self._preprocess_data(input_data)
+
+        fax_number_completeness = self._create_fax_number_completeness(preprocessed_data)
+
+        return self._pack(fax_number_completeness)
+
+    def _parse_input(self, data):
+        fax_number_entity, measurement_methods_configurations = data
+
+        fax_number_entity = self._csv_to_dataframe(fax_number_entity)
+
+        measurement_methods_configurations = self._excel_to_dataframe(measurement_methods_configurations)
+
+        return [fax_number_entity, measurement_methods_configurations]
+
+    def _preprocess_data(self, input_data):
+        fax_number_entity, measurement_method_configuration = self._all_columns_to_lower(input_data)
+
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
+
+        fax_number_entity = self._renaming_columns(fax_number_entity)
+
+        fax_number_entity = self._reformatting_dates(fax_number_entity)
+
+        return [fax_number_entity, measurement_method_configuration]
+
+    def _renaming_columns(self, data):
+        data = self._rename_column(data, {"area_cd": "fax_area_cd"})
+
+        data = self._rename_column(data, {"exchange": "fax_exchange"})
+
+        data = self._rename_column(data, {"phone_nbr": "fax_phone_nbr"})
+
+        data = self._rename_column(data, {"from_dt": "fax_from_dt"})
+
+        data = self._rename_column(data, {"thru_dt": "fax_thru_dt"})
+
+        data = self._rename_column(data, {"cat_cd_id": "fax_cat_cd_id"})
+
+        return data
+
+    def _reformatting_dates(self, data):
+        data["fax_from_dt"] = self._reformat_date(data["fax_from_dt"], date_format="%d-%b-%Y %H:%M:%S")
+
+        data["fax_thru_dt"] = self._reformat_date(data["fax_thru_dt"], date_format="%d-%b-%Y %H:%M:%S")
+
+        return data
+
+    @classmethod
+    def _create_fax_number_completeness(cls, preprocessed_data):
+        fax_number_entity, measurement_methods_configuration = preprocessed_data
+
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "contact"
+        )
+
+        fax_number_completeness = measurement_methods.measure_completeness(fax_number_entity)
+
+        return [fax_number_completeness]
+
+    def _pack(self, postprocessed_data):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+
+
+class EmailIdCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin, DataProcessingMixin):
+    def run(self):
+        input_data = self._parse_input(self._data)
+
+        preprocessed_data = self._preprocess_data(input_data)
+
+        email_id_completeness = self._create_email_id_completeness(preprocessed_data)
+
+        return self._pack(email_id_completeness)
+
+    def _parse_input(self, data):
+        email_id_entity, measurement_methods_configurations = data
+
+        email_id_entity = self._csv_to_dataframe(email_id_entity)
+
+        measurement_methods_configurations = self._excel_to_dataframe(measurement_methods_configurations)
+
+        return [email_id_entity, measurement_methods_configurations]
+
+    def _preprocess_data(self, input_data):
+        email_id_entity, measurement_method_configuration = self._all_columns_to_lower(input_data)
+
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
+
+        email_id_entity = self._renaming_columns(email_id_entity)
+
+        email_id_entity = self._reformatting_dates(email_id_entity)
+
+        return [email_id_entity, measurement_method_configuration]
+
+    def _renaming_columns(self, data):
+        data = self._rename_column(data, {"from_dt": "email_from_dt"})
+
+        data = self._rename_column(data, {"thru_dt": "email_thru_dt"})
+
+        data = self._rename_column(data, {"cat_cd_id": "email_cat_cd_id"})
+
+        return data
+
+    def _reformatting_dates(self, data):
+        data["email_from_dt"] = self._reformat_date(data["email_from_dt"], date_format="%d-%b-%Y %H:%M:%S")
+
+        data["email_from_dt"] = self._reformat_date(data["email_from_dt"], date_format="%d-%b-%Y %H:%M:%S")
+
+        return data
+
+    @classmethod
+    def _create_email_id_completeness(cls, preprocessed_data):
+        email_id_entity, measurement_methods_configuration = preprocessed_data
+
+        measurement_methods = MeasurementMethods.create_measurement_methods(
+            measurement_methods_configuration, "completeness", "contact"
+        )
+
+        email_id_completeness = measurement_methods.measure_completeness(email_id_entity)
+
+        return [email_id_completeness]
 
     def _pack(self, postprocessed_data):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
