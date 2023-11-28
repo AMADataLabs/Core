@@ -110,6 +110,12 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
 
         self._headers = {"Content-Type": "application/json"}
 
+        self._response_body = self._generate_response_body("Request Successful.")
+
+    @classmethod
+    def _generate_response_body(cls, message):
+        return {"message": message}
+
     @classmethod
     def _handle_response_on_bad_request(cls, response):
         converted_error_message = XMLToDictConverter.parse_xml_to_dict(XMLToDictConverter(), response.data)
