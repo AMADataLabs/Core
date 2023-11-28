@@ -68,7 +68,7 @@ class AddressesTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             preprocessed_data.ppd_party_ids,
             preprocessed_data.medical_education_numbers,
             left_on="me",
-            right_on="medical_education_numbers",
+            right_on="medical_education_number",
         ).drop(columns=["me"])
 
     @classmethod
@@ -128,11 +128,20 @@ class AddressCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin
 
         measurement_methods_configurations = self._excel_to_dataframe(measurement_methods_configurations)
 
+        return [address_entity, measurement_methods_configurations]
+
+    def _preprocess_data(self, input_data):
+        address_entity, measurement_method_configuration = self._all_columns_to_lower(input_data)
+
+        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
+
+        address_entity = self._strip_all_elements(address_entity)
+
         address_entity = self._renaming_columns(address_entity)
 
         address_entity = self._reformatting_dates(address_entity)
 
-        return [address_entity, measurement_methods_configurations]
+        return [address_entity, measurement_method_configuration]
 
     def _renaming_columns(self, data):
         data = self._rename_column(data, {"from_dt": "address_from_dt"})
@@ -147,13 +156,6 @@ class AddressCompleteness(Task, CSVReaderMixin, CSVWriterMixin, ExcelReaderMixin
         data["address_thru_dt"] = self._reformat_date(data["address_thru_dt"], date_format="%d-%b-%Y %H:%M:%S")
 
         return data
-
-    def _preprocess_data(self, input_data):
-        address_entity, measurement_method_configuration = self._all_columns_to_lower(input_data)
-
-        measurement_method_configuration = self._all_elements_to_lower(measurement_method_configuration)
-
-        return [address_entity, measurement_method_configuration]
 
     @classmethod
     def _create_address_completeness(cls, preprocessed_data):

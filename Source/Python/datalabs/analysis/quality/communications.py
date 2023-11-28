@@ -155,7 +155,7 @@ class CommunicationsTransformerTask(Task, CSVReaderMixin, CSVWriterMixin):
             ppd_party_ids,
             medical_education_numbers,
             left_on="me",
-            right_on="medical_education_numbers",
+            right_on="medical_education_number",
         ).drop(columns=["me"])
 
     @classmethod

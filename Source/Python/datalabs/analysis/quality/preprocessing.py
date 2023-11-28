@@ -8,6 +8,10 @@ class DataProcessingMixin:
         return data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
 
     @classmethod
+    def _strip_all_elements(cls, data):
+        return data.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+    @classmethod
     def _all_columns_to_lower(cls, data):
         return [dataset.rename(columns=lambda x: x.lower()) for dataset in data]
 
