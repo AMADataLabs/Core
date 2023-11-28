@@ -7,7 +7,7 @@ import urllib3
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
-from datalabs.access.vericre.api.common import format_element_as_list
+from datalabs.access.vericre.api.common import format_element_as_list, assert_internal_server_error
 from datalabs.access.vericre.api.header import PROFILE_HEADERS
 from datalabs.parameter import add_schema
 from datalabs.util.xml import XMLToDictConverter
@@ -74,8 +74,7 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
 
             raise ResourceNotFound(error_message)
 
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+        assert_internal_server_error(response)
 
         return response
 
@@ -93,8 +92,7 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
         if response.status == 404:
             raise ResourceNotFound("No profile monitor entity found.")
 
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+        assert_internal_server_error(response)
 
         return response
 
@@ -163,8 +161,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
         if response.status == 204:
             raise ResourceNotFound("No notifications found for this client ID.")
 
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+        assert_internal_server_error(response)
 
         return response
 
@@ -238,8 +235,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
         if response.status == 404:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+        assert_internal_server_error(response)
 
         return response
 
@@ -249,8 +245,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
         if response.status == 400:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+        assert_internal_server_error(response)
 
         return response
 
@@ -318,8 +313,7 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         if response.status == 204:
             raise ResourceNotFound("Did not find any physicians that are monitored.")
 
-        if response.status != 200:
-            raise InternalServerError(f"Internal Server error caused by: {response.reason}, status: {response.status}")
+        assert_internal_server_error(response)
 
         return response
 
