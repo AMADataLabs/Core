@@ -7,7 +7,7 @@ import urllib3
 
 from datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InternalServerError
 from datalabs.access.vericre.api.authentication import EProfilesAuthenticatingEndpointMixin
-from datalabs.access.vericre.api.common import format_element_as_list, assert_internal_server_error
+from datalabs.access.vericre.api.common import format_element_as_list, handle_exceptional_response
 from datalabs.access.vericre.api.header import PROFILE_HEADERS
 from datalabs.parameter import add_schema
 from datalabs.util.xml import XMLToDictConverter
@@ -24,7 +24,7 @@ class HttpClient:
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class MonitorProfileEndpointParameters:
+class ProfileMonitorEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -34,8 +34,8 @@ class MonitorProfileEndpointParameters:
     monitor_profile_url: str
 
 
-class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorProfileEndpointParameters
+class ProfileMonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = ProfileMonitorEndpointParameters
 
     def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
@@ -44,15 +44,15 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
         self._status = None
 
     def run(self):
-        LOGGER.debug("Parameters in MonitorProfileEndpointTask: %s", self._parameters)
+        LOGGER.debug("Parameters in ProfileMonitorEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        monitor_profile_response = self._profile_operation_by_method(self._parameters.method.upper())
+        monitor_profile_response = self._handle_operation_by_method(self._parameters.method.upper())
 
         self._generate_response(monitor_profile_response)
 
-    def _profile_operation_by_method(self, method):
+    def _handle_operation_by_method(self, method):
         monitor_profile_response = None
 
         if method == 'POST':
@@ -74,7 +74,7 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
 
             raise ResourceNotFound(error_message)
 
-        assert_internal_server_error(response)
+        handle_exceptional_response(response)
 
         return response
 
@@ -92,7 +92,7 @@ class MonitorProfileEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
         if response.status == 404:
             raise ResourceNotFound("No profile monitor entity found.")
 
-        assert_internal_server_error(response)
+        handle_exceptional_response(response)
 
         return response
 
@@ -161,7 +161,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
         if response.status == 204:
             raise ResourceNotFound("No notifications found for this client ID.")
 
-        assert_internal_server_error(response)
+        handle_exceptional_response(response)
 
         return response
 
@@ -211,11 +211,11 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
-        notification_response = self._notification_operation_by_method(self._parameters.method.upper())
+        notification_response = self._handle_operation_by_method(self._parameters.method.upper())
 
         self._generate_response(notification_response)
 
-    def _notification_operation_by_method(self, method):
+    def _handle_operation_by_method(self, method):
         if method == 'GET':
             update_notification_response = self._update_notification()
 
@@ -235,7 +235,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
         if response.status == 404:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
-        assert_internal_server_error(response)
+        handle_exceptional_response(response)
 
         return response
 
@@ -245,7 +245,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
         if response.status == 400:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
-        assert_internal_server_error(response)
+        handle_exceptional_response(response)
 
         return response
 
@@ -278,7 +278,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class MonitorProfilesEndpointParameters:
+class ProfilesMonitorEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -288,8 +288,8 @@ class MonitorProfilesEndpointParameters:
     monitor_profile_url: str
 
 
-class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorProfilesEndpointParameters
+class ProfilesMonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = ProfilesMonitorEndpointParameters
 
     def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
@@ -297,7 +297,7 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug("Parameters in MonitorProfilesEndpointTask: %s", self._parameters)
+        LOGGER.debug("Parameters in ProfilesMonitorEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
@@ -313,7 +313,7 @@ class MonitorProfilesEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         if response.status == 204:
             raise ResourceNotFound("Did not find any physicians that are monitored.")
 
-        assert_internal_server_error(response)
+        handle_exceptional_response(response)
 
         return response
 
