@@ -20,7 +20,7 @@ def person_completeness(get_new_data):
     else:
         data_file = connection.get_newest(path,'Person_Data')
     data = pd.read_csv(data_file, low_memory=False)
-    print(len(data))
+
     methods = measurement.get_methods(methods_df, 'COMPLETENESS','Person')
     person_completeness = measurement.measure_completeness(methods, data)
 
