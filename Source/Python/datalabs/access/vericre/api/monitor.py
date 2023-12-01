@@ -126,7 +126,7 @@ class ProfileMonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpoi
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class MonitorNotificationsEndpointParameters:
+class MonitorNotificationListEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -136,8 +136,8 @@ class MonitorNotificationsEndpointParameters:
     monitor_notification_url: str
 
 
-class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = MonitorNotificationsEndpointParameters
+class MonitorNotificationListEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = MonitorNotificationListEndpointParameters
 
     def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
@@ -145,7 +145,7 @@ class MonitorNotificationsEndpointTask(EProfilesAuthenticatingEndpointMixin, API
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug("Parameters in MonitorNotificationsEndpointTask: %s", self._parameters)
+        LOGGER.debug("Parameters in MonitorNotificationListEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 
@@ -278,7 +278,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class ProfilesMonitorEndpointParameters:
+class ProfilesMonitorListEndpointParameters:
     method: str
     path: dict
     query: dict
@@ -288,8 +288,8 @@ class ProfilesMonitorEndpointParameters:
     monitor_profile_url: str
 
 
-class ProfilesMonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
-    PARAMETER_CLASS = ProfilesMonitorEndpointParameters
+class ProfileMonitorListEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpointTask, HttpClient):
+    PARAMETER_CLASS = ProfilesMonitorListEndpointParameters
 
     def __init__(self, parameters: dict, data: Optional[List[bytes]] = None):
         super().__init__(parameters, data)
@@ -297,7 +297,7 @@ class ProfilesMonitorEndpointTask(EProfilesAuthenticatingEndpointMixin, APIEndpo
         self._headers = PROFILE_HEADERS.copy()
 
     def run(self):
-        LOGGER.debug("Parameters in ProfilesMonitorEndpointTask: %s", self._parameters)
+        LOGGER.debug("Parameters in ProfileMonitorListEndpointTask: %s", self._parameters)
 
         self._authenticate_to_eprofiles(self._parameters, self._headers)
 

@@ -1,17 +1,17 @@
 """ Release endpoint classes."""
-from dataclasses import dataclass, asdict
-from collections import defaultdict
+from   collections import defaultdict
+from   dataclasses import dataclass, asdict
 import json
 import logging
 import sys
 import uuid
 
-from datalabs.access.api.task import APIEndpointTask, APIEndpointException, ResourceNotFound, InvalidRequest
-from datalabs.access.aws import AWSClient
-from datalabs.access.orm import Database
-from datalabs.parameter import add_schema
-from datalabs.util.profile import run_time_logger
-from datalabs.access.vericre.api.option import OPTION_MAP, OPTION_VALUES_MAP
+from   datalabs.access.api.task import APIEndpointTask, APIEndpointException, ResourceNotFound, InvalidRequest
+from   datalabs.access.aws import AWSClient
+from   datalabs.access.orm import Database
+from   datalabs.access.vericre.api.option import OPTION_MAP, OPTION_VALUES_MAP
+from   datalabs.parameter import add_schema
+from   datalabs.util.profile import run_time_logger
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

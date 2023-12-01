@@ -4,7 +4,7 @@ import json
 import pytest
 import mock
 
-from datalabs.access.vericre.api.monitor import MonitorNotificationsEndpointTask, ProfilesMonitorEndpointTask
+from datalabs.access.vericre.api.monitor import MonitorNotificationListEndpointTask, ProfileMonitorListEndpointTask
 from test.datalabs.access.vericre.api import constants  # pylint: disable=wrong-import-order
 
 
@@ -14,10 +14,10 @@ def test_get_notifications(monitor_notifications_params, get_notification_respon
         "datalabs.access.vericre.api.authentication.EProfilesAuthenticatingEndpointMixin." "_authenticate_to_eprofiles",
         return_value="token",
     ), mock.patch(
-        "datalabs.access.vericre.api.monitor.MonitorNotificationsEndpointTask._request_notifications",
+        "datalabs.access.vericre.api.monitor.MonitorNotificationListEndpointTask._request_notifications",
         return_value=get_notification_response,
     ):
-        task = MonitorNotificationsEndpointTask(monitor_notifications_params)
+        task = MonitorNotificationListEndpointTask(monitor_notifications_params)
         task.run()
 
     expected_json = json.loads(constants.SAMPLE_NOTIFICATION_JSON)
@@ -32,10 +32,10 @@ def test_get_profile_monitors(monitor_profiles_params, get_profiles_response):
         "datalabs.access.vericre.api.authentication.EProfilesAuthenticatingEndpointMixin." "_authenticate_to_eprofiles",
         return_value="token",
     ), mock.patch(
-        "datalabs.access.vericre.api.monitor.ProfilesMonitorEndpointTask._get_profile_monitors",
+        "datalabs.access.vericre.api.monitor.ProfileMonitorListEndpointTask._get_profile_monitors",
         return_value=get_profiles_response,
     ):
-        task = ProfilesMonitorEndpointTask(monitor_profiles_params)
+        task = ProfileMonitorListEndpointTask(monitor_profiles_params)
         task.run()
 
     expected_json = json.loads(constants.SAMPLE_MONITOR_JSON)
