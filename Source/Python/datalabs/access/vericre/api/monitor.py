@@ -242,7 +242,7 @@ class MonitorNotificationEndpointTask(EProfilesAuthenticatingEndpointMixin, APIE
     def _delete_notification(self):
         response = self._request_delete_notification()
 
-        if response.status == 400:
+        if response.status == 404:
             raise ResourceNotFound("Notification not found for the provided notification ID.")
 
         handle_exceptional_response(response)
