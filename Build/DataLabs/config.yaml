@@ -1,0 +1,62 @@
+modspec:
+  - package: datalabs.access.api.task
+    include:
+      - api, APIEndpointTask, InvalidRequest, InternalServerError, ResourceNotFound
+  - package: datalabs.task
+    include:
+       - Task, TaskException, TaskWrapper
+  - package: datalabs.plugin
+    include:
+       - import_plugin
+  - package: datalabs.access.orm
+    include:
+       - Database
+  - package: datalabs.parameter
+    include:
+       - add_schema
+
+
+  - package: datalabs
+    include:
+      - awslambda
+      - etl
+      - feature
+      - parameter
+      - plugin
+      - task
+  - package: datalabs.access
+    include:
+      - sftp
+      - credentials
+      - database
+      - datastore
+      - environment
+      - aws
+  - package: datalabs.access.secret
+  - package: datalabs.access.parameter
+    include:
+      - system
+      - dynamodb
+  - package: datalabs.analysis
+  - package: datalabs.analysis.dbl
+  - package: datalabs.cache
+  - package: datalabs.etl
+  - package: datalabs.etl.s3
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.execute
+    include:
+    - awslambda
+    - local
+  - package: datalabs.etl.dag.masterfile
+    include:
+      - dbl_counts_report
+  - package: datalabs.etl.dag.notify
+  - package: datalabs.etl.dag.state
+    include:
+    - base
+    - dynamodb
+  - package: datalabs.etl.sftp
+  - package: datalabs.messaging
+    include:
+      - email_message
