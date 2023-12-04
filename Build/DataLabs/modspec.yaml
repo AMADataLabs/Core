@@ -1,16 +1,13 @@
 modspec:
   - package: datalabs.access.api.task
+  - package: datalabs
     include:
-      - api, APIEndpointTask, InvalidRequest, InternalServerError, ResourceNotFound
-  - package: datalabs.task
+      - parameter
+      - plugin
+      - task
+  - package: datalabs.access
     include:
-       - Task, TaskException, TaskWrapper
-  - package: datalabs.plugin
-    include:
-       - import_plugin
-  - package: datalabs.access.orm
-    include:
-       - Database
-  - package: datalabs.parameter
-    include:
-       - add_schema
+      - database
+      - datastore
+      - orm
+      - sqlalchemy
