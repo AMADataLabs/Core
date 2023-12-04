@@ -47,7 +47,7 @@ VERICRE_API:
         PROFILES:                   '/profile_api/profiles'
         
         # 1.1.0 Endpoints
-        MONITOR:                    '/profile_api/profiles/*/monitor'
+        MONITOR_PROFILE:            '/profile_api/profiles/*/monitor'
         MONITOR_NOTIFICATIONS:      '/profile_api/profiles/monitor/notifications'
         MONITOR_NOTIFICATION:       '/profile_api/profiles/monitor/notifications/*'
         MONITOR_PROFILES:           '/profile_api/profiles/monitor'
@@ -156,7 +156,7 @@ VERICRE_API:
         PROFILE_URL: ${PROFILE_URL}
         PDF_URL: ${PROFILE_PDF_URL}
 
-    MONITOR:
+    MONITOR_PROFILE:
         TASK_CLASS:  'datalabs.access.vericre.api.monitor.ProfileMonitorEndpointTask'
         CLIENT_ID: ${PROFILE_API_ID}
         CLIENT_SECRET: ${PROFILE_API_SECRET}
