@@ -3,7 +3,6 @@ from   dataclasses import dataclass
 import logging
 import psycopg2
 import re
-from psycopg2 import OperationalError, errors
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
 from   datalabs.model.cpt.api import Release
