@@ -1,8 +1,8 @@
 """ Release endpoint classes. """
 from   dataclasses import dataclass
 import logging
-import psycopg2
 import re
+import psycopg2
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
 from   datalabs.model.cpt.api import Release
@@ -53,8 +53,8 @@ class ReleasesEndpointTask(APIEndpointTask):
 
         try:
             self._response_body = self._generate_response_body(query.all())
-        except psycopg2.OperationalError as e:
-            masked_error_message = self._mask_host_details(str(e))
+        except psycopg2.OperationalError as operational_error:
+            masked_error_message = self._mask_host_details(str(operational_error))
             self._response_body = f"OperationalError: {masked_error_message}"
 
     def _set_parameter_defaults(self):
@@ -98,6 +98,6 @@ class ReleasesEndpointTask(APIEndpointTask):
         ]
 
     @classmethod
-    def _mask_host_details(self, error_message):
+    def _mask_host_details(cls, error_message):
         masked_message = re.sub(r'at "[^"]+" \(.*\), port \d+', 'at {masked_host}', error_message)
         return masked_message
