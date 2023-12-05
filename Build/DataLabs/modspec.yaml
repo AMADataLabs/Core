@@ -1,5 +1,5 @@
 modspec:
-  - package: datalabs.access.api.task
+  - package: datalabs.access.api
   - package: datalabs
     include:
       - parameter
