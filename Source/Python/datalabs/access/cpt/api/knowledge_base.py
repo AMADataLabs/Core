@@ -196,6 +196,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
     @classmethod
     def _generate_query_section(cls, search_parameters, keywords):
+
         query = dict(bool=cls._generate_bool_section(search_parameters, keywords))
 
         cls._add_fuzzy_section(query['bool']['must']['multi_match'])
@@ -210,7 +211,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
     def _generate_bool_section(cls, search_parameters, keywords):
         bool_section = {}
 
-        if keywords is not None:
+        if keywords is not None and len(keywords) > 0:
             bool_section["must"] = cls._generate_must_section(keywords)
 
         filters = cls._generate_filters(search_parameters)
@@ -226,13 +227,13 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         cpt_code_search = False
         LOGGER.debug("search_parameters.keywords:\n%s", search_parameters.keywords)
 
-        if len(search_parameters.keywords) == 1 and search_parameters.keywords[0].isdigit():
-            cpt_code_search = True
-            search_parameters.keywords[0] = f"*{search_parameters.keywords[0]}*"
+        if len(search_parameters.keywords) > 0:
+            if len(search_parameters.keywords) == 1 and search_parameters.keywords[0].isdigit():
+                cpt_code_search = True
+                search_parameters.keywords[0] = f"*{search_parameters.keywords[0]}*"
 
-        keywords = "|".join(search_parameters.keywords)
-
-        LOGGER.debug("Keywords to be searched are %s", keywords)
+            keywords = "|".join(search_parameters.keywords)
+            LOGGER.debug("Keywords to be searched are %s", keywords)
 
         return keywords, cpt_code_search
 
