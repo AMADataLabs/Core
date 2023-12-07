@@ -49,3 +49,10 @@ repos:
         language: system
         types: [python]
         args: ["pylint", "--extension-pkg-whitelist=pyodbc, numpy, math"]
+  - repo: local
+    hooks:
+      - id: make_test
+        name: run make test
+        entry: bash -c 'make test'
+        language: system
+        stages: [push]
