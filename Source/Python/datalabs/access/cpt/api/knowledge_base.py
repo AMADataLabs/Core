@@ -199,8 +199,6 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         query = dict(bool=cls._generate_bool_section(search_parameters, keywords))
 
-        cls._add_fuzzy_section(query['bool']['must']['multi_match'])
-
         return query
 
     @classmethod
@@ -213,6 +211,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if keywords is not None and len(keywords) > 0:
             bool_section["must"] = cls._generate_must_section(keywords)
+            cls._add_fuzzy_section(bool_section['must']['multi_match'])
 
         filters = cls._generate_filters(search_parameters)
 
