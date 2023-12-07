@@ -29,7 +29,9 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
+        stages: [commit]
       - id: check-added-large-files
+        stages: [commit]
         args: ["--maxkb=10240"]
       - id: mixed-line-ending
         args: ["--fix=lf"]
