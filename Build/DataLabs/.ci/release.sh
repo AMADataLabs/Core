@@ -9,9 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.1.2
-        [itg]=1.1.2
-        [prd]=1.1.2
+        [tst]=2.0.0
+        [prd]=dev
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -19,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-vericre-profile-api"
-    export RELEASE_DESCRIPTION="VeriCre Profiles API implementations"
+    export RELEASE_NAME="datalabs-core"
+    export RELEASE_DESCRIPTION="Datalabs Core"
 }
 
 
