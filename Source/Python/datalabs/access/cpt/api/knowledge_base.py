@@ -301,7 +301,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         range_filter = None
 
         if updated_on_range_section:
-            range_filter = [{"range": updated_on_range_section}]
+            range_filter = [dict(range=dict(updated_on=dict(updated_on_range_section)))]
 
         return range_filter
 
@@ -310,10 +310,10 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         updated_date_section = {}
 
         if search_parameters.updated_after_date is not None and len(search_parameters.updated_after_date) > 0:
-            updated_date_section = {"gte": search_parameters.updated_after_date}
+            updated_date_section["gte"]: search_parameters.updated_after_date[0]
 
         if search_parameters.updated_before_date is not None and len(search_parameters.updated_before_date) > 0:
-            updated_date_section["lte"] = search_parameters.updated_before_date if updated_date_section else None
+            updated_date_section["lte"] = search_parameters.updated_before_date[0]
 
         return updated_date_section
 
