@@ -310,7 +310,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         updated_date_section = {}
 
         if search_parameters.updated_after_date is not None and len(search_parameters.updated_after_date) > 0:
-            updated_date_section["gte"]: search_parameters.updated_after_date[0]
+            updated_date_section["gte"] = search_parameters.updated_after_date[0]
 
         if search_parameters.updated_before_date is not None and len(search_parameters.updated_before_date) > 0:
             updated_date_section["lte"] = search_parameters.updated_before_date[0]
