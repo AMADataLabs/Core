@@ -39,6 +39,7 @@ class MeasurementMethods:
     @classmethod
     def _reformat_values(cls, values):
         values = values.strip()
+        values = values.upper()
         reformatted_values = [values]
 
         if " " in values:
@@ -73,7 +74,7 @@ class MeasurementMethods:
             column_completeness["measure"] = rule.measure
             column_completeness["value"] = measured
             column_completeness["raw_value"] = list(entities[rule.name].loc[column_completeness.index])
-
+            column_completeness["data_element"] = rule.data_element
         return column_completeness
 
     @classmethod
