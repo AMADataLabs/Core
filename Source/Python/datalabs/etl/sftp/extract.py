@@ -1,6 +1,7 @@
 """ Local file system extractors """
 from   dataclasses import dataclass
 import io
+import itertools
 import logging
 import os
 
@@ -21,10 +22,10 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class SFTPFileExtractorParameters:
     base_path: str
-    files: str
     host: str
     username: str
     password: str
+    files: str = None
     execution_time: str = None
     include_names: str = None
     execution_offset: str = None
@@ -45,8 +46,16 @@ class SFTPFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorT
 
     def _get_files(self):
         base_path = self._parameters.base_path
+        files = []
 
-        return [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
+        if self._parameters.files is not None:
+            files = self._parameters.files.split(',')
+        elif self._data is not None and len(self._data) > 0:
+            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._data)))
+        else:
+            raise ValueError('Either the "files" or "data" parameter must contain the list of files to extract.')
+
+        return [os.path.join(base_path, file.strip()) for file in files]
 
     def _resolve_wildcard(self, file):
         resolved_files = [file]
@@ -74,6 +83,19 @@ class SFTPFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorT
         LOGGER.info('Extracted %d byte file %s.', len(data), file)
 
         return data
+
+    @classmethod
+    def _parse_file_lists(cls, data, ignore_header=False):
+        for raw_file_list in data:
+            file_list = [file.decode().strip() for file in raw_file_list.split(b'\n')]
+
+            if '' in file_list:
+                file_list.remove('')
+
+            if ignore_header:
+                file_list = file_list[1:]
+
+            yield file_list
 
 
 # pylint: disable=too-many-ancestors
