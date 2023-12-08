@@ -52,10 +52,11 @@ repos:
         language: system
         types: [python]
         args: ["pylint", "--extension-pkg-whitelist=pyodbc, numpy, math"]
+        stages: [push]
   - repo: local
     hooks:
       - id: make_test
         name: run make test
-        entry: bash -c 'make test'
+        entry: ./make_test
         language: system
         stages: [push]
