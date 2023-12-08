@@ -256,7 +256,7 @@ install_terraform() {
     echo "### Installing Terraform ###"
     curl -L https://raw.githubusercontent.com/warrensbox/terraform-switcher/release/install.sh | bash
 
-    tfswitch 0.13.7
+    tfswitch 1.5.3
 }
 
 
