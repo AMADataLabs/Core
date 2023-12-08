@@ -101,7 +101,6 @@ LICENSING_SYNC:
 
             WHERE
                 T1.description NOT Like '%AFFINITY%' and
-                T1.description NOT Like '%AFFINITY%' and
                 T1.licensee <> '%ACME%' and
                 T1.account_exec Not In ('David Young', 'Brian Eaggleston') and
                 T1.properties like '%CPT%'
@@ -353,7 +352,6 @@ LICENSING_SYNC:
                                )                    Users
                     ON T1.id = Users.ContractID AND [Row] = 1
             WHERE
-                T1.description NOT LIKE '%AFFINITY%' AND
                 T1.description NOT LIKE '%AFFINITY%' AND
                 T1.licensee <> '%ACME%' AND
                 T1.account_exec NOT IN ('David Young', 'Brian Eaggleston') AND
