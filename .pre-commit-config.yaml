@@ -55,8 +55,8 @@ repos:
         stages: [push]
   - repo: local
     hooks:
-      - id: make_test
-        name: run make test
-        entry: ./make_test
+      - id: pytest
+        name: pytest
+        entry: ./Script/run_unit_tests.sh
         language: system
         stages: [push]
