@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Set up variables
 CWD=$(realpath .)
 VIRTUAL_ENV=${CWD}/Environment/Master
 RUN="python3 ${CWD}/Script/run.py"
