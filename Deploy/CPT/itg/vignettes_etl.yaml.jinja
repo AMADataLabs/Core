@@ -55,6 +55,9 @@ CPT_VIGNETTES_ETL:
         CACHE_OUTPUT_FILES: 'clinical_vignettes.txt,comprehensive_codes.txt,hcpcs_codes.txt,adminstrative_codes.txt'
 
     CREATE_VIGNETTES_MAPPINGS:
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+
         CACHE_INPUT_FILES: 'clinical_vignettes.txt,comprehensive_codes.txt,hcpcs_codes.txt,adminstrative_codes.txt'
         CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
 
