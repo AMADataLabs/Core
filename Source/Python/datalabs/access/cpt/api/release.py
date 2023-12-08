@@ -1,8 +1,9 @@
 """ Release endpoint classes. """
 from   dataclasses import dataclass
 import logging
+import psycopg2
 
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
+from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, InternalServerError
 from   datalabs.model.cpt.api import Release
 from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
@@ -35,8 +36,12 @@ class ReleasesEndpointTask(APIEndpointTask):
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        with Database.from_parameters(self._parameters) as database:
-            self._run(database)
+        try:
+            with Database.from_parameters(self._parameters) as database:
+                self._run(database)
+        except psycopg2.OperationalError as operational_error:
+            LOGGER.exception('Unable to connect to the database.')
+            raise InternalServerError('Unable to connect to the database.') from operational_error
 
     def _run(self, database):
         self._set_parameter_defaults()

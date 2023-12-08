@@ -273,3 +273,163 @@ LICENSING_SYNC:
         DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
         MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.Organization
         IGNORE_COLUMNS: id
+
+    EXTRACT_LICENSEE_ID:
+        DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
+        DATABASE_HOST: ${VISTEX_DB_HOST}
+        DATABASE_NAME: ${VISTEX_DB_NAME}
+        DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
+        DATABASE_PORT: ${VISTEX_DB_PORT}
+        DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
+        SQL: "
+            SELECT DISTINCT
+                LTRIM(RTRIM(T1.licensee))   AS name,
+                T3.id                       AS prod_licensee_id,
+                T3.id                       AS stag_licensee_id,
+                T1.id                       AS [ContractID],
+                T1.account_exec,
+                MILESTONE.milestone_date    AS [Effective_Date],
+                CONVERT(DATE,T1.start_date) AS [Contract_Start_Date],
+                CONVERT(DATE,T1.expiration_date)   AS [Contract_Expiration_Date],
+                CONVERT(DATE,T1.sell_off_end_date) AS [Contract_Sell_Off_Date],
+                T1.contract_status,
+                T1.create_date              AS [Contract_Created_On],
+                CASE
+                WHEN T1.description LIKE 'Frictionless%' THEN T1.description
+                WHEN T1.description LIKE 'Internal%' THEN 'Internal Use License Agreement'
+                WHEN T1.description LIKE 'Dist%' THEN 'CPT Distribution License Agreement'
+                ELSE T1.description
+                End                         AS [Contract Type],
+                CASE
+                WHEN T1.description LIKE 'Development License' THEN 0
+                ELSE 1
+                END                         AS [category_id],
+                6                           AS [type_id],
+                T4.CITY                     AS [City],
+                ST.description              AS [State],
+                T4.POSTCODE                 AS [Zip],
+                CO.description              AS [Country],
+                Users.Username              ,
+                CONCAT_WS(' ', Users.FirstName, Users.LastName) AS main_contact,
+                Users.Email
+            FROM
+                v_cm_contracts                      T1
+                    JOIN cm_contract                T2
+                    ON T1.contract_key=t2.contract_key
+                    JOIN V_MP_COMPANIES             T3
+                    ON t1.licensee_company_key = T3.COMPANY_ID
+                    LEFT JOIN (SELECT
+                                contract_key,
+                                description,
+                                milestone_date
+                               FROM
+                                cm_contract_milestone
+                               WHERE
+                                description LIKE 'Effective Date'
+                               )                    MILESTONE
+                    ON t1.contract_key = MILESTONE.contract_key
+                    LEFT JOIN MP_ADDRESS            T4
+                    ON T3.COMPANY_ID = T4.COMPANY_ID-- and T4.is_primary_office = 1
+                    LEFT JOIN su_type_code          [ST]
+                    ON T4.state_code = [ST].type_code_key
+                    LEFT JOIN su_type_code          [CO]
+                    ON T4.country_code = [CO].type_code_key
+                    LEFT JOIN (SELECT
+                                Usr.UserID,
+                                row_number() over (
+                                    PARTITION BY UsrRole.ContractID
+                                    ORDER BY
+                                    Usr.UserID ASC)
+                                AS [ROW] ,
+                                Usr.username,
+                                Usr.FirstName,
+                                Usr.LastName,
+                                Usr.Email,
+                                UsrRole.ContractID
+                               FROM
+                               AMA_LicensePortal.dbo.Users Usr
+                               JOIN AMA_LicensePortal.dbo.UserRoles UsrRole
+                               ON Usr.UserID = UsrRole.UserID AND UsrRole.ContractAdmin = 1
+                               )                    Users
+                    ON T1.id = Users.ContractID AND [Row] = 1
+            WHERE
+                T1.description NOT LIKE '%AFFINITY%' AND
+                T1.description NOT LIKE '%AFFINITY%' AND
+                T1.licensee <> '%ACME%' AND
+                T1.account_exec NOT IN ('David Young', 'Brian Eaggleston') AND
+                T1.properties LIKE '%CPT%'
+            ORDER BY name ASC OFFSET {index} ROWS FETCH NEXT {count} ROWS ONLY;
+        "
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: organization_licensee_id.csv
+
+    EXTRACT_EXISTING_ORGANIZATIONS:
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${PLATFORM_DB_NAME}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+
+        SQL: "
+            SELECT 
+                id,
+                name,
+                type_id,
+                category_id,
+                addr1,
+                addr2,
+                addr3,
+                city,
+                state,
+                zip,
+                phone,
+                industry,
+                about,
+                main_contact,
+                org_size,
+                country,
+                source_id,
+                default_org,
+                created_on,
+                updated_on,
+                row_id,
+                prod_licensee_id,
+                stag_licensee_id
+            FROM
+                Organization
+            ORDER BY name ASC LIMIT {index}, {count}
+        "
+
+        CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: existing_organizations.csv
+
+    MERGE_ORGANIZATIONS:
+        CACHE_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_CLASS: ${S3_CACHE_CLASS}
+
+        CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+        CACHE_INPUT_FILES: existing_organizations.csv,organization_licensee_id.csv
+
+        CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_OUTPUT_FILES: merged_organizations.csv
+
+    LOAD_LICENSEE_ID:
+        CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+        CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+        CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+        CACHE_INPUT_FILES: merged_organizations.csv
+
+        DATABASE_BACKEND: ${PLATFORM_DB_BACKEND}
+        DATABASE_HOST: ${PLATFORM_DB_HOST}
+        DATABASE_NAME: ${PLATFORM_DB_NAME}
+        DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+        DATABASE_PORT: ${PLATFORM_DB_PORT}
+        DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+        MODEL_CLASSES: datalabs.model.intelligent_platform.licensing.UserManagementOrganization
+        IGNORE_COLUMNS: id

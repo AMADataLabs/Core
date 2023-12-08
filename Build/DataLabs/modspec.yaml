@@ -1,0 +1,13 @@
+modspec:
+  - package: datalabs.access.api
+  - package: datalabs
+    include:
+      - parameter
+      - plugin
+      - task
+  - package: datalabs.access
+    include:
+      - database
+      - datastore
+      - orm
+      - sqlalchemy
