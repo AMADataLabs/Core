@@ -38,7 +38,7 @@ def test_download_files_for_profile(profile_documents_event, empty_document_quer
     task = ProfileDocumentsEndpointTask(profile_documents_event)
 
     with pytest.raises(ResourceNotFound) as except_info:
-        task._download_files_for_profile(empty_document_query_result, task._parameters.path.get("entityId"), "")
+        task._download_files_for_profile(empty_document_query_result, "")
 
     assert except_info.type == ResourceNotFound
     assert str(except_info.value) == "No documents where found in VeriCre for the given entity ID."
