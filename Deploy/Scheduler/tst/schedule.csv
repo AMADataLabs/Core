@@ -2,6 +2,7 @@ dag,schedule
 ADDRESS_FLAGGING_REPORT,"0 13 * * tue,thu"
 ADDRESS_LOAD_COMPILER,"0 13 * * mon,wed,fri"
 CERNER_REPORT,"0 13 * * tue,thu"
+CPT_VIGNETTES_ETL, 0 0 1 1 *
 DAG_REPORT,0 14 * * sun-fri
 DBL,"14 0 * * *"
 DEVELOPER_EMAILS,"0 0 * * mon,wed,fri"

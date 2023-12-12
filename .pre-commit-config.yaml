@@ -1,5 +1,6 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+default_stages: [commit]
 repos:
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 23.9.1
@@ -28,7 +29,9 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
+        stages: [commit]
       - id: check-added-large-files
+        stages: [commit]
         args: ["--maxkb=10240"]
       - id: mixed-line-ending
         args: ["--fix=lf"]
@@ -49,3 +52,11 @@ repos:
         language: system
         types: [python]
         args: ["pylint", "--extension-pkg-whitelist=pyodbc, numpy, math"]
+        stages: [push]
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: ./Script/run_unit_tests.sh
+        language: system
+        stages: [push]
