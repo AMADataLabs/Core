@@ -1,11 +1,11 @@
 """ Release endpoint classes."""
-from dataclasses import dataclass
+from   dataclasses import dataclass
 import io
 import logging
 import os
 import shutil
 import tempfile
-from typing import Optional
+from   typing import Optional
 import urllib.parse
 import zipfile
 
@@ -61,10 +61,10 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
 
         query_result = self._convert_query_result_to_list(query)
 
-        with tempfile.TemporaryDirectory() as directory:
-            self._download_files_for_profile(query_result, entity_id, directory)
+        with tempfile.TemporaryDirectory(entity_id) as directory:
+            self._download_files_for_profile(query_result, directory)
 
-            zip_file_in_bytes = self._zip_downloaded_files(entity_id, directory)
+            zip_file_in_bytes = self._zip_downloaded_files(directory)
 
         current_date_time = get_current_datetime()
 
@@ -125,23 +125,22 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
         query_result = [dict(row) for row in query.fetchall()]
         return query_result
 
-    def _download_files_for_profile(self, query_result, entity_id, directory):
+    def _download_files_for_profile(self, query_result, directory):
         if len(query_result) == 0:
             raise ResourceNotFound("No documents where found in VeriCre for the given entity ID.")
 
         for file in query_result:
-            self._verify_and_get_files_from_s3(entity_id, file, directory)
+            self._verify_and_get_files_from_s3(file, directory)
 
-    def _zip_downloaded_files(self, entity_id, directory):
-        folder_to_zip = os.path.join(directory, entity_id)
+    def _zip_downloaded_files(self, directory):
         zip_file_buffer = io.BytesIO()
 
         with zipfile.ZipFile(zip_file_buffer, "w") as zipper:
-            for root, dirs, files in os.walk(folder_to_zip):
+            for root, dirs, files in os.walk(directory):
                 LOGGER.info("root: %s, dir length: %s, files size: %s", root, len(dirs), len(files))
                 self._write_files_in_buffer(zipper, root, files)
 
-        self._delete_folder_for_downloaded_files(folder_to_zip)
+        self._delete_folder_for_downloaded_files(directory)
 
         return zip_file_buffer.getvalue()
 
@@ -153,9 +152,9 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             "Content-Disposition": f"attachment; filename={entity_id}_documents_{current_date_time}.zip",
         }
 
-    def _verify_and_get_files_from_s3(self, entity_id, file, directory):
+    def _verify_and_get_files_from_s3(self, file, directory):
         if not isinstance(file["document_name"], type(None)):
-            self._get_files_from_s3(entity_id, file, directory)
+            self._get_files_from_s3(file, directory)
 
     @classmethod
     def _write_files_in_buffer(cls, zipper, root, files):
@@ -166,7 +165,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
     def _delete_folder_for_downloaded_files(cls, folder_path):
         shutil.rmtree(folder_path)
 
-    def _get_files_from_s3(self, entity_id, file, directory):
+    def _get_files_from_s3(self, file, directory):
         document_name = file["document_name"]
         encoded_document_name = self._encode_document_name(file)
         document_key = f"{file['document_path']}/{encoded_document_name}"
@@ -175,7 +174,7 @@ class ProfileDocumentsEndpointTask(APIEndpointTask):
             if file["document_identifier"] != "Profile Avatar"
             else f'Avatar.{document_name.split(".")[-1]}'
         )
-        download_path = os.path.join(directory, entity_id, download_file_name)
+        download_path = os.path.join(directory, download_file_name)
 
         try:
             with AWSClient("s3") as aws_s3:

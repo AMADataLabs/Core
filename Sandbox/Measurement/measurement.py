@@ -5,6 +5,7 @@ from datetime import datetime
 
 @dataclass
 class MeasurementParameters:
+    key: str
     name: str
     data_type: str
     location: str
@@ -29,7 +30,8 @@ def get_methods(methods, measure, datatype):
             values = row.VALUE.split(' ')
         else:
             values = [row.VALUE]
-        measure_methods[row.COLUMN_NAME] = MeasurementParameters(row.DATA_ELEMENT,
+        measure_methods[row.KEY] = MeasurementParameters(row.KEY,
+                                                                 row.DATA_ELEMENT,
                                                                 row.DATA_TYPE,
                                                                 row.DATABASE_LOCATION,
                                                                 row.COLUMN_NAME,
@@ -62,6 +64,48 @@ def fill_column(data, measurement_parameters):
     data[measurement_parameters.element] = [str(x).replace('.0', '') for x in data[measurement_parameters.element]]
     fill = ~(data[measurement_parameters.element].isin(measurement_parameters.value))&~(data[measurement_parameters.element].isna())
     return fill
+
+def length_column(data, measurement_parameters):
+    if type(measurement_parameters.value) is list:
+        measurement_parameters.value = measurement_parameters.value[0]
+    if measurement_parameters.is_not:
+        length = [len(str(x)) != int(measurement_parameters.value) for x in data[measurement_parameters.element]]
+    else:
+        length = [len(str(x)) == int(measurement_parameters.value) for x in data[measurement_parameters.element]]
+    return length
+
+def link_column(data, measurement_parameters, folder):
+    filename = f'{folder}{measurement_parameters.value[0]}'
+    with open(filename) as f:
+        valid_list = f.read().splitlines()
+    link = [str(x).replace('.0','') in valid_list for x in data[measurement_parameters.element]]
+    return link
+
+def invalid_characters_column(data, measurement_parameters):
+    index_list = []
+    for character in measurement_parameters.value:
+        index_list+=list(data[[character in str(x) for x in data[measurement_parameters.element]]].index)
+    has_bad_characters = data.index.isin(index_list)
+    no_bad_characters = list(~has_bad_characters)
+    return no_bad_characters
+
+def valid_list_column(data, measurement_parameters):
+    valid = [str(x).replace('.0','') in measurement_parameters.value for x in data[measurement_parameters.element]]
+    return valid
+
+def datatype_column(data, measurement_parameters):
+    if type(measurement_parameters.value) is list:
+        measurement_parameters.value = measurement_parameters.value[0]
+    if measurement_parameters.value == 'datetime':
+        valid_type = [type(x)==datetime for x in data[measurement_parameters.element]]
+    return valid_type
+
+def part_equal_value_column(data, measurement_parameters):
+    index_list = []
+    for part in measurement_parameters.value:
+        index_list+=list(data[[part in x for x in data[measurement_parameters.element]]].index)
+    valid_parts = data.index.isin(index_list)
+    return valid_parts
 
 #in progress
 def conditional(row_dict, measurement_parameters):
@@ -153,6 +197,25 @@ def which_method(method_parameters, raw_value):
         return datatype(raw_value, method_parameters)
     elif method == 'newer_date':
         return newer_date(raw_value, method_parameters)
+    
+def which_method_column(data, measurement_parameters, folder):
+    method = measurement_parameters.method
+    if method == 'fill':
+        return fill_column(data, measurement_parameters)
+    elif method == 'length':
+        return length_column(data, measurement_parameters)
+    elif method == 'invalid_characters':
+        return invalid_characters_column(data, measurement_parameters)
+    elif method == 'link':
+        return link_column(data, measurement_parameters, folder)
+    elif method == 'part_equal_value':
+        return part_equal_value_column(data, measurement_parameters)
+    elif method == 'datatype':
+        return datatype_column(data, measurement_parameters)
+    elif method == 'newer_date':
+        return newer_date(data, measurement_parameters)
+    elif method == 'valid_list':
+        return valid_list_column(data, measurement_parameters)
 
 def measure_row(row_dict, methods_df, measure):
     methods = get_methods(methods_df, measure)
@@ -187,15 +250,17 @@ def measure_completeness(methods, data):
         else:
             new_df = data[['ME']].copy()
         measured = fill_column(data, methods[key])
-        new_df['ELEMENT'] = key
+        new_df['COLUMN'] = methods[key].element
         new_df['MEASURE'] = methods[key].measure
         new_df['VALUE'] = measured
-        new_df['RAW_VALUE'] = list(data[key])
+        new_df['RAW_VALUE'] = list(data[methods[key].element])
+        new_df['ELEMENT'] = methods[key].name
+        new_df['KEY'] = key
         measure_df = pd.concat([measure_df, new_df])
 
     return measure_df
 
-def measure_validity(methods, data):
+def measure_validity(methods, data, folder):
     measure_df = pd.DataFrame()
     for key in methods.keys():
         if methods[key].condition_indicator:
@@ -205,13 +270,14 @@ def measure_validity(methods, data):
                 new_df = data[data[methods[key].condition_column].isin(methods[key].condition_value)][['ME']].copy()
         else:
             new_df = data[['ME']].copy()
-        measured = fill_column(data, methods[key])
-
-        
-        new_df['ELEMENT'] = key
+        new_data = data[data.ME.isin(new_df.ME)]
+        measured = which_method_column(new_data, methods[key], folder)
+        new_df['COLUMN'] = methods[key].element
         new_df['MEASURE'] = methods[key].measure
         new_df['VALUE'] = measured
-        new_df['RAW_VALUE'] = list(data[key])
+        new_df['RAW_VALUE'] = list(new_data[methods[key].element])
+        new_df['ELEMENT'] = methods[key].name
+        new_df['KEY'] = key
         measure_df = pd.concat([measure_df, new_df])
 
     return measure_df
