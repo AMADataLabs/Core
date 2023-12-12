@@ -1,0 +1,17 @@
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "ama ecr policy",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::194221139997:role/DataLake-tst-webapp-task-role",
+          "arn:aws:iam::194221139997:role/ama-ecs-task-deployment",
+          "arn:aws:iam::394406051370:role/ecrdeploymentrole"
+        ]
+      },
+      "Action": ["cloudtrail:LookupEvents", "ecr:*"]
+    }
+  ]
+}
