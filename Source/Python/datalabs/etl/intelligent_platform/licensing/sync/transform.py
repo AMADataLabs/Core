@@ -57,3 +57,25 @@ class ArticlesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         articles.drop(columns="lower_name", inplace=True)
 
         return [self._dataframe_to_csv(articles)]
+
+
+@add_schema
+@dataclass
+class UserManagementOrganizationsTransformerParameters:
+    execution_time: str = None
+
+
+class UserManagementOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = UserManagementOrganizationsTransformerParameters
+
+    def run(self):
+        merged_organizations, portal_only_organizations \
+            = [self._csv_to_dataframe(data) for data in self._data]
+
+        organizations = merged_organizations.merge(portal_only_organizations, how="inner", on="name")
+
+        #organizations = organizations[list(ORGANIZATION_COLUMNS.keys())].rename(columns=ORGANIZATION_COLUMNS)
+
+        organizations = organizations.drop_duplicates()
+
+        return [self._dataframe_to_csv(organizations)]
