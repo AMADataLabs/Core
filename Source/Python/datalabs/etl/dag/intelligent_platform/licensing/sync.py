@@ -14,13 +14,14 @@ class DAG(dag.DAG):
     EXTRACT_ACTIVE_ARTICLES: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
     EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
     EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
-    # EXTRACT_API_CONTRACTS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
-    # EXTRACT_CONTRACT_APPROVED_CONTENT: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
-    # EXTRACT_CONTRACT_DENIED_CONTENT: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
     EXTRACT_LICENSED_ORGANIZATIONS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
     LOAD_ACTIVE_ARTICLES_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
     LOAD_ORGANIZATIONS_TABLE: "datalabs.etl.orm.load.ORMLoaderTask"
-
+    EXTRACT_LICENSEE_ID: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
+    EXTRACT_EXISTING_ORGANIZATIONS: "datalabs.etl.sql.sqlalchemy.extract.SQLAlchemyExtractorTask"
+    MERGE_ORGANIZATIONS: \
+        "datalabs.etl.intelligent_platform.licensing.sync.transform.UserManagementOrganizationsTransformerTask"
+    LOAD_LICENSEE_ID: "datalabs.etl.orm.load.ORMLoaderTask"
 
 # pylint: disable=pointless-statement
 DAG.EXTRACT_ACTIVE_ARTICLES >> DAG.CREATE_ACTIVE_ARTICLES_TABLE >> DAG.LOAD_ACTIVE_ARTICLES_TABLE

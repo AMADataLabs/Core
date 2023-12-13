@@ -79,4 +79,5 @@ class UserManagementOrganization(Base):
     created_on = sa.Column(sa.String, nullable=True)
     updated_on = sa.Column(sa.String, nullable=True)
     row_id = sa.Column(sa.String, nullable=True)
-    licensee_id = sa.Column(sa.String, nullable=True)
+    prod_licensee_id = sa.Column(sa.String, nullable=True)
+    stag_licensee_id = sa.Column(sa.String, nullable=True)
