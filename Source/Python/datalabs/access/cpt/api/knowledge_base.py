@@ -30,6 +30,7 @@ class SearchParameters:
     subsections: list
     updated_after_date: str
     updated_before_date: str
+    exact_match: bool
 
 
 # pylint: disable=too-many-instance-attributes
@@ -96,6 +97,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
         subsections = parameters.get("subsection", [])
         updated_after_date = parameters.get("updated_after_date")
         updated_before_date = parameters.get("updated_before_date")
+        exact_match = parameters.get("exact_match")
 
         if max_results < 1:
             raise InvalidRequest("Results must be greater than 0.")
@@ -108,6 +110,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
             subsections,
             updated_after_date,
             updated_before_date,
+            exact_match
         )
 
     @classmethod
@@ -149,7 +152,7 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if response is not None and response.get("hits", {}).get("total", {}).get("value", 0) > 0:
             results["items"] = [cls._generate_search_result(hit) for hit in response["hits"]["hits"]]
-            results["total_records"] = len(results["items"])
+            results["total_records"] = response.get("hits", {}).get("total", {}).get("value", 0)
 
         return results
 
@@ -211,7 +214,8 @@ class MapSearchEndpointTask(KnowledgeBaseEndpointTask):
 
         if keywords is not None and len(keywords) > 0:
             bool_section["must"] = cls._generate_must_section(keywords)
-            cls._add_fuzzy_section(bool_section['must']['multi_match'])
+            if not search_parameters.exact_match:
+                cls._add_fuzzy_section(bool_section['must']['multi_match'])
 
         filters = cls._generate_filters(search_parameters)
 
